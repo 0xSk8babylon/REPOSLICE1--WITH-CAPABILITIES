@@ -17,3 +17,5 @@
 - Added Phase 2E provenance/source-lineage tables, read endpoints, and seeded examples for source documents, data provenance, and internal rule provenance.
 - Connected provenance summaries into product library records, advisor issue displays, transient takeoff displays, and AI grounding context.
 - Documented the difference between verification status and trust badges, while keeping placeholder and derived states explicit.
+- Replaced placeholder-only scenario comparison output with deterministic comparison summaries that incorporate linked design completeness, pathway signals, trust warnings, and source-lineage summaries.
+- Added a repo-level doctrine layer under `docs/philosophy/` and `docs/adr/` so future sessions can restore product philosophy, non-goals, trust posture, UX principles, and durable architecture decisions before making changes.

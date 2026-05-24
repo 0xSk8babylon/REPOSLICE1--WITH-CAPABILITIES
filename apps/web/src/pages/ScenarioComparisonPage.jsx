@@ -110,9 +110,12 @@ export function ScenarioComparisonPage() {
   const homeQuery = useApiQuery(`scenario-home-${refreshKey}`, api.getHome);
   const scenariosQuery = useApiQuery(`scenarios-${refreshKey}`, api.getScenarios);
   const designsQuery = useApiQuery(`scenario-designs-${refreshKey}`, api.getDesigns);
+  const comparisonQuery = useApiQuery(`scenario-comparison-${refreshKey}`, api.compareScenarios);
   const scenarios = scenariosQuery.data || [];
   const designs = designsQuery.data || [];
   const home = homeQuery.data;
+  const comparison = comparisonQuery.data;
+  const comparisonScenarios = comparison?.scenarios || [];
 
   return (
     <>
@@ -120,11 +123,11 @@ export function ScenarioComparisonPage() {
         title="Scenario Comparison"
         description="Scenario comparison should help users evaluate tradeoffs, not just rankings."
       >
-        {homeQuery.loading || scenariosQuery.loading || designsQuery.loading ? <LoadingState label="Loading scenarios..." /> : null}
-        {homeQuery.error || scenariosQuery.error || designsQuery.error ? (
-          <ErrorState error={homeQuery.error || scenariosQuery.error || designsQuery.error} label="Unable to load scenarios." />
+        {homeQuery.loading || scenariosQuery.loading || designsQuery.loading || comparisonQuery.loading ? <LoadingState label="Loading scenarios..." /> : null}
+        {homeQuery.error || scenariosQuery.error || designsQuery.error || comparisonQuery.error ? (
+          <ErrorState error={homeQuery.error || scenariosQuery.error || designsQuery.error || comparisonQuery.error} label="Unable to load scenarios." />
         ) : null}
-        {!homeQuery.loading && !scenariosQuery.loading && !designsQuery.loading && home ? (
+        {!homeQuery.loading && !scenariosQuery.loading && !designsQuery.loading && !comparisonQuery.loading && home ? (
           <div className="stack-grid">
             <ScenarioEditor homeId={home.id} designs={designs} onSaved={() => setRefreshKey((current) => current + 1)} isNew />
             {scenarios.map((scenario) => (
@@ -132,19 +135,74 @@ export function ScenarioComparisonPage() {
             ))}
           </div>
         ) : null}
-        {!homeQuery.loading && !scenariosQuery.loading && !designsQuery.loading && !home ? (
+        {!homeQuery.loading && !scenariosQuery.loading && !designsQuery.loading && !comparisonQuery.loading && !home ? (
           <EmptyState label="No home profile is available for scenarios yet." />
         ) : null}
       </PageSection>
 
-      {!homeQuery.loading && !scenariosQuery.loading && !designsQuery.loading && scenarios.length ? (
+      {!homeQuery.loading && !scenariosQuery.loading && !designsQuery.loading && !comparisonQuery.loading && comparison ? (
+        <PageSection
+          title="Comparison Summary"
+          description={comparison.comparison_note}
+        >
+          <div className="page-section">
+            <div className="score-grid">
+              <ScoreCard label="Scenario count" value={comparison.summary?.scenario_count ?? 0} />
+              <ScoreCard label="Avg. placeholder cost" value={comparison.summary?.average_upfront_cost_placeholder != null ? `$${comparison.summary.average_upfront_cost_placeholder.toLocaleString()}` : "N/A"} />
+              <ScoreCard label="Avg. completeness" value={comparison.summary?.average_completeness_score ?? "N/A"} />
+            </div>
+            {comparison.warnings?.length ? (
+              <article className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3>Shared Warnings</h3>
+                    <p>These conditions affect comparison confidence across one or more scenarios.</p>
+                  </div>
+                </div>
+                <div className="metric-stack">
+                  {comparison.warnings.map((warning) => (
+                    <MetricRow key={warning} label="Warning" value={warning} />
+                  ))}
+                </div>
+              </article>
+            ) : null}
+            <div className="stack-grid">
+              {Object.entries(comparison.rankings || {}).map(([key, entries]) => (
+                <article key={key} className="panel">
+                  <div className="panel-header">
+                    <div>
+                      <h3>{key.replaceAll("_", " ")}</h3>
+                      <p>Deterministic ordering from current planning records.</p>
+                    </div>
+                  </div>
+                  <div className="metric-stack">
+                    {entries.length ? (
+                      entries.map((entry, index) => (
+                        <MetricRow
+                          key={`${key}-${entry.scenario_id}`}
+                          label={`${index + 1}. ${entry.scenario_name}`}
+                          value={entry.value}
+                        />
+                      ))
+                    ) : (
+                      <MetricRow label="Status" value="No comparable values yet" />
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </PageSection>
+      ) : null}
+
+      {!homeQuery.loading && !scenariosQuery.loading && !designsQuery.loading && !comparisonQuery.loading && comparisonScenarios.length ? (
         <PageSection
           title="Scenario Read View"
           description="The comparison summary remains visible while editable scenario records now sit above it."
         >
           <div className="page-section">
-            {scenarios.map((scenario) => {
-              const linkedDesign = designs.find((design) => design.id === scenario.linked_design_id);
+            {comparisonScenarios.map((scenario) => {
+              const linkedDesign = scenario.linked_design || designs.find((design) => design.id === scenario.linked_design_id);
 
               return (
                 <article key={`summary-${scenario.id}`} className="panel scenario-panel">
@@ -166,16 +224,47 @@ export function ScenarioComparisonPage() {
                   </div>
                   <div className="metric-stack">
                     <MetricRow label="Linked design" value={linkedDesign?.name || scenario.linked_design_id} />
+                    <MetricRow label="Design status" value={linkedDesign?.effective_status || linkedDesign?.status || "Unknown"} />
                     <MetricRow
                       label="Upfront cost placeholder"
                       value={scenario.upfront_cost_placeholder != null ? `$${scenario.upfront_cost_placeholder.toLocaleString()}` : "Not set"}
                     />
+                    <MetricRow label="Planning completeness" value={scenario.design_completeness?.completeness_score ?? "N/A"} />
+                    <MetricRow label="Linked pathways" value={scenario.comparison_summary?.pathway_count ?? 0} />
+                    <MetricRow label="Low-confidence pathways" value={scenario.comparison_summary?.low_confidence_pathway_count ?? 0} />
+                    <MetricRow label="Provenance documents" value={scenario.lineage_summary?.source_document_ids?.length ?? 0} />
                   </div>
                   <div className="score-grid">
                     <ScoreCard label="Expansion readiness" value={scenario.future_expansion_score ?? "N/A"} />
                     <ScoreCard label="Install complexity" value={scenario.install_complexity_score ?? "N/A"} />
                     <ScoreCard label="Backup capability" value={scenario.backup_capability_score ?? "N/A"} />
                   </div>
+                  <div className="badge-row">
+                    {(scenario.lineage_summary?.trust_states || []).map((state) => (
+                      <TrustBadge key={`lineage-${scenario.id}-${state}`} state={state} />
+                    ))}
+                  </div>
+                  <div className="metric-stack">
+                    <MetricRow
+                      label="Unverified fields"
+                      value={scenario.lineage_summary?.unverified_fields?.length ? scenario.lineage_summary.unverified_fields.join(", ") : "None listed"}
+                    />
+                    <MetricRow
+                      label="Rule lineage"
+                      value={scenario.lineage_summary?.rule_keys?.length ? scenario.lineage_summary.rule_keys.join(", ") : "None linked"}
+                    />
+                    <MetricRow
+                      label="Notes"
+                      value={scenario.lineage_summary?.notes?.length ? scenario.lineage_summary.notes.join(" | ") : "No lineage notes yet"}
+                    />
+                  </div>
+                  {scenario.warnings?.length ? (
+                    <div className="metric-stack">
+                      {scenario.warnings.map((warning) => (
+                        <MetricRow key={`${scenario.id}-${warning}`} label="Warning" value={warning} />
+                      ))}
+                    </div>
+                  ) : null}
                 </article>
               );
             })}

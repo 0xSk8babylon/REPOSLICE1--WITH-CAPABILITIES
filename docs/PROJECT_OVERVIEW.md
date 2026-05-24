@@ -22,7 +22,7 @@
 
 ## Current Delivery Phase
 
-The repo is in Phase 2B. Phase 2A persistence hardening is complete. Core editable workflows now exist for the home model, loads, panels, designs, scenarios, equipment locations, and estimated pathways.
+The repo has completed Phase 2A persistence hardening and moved beyond the Phase 2B editable-workflow milestone into the current Phase 2D/2E layer. Core editable workflows now exist for the home model, loads, panels, designs, scenarios, equipment locations, estimated pathways, design equipment, trust visibility, advisor intelligence, and first-pass provenance.
 
 ## Explicitly Deferred
 

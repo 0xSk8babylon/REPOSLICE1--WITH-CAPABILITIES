@@ -72,6 +72,7 @@ Status:
 - source-document, data-provenance, and rule-provenance foundation
 - read-oriented provenance endpoints
 - provenance summaries visible in product, advisor, takeoff, and AI context surfaces
+- scenario comparison now consumes completeness and provenance-oriented lineage summaries
 - verification-status distinction documented separately from trust badges
 
 ## Explicitly Deferred
@@ -88,4 +89,6 @@ Status:
 ## Continuity Layer Status
 
 - canonical repo-level memory files are now in place
+- strategic doctrine files now exist under `docs/philosophy/`
+- core architecture decisions are now captured under `docs/adr/`
 - future sessions should update both `docs/session-continuity/*` and the top-level continuity files when state materially changes

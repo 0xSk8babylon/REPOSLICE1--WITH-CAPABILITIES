@@ -50,6 +50,7 @@
 - Current state: persisted
 - Key entities: `Scenario`, `EstimatedPathway`
 - Boundary: comparative planning views, not final financial products
+- Current comparison posture: scenario comparison now composes persisted scenario scores with linked design completeness, pathway signals, and additive lineage/trust summaries
 
 ### Takeoffs / Estimates
 
@@ -81,4 +82,3 @@
 - The current `Home` GET contract is frontend-critical because it includes nested buildings and panels.
 - The current design/advisor/context pages depend on stable design IDs and current seed availability.
 - Takeoff generation currently assumes seeded/persisted takeoff records rather than deriving line items from live design topology.
-

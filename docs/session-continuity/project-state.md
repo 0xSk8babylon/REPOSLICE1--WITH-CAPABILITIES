@@ -20,6 +20,8 @@ This document records the actual current state of the `residential-energy-planne
   - `docs/API_CONTRACTS.md`
   - `docs/ACTIVE_TASKS.md`
   - `docs/SESSION_LOG.md`
+  - `docs/philosophy/*`
+  - `docs/adr/*`
   - `docs/handoffs/`
 - Backend has completed Phase 2A persistence:
   - SQLite local database
@@ -41,6 +43,7 @@ This document records the actual current state of the `residential-energy-planne
 - Design advisor and AI context endpoints still compose deterministic placeholder outputs on top of persisted data
 - Design advisor and AI context now include explicit trust visibility, planning completeness, and richer deterministic reasoning
 - Design advisor, product library, transient takeoffs, and AI context now have initial provenance/source-lineage support
+- Scenario comparison now uses persisted scenario records plus linked design completeness, pathway visibility/confidence, and additive lineage summaries
 - Demo-vs-real separation is now explicit at the record level through `data_origin`, but not yet enforced through tenancy or permissions
 - Editable frontend workflows now exist for:
   - home overview
@@ -56,7 +59,9 @@ This document records the actual current state of the `residential-energy-planne
 - Selected-design takeoff generation now derives line items from current persisted design composition.
 - Derived takeoffs remain intentionally transient and now surface explicit trust/placeholder messaging in the UI.
 - Source documents, data provenance, and rule provenance now exist as first-pass backend structures, but coverage is still partial.
+- Scenario comparison is no longer placeholder-only, but its lineage depth is still constrained by partial provenance coverage.
 - Design status now acts as a lightweight planning maturity model, not an engineering approval state.
+- A dedicated doctrine layer now exists under `docs/philosophy/` and `docs/adr/` to preserve strategic coherence across future implementation sessions.
 
 ## What Is Not Implemented
 
@@ -84,6 +89,7 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - Design completeness is planning completeness only, not engineering completeness.
 - Trust visibility is now a first-class UX layer, even though deep provenance and audit systems are still deferred.
 - Verification status belongs to source documents; trust badges belong to current application presentation and should not be conflated.
+- Philosophy and ADR documents are part of the canonical memory layer for future restore flows.
 
 ## Important Current Constraints
 

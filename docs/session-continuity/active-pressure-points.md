@@ -10,7 +10,7 @@ This pressure has been reduced but not eliminated.
 
 ## 2. Provenance Is Philosophical, Not Implemented
 
-- Current pressure: a provenance foundation now exists, but coverage is still partial and does not yet reach every important field or derived path.
+- Current pressure: a provenance foundation now exists, and scenario comparison now consumes lineage summaries, but coverage is still partial and does not yet reach every important field or derived path.
 - Risk: future AI layers may overstate confidence unless provenance becomes explicit.
 
 ## 3. Seed Data And Real Data Share The Same Persistence Layer
@@ -64,5 +64,6 @@ This pressure has been reduced but not eliminated.
 - Decide whether derived takeoffs should remain transient or be persisted/versioned on design changes.
 - Preserve the planning-only boundary around completeness and advisor reasoning.
 - Expand provenance coverage without implying that placeholder references are verified.
+- Continue extending scenario/pathway/design lineage beyond the current summary layer.
 - Convert Alembic from scaffold to normal practice before substantial schema expansion.
 - Keep top-level continuity files and handoffs synchronized with real implementation state.

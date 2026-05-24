@@ -18,7 +18,7 @@ def list_scenarios(db: Session = Depends(get_db)):
 
 @router.get("/compare", response_model=Dict[str, object])
 def compare_scenarios(db: Session = Depends(get_db)):
-    return scenario_comparison_service.compare(repository.list_scenarios(db))
+    return scenario_comparison_service.compare(db, repository.list_scenarios(db))
 
 
 @router.post("", response_model=Scenario)
@@ -31,4 +31,3 @@ def update_scenario(scenario_id: str, payload: ScenarioUpdate, db: Session = Dep
     if repository.get_scenario(db, scenario_id) is None:
         raise HTTPException(status_code=404, detail="Scenario not found")
     return repository.update_scenario(db, scenario_id, payload)
-

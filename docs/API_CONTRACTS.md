@@ -51,3 +51,5 @@
   - frontend assumes stable design IDs and current persisted demo data
 - scenario and takeoff endpoints
   - current UI treats placeholder score/cost content as planning-level outputs only
+- `GET /api/scenarios/compare`
+  - now returns additive comparison metadata, rankings, warnings, completeness, and lineage summaries on top of scenario records

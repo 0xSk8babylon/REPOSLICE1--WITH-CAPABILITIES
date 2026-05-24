@@ -27,10 +27,13 @@
 - Expanded deterministic advisor reasoning using products, ecosystems, pathways, panel context, and backup/load signals
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
+- Scenario comparison now consumes linked design completeness, pathway signals, trust warnings, and source-lineage summaries instead of returning a placeholder-only comparison shell
+- A repo-level doctrine layer now exists under `docs/philosophy/` and `docs/adr/` to preserve strategic coherence across future sessions
 
 ## Still Incomplete
 
 - Verified product ingestion and provenance
+- Exhaustive field-level provenance coverage across scenarios, pathways, designs, and home-model facts
 - Audit trail and change history
 - Delete/archive workflows
 - Auth and billing enforcement
@@ -48,3 +51,4 @@
 - Placeholder scores, estimates, and compatibility logic remain non-authoritative.
 - Derived takeoffs remain transient by design in the current phase.
 - Verification status and visible trust badges are related, but they are not the same contract.
+- Scenario comparison is now more inspectable, but it still depends on planning heuristics and partial provenance rather than verified estimating inputs.

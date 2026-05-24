@@ -31,6 +31,9 @@ Migration scaffold:
 - `estimated_pathways`
 - `load_templates`
 - `design_goal_presets`
+- `source_documents`
+- `data_provenance`
+- `rule_provenance`
 
 ## Ownership Scaffolding
 
