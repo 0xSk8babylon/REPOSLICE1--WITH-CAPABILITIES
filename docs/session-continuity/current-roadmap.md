@@ -1,0 +1,91 @@
+# Current Roadmap
+
+## Completed
+
+### Phase 1
+
+- Monorepo scaffold
+- FastAPI backend domain layout
+- React/Vite frontend shell
+- Seed-based planning prototype
+- Product and architecture docs
+
+### Phase 2A
+
+- SQLite persistence layer
+- SQLAlchemy ORM models
+- repository-backed data access
+- startup DB initialization and first-run seed loading
+- write endpoints for key planning domains
+- persisted account scaffolding without auth
+- lightweight Alembic migration scaffold
+- demo-vs-real `data_origin` hardening
+- basic API versioning policy with `/api/*` aliases and `/api/v1` reserved
+
+## In Progress By Implication
+
+Phase 2B is functionally complete enough for editable planning workflows, and the repo has now moved into a Phase 2D trust-visibility and advisor-intelligence layer on top of that foundation.
+
+## Next Target
+
+### Phase 2B
+
+- connect frontend forms to the new POST/PATCH endpoints
+- add lightweight editable workflows for:
+  - homes
+  - structures
+  - panels
+  - loads
+  - load-template-driven load creation
+  - designs
+  - scenarios
+  - equipment locations
+  - estimated pathways
+- keep auth deferred
+- keep engineering logic shallow and deterministic
+
+Status:
+
+- completed for the entities above
+- completed for design equipment composition and richer product-driven editing
+- takeoff derivation is now design-driven but still transient and placeholder-priced
+
+## After Phase 2B
+
+### Likely Next Steps
+
+- deepen provenance/source-lineage structure behind visible trust states
+- more transparent scenario scoring
+- verified product ingestion and provenance fields
+- migration strategy becoming normal practice instead of scaffold-only
+
+## Phase 2D
+
+- trust visibility layer across major planning surfaces
+- planning-only design completeness reasoning
+- richer deterministic advisor issues using products, ecosystems, panels, loads, pathways, and siting
+- more structured AI grounding payloads
+- explicit transient-takeoff posture preserved
+
+## Phase 2E
+
+- source-document, data-provenance, and rule-provenance foundation
+- read-oriented provenance endpoints
+- provenance summaries visible in product, advisor, takeoff, and AI context surfaces
+- verification-status distinction documented separately from trust badges
+
+## Explicitly Deferred
+
+- user login/session management
+- billing and Stripe integration
+- production deployment hardening
+- NEC automation
+- permitting workflows
+- conversational AI design agent with write authority
+- full provenance tracking
+- full audit/change history
+
+## Continuity Layer Status
+
+- canonical repo-level memory files are now in place
+- future sessions should update both `docs/session-continuity/*` and the top-level continuity files when state materially changes

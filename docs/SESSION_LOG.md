@@ -1,0 +1,19 @@
+# Session Log
+
+## 2026-05-23
+
+- Reconstructed repo state from `docs/session-continuity/*`.
+- Validated that the implementation already includes SQLite persistence, seed/reseed flows, `/api/*` aliases, and Phase 2B editable frontend workflows.
+- Identified a continuity gap: the canonical top-level memory files requested for orchestration did not exist yet.
+- Identified documentation drift: README still described the frontend as read-only even though editing workflows are live.
+- Established the top-level continuity layer and handoff structure so future sessions can restore context without relying on chat history.
+- Added dedicated `DesignEquipment` CRUD routes under `/api/designs/{design_id}/equipment`.
+- Extended the System Design Builder UI to assign products, quantities, system roles, and locations to persisted designs.
+- Replaced selected-design takeoff generation so line items derive from current design composition instead of the seeded placeholder request.
+- Added a Phase 2D trust-visibility layer so placeholder, demo, user-entered, verified, and derived states are visibly distinct in core planning views.
+- Added deterministic planning completeness scoring and richer advisor reasoning tied to products, ecosystems, pathways, panels, and backup/load signals.
+- Expanded AI grounding context to include trust state, design maturity, completeness, ecosystem mixing, and pathway-confidence signals.
+- Kept derived takeoffs transient and explicitly documented that decision in both UI messaging and continuity docs.
+- Added Phase 2E provenance/source-lineage tables, read endpoints, and seeded examples for source documents, data provenance, and internal rule provenance.
+- Connected provenance summaries into product library records, advisor issue displays, transient takeoff displays, and AI grounding context.
+- Documented the difference between verification status and trust badges, while keeping placeholder and derived states explicit.
