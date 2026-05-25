@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-05-23
+2026-05-24
 
 ## Platform State
 
@@ -29,6 +29,7 @@
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
 - Scenario comparison now consumes linked design completeness, pathway signals, trust warnings, and source-lineage summaries instead of returning a placeholder-only comparison shell
 - A repo-level doctrine layer now exists under `docs/philosophy/` and `docs/adr/` to preserve strategic coherence across future sessions
+- A compact root discovery layer and repo-local skills now exist so restore can start without a mandatory full-doc sweep
 
 ## Still Incomplete
 
@@ -43,6 +44,7 @@
 
 - The continuity system now has canonical top-level memory files.
 - README language should reflect that the frontend is no longer read-only.
+- Restore procedure is now separated from project-state memory, with doctrine and historical docs moved out of the mandatory startup path.
 
 ## Stability Notes
 

@@ -21,7 +21,7 @@ Deepen provenance coverage across more entity fields and derived outputs now tha
 
 ## Strategic Guardrail
 
-Future implementation should read `docs/philosophy/*` and `docs/adr/*` during restore so work stays aligned with living-house-model, planning-only, and trust-first doctrine.
+Future implementation should load philosophy or ADR files only when the task touches strategic doctrine, trust posture, or architecture boundaries that those files constrain.
 
 ## Deferred Until Later
 

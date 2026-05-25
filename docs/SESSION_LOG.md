@@ -19,3 +19,11 @@
 - Documented the difference between verification status and trust badges, while keeping placeholder and derived states explicit.
 - Replaced placeholder-only scenario comparison output with deterministic comparison summaries that incorporate linked design completeness, pathway signals, trust warnings, and source-lineage summaries.
 - Added a repo-level doctrine layer under `docs/philosophy/` and `docs/adr/` so future sessions can restore product philosophy, non-goals, trust posture, UX principles, and durable architecture decisions before making changes.
+
+## 2026-05-24
+
+- Migrated repo restore flow to a layered skills-based operating model rooted in compact discovery files instead of mandatory full-doc startup sweeps.
+- Added root discovery files: `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, and `discovery-index.md`.
+- Added repo-local skills for repo memory mapping and project guardrails under `.codex/skills/`.
+- Added `docs/session-continuity/continuity-workflow.md` as the canonical continuity procedure.
+- Reduced duplicated restore logic by converting `docs/session-continuity/session-restore-template.md` into a compatibility stub and narrowing `persistence-agent-plan.md` to a maintenance role.

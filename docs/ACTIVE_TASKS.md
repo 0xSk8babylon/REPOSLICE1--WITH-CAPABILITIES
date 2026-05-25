@@ -3,7 +3,7 @@
 ## Current Focus
 
 1. Maintain continuity and keep top-level repo memory synchronized with implementation.
-2. Keep the new doctrine and ADR layer synchronized with real implementation behavior.
+2. Keep the discovery layer compact and keep large continuity or doctrine docs out of mandatory startup context.
 3. Preserve API and persistence stability while editable workflows mature.
 4. Stabilize the new provenance foundation under the trust visibility, advisor intelligence, scenario comparison, and transient derived-takeoff workflows.
 
