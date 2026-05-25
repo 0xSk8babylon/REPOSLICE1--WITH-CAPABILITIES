@@ -8,10 +8,15 @@ This pressure has been reduced but not eliminated.
 - Risk: future schema work could still drift into direct metadata changes unless revisions become part of the normal workflow.
 - Why it matters: editable user workflows should not grow on top of ad hoc schema evolution.
 
-## 2. Provenance Is Philosophical, Not Implemented
+## 2. Provenance Is Broader, But Still Partial
 
-- Current pressure: a provenance foundation now exists, and scenario comparison now consumes lineage summaries, but coverage is still partial and does not yet reach every important field or derived path.
+- Current pressure: a provenance foundation now exists, and scenario comparison, products, loads, and pathways now consume lineage summaries, but coverage is still partial and does not yet reach every important field or derived path.
 - Risk: future AI layers may overstate confidence unless provenance becomes explicit.
+
+## 12. Recommendation Architecture Exists Before Deep Sizing Math
+
+- Current pressure: the recommendation-profile model now includes first battery and solar sizing layers, better inspectability, a coarse site-aware solar adjustment, a roof-readiness layer, and a preliminary panel/service architecture layer, but provenance depth and richer site-aware sizing behavior are still incomplete.
+- Risk: future sessions may overclaim the current slices as a full sizing engine or bypass the profile architecture with ad hoc recommendation logic.
 
 ## 3. Seed Data And Real Data Share The Same Persistence Layer
 

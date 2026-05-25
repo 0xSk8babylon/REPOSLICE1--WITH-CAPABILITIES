@@ -6,13 +6,13 @@
 
 ## What Changed Last
 
-- Migrated the repo to a layered skills-based restore model.
-- Added a compact root discovery layer and repo-local skills.
-- Reduced mandatory startup context by moving large restore procedure into targeted workflow docs and helper scripts.
+- Added a preliminary panel/service architecture layer behind the existing recommendation stack.
+- Recommendation outputs now classify likely panel/service posture, panel-upgrade likelihood, service-upgrade caution, backup-architecture suitability, smart-panel readiness, and generator-integration readiness without performing inverter or generator sizing.
+- Kept the change additive: no migration, no persistence change, no inverter sizing, no smart-panel modifier logic, no generator sizing, and no exposed engineering formulas in the UI.
 
 ## Current Resume Point
 
-The operating-model migration is complete enough to use. The next implementation target for product work remains provenance expansion across planning entities and derived outputs.
+The next implementation target is to refine backup-load selection and backup-scope realism before inverter sizing, so the new panel/service architecture layer constrains a better-grounded power path instead of sizing around weak load assumptions.
 
 ## If You Resume Now
 
@@ -22,4 +22,4 @@ The operating-model migration is complete enough to use. The next implementation
 
 ## Latest Detailed Handoff
 
-See `docs/handoffs/2026-05-24-layered-skills-restore-migration.md`
+See `docs/handoffs/2026-05-24-panel-service-preliminary-architecture.md`

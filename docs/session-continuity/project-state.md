@@ -47,6 +47,14 @@ This document records the actual current state of the `residential-energy-planne
 - Design advisor and AI context now include explicit trust visibility, planning completeness, and richer deterministic reasoning
 - Design advisor, product library, transient takeoffs, and AI context now have initial provenance/source-lineage support
 - Scenario comparison now uses persisted scenario records plus linked design completeness, pathway visibility/confidence, and additive lineage summaries
+- Load and estimated pathway API records now expose additive provenance summaries, and the Home Model UI now surfaces that lineage directly
+- Advisor architecture now includes a deterministic resilience recommendation-profile layer that sits above design analysis and below presentation
+- Recommendation profiles now include a first internal battery sizing estimate layer derived from backup-load modeling and profile posture
+- Recommendation profiles now include a first internal solar sizing and recovery estimate layer derived from battery recovery burden and low-solar posture
+- Recommendation profile fit plus battery/solar guidance now include additive inspectability metadata describing basis signals, estimated inputs, incomplete inputs, confidence posture, and planning-only warnings
+- Solar guidance now includes a first coarse site-aware adjustment layer using recorded roof placement where available plus fallback shading caution, coarse seasonal region posture, and install-path realism signals
+- Solar guidance now also includes a roof-readiness layer that separates inferred placement realism from future measured roof geometry and usable-area support
+- Recommendation outputs now also include a preliminary panel/service architecture layer that constrains backup design direction before deeper electrical sizing layers
 - Demo-vs-real separation is now explicit at the record level through `data_origin`, but not yet enforced through tenancy or permissions
 - Editable frontend workflows now exist for:
   - home overview
@@ -61,7 +69,7 @@ This document records the actual current state of the `residential-energy-planne
   - design equipment composition
 - Selected-design takeoff generation now derives line items from current persisted design composition.
 - Derived takeoffs remain intentionally transient and now surface explicit trust/placeholder messaging in the UI.
-- Source documents, data provenance, and rule provenance now exist as first-pass backend structures, but coverage is still partial.
+- Source documents, data provenance, and rule provenance now exist as first-pass backend structures, and load/pathway coverage is now broader, but coverage is still partial.
 - Scenario comparison is no longer placeholder-only, but its lineage depth is still constrained by partial provenance coverage.
 - Design status now acts as a lightweight planning maturity model, not an engineering approval state.
 - A dedicated doctrine layer now exists under `docs/philosophy/` and `docs/adr/` to preserve strategic coherence across future implementation sessions.
@@ -90,6 +98,13 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - Structured facts are authoritative.
 - Rules and calculations should remain deterministic and inspectable.
 - AI is a consumer of structured context and explanation contracts, not a source of facts.
+- Recommendation profiles now formalize planning philosophies for resilience sizing without exposing raw formulas as product truth.
+- Battery sizing ranges now exist as planning-only advisor outputs, not final engineered storage requirements.
+- Solar sizing ranges now exist as planning-only advisor outputs, not final engineered production requirements.
+- Recommendation inspectability is now stronger, but it still depends on deterministic planning rules and partial provenance rather than verified engineering inputs.
+- The site-aware solar layer is intentionally coarse and should not be mistaken for a roof-fit, shading, or production simulation engine.
+- The roof-readiness layer is architectural scaffolding for future geometry ingestion and should not be mistaken for measured roof-capacity certainty.
+- The panel/service layer is architectural scaffolding for future inverter, smart-panel modifier, and generator layers and should not be mistaken for a validated electrical design.
 - Design completeness is planning completeness only, not engineering completeness.
 - Trust visibility is now a first-class UX layer, even though deep provenance and audit systems are still deferred.
 - Verification status belongs to source documents; trust badges belong to current application presentation and should not be conflated.

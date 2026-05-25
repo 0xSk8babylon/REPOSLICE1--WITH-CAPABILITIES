@@ -22,11 +22,19 @@
 - Core POST/PATCH planning flows from the frontend
 - Transient derived takeoffs from persisted design composition
 - Trust and provenance visibility across major planning surfaces
+- Structured provenance summaries on load and estimated pathway records
+- A deterministic resilience recommendation-profile layer now exists in the advisor architecture
+- A first internal battery sizing rule layer now exists behind the recommendation profiles
+- A first internal solar sizing and recovery rule layer now exists behind the recommendation profiles
+- Recommendation profile, battery sizing, and solar sizing outputs now include additive inspectability/provenance metadata describing basis signals, estimated inputs, incomplete inputs, and planning-only confidence posture
+- Solar sizing now includes a first coarse site-aware adjustment layer using recorded roof placement, fallback shading caution, coarse seasonal region posture, and install-path realism signals
+- Solar guidance now also includes an explicit roof-data-completeness and roof-measurement-confidence layer that distinguishes inferred placement realism from future measured roof geometry
+- Recommendation outputs now also include a preliminary panel/service architecture layer that constrains backup design direction before inverter, smart-panel modifier, or generator sizing
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Deepen provenance coverage across more entity fields and derived outputs while keeping takeoffs transient and preserving the planning-only boundary.
+Extend profile-based planning guidance into broader recommendation behavior and deeper inspectability around design facts and scenario-facing guidance while keeping formulas internal, provenance-aware, and planning-only, with panel/service architecture and roof-capacity certainty both explicit before deeper sizing layers.
 
 ## Restore Model
 

@@ -27,3 +27,20 @@
 - Added repo-local skills for repo memory mapping and project guardrails under `.codex/skills/`.
 - Added `docs/session-continuity/continuity-workflow.md` as the canonical continuity procedure.
 - Reduced duplicated restore logic by converting `docs/session-continuity/session-restore-template.md` into a compatibility stub and narrowing `persistence-agent-plan.md` to a maintenance role.
+- Added additive `provenance_summary` metadata to load and estimated-pathway API responses.
+- Seeded first-pass structured pathway provenance records and surfaced load/pathway lineage details in the Home Model UI.
+- Preserved compatibility and planning-only trust boundaries by keeping the change additive and exposing missing lineage honestly when records are absent.
+- Added a deterministic resilience recommendation-profile model to the advisor layer with four philosophies: Critical / Efficient, Balanced, Conservative, and Premium / Future-Ready.
+- Kept profile outputs additive and planning-only, with explicit scope notes and rule provenance instead of exposed engineering coefficients or certainty inflation.
+- Added the first internal battery sizing rule layer behind each recommendation profile.
+- Recommendation profiles now derive planning-only battery energy need, autonomy range, usable capacity range, reserve posture, future growth margin, and recommended battery capacity range without exposing raw formulas.
+- Added the first internal solar sizing and recovery rule layer behind each recommendation profile.
+- Recommendation profiles now derive planning-only solar range guidance, recovery posture, low-solar resilience notes, and simple battery-recovery relationship guidance without exposing raw production math.
+- Added an additive inspectability/provenance layer for selected recommendation profiles plus battery and solar guidance.
+- Recommendation outputs now expose basis signals, estimated inputs, incomplete inputs, confidence posture, partial-provenance warnings, and explicit rule provenance without exposing internal sizing formulas.
+- Added a first coarse site-aware solar adjustment layer behind the existing profile-backed solar planning range.
+- Solar guidance now uses recorded roof placement where available plus fallback shading caution, coarse seasonal region posture, and install-path realism signals to adjust the planning range without introducing PVWatts or inverter sizing.
+- Added an explicit roof-readiness architecture layer to solar guidance.
+- Solar payloads now distinguish inferred placement realism, estimated roof-capacity posture, measured geometry status, and future geometry-source placeholders without claiming measured roof area already exists.
+- Added a preliminary panel/service architecture layer to recommendation outputs.
+- Recommendation payloads now classify likely panel/service posture, panel/service upgrade caution, backup-architecture suitability, smart-panel readiness, and generator-integration readiness before inverter or generator sizing exists.

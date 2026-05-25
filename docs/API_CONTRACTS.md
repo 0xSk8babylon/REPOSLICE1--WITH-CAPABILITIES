@@ -49,7 +49,18 @@
   - frontend depends on nested buildings and panels
 - design/advisor/context endpoints
   - frontend assumes stable design IDs and current persisted demo data
+  - `GET /api/design-advisor/summary/{design_id}` now includes additive `recommendation_profiles` guidance
+  - `recommendation_profiles.profiles[*]` now include additive planning-only battery sizing estimate ranges
+  - `recommendation_profiles.profiles[*]` now include additive planning-only solar sizing and recovery estimate ranges
+  - `recommendation_profiles.profiles[*]`, `battery_sizing_estimate`, and `solar_sizing_estimate` now include additive inspectability metadata for basis signals, estimated inputs, incomplete inputs, and planning-only warnings
+  - `solar_sizing_estimate` now also includes additive site-aware planning fields such as the base solar range, site capacity posture, shading caution, seasonal production caution, and install realism caution
+  - `solar_sizing_estimate.roof_geometry_readiness` now includes additive roof-data completeness, roof-measurement confidence, measured-vs-estimated status, future geometry source placeholders, and missing-geometry warnings
+  - `recommendation_profiles.panel_service_architecture` now includes additive panel/service posture, backup-architecture recommendation, upgrade cautions, readiness notes, and planning-only inspectability metadata
 - scenario and takeoff endpoints
   - current UI treats placeholder score/cost content as planning-level outputs only
 - `GET /api/scenarios/compare`
   - now returns additive comparison metadata, rankings, warnings, completeness, and lineage summaries on top of scenario records
+- `GET /api/loads`
+  - now returns additive `provenance_summary` metadata on each load record
+- `GET /api/estimated-pathways`
+  - now returns additive `provenance_summary` metadata on each pathway record

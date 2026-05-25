@@ -74,6 +74,14 @@ Status:
 - provenance summaries visible in product, advisor, takeoff, and AI context surfaces
 - scenario comparison now consumes completeness and provenance-oriented lineage summaries
 - verification-status distinction documented separately from trust badges
+- load and estimated-pathway records now expose additive provenance summaries in operational GET contracts
+- deterministic recommendation profiles now exist in the advisor layer as a precursor to deeper sizing rules
+- battery sizing is now the first numeric planning layer behind the recommendation profiles
+- solar sizing and recovery posture are now the second numeric planning layer behind the recommendation profiles
+- recommendation profile fit plus battery/solar guidance now expose inspectability metadata so the advisor can explain basis and uncertainty without exposing internal formulas
+- solar sizing now also includes a coarse site-aware adjustment layer before any future inverter sizing or production modeling
+- solar sizing now also includes a roof-readiness layer so future GIS/maps/traced-geometry inputs can plug into the current planning architecture instead of replacing it
+- recommendation outputs now also include a preliminary panel/service architecture layer so future inverter, smart-panel modifier, and generator layers can plug into a stable backup-architecture posture
 
 ## Explicitly Deferred
 

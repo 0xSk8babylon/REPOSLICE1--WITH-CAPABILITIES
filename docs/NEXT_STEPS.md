@@ -2,7 +2,7 @@
 
 ## Highest-Leverage Next Implementation Step
 
-Deepen provenance coverage across more entity fields and derived outputs now that scenario comparison consumes source-lineage summaries, while still keeping takeoff snapshots transient until provenance and verification depth are stronger.
+Extend the inspectable recommendation-profile model beyond current battery and solar planning ranges into richer recommendation behavior and broader design/scenario lineage coverage, while keeping formulas internal, outputs provenance-aware, and the new panel/service and roof-readiness layers explicit about what they do not yet prove.
 
 ## Why This Is Next
 
@@ -14,10 +14,12 @@ Deepen provenance coverage across more entity fields and derived outputs now tha
 
 ## Near-Term Follow-On Work
 
-1. Expand provenance coverage to more planning entities and derived fields.
-2. Expand field-level provenance and lineage summaries for scenarios, pathways, loads, and design facts.
-3. Add delete/archive workflows for mutable planning records.
-4. Tighten migration discipline beyond the baseline scaffold.
+1. Refine backup-load selection and backup-scope realism so the new panel/service architecture layer rests on stronger deterministic load intent before inverter sizing begins.
+2. Add the next recommendation slice that explains how current architecture choices and equipment mix shift profile fit without exposing deeper engineering math.
+3. Deepen the solar readiness layer with better internal roof-capacity and placement realism before introducing inverter sizing.
+4. Add future geometry-ingest hooks for traced polygons, roof planes, and usable-area estimates without replacing the current recommendation system.
+5. Extend field-level provenance and lineage summaries for design facts, scenario inputs, and broader home-model records beyond the current products, loads, pathways, and recommendation inspectability layer.
+6. Add delete/archive workflows for mutable planning records.
 
 ## Strategic Guardrail
 
