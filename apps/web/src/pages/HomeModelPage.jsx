@@ -103,6 +103,39 @@ function parseOptionalNumber(value) {
   return Number(value);
 }
 
+function renderProvenanceValue(values, emptyLabel = "No structured provenance yet") {
+  return values?.length ? values.join(", ") : emptyLabel;
+}
+
+function ProvenanceSummaryPanel({ summary, emptyLabel }) {
+  const hasSummary =
+    summary &&
+    (
+      summary.source_document_ids?.length ||
+      summary.source_types?.length ||
+      summary.trust_states?.length ||
+      summary.confidence_levels?.length ||
+      summary.unverified_fields?.length ||
+      summary.notes?.length
+    );
+
+  if (!hasSummary) {
+    return <p className="callout-copy">{emptyLabel}</p>;
+  }
+
+  return (
+    <div className="metric-stack">
+      <MetricRow label="Source documents" value={summary.source_document_ids?.length ?? 0} />
+      <MetricRow label="Source types" value={renderProvenanceValue(summary.source_types)} />
+      <MetricRow label="Confidence" value={renderProvenanceValue(summary.confidence_levels)} />
+      <MetricRow label="Unverified fields" value={renderProvenanceValue(summary.unverified_fields, "None listed")} />
+      <p className="callout-copy">
+        {summary.notes?.length ? summary.notes.join(" | ") : "Lineage exists, but no additional notes were recorded."}
+      </p>
+    </div>
+  );
+}
+
 function buildHomeState(home) {
   return {
     name: home?.name || "",
@@ -387,6 +420,12 @@ function LoadEditor({ homeId, buildings, load, onSaved, isNew = false }) {
         <SelectInput label="Phase type" value={formState.phase_type} onChange={(event) => setFormState((current) => ({ ...current, phase_type: event.target.value }))} options={phaseTypeOptions} />
       </div>
       <TextAreaInput label="Notes" value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} />
+      {!isNew ? (
+        <ProvenanceSummaryPanel
+          summary={load?.provenance_summary}
+          emptyLabel="No structured provenance is linked to this load yet. Treat wattage and runtime assumptions as planning inputs."
+        />
+      ) : null}
       <FormStatus saving={mutation.saving} error={mutation.error} />
       <FormActions saving={mutation.saving} onCancel={() => setFormState(buildLoadState(homeId, defaultBuildingId, load))} saveLabel={isNew ? "Add Load" : "Save Load"} />
     </form>
@@ -511,6 +550,12 @@ function PathwayEditor({ homeId, designs, pathway, onSaved, isNew = false }) {
         <SelectInput label="Confidence level" hint="Estimate confidence" value={formState.confidence_level} onChange={(event) => setFormState((current) => ({ ...current, confidence_level: event.target.value }))} options={pathwayConfidenceOptions} />
       </div>
       <TextAreaInput label="Notes" hint="Site assessment recommended." value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} />
+      {!isNew ? (
+        <ProvenanceSummaryPanel
+          summary={pathway?.provenance_summary}
+          emptyLabel="No structured provenance is linked to this pathway yet. Routing, visibility, and distance should remain approximate until site verification."
+        />
+      ) : null}
       <FormStatus saving={mutation.saving} error={mutation.error} />
       <FormActions saving={mutation.saving} onCancel={() => setFormState(buildPathwayState(homeId, defaultDesignId, pathway))} saveLabel={isNew ? "Add Pathway" : "Save Pathway"} />
     </form>

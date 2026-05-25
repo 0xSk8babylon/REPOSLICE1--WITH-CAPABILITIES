@@ -37,11 +37,20 @@ export function getProductTrustStates(product) {
 }
 
 export function getLoadTrustStates(load) {
-  return uniqueStates([load?.data_origin, containsPlaceholderContent(load) ? "placeholder" : null]);
+  const { provenance_summary, ...modeledLoadFields } = load || {};
+  return uniqueStates([
+    load?.data_origin,
+    ...(load?.provenance_summary?.trust_states || []),
+    containsPlaceholderContent(modeledLoadFields) ? "placeholder" : null,
+  ]);
 }
 
 export function getPathwayTrustStates(pathway) {
-  return uniqueStates([pathway?.data_origin, "placeholder"]);
+  return uniqueStates([
+    pathway?.data_origin,
+    ...(pathway?.provenance_summary?.trust_states || []),
+    "placeholder",
+  ]);
 }
 
 export function getScenarioTrustStates(scenario) {

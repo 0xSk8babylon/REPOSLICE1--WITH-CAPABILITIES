@@ -109,6 +109,238 @@ export function DesignAdvisorPage() {
                 detail={advisorQuery.data.install_complexity?.status}
               />
             </div>
+            {advisorQuery.data.recommendation_profiles ? (
+              <article className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3>Recommendation Profiles</h3>
+                    <p className="callout-copy">{advisorQuery.data.recommendation_profiles.scope_note}</p>
+                  </div>
+                  <div className="badge-row">
+                    {advisorQuery.data.recommendation_profiles.recommended_profile ? (
+                      <Badge tone="info">
+                        Recommended: {advisorQuery.data.recommendation_profiles.recommended_profile.replaceAll("_", " ")}
+                      </Badge>
+                    ) : (
+                      <Badge tone="warning">Recommendation unavailable</Badge>
+                    )}
+                    <TrustBadge state="derived_estimate" label="Deterministic planning guidance" />
+                  </div>
+                </div>
+                <div className="metric-stack">
+                  <MetricRow label="Confidence" value={advisorQuery.data.recommendation_profiles.confidence_level || "unknown"} />
+                  <MetricRow label="Basis" value={advisorQuery.data.recommendation_profiles.basis} />
+                </div>
+                {advisorQuery.data.recommendation_profiles.provenance_summary ? (
+                  <div className="solution-list">
+                    <strong>Recommendation provenance</strong>
+                    <ul>
+                      <li>Rule basis: {(advisorQuery.data.recommendation_profiles.provenance_summary.rule_keys || []).join(", ") || "Not recorded"}</li>
+                      <li>Source types: {(advisorQuery.data.recommendation_profiles.provenance_summary.source_types || []).join(", ") || "Not recorded"}</li>
+                      <li>Trust posture: {(advisorQuery.data.recommendation_profiles.provenance_summary.trust_states || []).join(", ") || "Not recorded"}</li>
+                    </ul>
+                  </div>
+                ) : null}
+                {advisorQuery.data.recommendation_profiles.panel_service_architecture ? (
+                  <div className="panel">
+                    <div className="panel-header">
+                      <h3>Panel And Service Posture</h3>
+                      <Badge tone="warning">
+                        {advisorQuery.data.recommendation_profiles.panel_service_architecture.recommended_backup_architecture}
+                      </Badge>
+                    </div>
+                    <div className="metric-stack">
+                      <MetricRow
+                        label="Likely panel/service posture"
+                        value={advisorQuery.data.recommendation_profiles.panel_service_architecture.main_service_panel_posture}
+                      />
+                      <MetricRow
+                        label="Recommended backup architecture"
+                        value={advisorQuery.data.recommendation_profiles.panel_service_architecture.recommended_backup_architecture}
+                      />
+                      <MetricRow
+                        label="Panel upgrade likelihood"
+                        value={advisorQuery.data.recommendation_profiles.panel_service_architecture.panel_upgrade_likelihood}
+                      />
+                    </div>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.panel_service_architecture.service_upgrade_caution}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.panel_service_architecture.smart_panel_readiness_note}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.panel_service_architecture.generator_integration_readiness_note}
+                    </p>
+                    {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability?.partial_provenance_warning ? (
+                      <p className="callout-copy">
+                        {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability.partial_provenance_warning}
+                      </p>
+                    ) : null}
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.panel_service_architecture.scope_note}
+                    </p>
+                  </div>
+                ) : null}
+                <div className="card-grid">
+                  {(advisorQuery.data.recommendation_profiles.profiles || []).map((profile) => (
+                    <article key={profile.profile} className="panel">
+                      <div className="panel-header">
+                        <h3>{profile.label}</h3>
+                        {profile.recommended ? <Badge tone="warning">Current best fit</Badge> : null}
+                      </div>
+                      <p>{profile.ui_description}</p>
+                      <div className="metric-stack">
+                        <MetricRow label="Intent" value={profile.intent} />
+                        <MetricRow label="Battery posture" value={profile.battery_sizing_posture.replaceAll("_", " ")} />
+                        <MetricRow label="Solar posture" value={profile.solar_sizing_posture.replaceAll("_", " ")} />
+                        <MetricRow label="Reserve posture" value={profile.autonomy_reserve_posture.replaceAll("_", " ")} />
+                        <MetricRow label="Growth margin" value={profile.future_growth_margin_posture.replaceAll("_", " ")} />
+                        <MetricRow label="Low-solar stance" value={profile.low_solar_assumption_posture.replaceAll("_", " ")} />
+                      </div>
+                      {profile.recommended && profile.inspectability ? (
+                        <div className="solution-list">
+                          <strong>What this recommendation is based on</strong>
+                          <ul>
+                            {(profile.inspectability.input_signals || []).map((signal) => (
+                              <li key={signal.key}>
+                                {signal.label}: {signal.value} ({signal.status.replaceAll("_", " ")})
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="trust-row">
+                            <TrustBadge state={profile.inspectability.trust_state} label="Recommendation remains a planning estimate" />
+                            <Badge tone={profile.inspectability.confidence_level === "high" ? "info" : profile.inspectability.confidence_level === "medium" ? "warning" : "danger"}>
+                              Confidence: {profile.inspectability.confidence_level}
+                            </Badge>
+                          </div>
+                          {(profile.inspectability.estimated_inputs || []).length ? (
+                            <>
+                              <strong>Estimated inputs</strong>
+                              <ul>
+                                {profile.inspectability.estimated_inputs.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </>
+                          ) : null}
+                          {(profile.inspectability.incomplete_inputs || []).length ? (
+                            <>
+                              <strong>Incomplete inputs</strong>
+                              <ul>
+                                {profile.inspectability.incomplete_inputs.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </>
+                          ) : null}
+                          {profile.inspectability.partial_provenance_warning ? (
+                            <p className="callout-copy">{profile.inspectability.partial_provenance_warning}</p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      {profile.battery_sizing_estimate ? (
+                        <div className="solution-list">
+                          <strong>Battery planning range</strong>
+                          <ul>
+                            <li>Backup load energy need: {profile.battery_sizing_estimate.backup_load_energy_need_kwh != null ? `${profile.battery_sizing_estimate.backup_load_energy_need_kwh} kWh/day` : "Not enough load data yet"}</li>
+                            <li>Autonomy target: {profile.battery_sizing_estimate.autonomy_duration_hours_min}-{profile.battery_sizing_estimate.autonomy_duration_hours_max} hours</li>
+                            <li>Usable capacity posture: {profile.battery_sizing_estimate.usable_battery_capacity_range_kwh ? `${profile.battery_sizing_estimate.usable_battery_capacity_range_kwh.min_kwh}-${profile.battery_sizing_estimate.usable_battery_capacity_range_kwh.max_kwh} kWh` : "Not enough load data yet"}</li>
+                            <li>Recommended battery range: {profile.battery_sizing_estimate.recommended_battery_capacity_range_kwh ? `${profile.battery_sizing_estimate.recommended_battery_capacity_range_kwh.min_kwh}-${profile.battery_sizing_estimate.recommended_battery_capacity_range_kwh.max_kwh} kWh` : "Not enough load data yet"}</li>
+                          </ul>
+                          {profile.recommended && profile.battery_sizing_estimate.inspectability ? (
+                            <>
+                              <strong>Battery guidance basis</strong>
+                              <ul>
+                                {(profile.battery_sizing_estimate.inspectability.input_signals || []).map((signal) => (
+                                  <li key={signal.key}>
+                                    {signal.label}: {signal.value} ({signal.status.replaceAll("_", " ")})
+                                  </li>
+                                ))}
+                              </ul>
+                              {(profile.battery_sizing_estimate.inspectability.estimated_inputs || []).length ? (
+                                <ul>
+                                  {profile.battery_sizing_estimate.inspectability.estimated_inputs.map((item) => (
+                                    <li key={item}>{item}</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                              {(profile.battery_sizing_estimate.inspectability.incomplete_inputs || []).length ? (
+                                <ul>
+                                  {profile.battery_sizing_estimate.inspectability.incomplete_inputs.map((item) => (
+                                    <li key={item}>{item}</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                              {profile.battery_sizing_estimate.inspectability.partial_provenance_warning ? (
+                                <p className="callout-copy">{profile.battery_sizing_estimate.inspectability.partial_provenance_warning}</p>
+                              ) : null}
+                            </>
+                          ) : null}
+                          <p className="callout-copy">{profile.battery_sizing_estimate.scope_note}</p>
+                        </div>
+                      ) : null}
+                      {profile.solar_sizing_estimate ? (
+                        <div className="solution-list">
+                          <strong>Solar planning range</strong>
+                          <ul>
+                            <li>Recommended solar range: {profile.solar_sizing_estimate.recommended_solar_capacity_range_kw ? `${profile.solar_sizing_estimate.recommended_solar_capacity_range_kw.min_kw}-${profile.solar_sizing_estimate.recommended_solar_capacity_range_kw.max_kw} kW` : "Not enough load data yet"}</li>
+                            <li>Recovery posture: {profile.solar_sizing_estimate.recovery_strength.replaceAll("_", " ")}</li>
+                            <li>Battery recovery relationship: {profile.solar_sizing_estimate.battery_recovery_relationship}</li>
+                            <li>Site capacity posture: {profile.solar_sizing_estimate.site_capacity_posture}</li>
+                            <li>Roof sizing confidence: {profile.solar_sizing_estimate.roof_geometry_readiness?.roof_measurement_confidence || "unknown"}</li>
+                            <li>Measured vs estimated: {profile.solar_sizing_estimate.roof_geometry_readiness?.measured_geometry_status || "unknown"}</li>
+                          </ul>
+                          {profile.recommended && profile.solar_sizing_estimate.inspectability ? (
+                            <>
+                              <strong>Solar guidance basis</strong>
+                              <ul>
+                                {(profile.solar_sizing_estimate.inspectability.input_signals || []).map((signal) => (
+                                  <li key={signal.key}>
+                                    {signal.label}: {signal.value} ({signal.status.replaceAll("_", " ")})
+                                  </li>
+                                ))}
+                              </ul>
+                              {(profile.solar_sizing_estimate.inspectability.estimated_inputs || []).length ? (
+                                <ul>
+                                  {profile.solar_sizing_estimate.inspectability.estimated_inputs.map((item) => (
+                                    <li key={item}>{item}</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                              {(profile.solar_sizing_estimate.inspectability.incomplete_inputs || []).length ? (
+                                <ul>
+                                  {profile.solar_sizing_estimate.inspectability.incomplete_inputs.map((item) => (
+                                    <li key={item}>{item}</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                              {profile.solar_sizing_estimate.inspectability.partial_provenance_warning ? (
+                                <p className="callout-copy">{profile.solar_sizing_estimate.inspectability.partial_provenance_warning}</p>
+                              ) : null}
+                            </>
+                          ) : null}
+                          <p className="callout-copy">{profile.solar_sizing_estimate.shading_obstruction_caution}</p>
+                          <p className="callout-copy">{profile.solar_sizing_estimate.seasonal_production_caution}</p>
+                          <p className="callout-copy">{profile.solar_sizing_estimate.roof_geometry_readiness?.missing_geometry_warning}</p>
+                          <p className="callout-copy">{profile.solar_sizing_estimate.low_solar_resilience_note}</p>
+                          <p className="callout-copy">{profile.solar_sizing_estimate.scope_note}</p>
+                        </div>
+                      ) : null}
+                      <div className="solution-list">
+                        <strong>Behavioral assumptions</strong>
+                        <ul>
+                          {(profile.behavioral_assumptions || []).map((assumption) => (
+                            <li key={assumption}>{assumption}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <p className="callout-copy">{profile.fit_reason}</p>
+                    </article>
+                  ))}
+                </div>
+              </article>
+            ) : null}
           </>
         ) : null}
       </PageSection>
