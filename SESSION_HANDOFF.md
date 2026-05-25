@@ -8,10 +8,12 @@
 
 - Session date: 2026-05-25
 - Starting commit: `61693f8`
-- Ending commit: `2cf88e4`
+- Ending commit: `bdb9be3`
 - Repo commits created this session:
   - `e854b8f` `Add energy planner refinement governance skills`
   - `9fad58b` `Refine deterministic backup load selection`
+  - `2cf88e4` `Finalize session handoff metadata`
+  - `bdb9be3` `Correct closeout handoff commit reference`
 - Related global-skill commits created outside this repo:
   - `4c3b257` in `~/.codex/global-skills` for `stabilization-before-feature-expansion`
   - `f68a2ba` in `~/.codex/global-skills` for `session-closeout-stabilization`
@@ -48,7 +50,7 @@ The next implementation target is to add the next architecture-fit recommendatio
 ## Copy/Paste Restore Prompt
 
 ```text
-Resume work in /home/mattcoje/residential-energy-planner from clean commit 2cf88e4.
+Resume work in /home/mattcoje/residential-energy-planner from clean commit bdb9be3.
 
 Load skills:
 - ~/.codex/global-skills/stabilization-before-feature-expansion/SKILL.md
