@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-05-24
+2026-05-25
 
 ## Platform State
 
@@ -30,6 +30,7 @@
 - Recommendation profiles now include a first internal battery sizing estimate layer based on current backup-load modeling and profile posture
 - Recommendation profiles now include a first internal solar sizing and recovery estimate layer based on recovery posture, low-solar assumptions, and battery-recovery planning
 - Recommendation profile fit, battery guidance, and solar guidance now include additive inspectability metadata that exposes basis signals, estimated inputs, incomplete inputs, confidence posture, and partial-provenance warnings without exposing raw formulas
+- Recommendation outputs now also include an additive deterministic backup-load selection summary that makes current backup scope, fallback posture, and planning gaps explicit before panel/service, battery, or solar guidance is interpreted
 - Solar guidance now also applies a first coarse site-aware adjustment layer using recorded roof placement where available, fallback shading caution, coarse seasonal region posture, and install-path realism signals
 - Solar guidance now also carries an explicit roof-readiness layer that distinguishes inferred placement realism, estimated roof-capacity posture, measured roof-geometry availability, and future usable-area support
 - Recommendation outputs now also carry a preliminary panel/service architecture layer that classifies likely service posture and backup-architecture direction before inverter, smart-panel modifier, or generator sizing
@@ -44,6 +45,7 @@
 - Verified product ingestion and provenance
 - Exhaustive field-level provenance coverage across scenarios, pathways, designs, and home-model facts
 - Existing local databases may need reseeding or manual provenance entry to show the new seeded pathway lineage examples
+- Existing local databases may also need reseeding to surface the new backup-load-selection rule provenance record
 - Recommendation profiles and sizing slices are now more inspectable, but they still remain planning guidance only and are not yet connected to deeper site-aware recommendation logic
 - Battery sizing now has a first numeric planning layer, but richer battery/site constraints and product-specific sizing are still not implemented behind the profile system
 - Solar sizing now has a first numeric planning layer plus a coarse site-aware adjustment stage, but richer seasonal modeling, roof-capacity realism, and more grounded recovery inputs are still incomplete behind the profile system
@@ -75,4 +77,5 @@
 - The new solar site-aware layer uses only coarse internal postures and fallback caution defaults; it is not a production model, roof-fit model, or shading analysis.
 - The new roof-readiness layer is architectural scaffolding for future measured-geometry inputs; it does not imply that scaled or traced roof data already exists.
 - The new panel/service layer uses current panel, service, load-grouping, and pathway signals only; it does not confirm busbar compliance, transfer topology, or final backup hardware architecture.
+- The new backup-load selection layer prevents silent scope inflation, but it still depends on recorded essential/preferred tagging rather than circuit-level load studies or outage sequencing.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

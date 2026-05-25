@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-05-24
+2026-05-25
 
 ## Repo Shape
 
@@ -30,11 +30,12 @@
 - Solar sizing now includes a first coarse site-aware adjustment layer using recorded roof placement, fallback shading caution, coarse seasonal region posture, and install-path realism signals
 - Solar guidance now also includes an explicit roof-data-completeness and roof-measurement-confidence layer that distinguishes inferred placement realism from future measured roof geometry
 - Recommendation outputs now also include a preliminary panel/service architecture layer that constrains backup design direction before inverter, smart-panel modifier, or generator sizing
+- Recommendation outputs now also include an explicit deterministic backup-load selection layer that distinguishes recorded load grouping from the currently selected planning scope before battery, solar, or backup-architecture guidance is interpreted
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Extend profile-based planning guidance into broader recommendation behavior and deeper inspectability around design facts and scenario-facing guidance while keeping formulas internal, provenance-aware, and planning-only, with panel/service architecture and roof-capacity certainty both explicit before deeper sizing layers.
+Extend profile-based planning guidance into the next architecture-fit and equipment-mix recommendation slice while keeping formulas internal, provenance-aware, and planning-only, now that backup-load selection, panel/service posture, and roof-capacity certainty are each explicit layers.
 
 ## Restore Model
 
@@ -47,6 +48,7 @@ Extend profile-based planning guidance into broader recommendation behavior and 
 - Detailed continuity docs still exist and remain valuable, but they are too large to treat as mandatory startup context.
 - Provenance coverage is still partial, so trust messaging must stay explicit.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
+- Existing local databases may need reseeding to surface the new seeded backup-load-selection rule provenance record.
 
 ## Canonical Detailed References
 

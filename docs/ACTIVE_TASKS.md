@@ -7,7 +7,7 @@
 3. Preserve API and persistence stability while editable workflows mature.
 4. Stabilize the new provenance foundation under the trust visibility, advisor intelligence, scenario comparison, and transient derived-takeoff workflows.
 5. Build deterministic profile-based resilience recommendation and sizing logic incrementally behind the advisor layer.
-6. Extend the current inspectable battery, solar, roof-readiness, and panel/service slices into broader profile-backed recommendation behavior, with backup-load scope needing refinement before inverter sizing.
+6. Extend the current inspectable battery, solar, roof-readiness, panel/service, and backup-load-selection slices into broader profile-backed recommendation behavior before inverter sizing.
 
 ## Open Technical Tasks
 

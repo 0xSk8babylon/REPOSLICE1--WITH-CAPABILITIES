@@ -2,17 +2,18 @@
 
 ## Updated
 
-2026-05-24
+2026-05-25
 
 ## What Changed Last
 
-- Added a preliminary panel/service architecture layer behind the existing recommendation stack.
-- Recommendation outputs now classify likely panel/service posture, panel-upgrade likelihood, service-upgrade caution, backup-architecture suitability, smart-panel readiness, and generator-integration readiness without performing inverter or generator sizing.
-- Kept the change additive: no migration, no persistence change, no inverter sizing, no smart-panel modifier logic, no generator sizing, and no exposed engineering formulas in the UI.
+- Added a deterministic backup-load selection layer behind the recommendation stack.
+- Recommendation outputs now distinguish recorded essential/preferred load grouping from the selected planning backup scope and expose that basis additively in the API and Design Advisor UI.
+- Battery, solar, and panel/service guidance now consume the explicit selected scope instead of silently inheriting broader backup intent.
+- Kept the change additive: no migration, no persistence change, no inverter sizing, no generator sizing, and no exposed engineering formulas.
 
 ## Current Resume Point
 
-The next implementation target is to refine backup-load selection and backup-scope realism before inverter sizing, so the new panel/service architecture layer constrains a better-grounded power path instead of sizing around weak load assumptions.
+The next implementation target is to add the next architecture-fit recommendation slice around equipment mix and backup-path tradeoffs, now that backup-load selection, panel/service posture, and current planning scope are all explicit before inverter sizing.
 
 ## If You Resume Now
 
@@ -22,4 +23,4 @@ The next implementation target is to refine backup-load selection and backup-sco
 
 ## Latest Detailed Handoff
 
-See `docs/handoffs/2026-05-24-panel-service-preliminary-architecture.md`
+See `docs/handoffs/2026-05-25-deterministic-backup-load-selection.md`

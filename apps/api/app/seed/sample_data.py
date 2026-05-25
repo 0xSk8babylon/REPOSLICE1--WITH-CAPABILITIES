@@ -296,6 +296,16 @@ SAMPLE_RULE_PROVENANCE = [
         "notes": "Planning guidance only. Does not expose engineering sizing formulas.",
     },
     {
+        "id": "rule_prov_recommendation_backup_load_selection",
+        "rule_key": "recommendation.backup_load_selection_v1",
+        "rule_name": "Deterministic Backup Load Selection",
+        "source_type": "internal_rule",
+        "source_document_id": "source_doc_internal_rulebook",
+        "trust_state": "derived_estimate",
+        "description": "Selects the current planning backup scope from recorded essential and preferred loads without inferring broader outage intent than the structured load grouping supports.",
+        "notes": "Planning guidance only. Does not imply final transfer, inverter, or generator design.",
+    },
+    {
         "id": "rule_prov_recommendation_battery_sizing",
         "rule_key": "recommendation.profile_battery_sizing_v1",
         "rule_name": "Profile-Backed Battery Planning Range",

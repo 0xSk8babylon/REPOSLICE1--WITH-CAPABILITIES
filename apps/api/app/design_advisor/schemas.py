@@ -43,6 +43,19 @@ class EstimateInspectability(ORMModel):
     partial_provenance_warning: Optional[str] = None
 
 
+class BackupLoadSelectionSummary(ORMModel):
+    selected_scope_label: str
+    selection_basis: str
+    selected_priority_band: str
+    selected_load_count: int
+    recorded_essential_load_count: int
+    recorded_preferred_load_count: int
+    selection_reason: str
+    planning_gap_warning: Optional[str] = None
+    scope_note: str
+    inspectability: Optional[EstimateInspectability] = None
+
+
 class PanelServiceArchitectureEstimate(ORMModel):
     main_service_panel_posture: str
     panel_upgrade_likelihood: str
@@ -129,6 +142,7 @@ class ResilienceRecommendation(ORMModel):
     design_id: str
     recommended_profile: Optional[RecommendationProfile] = None
     confidence_level: ConfidenceLevel
+    backup_load_selection: Optional[BackupLoadSelectionSummary] = None
     panel_service_architecture: Optional[PanelServiceArchitectureEstimate] = None
     profiles: List[RecommendationProfileCard] = Field(default_factory=list)
     context_signals: Dict[str, object] = Field(default_factory=dict)

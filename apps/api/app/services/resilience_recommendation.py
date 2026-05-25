@@ -14,6 +14,7 @@ from app.core.types import (
     SolarSizingPosture,
 )
 from app.design_advisor.schemas import (
+    BackupLoadSelectionSummary,
     BatteryCapacityRange,
     BatterySizingEstimate,
     PanelServiceArchitectureEstimate,
@@ -400,10 +401,80 @@ class ResilienceRecommendationService:
     def _has_backup_scope(self, analysis) -> bool:
         return bool(analysis["essential_loads"] or analysis["backup_loads"])
 
+    def _preferred_loads(self, analysis):
+        return [load for load in analysis["loads"] if load.backup_priority == "preferred"]
+
+    def _backup_scope_selection(self, analysis, profile: Optional[RecommendationProfile] = None) -> Dict[str, object]:
+        essential_loads = analysis["essential_loads"]
+        preferred_loads = self._preferred_loads(analysis)
+        selected_loads = []
+        selection_basis = "missing"
+        selected_priority_band = "none"
+        selected_scope_label = "no backup load scope recorded"
+        selection_reason = "No essential or preferred backup loads are recorded yet, so backup scope remains ungrounded."
+        planning_gap_warning = "Record essential or preferred backup loads before relying on backup architecture or sizing guidance."
+
+        if profile == RecommendationProfile.critical_efficient and essential_loads:
+            selected_loads = essential_loads
+            selection_basis = "essential_only"
+            selected_priority_band = "essential"
+            selected_scope_label = "essential loads only"
+            selection_reason = (
+                "Critical / Efficient intentionally constrains planning to recorded essential loads before broader backup scope is carried."
+            )
+            planning_gap_warning = None
+        elif essential_loads and preferred_loads:
+            selected_loads = analysis["backup_loads"]
+            selection_basis = "essential_and_preferred"
+            selected_priority_band = "preferred_plus_essential"
+            selected_scope_label = "essential and preferred loads"
+            selection_reason = (
+                "Recorded preferred loads justify a broader backup scope, so planning uses the combined essential and preferred load group."
+            )
+            planning_gap_warning = None
+        elif preferred_loads:
+            selected_loads = preferred_loads
+            selection_basis = "preferred_only"
+            selected_priority_band = "preferred"
+            selected_scope_label = "preferred loads only"
+            selection_reason = (
+                "Preferred backup loads are recorded without explicit essential loads, so planning uses the recorded preferred group rather than inventing a broader scope."
+            )
+            planning_gap_warning = "Essential-load tagging is missing, so outage-priority discipline is only partially grounded."
+        elif essential_loads:
+            selected_loads = essential_loads
+            selected_priority_band = "essential"
+            selected_scope_label = "essential loads only"
+            if profile == RecommendationProfile.critical_efficient:
+                selection_basis = "essential_only"
+                selection_reason = (
+                    "Critical / Efficient intentionally constrains planning to recorded essential loads before broader backup scope is carried."
+                )
+                planning_gap_warning = None
+            else:
+                selection_basis = "essential_fallback"
+                selection_reason = (
+                    "No preferred backup loads are recorded, so planning stays grounded in essential loads only instead of inferring broader backup scope."
+                )
+                planning_gap_warning = (
+                    "Broader backup ambition is not yet reflected in load grouping, so current planning remains limited to essential loads."
+                )
+
+        return {
+            "selected_loads": selected_loads,
+            "selection_basis": selection_basis,
+            "selected_priority_band": selected_priority_band,
+            "selected_scope_label": selected_scope_label,
+            "selection_reason": selection_reason,
+            "planning_gap_warning": planning_gap_warning,
+            "recorded_essential_load_count": len(essential_loads),
+            "recorded_preferred_load_count": len(preferred_loads),
+            "selected_load_count": len(selected_loads),
+            "supports_broader_backup": selection_basis in {"essential_and_preferred", "preferred_only"},
+        }
+
     def _selected_backup_loads(self, analysis, profile: Optional[RecommendationProfile] = None):
-        if profile == RecommendationProfile.critical_efficient and analysis["essential_loads"]:
-            return analysis["essential_loads"]
-        return analysis["backup_loads"] or analysis["essential_loads"]
+        return self._backup_scope_selection(analysis, profile)["selected_loads"]
 
     def _backup_load_energy_need_kwh(
         self, analysis, profile: Optional[RecommendationProfile] = None
@@ -421,16 +492,94 @@ class ResilienceRecommendationService:
     def _backup_load_model_summary(
         self, analysis, profile: Optional[RecommendationProfile] = None
     ) -> Dict[str, object]:
-        selected_loads = self._selected_backup_loads(analysis, profile)
+        selection = self._backup_scope_selection(analysis, profile)
+        selected_loads = selection["selected_loads"]
         missing_daily_hours = [load.name for load in selected_loads if not load.estimated_daily_hours]
         fallback_applied = bool(selected_loads) and bool(missing_daily_hours)
-        selected_source = "essential_loads" if profile == RecommendationProfile.critical_efficient and analysis["essential_loads"] else ("backup_loads" if analysis["backup_loads"] else "essential_loads")
         return {
             "selected_load_count": len(selected_loads),
-            "selected_source": selected_source,
+            "selected_source": selection["selection_basis"],
+            "selected_scope_label": selection["selected_scope_label"],
+            "selected_priority_band": selection["selected_priority_band"],
+            "selection_reason": selection["selection_reason"],
+            "planning_gap_warning": selection["planning_gap_warning"],
+            "recorded_essential_load_count": selection["recorded_essential_load_count"],
+            "recorded_preferred_load_count": selection["recorded_preferred_load_count"],
+            "supports_broader_backup": selection["supports_broader_backup"],
             "missing_daily_hour_loads": missing_daily_hours,
             "fallback_applied": fallback_applied,
         }
+
+    def _backup_load_selection_summary(
+        self,
+        db,
+        analysis,
+        profile: RecommendationProfile,
+        confidence: ConfidenceLevel,
+        rule_documents_map=None,
+    ) -> BackupLoadSelectionSummary:
+        load_summary = self._backup_load_model_summary(analysis, profile)
+        input_signals = [
+            {
+                "key": "recorded_essential_loads",
+                "label": "Recorded essential loads",
+                "value": str(load_summary["recorded_essential_load_count"]),
+                "status": "recorded" if load_summary["recorded_essential_load_count"] else "missing",
+                "note": "Essential-load tagging is the narrowest deterministic backup scope available to the planner.",
+            },
+            {
+                "key": "recorded_preferred_loads",
+                "label": "Recorded preferred loads",
+                "value": str(load_summary["recorded_preferred_load_count"]),
+                "status": "recorded" if load_summary["recorded_preferred_load_count"] else "missing",
+                "note": "Preferred-load tagging is the current structured signal that the backup scope extends beyond essentials.",
+            },
+            {
+                "key": "selected_backup_scope",
+                "label": "Selected backup scope",
+                "value": f"{load_summary['selected_load_count']} loads from {load_summary['selected_scope_label']}",
+                "status": "rule_based" if load_summary["selected_load_count"] else "missing",
+                "note": "Battery, solar, and backup-architecture planning consume this selected scope instead of inferring broader outage intent.",
+            },
+            {
+                "key": "recommendation_profile",
+                "label": "Recommendation profile context",
+                "value": profile.value.replace("_", " "),
+                "status": "rule_based",
+                "note": "Profile posture can narrow the selected scope, but it does not invent missing broader load grouping.",
+            },
+        ]
+        estimated_inputs = []
+        incomplete_inputs = []
+        if load_summary["planning_gap_warning"]:
+            incomplete_inputs.append(load_summary["planning_gap_warning"])
+        return BackupLoadSelectionSummary(
+            selected_scope_label=load_summary["selected_scope_label"],
+            selection_basis=load_summary["selected_source"],
+            selected_priority_band=load_summary["selected_priority_band"],
+            selected_load_count=load_summary["selected_load_count"],
+            recorded_essential_load_count=load_summary["recorded_essential_load_count"],
+            recorded_preferred_load_count=load_summary["recorded_preferred_load_count"],
+            selection_reason=load_summary["selection_reason"],
+            planning_gap_warning=load_summary["planning_gap_warning"],
+            scope_note="Planning-only selection summary. It explains which recorded loads currently ground backup architecture and sizing, not final transfer, inverter, or generator design.",
+            inspectability=provenance_service.build_estimate_inspectability(
+                db,
+                basis="Backup scope selection is derived from recorded essential/preferred load grouping plus explicit profile-aware selection rules.",
+                confidence_level=confidence,
+                rule_keys=[
+                    "recommendation.resilience_profile_matrix_v1",
+                    "recommendation.backup_load_selection_v1",
+                ],
+                input_signals=input_signals,
+                estimated_inputs=estimated_inputs,
+                incomplete_inputs=incomplete_inputs,
+                notes=[
+                    "The planner distinguishes recorded load grouping from the selected planning scope so broader outage intent is not silently inferred.",
+                ],
+                rule_documents_map=rule_documents_map,
+            ),
+        )
 
     def _panel_service_architecture_estimate(
         self,
@@ -443,11 +592,11 @@ class ResilienceRecommendationService:
     ) -> PanelServiceArchitectureEstimate:
         main_panel = analysis["main_panel"]
         home = analysis["home"]
-        backup_loads = analysis["backup_loads"]
-        essential_loads = analysis["essential_loads"]
+        load_summary = self._backup_load_model_summary(analysis, profile)
         linked_pathways = analysis["linked_pathways"]
         product_types = analysis["product_types"]
         design_goal = analysis["design"].design_goal
+        supports_broader_backup = load_summary["supports_broader_backup"]
 
         if main_panel is None:
             main_service_panel_posture = "main service panel not recorded"
@@ -491,6 +640,13 @@ class ResilienceRecommendationService:
             else:
                 service_upgrade_caution = "Service size is not recorded, so service-upgrade risk remains a planning caution."
 
+        if not supports_broader_backup:
+            if partial_home_backup_suitability == "conditional":
+                partial_home_backup_suitability = "limited"
+            elif partial_home_backup_suitability == "favorable":
+                partial_home_backup_suitability = "conditional"
+            whole_home_backup_suitability = "poor"
+
         if linked_pathways and any(pathway.route_difficulty == "high" or pathway.visibility_level == "high" for pathway in linked_pathways):
             if partial_home_backup_suitability == "conditional":
                 partial_home_backup_suitability = "limited"
@@ -521,7 +677,7 @@ class ResilienceRecommendationService:
 
         if main_panel is None:
             recommended_backup_architecture = "future-ready service upgrade path"
-        elif "smart_panel" in product_types and profile in {
+        elif supports_broader_backup and "smart_panel" in product_types and profile in {
             RecommendationProfile.balanced,
             RecommendationProfile.conservative,
             RecommendationProfile.premium_future_ready,
@@ -531,17 +687,30 @@ class ResilienceRecommendationService:
             recommended_backup_architecture = "critical-loads subpanel"
         elif profile == RecommendationProfile.balanced:
             recommended_backup_architecture = (
-                "partial-home backup" if partial_home_backup_suitability in {"favorable", "conditional"} else "critical-loads subpanel"
+                "partial-home backup"
+                if supports_broader_backup and partial_home_backup_suitability in {"favorable", "conditional"}
+                else "critical-loads subpanel"
             )
         elif profile == RecommendationProfile.conservative:
-            if whole_home_backup_suitability == "conditional" and design_goal in {"whole_home_backup", "off_grid_capable"}:
+            if (
+                supports_broader_backup
+                and whole_home_backup_suitability == "conditional"
+                and design_goal in {"whole_home_backup", "off_grid_capable"}
+            ):
                 recommended_backup_architecture = "whole-home backup"
-            else:
+            elif supports_broader_backup:
                 recommended_backup_architecture = "partial-home backup"
+            else:
+                recommended_backup_architecture = "critical-loads subpanel"
         else:
-            if whole_home_backup_suitability in {"favorable", "conditional"} and home is not None and (home.service_size or 0) >= 200:
+            if (
+                supports_broader_backup
+                and whole_home_backup_suitability in {"favorable", "conditional"}
+                and home is not None
+                and (home.service_size or 0) >= 200
+            ):
                 recommended_backup_architecture = "whole-home backup"
-            elif "smart_panel" in product_types:
+            elif supports_broader_backup and "smart_panel" in product_types:
                 recommended_backup_architecture = "smart-panel/load-control assisted"
             else:
                 recommended_backup_architecture = "future-ready service upgrade path"
@@ -564,9 +733,13 @@ class ResilienceRecommendationService:
             {
                 "key": "backup_load_scope",
                 "label": "Backup load scope",
-                "value": f"{len(essential_loads)} essential / {len(backup_loads)} backup loads",
-                "status": "recorded" if backup_loads else "missing",
-                "note": "Current load grouping helps distinguish critical-load architecture from broader backup ambitions.",
+                "value": (
+                    f"{load_summary['selected_load_count']} selected from {load_summary['selected_scope_label']}"
+                    if load_summary["selected_load_count"]
+                    else "No selected backup scope"
+                ),
+                "status": "recorded" if load_summary["selected_load_count"] else "missing",
+                "note": "Current architecture posture uses the selected backup scope rather than silently assuming broader outage intent.",
             },
             {
                 "key": "pathway_realism",
@@ -593,8 +766,10 @@ class ResilienceRecommendationService:
             incomplete_inputs.append("Main service panel details are missing, so backup architecture posture cannot be strongly grounded.")
         if home is None or not home.service_size:
             incomplete_inputs.append("Service size is not recorded, so service-upgrade caution remains conservative.")
-        if not backup_loads:
+        if not load_summary["selected_load_count"]:
             incomplete_inputs.append("Backup load grouping is incomplete, so architecture fit is not yet tied to a trustworthy backup scope.")
+        elif load_summary["planning_gap_warning"]:
+            incomplete_inputs.append(load_summary["planning_gap_warning"])
         if not linked_pathways:
             incomplete_inputs.append("No linked pathways are recorded, so install realism behind backup architecture remains incomplete.")
 
@@ -604,6 +779,7 @@ class ResilienceRecommendationService:
             confidence_level=confidence,
             rule_keys=[
                 "recommendation.resilience_profile_matrix_v1",
+                "recommendation.backup_load_selection_v1",
                 "recommendation.panel_service_preliminary_architecture_v1",
             ],
             input_signals=input_signals,
@@ -629,7 +805,10 @@ class ResilienceRecommendationService:
             inspectability=inspectability,
         )
 
-    def _build_profile_input_signals(self, analysis, completeness) -> Tuple[List[Dict[str, object]], List[str], List[str]]:
+    def _build_profile_input_signals(
+        self, analysis, completeness, profile: RecommendationProfile
+    ) -> Tuple[List[Dict[str, object]], List[str], List[str]]:
+        load_summary = self._backup_load_model_summary(analysis, profile)
         signals = [
             {
                 "key": "design_goal",
@@ -641,9 +820,13 @@ class ResilienceRecommendationService:
             {
                 "key": "load_grouping",
                 "label": "Backup load grouping",
-                "value": f"{len(self._selected_backup_loads(analysis))} selected loads",
-                "status": "recorded" if self._selected_backup_loads(analysis) else "missing",
-                "note": "Current essential or backup load grouping influences resilience scope.",
+                "value": (
+                    f"{load_summary['selected_load_count']} selected from {load_summary['selected_scope_label']}"
+                    if load_summary["selected_load_count"]
+                    else "no selected backup scope"
+                ),
+                "status": "recorded" if load_summary["selected_load_count"] else "missing",
+                "note": "Current essential/preferred load grouping influences resilience scope through an explicit selected planning scope.",
             },
             {
                 "key": "assigned_architecture",
@@ -686,6 +869,8 @@ class ResilienceRecommendationService:
             incomplete_inputs.append("Assigned equipment architecture is incomplete, so recommendation fit remains directional.")
         if not self._has_backup_scope(analysis):
             incomplete_inputs.append("No essential or backup load grouping is recorded, so resilience scope remains incomplete.")
+        elif load_summary["planning_gap_warning"]:
+            incomplete_inputs.append(load_summary["planning_gap_warning"])
         return signals, estimated_inputs, incomplete_inputs
 
     def _battery_sizing_estimate(
@@ -759,6 +944,13 @@ class ResilienceRecommendationService:
                 ),
             },
             {
+                "key": "selected_backup_scope",
+                "label": "Selected backup scope",
+                "value": f"{load_summary['selected_load_count']} loads from {load_summary['selected_scope_label']}",
+                "status": "rule_based" if load_summary["selected_load_count"] else "missing",
+                "note": "Battery guidance uses the explicit selected load group rather than assuming broader outage intent.",
+            },
+            {
                 "key": "autonomy_posture",
                 "label": "Autonomy duration posture",
                 "value": f"{battery_sizing.autonomy_duration_hours_min}-{battery_sizing.autonomy_duration_hours_max} hours",
@@ -794,6 +986,8 @@ class ResilienceRecommendationService:
             )
         if not load_summary["selected_load_count"]:
             incomplete_inputs.append("No selected backup load group is recorded, so battery guidance is not grounded in actual load scope.")
+        elif load_summary["planning_gap_warning"]:
+            incomplete_inputs.append(load_summary["planning_gap_warning"])
         return provenance_service.build_estimate_inspectability(
             db,
             basis="Battery guidance is based on the selected recommendation profile, current backup-load modeling, and planning postures for autonomy, reserve, and future growth.",
@@ -907,13 +1101,14 @@ class ResilienceRecommendationService:
         self,
         db,
         analysis,
+        profile: RecommendationProfile,
         config,
         battery_sizing: BatterySizingEstimate,
         solar_sizing: SolarSizingEstimate,
         confidence: ConfidenceLevel,
         rule_documents_map=None,
     ):
-        load_summary = self._backup_load_model_summary(analysis)
+        load_summary = self._backup_load_model_summary(analysis, profile)
         input_signals = [
             {
                 "key": "base_solar_range_guidance",
@@ -951,6 +1146,13 @@ class ResilienceRecommendationService:
                 "value": config["solar_sizing_posture"].replace("_", " "),
                 "status": "rule_based",
                 "note": "This posture sets how strongly solar is expected to support resilience recovery.",
+            },
+            {
+                "key": "selected_backup_scope",
+                "label": "Selected backup scope",
+                "value": f"{load_summary['selected_load_count']} loads from {load_summary['selected_scope_label']}",
+                "status": "rule_based" if load_summary["selected_load_count"] else "missing",
+                "note": "Solar recovery guidance inherits the same explicit selected backup scope used by battery guidance.",
             },
             {
                 "key": "low_solar_posture",
@@ -1042,6 +1244,8 @@ class ResilienceRecommendationService:
             incomplete_inputs.append(
                 "Measured roof geometry is not available yet, so usable roof capacity remains an estimated planning posture."
             )
+        if load_summary["planning_gap_warning"]:
+            incomplete_inputs.append(load_summary["planning_gap_warning"])
         return provenance_service.build_estimate_inspectability(
             db,
             basis="Solar guidance is based on the selected recommendation profile, battery recovery posture, low-solar assumptions, the current backup-load model, and a coarse site-aware adjustment layer for placement, shading uncertainty, seasonal region, and install realism.",
@@ -1141,6 +1345,7 @@ class ResilienceRecommendationService:
             db,
             [
                 "recommendation.resilience_profile_matrix_v1",
+                "recommendation.backup_load_selection_v1",
                 "recommendation.panel_service_preliminary_architecture_v1",
                 "recommendation.profile_battery_sizing_v1",
                 "recommendation.profile_solar_sizing_v1",
@@ -1148,21 +1353,24 @@ class ResilienceRecommendationService:
                 "recommendation.roof_geometry_readiness_v1",
             ],
         )
+        backup_load_selection = self._backup_load_selection_summary(
+            db, analysis, profile, confidence, recommendation_rule_documents
+        )
         panel_service_architecture = self._panel_service_architecture_estimate(
             db, analysis, completeness, profile, confidence, recommendation_rule_documents
         )
-        profile_signals, profile_estimated_inputs, profile_incomplete_inputs = self._build_profile_input_signals(
-            analysis, completeness
-        )
         profiles: List[RecommendationProfileCard] = []
         for key, config in PROFILE_LIBRARY.items():
+            profile_signals, profile_estimated_inputs, profile_incomplete_inputs = self._build_profile_input_signals(
+                analysis, completeness, key
+            )
             battery_sizing = self._battery_sizing_estimate(analysis, key, config)
             battery_inspectability = self._battery_inspectability(
                 db, analysis, key, config, battery_sizing, confidence, recommendation_rule_documents
             )
             solar_sizing = self._solar_sizing_estimate(analysis, config, battery_sizing)
             solar_inspectability = self._solar_inspectability(
-                db, analysis, config, battery_sizing, solar_sizing, confidence, recommendation_rule_documents
+                db, analysis, key, config, battery_sizing, solar_sizing, confidence, recommendation_rule_documents
             )
             profiles.append(
                 RecommendationProfileCard(
@@ -1194,6 +1402,8 @@ class ResilienceRecommendationService:
             "design_goal": analysis["design"].design_goal,
             "essential_load_count": len(analysis["essential_loads"]),
             "backup_load_count": len(analysis["backup_loads"]),
+            "selected_backup_load_count": backup_load_selection.selected_load_count,
+            "selected_backup_scope_label": backup_load_selection.selected_scope_label,
             "assigned_product_count": len(analysis["assigned_products"]),
             "pathway_count": len(analysis["linked_pathways"]),
             "workshop_building_count": len(analysis["workshop_buildings"]),
@@ -1202,9 +1412,13 @@ class ResilienceRecommendationService:
         }
         provenance = provenance_service.build_recommendation_provenance(
             db,
-            rule_keys=["recommendation.resilience_profile_matrix_v1"],
+            rule_keys=[
+                "recommendation.resilience_profile_matrix_v1",
+                "recommendation.backup_load_selection_v1",
+            ],
             notes=[
                 "Recommendation is derived from current design goal, load grouping, product assignments, panel context, and pathway planning.",
+                "Backup-scope selection is explicit: broader outage intent is only carried when preferred or broader recorded load grouping exists.",
                 "Battery sizing ranges are planning estimates derived from profile posture and current backup-load modeling, not engineering sizing outputs.",
                 "Solar sizing ranges are planning estimates derived from recovery posture, low-solar assumptions, and coarse site-aware caution signals, not engineering production studies.",
             ],
@@ -1215,6 +1429,7 @@ class ResilienceRecommendationService:
             design_id=design_id,
             recommended_profile=profile,
             confidence_level=confidence,
+            backup_load_selection=backup_load_selection,
             panel_service_architecture=panel_service_architecture,
             profiles=profiles,
             context_signals=context_signals,

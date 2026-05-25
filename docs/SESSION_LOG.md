@@ -44,3 +44,13 @@
 - Solar payloads now distinguish inferred placement realism, estimated roof-capacity posture, measured geometry status, and future geometry-source placeholders without claiming measured roof area already exists.
 - Added a preliminary panel/service architecture layer to recommendation outputs.
 - Recommendation payloads now classify likely panel/service posture, panel/service upgrade caution, backup-architecture suitability, smart-panel readiness, and generator-integration readiness before inverter or generator sizing exists.
+
+## 2026-05-25
+
+- Added the global `stabilization-before-feature-expansion` skill in the separate `~/.codex/global-skills` repo.
+- Added project governance skills for runtime invariants, provenance rules, and load-selection doctrine under `.codex/skills/`.
+- Refined the recommendation service so backup-load selection is explicit and deterministic instead of silently falling through to broad backup scope.
+- Added additive `backup_load_selection` API output and surfaced it in the Design Advisor UI.
+- Battery, solar, and panel/service guidance now consume the explicit selected backup scope and expose planning-gap warnings when broader backup ambition is not actually recorded in load grouping.
+- Added a seeded internal rule provenance record for deterministic backup-load selection.
+- Verified the refinement with `python3 -m compileall apps/api/app` and `npm run build` in `apps/web`.

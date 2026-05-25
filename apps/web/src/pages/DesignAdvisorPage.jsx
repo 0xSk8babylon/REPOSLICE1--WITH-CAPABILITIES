@@ -141,6 +141,53 @@ export function DesignAdvisorPage() {
                     </ul>
                   </div>
                 ) : null}
+                {advisorQuery.data.recommendation_profiles.backup_load_selection ? (
+                  <div className="panel">
+                    <div className="panel-header">
+                      <h3>Backup Scope Selection</h3>
+                      <Badge tone="info">
+                        {advisorQuery.data.recommendation_profiles.backup_load_selection.selected_scope_label}
+                      </Badge>
+                    </div>
+                    <div className="metric-stack">
+                      <MetricRow
+                        label="Selected load count"
+                        value={String(advisorQuery.data.recommendation_profiles.backup_load_selection.selected_load_count)}
+                      />
+                      <MetricRow
+                        label="Selection basis"
+                        value={advisorQuery.data.recommendation_profiles.backup_load_selection.selection_basis.replaceAll("_", " ")}
+                      />
+                      <MetricRow
+                        label="Priority band"
+                        value={advisorQuery.data.recommendation_profiles.backup_load_selection.selected_priority_band.replaceAll("_", " ")}
+                      />
+                    </div>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.backup_load_selection.selection_reason}
+                    </p>
+                    {advisorQuery.data.recommendation_profiles.backup_load_selection.planning_gap_warning ? (
+                      <p className="callout-copy">
+                        {advisorQuery.data.recommendation_profiles.backup_load_selection.planning_gap_warning}
+                      </p>
+                    ) : null}
+                    {advisorQuery.data.recommendation_profiles.backup_load_selection.inspectability ? (
+                      <div className="solution-list">
+                        <strong>Selection basis</strong>
+                        <ul>
+                          {(advisorQuery.data.recommendation_profiles.backup_load_selection.inspectability.input_signals || []).map((signal) => (
+                            <li key={signal.key}>
+                              {signal.label}: {signal.value} ({signal.status.replaceAll("_", " ")})
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.backup_load_selection.scope_note}
+                    </p>
+                  </div>
+                ) : null}
                 {advisorQuery.data.recommendation_profiles.panel_service_architecture ? (
                   <div className="panel">
                     <div className="panel-header">
