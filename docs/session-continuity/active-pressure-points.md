@@ -50,8 +50,8 @@ This pressure has been reduced but not eliminated.
 
 ## 8. Continuity Risk From Context Resets
 
-- Current pressure: the architecture is now large enough that unstated assumptions can cause drift, even though a top-level continuity layer now exists.
-- Risk: future sessions may optimize locally and break long-term product principles unless they read these continuity docs first.
+- Current pressure: a compact discovery layer now exists, but the detailed continuity and doctrine surface is still large enough that agents can over-load context unless they route carefully.
+- Risk: future sessions may either skip needed deep references or reintroduce oversized restore prompts unless they follow the layered restore model.
 
 ## 9. Versioning Policy Exists But Is Not Yet Institutionalized
 
@@ -66,4 +66,4 @@ This pressure has been reduced but not eliminated.
 - Expand provenance coverage without implying that placeholder references are verified.
 - Continue extending scenario/pathway/design lineage beyond the current summary layer.
 - Convert Alembic from scaffold to normal practice before substantial schema expansion.
-- Keep top-level continuity files and handoffs synchronized with real implementation state.
+- Keep root discovery files, affected continuity docs, and handoffs synchronized with real implementation state.

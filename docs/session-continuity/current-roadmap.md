@@ -89,6 +89,8 @@ Status:
 ## Continuity Layer Status
 
 - canonical repo-level memory files are now in place
+- compact root discovery files now route restore before any detailed continuity sweep
+- repo-local skills now capture project-specific memory routing and guardrails
 - strategic doctrine files now exist under `docs/philosophy/`
 - core architecture decisions are now captured under `docs/adr/`
-- future sessions should update both `docs/session-continuity/*` and the top-level continuity files when state materially changes
+- future sessions should update the root discovery files plus only the detailed continuity files affected by the change

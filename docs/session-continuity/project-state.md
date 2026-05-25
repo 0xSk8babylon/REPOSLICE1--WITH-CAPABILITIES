@@ -4,7 +4,7 @@
 
 This document records the actual current state of the `residential-energy-planner` repo so future AI-assisted sessions can resume work without re-inferring architecture from partial context.
 
-## Repo Status As Of 2026-05-23
+## Repo Status As Of 2026-05-24
 
 - Monorepo structure is stable:
   - `apps/api`: FastAPI backend
@@ -12,6 +12,9 @@ This document records the actual current state of the `residential-energy-planne
   - `docs`: product, architecture, and continuity docs
 - Canonical top-level continuity files now exist at:
   - `AGENTS.md`
+  - `PROJECT_STATE.md`
+  - `SESSION_HANDOFF.md`
+  - `discovery-index.md`
   - `docs/PROJECT_OVERVIEW.md`
   - `docs/CURRENT_STATE.md`
   - `docs/NEXT_STEPS.md`
@@ -62,6 +65,7 @@ This document records the actual current state of the `residential-energy-planne
 - Scenario comparison is no longer placeholder-only, but its lineage depth is still constrained by partial provenance coverage.
 - Design status now acts as a lightweight planning maturity model, not an engineering approval state.
 - A dedicated doctrine layer now exists under `docs/philosophy/` and `docs/adr/` to preserve strategic coherence across future implementation sessions.
+- Restore now starts from a compact root discovery layer plus repo-local skills instead of requiring an immediate sweep across all detailed continuity and doctrine docs.
 
 ## What Is Not Implemented
 
@@ -89,7 +93,7 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - Design completeness is planning completeness only, not engineering completeness.
 - Trust visibility is now a first-class UX layer, even though deep provenance and audit systems are still deferred.
 - Verification status belongs to source documents; trust badges belong to current application presentation and should not be conflated.
-- Philosophy and ADR documents are part of the canonical memory layer for future restore flows.
+- Philosophy and ADR documents remain durable deep references, but they are no longer mandatory startup reads for every session.
 
 ## Important Current Constraints
 

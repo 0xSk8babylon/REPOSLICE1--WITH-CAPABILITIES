@@ -2,11 +2,11 @@
 
 ## Status
 
-This document defines a future continuity agent. It is not implemented yet.
+This document now describes the continuity-maintenance role within the layered restore model. It remains procedural guidance, not an implemented autonomous agent.
 
 ## Purpose
 
-The persistence agent should maintain portable project memory across:
+Continuity maintenance should preserve portable project memory across:
 
 - ChatGPT/Codex session resets
 - account switches
@@ -48,15 +48,16 @@ The persistence agent should maintain portable project memory across:
 - At the end of major implementation sessions
 - Before a handoff when context-window loss is likely
 
+## Canonical Procedure
+
+See `docs/session-continuity/continuity-workflow.md` for the current restore and closeout flow.
+
 ## Files It Should Update
 
-- `docs/session-continuity/project-state.md`
-- `docs/session-continuity/architecture-principles.md`
-- `docs/session-continuity/domain-map.md`
-- `docs/session-continuity/current-roadmap.md`
-- `docs/session-continuity/active-pressure-points.md`
-- `docs/session-continuity/persistence-agent-plan.md`
-- `docs/session-continuity/session-restore-template.md`
+- `PROJECT_STATE.md`
+- `SESSION_HANDOFF.md`
+- affected top-level state docs under `docs/`
+- affected continuity docs under `docs/session-continuity/`
 
 It may also update top-level `README.md` only when continuity-critical operating instructions materially change.
 
@@ -69,12 +70,12 @@ It may also update top-level `README.md` only when continuity-critical operating
 - Never overwrite human-authored architecture decisions without preserving them
 - Never present itself as a substitute for code review or engineering judgment
 
-## Future Implementation Approach
+## Working Approach
 
-- Read continuity docs first
-- Read high-authority repo files second
+- Start from the root discovery layer
 - Compare documented state against actual repo state
-- Produce targeted documentation deltas
+- Produce targeted documentation deltas instead of sweeping rewrites
+- Load deep references only when the active task requires them
 - Require explicit invocation or post-session hooks rather than background autonomy
 
 ## Minimal Future Inputs
