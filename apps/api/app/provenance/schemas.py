@@ -112,6 +112,7 @@ class ProvenanceSummary(ORMModel):
     entity_id: str
     source_types: List[str] = Field(default_factory=list)
     trust_states: List[str] = Field(default_factory=list)
+    confidence_levels: List[str] = Field(default_factory=list)
     verification_statuses: List[str] = Field(default_factory=list)
     source_document_ids: List[str] = Field(default_factory=list)
     last_retrieved_at: Optional[datetime] = None

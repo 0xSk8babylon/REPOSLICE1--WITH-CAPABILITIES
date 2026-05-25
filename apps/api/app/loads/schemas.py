@@ -2,6 +2,7 @@ from typing import Optional
 
 from app.core.schemas import ORMModel
 from app.core.types import BackupPriority, DataOrigin, PhaseType
+from app.provenance.schemas import ProvenanceSummary
 
 
 class LoadBase(ORMModel):
@@ -20,10 +21,11 @@ class LoadBase(ORMModel):
 
 class Load(LoadBase):
     id: str
+    provenance_summary: Optional[ProvenanceSummary] = None
 
 
-class LoadCreate(Load):
-    pass
+class LoadCreate(LoadBase):
+    id: str
 
 
 class LoadUpdate(ORMModel):

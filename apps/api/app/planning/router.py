@@ -16,27 +16,39 @@ from app.planning.schemas import (
     LoadTemplateCreate,
     LoadTemplateUpdate,
 )
+from app.services.provenance import provenance_service
 
 estimated_pathways_router = APIRouter(prefix="/estimated-pathways", tags=["estimated_pathways"])
 load_templates_router = APIRouter(prefix="/load-templates", tags=["load_templates"])
 design_goal_presets_router = APIRouter(prefix="/design-goal-presets", tags=["design_goal_presets"])
 
 
+def _serialize_estimated_pathway(pathway, provenance_summaries=None) -> EstimatedPathway:
+    provenance_summaries = provenance_summaries or {}
+    return EstimatedPathway.from_orm(pathway).copy(update={"provenance_summary": provenance_summaries.get(pathway.id)})
+
+
 @estimated_pathways_router.get("", response_model=List[EstimatedPathway])
 def list_estimated_pathways(home_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
-    return repository.list_estimated_pathways(db, home_id=home_id)
+    pathways = repository.list_estimated_pathways(db, home_id=home_id)
+    summaries = provenance_service.summarize_entities(db, "estimated_pathway", [pathway.id for pathway in pathways])
+    return [_serialize_estimated_pathway(pathway, summaries) for pathway in pathways]
 
 
 @estimated_pathways_router.post("", response_model=EstimatedPathway)
 def create_estimated_pathway(payload: EstimatedPathwayCreate, db: Session = Depends(get_db)):
-    return repository.create_estimated_pathway(db, payload)
+    pathway = repository.create_estimated_pathway(db, payload)
+    summaries = provenance_service.summarize_entities(db, "estimated_pathway", [pathway.id])
+    return _serialize_estimated_pathway(pathway, summaries)
 
 
 @estimated_pathways_router.patch("/{pathway_id}", response_model=EstimatedPathway)
 def update_estimated_pathway(pathway_id: str, payload: EstimatedPathwayUpdate, db: Session = Depends(get_db)):
     if repository.get_estimated_pathway(db, pathway_id) is None:
         raise HTTPException(status_code=404, detail="Estimated pathway not found")
-    return repository.update_estimated_pathway(db, pathway_id, payload)
+    pathway = repository.update_estimated_pathway(db, pathway_id, payload)
+    summaries = provenance_service.summarize_entities(db, "estimated_pathway", [pathway.id])
+    return _serialize_estimated_pathway(pathway, summaries)
 
 
 @load_templates_router.get("", response_model=List[LoadTemplate])
@@ -71,4 +83,3 @@ def update_design_goal_preset(preset_id: str, payload: DesignGoalPresetUpdate, d
     if repository.get_design_goal_preset(db, preset_id) is None:
         raise HTTPException(status_code=404, detail="Design goal preset not found")
     return repository.update_design_goal_preset(db, preset_id, payload)
-

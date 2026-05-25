@@ -3,6 +3,7 @@ from typing import Optional
 
 from app.core.schemas import ORMModel
 from app.core.types import ArchitectureType, BackupPriority, DataOrigin, DesignGoal, PhaseType
+from app.provenance.schemas import ProvenanceSummary
 
 
 class EstimatedPathwayBase(ORMModel):
@@ -29,6 +30,7 @@ class EstimatedPathway(EstimatedPathwayBase):
     id: str
     created_at: datetime
     updated_at: datetime
+    provenance_summary: Optional[ProvenanceSummary] = None
 
 
 class EstimatedPathwayCreate(EstimatedPathwayBase):

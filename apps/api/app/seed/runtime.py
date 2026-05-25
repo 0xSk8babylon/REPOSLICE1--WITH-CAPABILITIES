@@ -24,6 +24,16 @@ from app.seed.sample_data import (
 )
 
 
+DEMO_SEED_HOME_ID = SAMPLE_HOME["id"]
+DEMO_SEED_ACCOUNT_ID = DEMO_ACCOUNT["id"]
+PROVENANCE_ENTITY_MODELS = {
+    "equipment_product": models.EquipmentProduct,
+    "estimated_pathway": models.EstimatedPathway,
+    "load": models.Load,
+    "takeoff_line_item": models.TakeoffLineItem,
+}
+
+
 def _with_demo_origin(record):
     enriched = dict(record)
     enriched.setdefault("data_origin", "demo_seed")
@@ -34,8 +44,98 @@ def init_database():
     Base.metadata.create_all(bind=engine)
 
 
+def _is_demo_seed_dataset(db: Session) -> bool:
+    demo_account = db.get(models.Account, DEMO_SEED_ACCOUNT_ID)
+    demo_home = db.get(models.Home, DEMO_SEED_HOME_ID)
+    if demo_account is None or demo_home is None:
+        return False
+    return demo_account.data_origin == "demo_seed" and demo_home.data_origin == "demo_seed"
+
+
+def _existing_entity_ids(db: Session):
+    return {
+        entity_type: {row[0] for row in db.execute(select(model.id)).all()}
+        for entity_type, model in PROVENANCE_ENTITY_MODELS.items()
+    }
+
+
+def _with_global_rule_origin(record):
+    enriched = dict(record)
+    enriched.setdefault("data_origin", "imported")
+    return enriched
+
+
+def _backfill_global_rule_provenance_rows(db: Session):
+    inserted = False
+    required_source_document_ids = {
+        record["source_document_id"] for record in SAMPLE_RULE_PROVENANCE if record.get("source_document_id")
+    }
+    source_documents_by_id = {document["id"]: document for document in SAMPLE_SOURCE_DOCUMENTS}
+
+    existing_source_document_ids = {
+        row[0] for row in db.execute(select(models.SourceDocument.id)).all()
+    }
+    for document_id in required_source_document_ids:
+        document = source_documents_by_id.get(document_id)
+        if document and document["id"] not in existing_source_document_ids:
+            db.add(models.SourceDocument(**_with_global_rule_origin(document)))
+            existing_source_document_ids.add(document["id"])
+            inserted = True
+
+    existing_rule_provenance_ids = {
+        row[0] for row in db.execute(select(models.RuleProvenance.id)).all()
+    }
+    for record in SAMPLE_RULE_PROVENANCE:
+        if record["id"] in existing_rule_provenance_ids:
+            continue
+        if record["source_document_id"] not in existing_source_document_ids:
+            continue
+        db.add(models.RuleProvenance(**record))
+        inserted = True
+
+    if inserted:
+        db.commit()
+
+
+def _backfill_demo_entity_provenance_rows(db: Session):
+    inserted = False
+    existing_entity_ids = _existing_entity_ids(db)
+    required_source_document_ids = {
+        record["source_document_id"] for record in SAMPLE_DATA_PROVENANCE if record.get("source_document_id")
+    }
+    source_documents_by_id = {document["id"]: document for document in SAMPLE_SOURCE_DOCUMENTS}
+    existing_source_document_ids = {
+        row[0] for row in db.execute(select(models.SourceDocument.id)).all()
+    }
+    for document_id in required_source_document_ids:
+        document = source_documents_by_id.get(document_id)
+        if document and document["id"] not in existing_source_document_ids:
+            db.add(models.SourceDocument(**_with_demo_origin(document)))
+            existing_source_document_ids.add(document["id"])
+            inserted = True
+    existing_data_provenance_ids = {
+        row[0] for row in db.execute(select(models.DataProvenance.id)).all()
+    }
+    for record in SAMPLE_DATA_PROVENANCE:
+        if record["id"] in existing_data_provenance_ids:
+            continue
+        if record["source_document_id"] not in existing_source_document_ids:
+            continue
+        entity_ids = existing_entity_ids.get(record["entity_type"])
+        if entity_ids is None or record["entity_id"] not in entity_ids:
+            continue
+        db.add(models.DataProvenance(**record))
+        inserted = True
+
+    if inserted:
+        db.commit()
+
+
 def seed_database(db: Session, force: bool = False):
     if not force and db.scalars(select(models.Home.id)).first():
+        _backfill_global_rule_provenance_rows(db)
+        if _is_demo_seed_dataset(db):
+            _backfill_demo_entity_provenance_rows(db)
         return
 
     if force:

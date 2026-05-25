@@ -5,10 +5,7 @@ from app.provenance.schemas import ProvenanceSummary, SourceDocument
 
 
 class ProvenanceService:
-    def summarize_entity(self, db, entity_type: str, entity_id: str) -> ProvenanceSummary:
-        records = repository.list_data_provenance(db, entity_type=entity_type, entity_id=entity_id)
-        source_document_ids = [record.source_document_id for record in records if record.source_document_id]
-        documents = repository.get_source_documents_by_ids(db, source_document_ids)
+    def _build_summary(self, entity_type: str, entity_id: str, records, documents) -> ProvenanceSummary:
         document_map = {document.id: document for document in documents}
 
         verification_statuses = sorted(
@@ -52,6 +49,7 @@ class ProvenanceService:
             entity_id=entity_id,
             source_types=sorted({record.source_type for record in records}),
             trust_states=sorted({record.trust_state for record in records}),
+            confidence_levels=sorted({record.confidence_level for record in records if record.confidence_level}),
             verification_statuses=verification_statuses,
             source_document_ids=sorted({record.source_document_id for record in records if record.source_document_id}),
             last_retrieved_at=last_retrieved_at,
@@ -59,6 +57,38 @@ class ProvenanceService:
             unverified_fields=unverified_fields,
             notes=notes,
         )
+
+    def summarize_entity(self, db, entity_type: str, entity_id: str) -> ProvenanceSummary:
+        return self.summarize_entities(db, entity_type, [entity_id]).get(
+            entity_id, ProvenanceSummary(entity_type=entity_type, entity_id=entity_id)
+        )
+
+    def summarize_entities(self, db, entity_type: str, entity_ids: List[str]) -> Dict[str, ProvenanceSummary]:
+        if not entity_ids:
+            return {}
+        records = repository.list_data_provenance_for_entities(db, entity_type=entity_type, entity_ids=entity_ids)
+        records_by_entity: Dict[str, List[object]] = {entity_id: [] for entity_id in entity_ids}
+        for record in records:
+            records_by_entity.setdefault(record.entity_id, []).append(record)
+
+        source_document_ids = [
+            record.source_document_id for record in records if getattr(record, "source_document_id", None)
+        ]
+        documents = repository.get_source_documents_by_ids(db, source_document_ids)
+        documents_by_id = {document.id: document for document in documents}
+
+        summaries: Dict[str, ProvenanceSummary] = {}
+        for entity_id in entity_ids:
+            entity_records = records_by_entity.get(entity_id, [])
+            entity_documents = list(
+                {
+                    record.source_document_id: documents_by_id[record.source_document_id]
+                    for record in entity_records
+                    if getattr(record, "source_document_id", None) and record.source_document_id in documents_by_id
+                }.values()
+            )
+            summaries[entity_id] = self._build_summary(entity_type, entity_id, entity_records, entity_documents)
+        return summaries
 
     def get_source_documents_for_entity(self, db, entity_type: str, entity_id: str) -> List[SourceDocument]:
         records = repository.list_data_provenance(db, entity_type=entity_type, entity_id=entity_id)
@@ -68,10 +98,20 @@ class ProvenanceService:
             for document in repository.get_source_documents_by_ids(db, source_document_ids)
         ]
 
+    def get_rule_documents_map(self, db, rule_keys: Iterable[str]) -> Dict[str, List[object]]:
+        normalized_keys = sorted(set(rule_keys))
+        if not normalized_keys:
+            return {}
+        records = repository.list_rule_provenance_for_keys(db, normalized_keys)
+        grouped: Dict[str, List[object]] = {rule_key: [] for rule_key in normalized_keys}
+        for record in records:
+            grouped.setdefault(record.rule_key, []).append(record)
+        return grouped
+
     def get_rule_documents(self, db, rule_keys: Iterable[str]):
         items = []
-        for rule_key in sorted(set(rule_keys)):
-            items.extend(repository.list_rule_provenance(db, rule_key=rule_key))
+        for _, records in self.get_rule_documents_map(db, rule_keys).items():
+            items.extend(records)
         return items
 
     def build_takeoff_line_provenance(self, db, equipment, product, design_id: str) -> Dict[str, object]:
@@ -90,18 +130,96 @@ class ProvenanceService:
             + (summary.notes[:2] if summary else []),
         }
 
-    def build_advisor_issue_provenance(self, db, issue, related_rule_key: Optional[str] = None) -> Dict[str, object]:
+    def build_advisor_issue_provenance(
+        self,
+        db,
+        issue,
+        related_rule_key: Optional[str] = None,
+        rule_documents_map: Optional[Dict[str, List[object]]] = None,
+    ) -> Dict[str, object]:
         rule_keys = [related_rule_key] if related_rule_key else []
         if issue.data_origin == "derived_estimate" and related_rule_key is None:
             rule_keys = ["advisor.derived_planning_issue"]
-        rules = self.get_rule_documents(db, rule_keys) if rule_keys else []
+        normalized_rule_keys = sorted(set(rule_keys))
+        if rule_documents_map is not None:
+            rules = [record for rule_key in normalized_rule_keys for record in rule_documents_map.get(rule_key, [])]
+        else:
+            rules = self.get_rule_documents(db, normalized_rule_keys) if normalized_rule_keys else []
+        persisted_rule_keys = sorted({record.rule_key for record in rules})
         return {
             "basis": "Deterministic planning rule output",
             "source_types": ["internal_rule"],
             "trust_states": [issue.data_origin],
-            "rule_keys": [record.rule_key for record in rules],
+            "rule_keys": persisted_rule_keys,
             "notes": [record.description for record in rules]
             or ["This issue is derived from explicit planning rules, not conversational inference."],
+        }
+
+    def build_recommendation_provenance(
+        self,
+        db,
+        rule_keys: Iterable[str],
+        notes: Optional[List[str]] = None,
+        rule_documents_map: Optional[Dict[str, List[object]]] = None,
+    ):
+        normalized_rule_keys = sorted(set(rule_keys))
+        if rule_documents_map is not None:
+            rules = [record for rule_key in normalized_rule_keys for record in rule_documents_map.get(rule_key, [])]
+        else:
+            rules = self.get_rule_documents(db, normalized_rule_keys)
+        persisted_rule_keys = sorted({record.rule_key for record in rules})
+        return {
+            "basis": "Deterministic recommendation-profile selection",
+            "source_types": ["internal_rule"],
+            "trust_states": ["derived_estimate"],
+            "rule_keys": persisted_rule_keys,
+            "notes": notes
+            or [record.description for record in rules]
+            or ["Recommendation profiles are derived from explicit planning rules."],
+        }
+
+    def build_estimate_inspectability(
+        self,
+        db,
+        *,
+        basis: str,
+        confidence_level: str,
+        rule_keys: Iterable[str],
+        input_signals: List[Dict[str, object]],
+        estimated_inputs: Optional[List[str]] = None,
+        incomplete_inputs: Optional[List[str]] = None,
+        notes: Optional[List[str]] = None,
+        rule_documents_map: Optional[Dict[str, List[object]]] = None,
+    ):
+        normalized_rule_keys = sorted(set(rule_keys))
+        if rule_documents_map is not None:
+            rules = [record for rule_key in normalized_rule_keys for record in rule_documents_map.get(rule_key, [])]
+        else:
+            rules = self.get_rule_documents(db, normalized_rule_keys)
+        persisted_rule_keys = sorted({record.rule_key for record in rules})
+        estimated_inputs = estimated_inputs or []
+        incomplete_inputs = incomplete_inputs or []
+        warnings: List[str] = []
+        if incomplete_inputs:
+            warnings.append(
+                "Planning-only warning: some recommendation inputs are incomplete, so profile fit and sizing guidance remain partial."
+            )
+        elif estimated_inputs or confidence_level == "low":
+            warnings.append(
+                "Planning-only warning: some recommendation inputs remain estimated, so profile fit and sizing guidance should be treated as directional."
+            )
+        return {
+            "basis": basis,
+            "confidence_level": confidence_level,
+            "trust_state": "derived_estimate",
+            "rule_keys": persisted_rule_keys,
+            "input_signals": input_signals,
+            "estimated_inputs": estimated_inputs,
+            "incomplete_inputs": incomplete_inputs,
+            "notes": notes
+            or [record.description for record in rules]
+            or ["This planning estimate is derived from explicit deterministic rules."],
+            "partial_provenance_warning": warnings[0] if warnings else None,
         }
 
 

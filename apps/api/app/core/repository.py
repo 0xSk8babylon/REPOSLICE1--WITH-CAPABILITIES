@@ -467,6 +467,20 @@ class DatabaseRepository:
             statement = statement.where(models.DataProvenance.entity_id == entity_id)
         return db.scalars(statement).all()
 
+    def list_data_provenance_for_entities(self, db: Session, entity_type: str, entity_ids):
+        if not entity_ids:
+            return []
+        statement = (
+            select(models.DataProvenance)
+            .where(
+                models.DataProvenance.entity_type == entity_type,
+                models.DataProvenance.entity_id.in_(set(entity_ids)),
+            )
+            .options(selectinload(models.DataProvenance.source_document))
+            .order_by(models.DataProvenance.created_at)
+        )
+        return db.scalars(statement).all()
+
     def create_data_provenance(self, db: Session, payload):
         record = models.DataProvenance(**payload.dict())
         db.add(record)
@@ -482,6 +496,17 @@ class DatabaseRepository:
         )
         if rule_key:
             statement = statement.where(models.RuleProvenance.rule_key == rule_key)
+        return db.scalars(statement).all()
+
+    def list_rule_provenance_for_keys(self, db: Session, rule_keys):
+        if not rule_keys:
+            return []
+        statement = (
+            select(models.RuleProvenance)
+            .where(models.RuleProvenance.rule_key.in_(set(rule_keys)))
+            .options(selectinload(models.RuleProvenance.source_document))
+            .order_by(models.RuleProvenance.created_at)
+        )
         return db.scalars(statement).all()
 
     def create_rule_provenance(self, db: Session, payload):
