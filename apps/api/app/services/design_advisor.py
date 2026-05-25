@@ -4,6 +4,7 @@ from app.services.design_analysis import design_analysis_service
 from app.services.design_completeness import design_completeness_service
 from app.services.expansion_readiness import expansion_readiness_service
 from app.services.install_complexity import install_complexity_service
+from app.services.resilience_recommendation import resilience_recommendation_service
 
 
 class DesignAdvisorService:
@@ -16,6 +17,7 @@ class DesignAdvisorService:
             "backup": backup_capability_service.estimate(db, design_id),
             "expansion": expansion_readiness_service.score(db, design_id),
             "install_complexity": install_complexity_service.score(db, design_id),
+            "recommendation_profiles": resilience_recommendation_service.recommend(db, design_id),
             "completeness": completeness,
             "design_status": {
                 "stored_status": analysis["design"].status if analysis else None,

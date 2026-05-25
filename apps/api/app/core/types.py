@@ -164,3 +164,66 @@ class ConfidenceLevel(str, Enum):
     low = "low"
     medium = "medium"
     high = "high"
+
+
+class RecommendationProfile(str, Enum):
+    critical_efficient = "critical_efficient"
+    balanced = "balanced"
+    conservative = "conservative"
+    premium_future_ready = "premium_future_ready"
+
+
+class BatterySizingPosture(str, Enum):
+    lean = "lean"
+    balanced = "balanced"
+    elevated = "elevated"
+    robust = "robust"
+
+
+class SolarSizingPosture(str, Enum):
+    load_matched = "load_matched"
+    resilience_balanced = "resilience_balanced"
+    recovery_weighted = "recovery_weighted"
+    future_weighted = "future_weighted"
+
+
+class AutonomyReservePosture(str, Enum):
+    minimal = "minimal"
+    standard = "standard"
+    elevated = "elevated"
+    extended = "extended"
+
+
+class FutureGrowthMarginPosture(str, Enum):
+    tight = "tight"
+    planned = "planned"
+    expansion_oriented = "expansion_oriented"
+    future_ready = "future_ready"
+
+
+class LowSolarAssumptionPosture(str, Enum):
+    favorable = "favorable"
+    typical = "typical"
+    protective = "protective"
+    defensive = "defensive"
+
+
+class ReserveMarginPosture(str, Enum):
+    lean = "lean"
+    standard = "standard"
+    elevated = "elevated"
+    robust = "robust"
+
+
+class RecoveryStrengthPosture(str, Enum):
+    modest = "modest"
+    balanced = "balanced"
+    strong = "strong"
+    aggressive = "aggressive"
+
+
+class SeasonalConservatismPosture(str, Enum):
+    mild = "mild"
+    standard = "standard"
+    protective = "protective"
+    defensive = "defensive"
