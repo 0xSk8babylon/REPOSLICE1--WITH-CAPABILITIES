@@ -4,7 +4,7 @@
 
 - Session date: 2026-05-25
 - Starting commit: `61693f8`
-- Ending commit: `9fad58b`
+- Ending commit: `2cf88e4`
 - Repo commits created this session:
   - `e854b8f` `Add energy planner refinement governance skills`
   - `9fad58b` `Refine deterministic backup load selection`
@@ -69,7 +69,7 @@ Add the next deterministic architecture-fit recommendation slice without expandi
 ## Copy/Paste Restore Prompt
 
 ```text
-Resume work in /home/mattcoje/residential-energy-planner from clean commit 9fad58b.
+Resume work in /home/mattcoje/residential-energy-planner from clean commit 2cf88e4.
 
 Load skills:
 - ~/.codex/global-skills/stabilization-before-feature-expansion/SKILL.md
