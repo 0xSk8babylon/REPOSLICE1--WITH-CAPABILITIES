@@ -7,20 +7,16 @@
 ## Session Summary
 
 - Session date: 2026-05-25
-- Starting commit: `cdf096c`
-- Current head commit before next commit: `cdf096c`
+- Starting commit: `381a37e`
+- Current head commit before next commit: `381a37e`
 - Repo commits created this session:
   - none yet
 
 ## What Changed Last
 
-- Reorganized the Design Advisor UI into clearer workspace sections for:
-  - current home energy architecture
-  - existing vs proposed system posture
-  - recommendation workspace
-  - reasoning and evidence
-- Moved deeper inspectability, provenance, and missing-input review behind progressive disclosure so the default page explains the system first instead of flattening every advisor detail into one long stack.
-- Reduced local page duplication with small helper render components inside `DesignAdvisorPage.jsx` without changing advisor logic or API contracts.
+- Added a compact current-home-energy architecture visualization surface so existing equipment, proposed equipment, missing inputs, and planning assumptions appear in separate relationship cards instead of only long text blocks.
+- Added a compact reasoning dependency-chain surface so users can scan node-to-node planning relationships before opening deeper node, provenance, and missing-input detail.
+- Kept advisor logic and API contracts unchanged while extending the existing workspace UI with small local helper components and CSS-only visualization structure.
 
 ## Verification Performed
 
@@ -32,17 +28,17 @@
 - Advisor logic stayed unchanged
 - No backend behavior or API contract changes were introduced
 - Planning-only trust framing remains visible near recommendation, topology, architecture, and reasoning outputs
-- The UI still surfaces inspectability and provenance, but no longer overwhelms the default reading path
+- The UI still surfaces inspectability and provenance, but now does so through progressive disclosure layered on top of clearer architecture and reasoning visuals
 
 ## Remaining Risks
 
 - The Design Advisor still relies on existing generic layout primitives rather than a dedicated architecture-visualization component system
-- Reasoning-graph readability is improved structurally, but still text-first rather than diagrammatic
+- The new reasoning and architecture surfaces are more diagrammatic, but they remain card-and-lane visualizations rather than a fully interactive system diagram
 - Scenario comparison still lives outside the recommendation workspace pattern and may need a similar pass later
 
 ## Current Resume Point
 
-The next implementation target remains the deeper solar-readiness and roof-capacity-realism slice, now that the advisor reasoning spine also has a cleaner workspace-oriented UI structure.
+The next implementation target remains the deeper solar-readiness and roof-capacity-realism slice, now that the advisor reasoning spine also has a clearer workspace-oriented and diagram-like UI surface.
 
 ## Copy/Paste Restore Prompt
 
@@ -60,7 +56,7 @@ Load skills:
 Current completed state:
 - current-state solar/inverter topology is explicit
 - panel/service, inverter/system, and reasoning graph are explicit
-- Design Advisor UI now groups those outputs into a workspace flow with progressive disclosure
+- Design Advisor UI now groups those outputs into a workspace flow with progressive disclosure and compact architecture/reasoning visualizations
 
 Unfinished work:
 - deeper solar-readiness and roof-capacity realism
@@ -84,4 +80,4 @@ Verification commands:
 
 ## Latest Detailed Handoff
 
-See `docs/handoffs/2026-05-25-ui-ux-architecture-foundation.md`
+See `docs/handoffs/2026-05-25-reasoning-graph-visualization-architecture-diagram-foundation.md`

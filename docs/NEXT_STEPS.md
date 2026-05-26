@@ -7,7 +7,7 @@ Deepen the solar-readiness slice with better internal roof-capacity and placemen
 ## Why This Is Next
 
 - The current panel/service, profile-fit, current-home-energy-architecture, inverter/system architecture, and structured reasoning-graph layers are now stabilized with explicit confidence framing and seeded regression coverage, so the next change can move forward without reopening those wording boundaries.
-- The current Design Advisor UI now reflects that reasoning spine more clearly, so the next change can deepen solar realism without first reworking page structure again.
+- The current Design Advisor UI now reflects that reasoning spine through clearer workspace sections plus compact architecture/reasoning visuals, so the next change can deepen solar realism without first reworking page structure again.
 - Trust visibility now makes uncertainty obvious, and scenario comparison now exposes lineage, but the underlying provenance model is still thin.
 - Backup-load selection, current-state topology modeling, profile architecture fit, inverter/system architecture reasoning, and structured dependency links are now explicit, so the next slice can strengthen solar realism from a narrower planning scope instead of broad inferred outage intent.
 - A provenance foundation now exists, but it still does not cover every field or every derived output path.

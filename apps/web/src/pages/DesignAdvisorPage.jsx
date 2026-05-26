@@ -27,6 +27,36 @@ function formatCoveragePercent(ratio) {
   return `${Math.round(ratio * 100)}%`;
 }
 
+function getStateTone(state) {
+  if (state === "existing" || state === "recorded") {
+    return "success";
+  }
+  if (state === "proposed" || state === "planning_assumption" || state === "rule_based") {
+    return "warning";
+  }
+  if (state === "missing" || state === "unknown") {
+    return "danger";
+  }
+  return "info";
+}
+
+function getDependencyTone(relationship) {
+  if (relationship.includes("grounds") || relationship.includes("anchors")) {
+    return "info";
+  }
+  if (relationship.includes("bounds") || relationship.includes("constrains")) {
+    return "warning";
+  }
+  return "default";
+}
+
+function formatStateLabel(value) {
+  if (!value) {
+    return "not recorded";
+  }
+  return value.replaceAll("_", " ");
+}
+
 function WorkspaceSection({ title, description, children }) {
   return (
     <section className="solution-list">
@@ -34,6 +64,187 @@ function WorkspaceSection({ title, description, children }) {
       {description ? <p className="callout-copy">{description}</p> : null}
       {children}
     </section>
+  );
+}
+
+function VisualizationLegend({ items }) {
+  return (
+    <div className="workspace-legend">
+      {items.map((item) => (
+        <div key={item.label} className="workspace-legend-item">
+          <Badge tone={item.tone}>{item.label}</Badge>
+          <span>{item.note}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ArchitectureComponentCard({ component }) {
+  return (
+    <article key={component.component_key} className={`architecture-card state-${component.state}`}>
+      <div className="architecture-card-header">
+        <strong>{component.label}</strong>
+        <Badge tone={getStateTone(component.state)}>{formatStateLabel(component.state)}</Badge>
+      </div>
+      <p>{component.relationship}</p>
+      <small>{component.note}</small>
+    </article>
+  );
+}
+
+function ArchitectureMap({ architecture }) {
+  const existingComponents = (architecture.architecture_components || []).filter(
+    (component) => component.state === "existing"
+  );
+  const proposedComponents = (architecture.architecture_components || []).filter(
+    (component) => component.state === "proposed" || component.state === "planning_assumption"
+  );
+  const unresolvedComponents = (architecture.architecture_components || []).filter(
+    (component) => !["existing", "proposed", "planning_assumption"].includes(component.state)
+  );
+
+  return (
+    <div className="architecture-map">
+      <div className="architecture-column">
+        <div className="architecture-column-header">
+          <h4>Existing home architecture</h4>
+          <p>Structured current-state signals that appear grounded in recorded equipment context.</p>
+        </div>
+        <div className="architecture-card-stack">
+          {existingComponents.map((component) => (
+            <ArchitectureComponentCard key={component.component_key} component={component} />
+          ))}
+        </div>
+      </div>
+      <div className="architecture-flow">
+        <div className="architecture-flow-label">Current-state planning view</div>
+        <div className="architecture-flow-step">
+          <Badge tone="info">{architecture.solar_existing_state}</Badge>
+          <strong>{architecture.inverter_topology}</strong>
+          <span>{architecture.current_vs_proposed_architecture}</span>
+        </div>
+        <div className="architecture-flow-arrow">{"->"}</div>
+        <div className="architecture-flow-step">
+          <Badge tone="warning">planning implications</Badge>
+          <strong>Battery, outage, expansion, and generator posture</strong>
+          <span>{architecture.battery_retrofit_implication}</span>
+        </div>
+      </div>
+      <div className="architecture-column">
+        <div className="architecture-column-header">
+          <h4>Proposed or planning-only path</h4>
+          <p>Future-facing equipment and planning assumptions kept separate from current-state evidence.</p>
+        </div>
+        <div className="architecture-card-stack">
+          {proposedComponents.map((component) => (
+            <ArchitectureComponentCard key={component.component_key} component={component} />
+          ))}
+          {unresolvedComponents.map((component) => (
+            <ArchitectureComponentCard key={component.component_key} component={component} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CurrentArchitectureRelationshipGrid({ architecture }) {
+  const componentByKey = new Map(
+    (architecture.architecture_components || []).map((component) => [component.component_key, component])
+  );
+  const orderedKeys = [
+    "solar_array",
+    "inverter_topology",
+    "main_service_panel",
+    "backup_loads",
+    "battery",
+    "generator",
+    "smart_panel",
+    "service_upgrade_path",
+  ];
+
+  return (
+    <div className="relationship-grid">
+      {orderedKeys.map((key) => {
+        const component = componentByKey.get(key);
+        const label = component?.label || formatStateLabel(key);
+        const note = component?.relationship || "Not yet recorded in the current architecture output.";
+        const state = component?.state || "missing";
+
+        return (
+          <article key={key} className={`relationship-card state-${state}`}>
+            <div className="relationship-card-header">
+              <strong>{label}</strong>
+              <Badge tone={getStateTone(state)}>{formatStateLabel(state)}</Badge>
+            </div>
+            <p>{note}</p>
+            {component?.note ? <small>{component.note}</small> : <small>Missing inputs stay explicit.</small>}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReasoningGraphTrace({ graph }) {
+  return (
+    <div className="reasoning-trace">
+      <div className="reasoning-node-rail">
+        {(graph.nodes || []).map((node) => (
+          <article key={node.node_id} className="reasoning-node-card">
+            <div className="reasoning-node-header">
+              <strong>{node.label}</strong>
+              <Badge tone={getConfidenceTone(node.confidence_level)}>{node.confidence_level}</Badge>
+            </div>
+            <div className="trust-row">
+              <Badge tone={getStateTone(node.status)}>{node.status.replaceAll("_", " ")}</Badge>
+              <Badge>{node.category.replaceAll("_", " ")}</Badge>
+            </div>
+            <p>{node.summary}</p>
+          </article>
+        ))}
+      </div>
+      <div className="reasoning-dependency-grid">
+        {(graph.dependencies || []).map((dependency) => (
+          <article
+            key={`${dependency.source_node_id}-${dependency.target_node_id}-${dependency.relationship}`}
+            className="reasoning-edge-card"
+          >
+            <div className="reasoning-edge-header">
+              <Badge tone={getDependencyTone(dependency.relationship)}>{dependency.relationship}</Badge>
+              <Badge tone={getConfidenceTone(dependency.confidence_level)}>{dependency.confidence_level}</Badge>
+            </div>
+            <strong>{`${dependency.source_node_id} -> ${dependency.target_node_id}`}</strong>
+            <p>{dependency.summary}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CompactDependencyChain({ graph }) {
+  return (
+    <div className="dependency-chain">
+      {(graph.dependencies || []).map((dependency) => (
+        <article
+          key={`${dependency.source_node_id}-${dependency.target_node_id}-${dependency.relationship}-compact`}
+          className="dependency-chain-card"
+        >
+          <div className="dependency-chain-path">
+            <strong>{dependency.source_node_id}</strong>
+              <span aria-hidden="true">{"->"}</span>
+            <strong>{dependency.target_node_id}</strong>
+          </div>
+          <div className="trust-row">
+            <Badge tone={getDependencyTone(dependency.relationship)}>{dependency.relationship}</Badge>
+            <Badge tone={getConfidenceTone(dependency.confidence_level)}>{dependency.confidence_level}</Badge>
+          </div>
+          <p>{dependency.summary}</p>
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -189,12 +400,31 @@ function CurrentHomeEnergyArchitecturePanel({ architecture }) {
       <p className="callout-copy">{architecture.battery_retrofit_implication}</p>
       <p className="callout-copy">{architecture.expansion_implication}</p>
       <p className="callout-copy">{architecture.generator_coexistence_note}</p>
+      <VisualizationLegend
+        items={[
+          { label: "existing", tone: "success", note: "Known current-state equipment or posture" },
+          { label: "proposed", tone: "warning", note: "Future equipment or planning path" },
+          { label: "missing", tone: "danger", note: "Unknown or unresolved input" },
+          { label: "planning assumption", tone: "warning", note: "Derived workspace posture, not installed equipment" },
+        ]}
+      />
+      <ArchitectureMap architecture={architecture} />
+      <div className="panel-subsection architecture-relationship-panel">
+        <div className="panel-header">
+          <h4>Architecture relationship map</h4>
+          <Badge tone="info">Current state vs planning path</Badge>
+        </div>
+        <p className="callout-copy">
+          This view keeps recorded equipment, proposed equipment, missing inputs, and planning assumptions in separate visual lanes so current topology does not blur into future recommendations.
+        </p>
+        <CurrentArchitectureRelationshipGrid architecture={architecture} />
+      </div>
       <details className="solution-list">
         <summary>View architecture relationships</summary>
         <ul>
           {(architecture.architecture_components || []).map((component) => (
             <li key={component.component_key}>
-              {component.label}: {component.state.replaceAll("_", " ")}. {component.relationship} {component.note}
+              {component.label}: {formatStateLabel(component.state)}. {component.relationship} {component.note}
             </li>
           ))}
         </ul>
@@ -330,12 +560,23 @@ function ReasoningGraphPanel({ graph }) {
         </div>
       </div>
       <p className="callout-copy">{graph.summary}</p>
+      <div className="panel-subsection reasoning-visual-panel">
+        <div className="panel-header">
+          <h4>Dependency chain overview</h4>
+          <Badge tone="info">Inspectable reasoning flow</Badge>
+        </div>
+        <p className="callout-copy">
+          Follow the compact chain first, then open the detailed node and evidence views if you need to inspect why a downstream planning posture appears.
+        </p>
+        <CompactDependencyChain graph={graph} />
+      </div>
+      <ReasoningGraphTrace graph={graph} />
       <details className="solution-list" open>
         <summary>View reasoning nodes</summary>
         <ul>
           {(graph.nodes || []).map((node) => (
             <li key={node.node_id}>
-              {node.label}: {node.status.replaceAll("_", " ")}. {node.summary}
+              {node.label}: {formatStateLabel(node.status)}. {node.summary}
             </li>
           ))}
         </ul>

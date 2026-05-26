@@ -80,3 +80,6 @@
 - Moved deeper inspectability, provenance, and missing-input detail behind progressive disclosure so the default page reads like a planning workspace instead of a flat stack of peer panels.
 - Reduced local page duplication by introducing small helper render components inside the Design Advisor page without changing advisor logic or API contracts.
 - Verified the UI architecture foundation with `npm run build` in `apps/web` and `git diff --check`.
+- Added compact card-and-lane visualizations for current-home architecture and structured reasoning dependencies so the Design Advisor reads more like an explainable energy-planning workspace than a text-only panel stack.
+- Kept the visualization layer frontend-only and deterministic by deriving it from existing advisor contracts without recomputing backend reasoning in the client.
+- Verified the reasoning-graph visualization foundation with `npm run build` in `apps/web` and `git diff --check`.

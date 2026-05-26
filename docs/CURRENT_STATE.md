@@ -44,6 +44,7 @@
 - The Design Advisor now also surfaces inverter/system architecture direction, coexistence assumptions, confidence, and inspectability alongside the panel/service layer
 - The Design Advisor now also surfaces a current home energy architecture panel that distinguishes existing microinverter/string/hybrid conditions from proposed battery, generator, smart-panel, and service-upgrade assumptions
 - The Design Advisor now also groups advisor output into a clearer workspace flow: current state, existing-vs-proposed system posture, recommendation workspace, and reasoning/evidence, with deeper inspectability moved behind progressive disclosure
+- The Design Advisor now also renders the current-home architecture and structured reasoning graph through card-and-lane planning visuals so relationship mapping is easier to scan without hiding the underlying text fallback, provenance, or planning-only trust boundary
 - Seeded advisor panel/service outputs now have narrow backend regression coverage for the current demo designs
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
@@ -95,5 +96,5 @@
 - The new inverter/system architecture layer explains likely AC-coupled vs hybrid direction and coexistence posture from current records, but it remains a planning-only architecture interpretation rather than inverter sizing, interconnection design, or compliance validation.
 - The new current-home-energy-architecture layer explains what the home appears to have today, but it still depends on recorded role markers and product signals rather than a verified field inventory.
 - The new structured reasoning graph improves advisor traceability, but it is an additive explanation layer for the recommended profile only rather than a generalized whole-system simulation graph.
-- The advisor page is now easier to scan, but it still relies on existing generic layout primitives rather than a dedicated architecture-visualization component system.
+- The advisor page is now easier to scan and more diagrammatic, but it still relies on existing generic layout primitives rather than a dedicated architecture-visualization component system.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

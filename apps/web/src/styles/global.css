@@ -334,6 +334,12 @@ a {
   border-radius: 18px;
 }
 
+.panel-subsection {
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 242, 0.48);
+}
+
 .equipment-assignment-panel h4,
 .panel-subsection h4 {
   margin: 0;
@@ -465,12 +471,216 @@ a {
   flex-wrap: wrap;
 }
 
+.workspace-legend {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.workspace-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.architecture-map,
+.reasoning-trace {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.architecture-map {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.78fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.architecture-column,
+.architecture-flow,
+.reasoning-node-card,
+.reasoning-edge-card,
+.dependency-chain-card,
+.relationship-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.6);
+}
+
+.architecture-column,
+.architecture-flow {
+  padding: 18px;
+}
+
+.architecture-column-header,
+.architecture-card-stack,
+.architecture-flow,
+.reasoning-node-rail,
+.reasoning-dependency-grid,
+.dependency-chain,
+.relationship-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.architecture-column-header p,
+.architecture-card p,
+.architecture-flow-step span,
+.reasoning-node-card p,
+.reasoning-edge-card p,
+.dependency-chain-card p,
+.relationship-card p,
+.relationship-card small,
+.architecture-card small {
+  margin: 0;
+  color: var(--muted);
+}
+
+.architecture-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 250, 242, 0.72);
+}
+
+.architecture-card-header,
+.relationship-card-header,
+.reasoning-node-header,
+.reasoning-edge-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.architecture-flow {
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(227, 218, 199, 0.18));
+}
+
+.architecture-flow-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand);
+}
+
+.architecture-flow-step {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 14px;
+  width: 100%;
+  border-radius: 16px;
+  background: rgba(255, 250, 242, 0.72);
+  border: 1px solid var(--line);
+}
+
+.architecture-flow-arrow {
+  font-size: 1.4rem;
+  color: var(--brand);
+}
+
+.architecture-relationship-panel,
+.reasoning-visual-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.relationship-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.relationship-card,
+.reasoning-node-card,
+.reasoning-edge-card,
+.dependency-chain-card {
+  padding: 16px;
+}
+
+.reasoning-trace {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.reasoning-node-rail {
+  position: relative;
+  padding-left: 18px;
+}
+
+.reasoning-node-rail::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: rgba(15, 118, 110, 0.22);
+}
+
+.reasoning-node-card {
+  position: relative;
+}
+
+.reasoning-node-card::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 20px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--brand);
+  box-shadow: 0 0 0 5px rgba(15, 118, 110, 0.12);
+}
+
+.reasoning-dependency-grid,
+.dependency-chain {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dependency-chain-path {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.state-existing,
+.state-recorded {
+  border-color: rgba(22, 101, 52, 0.22);
+  background: rgba(231, 247, 239, 0.7);
+}
+
+.state-proposed,
+.state-planning_assumption,
+.state-rule_based {
+  border-color: rgba(109, 76, 0, 0.22);
+  background: rgba(248, 231, 188, 0.46);
+}
+
+.state-missing,
+.state-unknown {
+  border-color: rgba(139, 47, 23, 0.22);
+  background: rgba(246, 214, 206, 0.48);
+}
+
 @media (max-width: 800px) {
   .hero,
   .stat-grid,
   .card-grid,
   .score-grid,
-  .form-grid {
+  .form-grid,
+  .architecture-map,
+  .reasoning-trace,
+  .relationship-grid,
+  .reasoning-dependency-grid,
+  .dependency-chain {
     grid-template-columns: 1fr;
   }
 
@@ -491,5 +701,9 @@ a {
   .load-meta,
   .takeoff-meta {
     justify-items: start;
+  }
+
+  .architecture-flow-arrow {
+    transform: rotate(90deg);
   }
 }
