@@ -73,6 +73,19 @@ function getPathwayRole(profile) {
   return getProfileFamily(profile?.profile);
 }
 
+function getPlanningStateTone(role) {
+  if (role === "current_state") {
+    return "success";
+  }
+  if (role === "future_ready_pathway") {
+    return "warning";
+  }
+  if (role === "constrained_pathway") {
+    return "danger";
+  }
+  return "info";
+}
+
 function formatStateLabel(value) {
   if (!value) {
     return "not recorded";
@@ -393,6 +406,97 @@ function RecommendationEvidencePanel({ recommendation }) {
       <p className="callout-copy">
         Planning-only framing remains explicit throughout the workspace. The page explains architecture posture and recommendation logic; it does not provide final electrical design, permitting, or utility approval.
       </p>
+    </article>
+  );
+}
+
+function PlanningStateSnapshotPanel({ planningState }) {
+  if (!planningState) {
+    return null;
+  }
+
+  return (
+    <article className="panel">
+      <div className="panel-header">
+        <div>
+          <h3>Planning State Snapshot</h3>
+          <p className="callout-copy">{planningState.summary}</p>
+        </div>
+        <div className="badge-row">
+          <Badge tone="info">{planningState.snapshot_kind.replaceAll("_", " ")}</Badge>
+          <Badge tone="warning">{planningState.version_label}</Badge>
+          <TrustBadge state="derived_estimate" label="Snapshot framing only" />
+        </div>
+      </div>
+      <div className="comparison-context-grid">
+        <div className="comparison-context-card">
+          <span>Snapshot label</span>
+          <strong>{planningState.snapshot_label}</strong>
+          <small>{planningState.snapshot_id}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Linked design</span>
+          <strong>{planningState.design_name}</strong>
+          <small>{planningState.design_id}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Design goal</span>
+          <strong>{planningState.design_goal.replaceAll("_", " ")}</strong>
+          <small>{planningState.design_status.replaceAll("_", " ")}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Saved scenario links</span>
+          <strong>{planningState.scenario_count}</strong>
+          <small>Persistent scenario records linked to this design state</small>
+        </div>
+      </div>
+      <div className="snapshot-variant-grid">
+        {(planningState.variants || []).map((variant) => (
+          <article key={variant.variant_key} className="snapshot-variant-card">
+            <div className="snapshot-variant-header">
+              <strong>{variant.label}</strong>
+              <Badge tone={getPlanningStateTone(variant.state_role)}>
+                {variant.state_role.replaceAll("_", " ")}
+              </Badge>
+            </div>
+            <div className="trust-row">
+              {variant.profile ? <Badge tone="info">{variant.profile.replaceAll("_", " ")}</Badge> : null}
+              <Badge tone={getConfidenceTone(variant.confidence_level)}>
+                Confidence: {variant.confidence_level}
+              </Badge>
+              <TrustBadge state={variant.trust_state} />
+            </div>
+            <p>{variant.summary}</p>
+            <small>{variant.note}</small>
+          </article>
+        ))}
+      </div>
+      {(planningState.linked_scenarios || []).length ? (
+        <details className="solution-list">
+          <summary>View saved scenario links</summary>
+          <div className="scenario-link-grid">
+            {planningState.linked_scenarios.map((scenario) => (
+              <article key={scenario.scenario_id} className="scenario-link-card">
+                <div className="scenario-link-header">
+                  <strong>{scenario.scenario_name}</strong>
+                  <Badge tone="info">{scenario.state_label}</Badge>
+                </div>
+                <p>{scenario.description}</p>
+                <div className="trust-row">
+                  <Badge>{scenario.updated_at_label}</Badge>
+                  <TrustBadge state={scenario.data_origin} />
+                </div>
+                <small>{scenario.note}</small>
+              </article>
+            ))}
+          </div>
+        </details>
+      ) : (
+        <p className="callout-copy">
+          No saved scenario records are linked to this design yet. The advisor still treats the current design as a named planning snapshot.
+        </p>
+      )}
+      <p className="callout-copy">{planningState.scope_note}</p>
     </article>
   );
 }
@@ -939,13 +1043,14 @@ function ComparisonProfileCard({ profile }) {
   );
 }
 
-function RecommendationWorkspace({ recommendation }) {
+function RecommendationWorkspace({ recommendation, planningState }) {
   const recommendedProfile = (recommendation.profiles || []).find((profile) => profile.recommended);
   const alternateProfiles = (recommendation.profiles || []).filter((profile) => !profile.recommended);
 
   return (
     <article className="panel">
       <RecommendationSummaryPanel recommendation={recommendation} />
+      <PlanningStateSnapshotPanel planningState={planningState} />
 
       <WorkspaceSection
         title="Current State"
@@ -1106,7 +1211,10 @@ export function DesignAdvisorPage() {
               />
             </div>
             {advisorQuery.data.recommendation_profiles ? (
-              <RecommendationWorkspace recommendation={advisorQuery.data.recommendation_profiles} />
+              <RecommendationWorkspace
+                recommendation={advisorQuery.data.recommendation_profiles}
+                planningState={advisorQuery.data.planning_state}
+              />
             ) : null}
           </>
         ) : null}

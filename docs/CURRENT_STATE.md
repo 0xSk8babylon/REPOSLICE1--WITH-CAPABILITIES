@@ -46,6 +46,8 @@
 - The Design Advisor now also groups advisor output into a clearer workspace flow: current state, existing-vs-proposed system posture, recommendation workspace, and reasoning/evidence, with deeper inspectability moved behind progressive disclosure
 - The Design Advisor now also renders the current-home architecture and structured reasoning graph through card-and-lane planning visuals so relationship mapping is easier to scan without hiding the underlying text fallback, provenance, or planning-only trust boundary
 - The Design Advisor now also renders a planning-pathway comparison workspace that anchors current state once and compares recommended, future-ready, staged, and constrained profile postures against the same backup, panel/service, and inverter architecture context
+- The Design Advisor API now also carries an additive `planning_state` snapshot envelope that ties current recommendation, architecture, reasoning, and pathway-comparison outputs to a specific live design state plus any linked saved scenario records
+- The Design Advisor UI now also surfaces snapshot identity, generated state variants, linked scenario metadata, and version framing so the workspace reads as an iterative planning state instead of a one-off recommendation page
 - Seeded advisor panel/service outputs now have narrow backend regression coverage for the current demo designs
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
@@ -99,4 +101,5 @@
 - The new structured reasoning graph improves advisor traceability, but it is an additive explanation layer for the recommended profile only rather than a generalized whole-system simulation graph.
 - The advisor page is now easier to scan and more diagrammatic, but it still relies on existing generic layout primitives rather than a dedicated architecture-visualization component system.
 - The new pathway-comparison surface improves tradeoff readability, but it remains interpretive UI scaffolding over the current profile catalog rather than a dedicated backend scenario-diff model.
+- The new planning-state snapshot layer is identity framing only; it does not yet persist historical advisor payload revisions or scenario-specific recommendation snapshots.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

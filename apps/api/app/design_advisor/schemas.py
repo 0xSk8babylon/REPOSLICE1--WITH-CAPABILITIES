@@ -211,6 +211,45 @@ class StructuredSystemReasoningGraph(ORMModel):
     inspectability: Optional[EstimateInspectability] = None
 
 
+class PlanningStateVariant(ORMModel):
+    variant_key: str
+    label: str
+    state_role: str
+    source_type: str
+    profile: Optional[RecommendationProfile] = None
+    summary: str
+    confidence_level: ConfidenceLevel
+    trust_state: DataOrigin = DataOrigin.derived_estimate
+    note: str
+
+
+class PlanningStateScenarioLink(ORMModel):
+    scenario_id: str
+    scenario_name: str
+    description: str
+    linked_design_id: str
+    data_origin: DataOrigin
+    updated_at_label: str
+    state_label: str
+    note: str
+
+
+class PlanningStateSnapshot(ORMModel):
+    snapshot_id: str
+    snapshot_label: str
+    snapshot_kind: str
+    design_id: str
+    design_name: str
+    design_goal: str
+    design_status: str
+    version_label: str
+    summary: str
+    scenario_count: int = 0
+    variants: List[PlanningStateVariant] = Field(default_factory=list)
+    linked_scenarios: List[PlanningStateScenarioLink] = Field(default_factory=list)
+    scope_note: str
+
+
 class RecommendationProfileCard(ORMModel):
     profile: RecommendationProfile
     label: str

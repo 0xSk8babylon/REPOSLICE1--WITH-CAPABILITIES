@@ -86,3 +86,6 @@
 - Extended the Design Advisor into a planning-pathway comparison workspace anchored by current state so users can compare recommended, future-ready, staged, and constrained deterministic postures without a generic dashboard table.
 - Kept the new comparison layer frontend-only and interpretive by composing existing profile, backup-scope, panel/service, inverter, and current-architecture outputs rather than adding client-side optimization logic.
 - Verified the planning-pathways foundation with `npm run build` in `apps/web` and `git diff --check`.
+- Added an additive `planning_state` snapshot envelope to the Design Advisor API so architecture, reasoning, recommendation, and pathway-comparison outputs are explicitly tied to a named live design state and any linked saved scenarios.
+- Added snapshot identity, version framing, generated planning-state variants, and linked-scenario metadata to the Design Advisor UI so the workspace now feels iterative without introducing a generalized version-history system.
+- Verified the structured scenario/snapshot foundation with `python3 -m unittest discover -s tests -p 'test_resilience_recommendation.py'`, `python3 -m compileall app`, `npm run build` in `apps/web`, and `git diff --check`.

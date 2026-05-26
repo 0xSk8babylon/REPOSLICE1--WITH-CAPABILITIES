@@ -41,11 +41,12 @@
 - The Design Advisor UI now organizes its reasoning spine into clearer workspace sections for current state, existing-vs-proposed posture, recommendation path, and reasoning/evidence with progressive disclosure for inspectability details
 - The Design Advisor UI now also renders the current-home-energy-architecture and structured reasoning graph layers through more visual planning surfaces, including architecture relationship mapping, explicit existing/proposed/missing state cards, and a compact dependency-chain trace while preserving text fallback and trust framing
 - The Design Advisor UI now also includes a planning-pathway comparison workspace that anchors current state once and compares multiple deterministic profile postures against the same backup, panel/service, and inverter architecture context without adding frontend-side recommendation logic
+- The Design Advisor API now also includes an additive `planning_state` snapshot envelope so recommendation, architecture, and pathway-comparison outputs are explicitly tied to a specific live design state plus any linked persistent scenario records
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that current-state solar topology, backup-scope posture, panel/service consistency, inverter/system architecture, structured reasoning dependencies, and the advisor workspace visualization surface are explicit layers.
+Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that current-state solar topology, backup-scope posture, panel/service consistency, inverter/system architecture, structured reasoning dependencies, advisor pathway comparison, and the planning-state snapshot envelope are explicit layers.
 
 ## Restore Model
 

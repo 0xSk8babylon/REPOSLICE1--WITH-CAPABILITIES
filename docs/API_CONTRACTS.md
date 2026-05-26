@@ -50,6 +50,7 @@
 - design/advisor/context endpoints
   - frontend assumes stable design IDs and current persisted demo data
   - `GET /api/design-advisor/summary/{design_id}` now includes additive `recommendation_profiles` guidance
+  - `GET /api/design-advisor/summary/{design_id}` now also includes additive `planning_state` snapshot framing for the live design state, generated pathway variants, and linked saved-scenario metadata
   - `recommendation_profiles.profiles[*]` now include additive planning-only battery sizing estimate ranges
   - `recommendation_profiles.profiles[*]` now include additive planning-only solar sizing and recovery estimate ranges
   - `recommendation_profiles.profiles[*]` now include additive `architecture_fit` tradeoff summaries, warnings, and status tied to recorded equipment mix and backup-path posture

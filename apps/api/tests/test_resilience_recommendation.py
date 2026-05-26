@@ -197,3 +197,43 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
             "panel/service direction and consistency posture",
             dependency_map[("panel_service", "inverter_system")].summary.lower(),
         )
+
+    def test_planning_state_snapshot_frames_design_001_as_saved_planning_state(self):
+        result = self._advisor_summary("design_001")
+        planning_state = result["planning_state"]
+
+        self.assertEqual("planning-state-design_001", planning_state.snapshot_id)
+        self.assertEqual("live_design_state", planning_state.snapshot_kind)
+        self.assertEqual("design_001", planning_state.design_id)
+        self.assertEqual("Phase 1 Partial Backup", planning_state.design_name)
+        self.assertEqual("partial_backup", planning_state.design_goal)
+        self.assertEqual("draft", planning_state.design_status)
+        self.assertIn("planning snapshot", planning_state.snapshot_label.lower())
+        self.assertIn("belong to this planning snapshot", planning_state.summary.lower())
+        self.assertEqual(1, planning_state.scenario_count)
+
+        variant_map = {variant.variant_key: variant for variant in planning_state.variants}
+        self.assertEqual("current_state", variant_map["current_state"].state_role)
+        self.assertEqual("proposed_pathway", variant_map["proposed_pathway"].state_role)
+        self.assertEqual("balanced", variant_map["proposed_pathway"].profile.value)
+        self.assertEqual("premium_future_ready", variant_map["future_ready_pathway"].profile.value)
+        self.assertEqual("critical_efficient", variant_map["constrained_pathway"].profile.value)
+
+        self.assertEqual(1, len(planning_state.linked_scenarios))
+        self.assertEqual("scenario_001", planning_state.linked_scenarios[0].scenario_id)
+        self.assertEqual("design_001", planning_state.linked_scenarios[0].linked_design_id)
+
+    def test_planning_state_snapshot_frames_design_002_scenarios_without_new_recommendation_logic(self):
+        result = self._advisor_summary("design_002")
+        planning_state = result["planning_state"]
+
+        self.assertEqual("planning-state-design_002", planning_state.snapshot_id)
+        self.assertEqual("design_002", planning_state.design_id)
+        self.assertEqual(1, planning_state.scenario_count)
+        self.assertEqual("scenario_002", planning_state.linked_scenarios[0].scenario_id)
+        self.assertEqual("linked planning scenario", planning_state.linked_scenarios[0].state_label)
+
+        variant_map = {variant.variant_key: variant for variant in planning_state.variants}
+        self.assertEqual("premium_future_ready", variant_map["proposed_pathway"].profile.value)
+        self.assertEqual("premium_future_ready", variant_map["future_ready_pathway"].profile.value)
+        self.assertEqual("critical_efficient", variant_map["constrained_pathway"].profile.value)

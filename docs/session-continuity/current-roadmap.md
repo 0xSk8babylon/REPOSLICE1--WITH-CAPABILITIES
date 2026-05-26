@@ -91,6 +91,7 @@ Status:
 - the Design Advisor UI now uses that advisor spine more explicitly through workspace-style grouping and progressive disclosure rather than a flat panel stack
 - the Design Advisor UI now also renders compact architecture relationship maps and dependency-chain visuals on top of that advisor spine so current state and deterministic planning relationships are easier to scan without changing contracts
 - the Design Advisor UI now also renders a planning-pathway comparison workspace on top of the existing profile outputs so pathway tradeoffs are easier to scan without introducing a new recommendation engine
+- the Design Advisor API and UI now also expose a lightweight planning-state snapshot envelope so deterministic advisor outputs can be framed as evolving planning states before any broader snapshot persistence system exists
 
 ## Explicitly Deferred
 
