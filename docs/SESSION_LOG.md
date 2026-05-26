@@ -72,3 +72,7 @@
 - Added seeded rule provenance for `recommendation.system_reasoning_graph_v1` and surfaced the reasoning graph in the Design Advisor UI with planning-only dependency trace framing.
 - Expanded backend regression coverage to lock the seeded reasoning-graph nodes and dependency edges for `design_001` and `design_002`.
 - Verified the reasoning-graph foundation with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall app`, `npm run build` in `apps/web`, and `git diff --check`.
+- Added an additive current-home-energy-architecture layer that classifies existing solar/inverter topology, preserves existing-vs-proposed equipment state, and explains outage-solar, battery-retrofit, expansion, and generator-coexistence implications at planning level.
+- Updated seeded design data so `design_001` now exercises an existing microinverter solar plus proposed battery retrofit path, while `design_002` remains proposed-only and preserves current-state unknowns.
+- Threaded current-state topology into future inverter/system reasoning and the structured reasoning graph so the advisor distinguishes existing-home architecture from future recommendations.
+- Verified the topology-modeling milestone with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall app`, `npm run build` in `apps/web`, and `git diff --check`.

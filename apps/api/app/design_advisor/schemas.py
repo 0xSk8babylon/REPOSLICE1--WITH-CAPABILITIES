@@ -110,6 +110,30 @@ class InverterSystemArchitectureEstimate(ORMModel):
     inspectability: Optional[EstimateInspectability] = None
 
 
+class HomeEnergyArchitectureComponent(ORMModel):
+    component_key: str
+    label: str
+    state: str
+    relationship: str
+    note: str
+
+
+class CurrentHomeEnergyArchitectureEstimate(ORMModel):
+    solar_existing_state: str
+    inverter_topology: str
+    topology_confidence: ConfidenceLevel
+    topology_confidence_reason: str
+    topology_source_inputs: List[InspectabilitySignal] = Field(default_factory=list)
+    current_vs_proposed_architecture: str
+    outage_solar_behavior_note: str
+    battery_retrofit_implication: str
+    expansion_implication: str
+    generator_coexistence_note: str
+    architecture_components: List[HomeEnergyArchitectureComponent] = Field(default_factory=list)
+    scope_note: str
+    inspectability: Optional[EstimateInspectability] = None
+
+
 class BatterySizingEstimate(ORMModel):
     backup_load_energy_need_kwh: Optional[float] = None
     autonomy_duration_hours_min: float
@@ -214,6 +238,7 @@ class ResilienceRecommendation(ORMModel):
     recommended_profile: Optional[RecommendationProfile] = None
     confidence_level: ConfidenceLevel
     backup_load_selection: Optional[BackupLoadSelectionSummary] = None
+    current_home_energy_architecture: Optional[CurrentHomeEnergyArchitectureEstimate] = None
     panel_service_architecture: Optional[PanelServiceArchitectureEstimate] = None
     inverter_system_architecture: Optional[InverterSystemArchitectureEstimate] = None
     reasoning_graph: Optional[StructuredSystemReasoningGraph] = None

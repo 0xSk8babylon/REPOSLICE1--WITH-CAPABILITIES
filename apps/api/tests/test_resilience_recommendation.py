@@ -32,6 +32,7 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         result = self._advisor_summary("design_001")
         recommendation = result["recommendation_profiles"]
         selection = recommendation.backup_load_selection
+        current_architecture = recommendation.current_home_energy_architecture
         panel_service = recommendation.panel_service_architecture
         inverter_architecture = recommendation.inverter_system_architecture
         balanced_profile = next(profile for profile in recommendation.profiles if profile.profile.value == "balanced")
@@ -41,26 +42,33 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         self.assertEqual("partial-home outage posture", selection.outage_posture)
         self.assertEqual("high", selection.confidence_level.value)
         self.assertEqual(0.67, selection.coverage_ratio_of_recorded_loads)
+        self.assertEqual("existing solar recorded", current_architecture.solar_existing_state)
+        self.assertEqual("microinverter system", current_architecture.inverter_topology)
+        self.assertEqual("high", current_architecture.topology_confidence.value)
+        self.assertIn("Current home energy architecture reads as microinverter system", current_architecture.current_vs_proposed_architecture)
+        self.assertIn("Do not assume the recorded solar array can operate during an outage", current_architecture.outage_solar_behavior_note)
+        self.assertIn("AC-coupled battery retrofit", current_architecture.battery_retrofit_implication)
         self.assertEqual("partial-home backup", panel_service.recommended_backup_architecture)
         self.assertEqual("aligned", panel_service.architecture_consistency.status)
         self.assertEqual("aligned", balanced_profile.architecture_fit.status)
         self.assertIn("partial-home planning posture", balanced_profile.architecture_fit.summary)
-        self.assertIn("Battery equipment is already recorded", balanced_profile.architecture_fit.equipment_mix_summary)
+        self.assertIn("Existing microinverter solar plus recorded battery signals", balanced_profile.architecture_fit.equipment_mix_summary)
         self.assertIn("recommendation.profile_architecture_fit_v1", balanced_profile.inspectability.rule_keys)
         self.assertEqual("conditional", panel_service.partial_home_backup_suitability)
         self.assertEqual("poor", panel_service.whole_home_backup_suitability)
         self.assertIn("Planning estimate only.", panel_service.scope_note)
         self.assertEqual("high", panel_service.inspectability.confidence_level.value)
         self.assertEqual("ac coupled", inverter_architecture.recorded_architecture_type)
-        self.assertEqual("battery-ready path needs inverter clarification", inverter_architecture.recommended_system_architecture)
+        self.assertEqual("ac-coupled battery retrofit path", inverter_architecture.recommended_system_architecture)
         self.assertEqual("favorable", inverter_architecture.ac_coupled_pathway_suitability)
         self.assertEqual("conditional", inverter_architecture.hybrid_inverter_pathway_suitability)
-        self.assertEqual("conditional", inverter_architecture.architecture_consistency.status)
+        self.assertEqual("aligned", inverter_architecture.architecture_consistency.status)
         self.assertIn("recommendation.inverter_system_architecture_v1", inverter_architecture.inspectability.rule_keys)
 
     def test_design_002_panel_service_stays_future_ready_and_planning_only(self):
         result = self._advisor_summary("design_002")
         recommendation = result["recommendation_profiles"]
+        current_architecture = recommendation.current_home_energy_architecture
         panel_service = recommendation.panel_service_architecture
         inverter_architecture = recommendation.inverter_system_architecture
         premium_profile = next(
@@ -68,6 +76,9 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         )
 
         self.assertEqual("premium_future_ready", recommendation.recommended_profile.value)
+        self.assertEqual("proposed solar only recorded", current_architecture.solar_existing_state)
+        self.assertEqual("unknown / not recorded topology", current_architecture.inverter_topology)
+        self.assertEqual("low", current_architecture.topology_confidence.value)
         self.assertEqual("future-ready service upgrade path", panel_service.recommended_backup_architecture)
         self.assertEqual("limited", panel_service.partial_home_backup_suitability)
         self.assertEqual("poor", panel_service.whole_home_backup_suitability)
@@ -101,7 +112,7 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         self.assertEqual("future-ready service upgrade path", panel_service.recommended_backup_architecture)
         self.assertEqual("conditional", panel_service.architecture_consistency.status)
         self.assertIn("intentionally narrower than the design goal", panel_service.architecture_consistency.summary)
-        self.assertEqual("battery-ready path needs inverter clarification", inverter_architecture.recommended_system_architecture)
+        self.assertEqual("ac-coupled battery retrofit path", inverter_architecture.recommended_system_architecture)
         premium_profile = next(
             profile for profile in recommendation.profiles if profile.profile.value == "premium_future_ready"
         )
@@ -131,7 +142,7 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         self.assertEqual(1.0, selection.coverage_ratio_of_recorded_loads)
         self.assertEqual("future-ready service upgrade path", panel_service.recommended_backup_architecture)
         self.assertEqual("aligned", panel_service.architecture_consistency.status)
-        self.assertEqual("battery-ready path needs inverter clarification", inverter_architecture.recommended_system_architecture)
+        self.assertEqual("ac-coupled battery retrofit path", inverter_architecture.recommended_system_architecture)
 
     def test_reasoning_graph_exposes_recommended_profile_dependencies_for_design_001(self):
         result = self._advisor_summary("design_001")
@@ -141,14 +152,15 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         self.assertIsNotNone(reasoning_graph)
         self.assertEqual("Recommended profile: Balanced", reasoning_graph.scope_label)
         self.assertIn("dependency graph", reasoning_graph.summary)
-        self.assertEqual(6, len(reasoning_graph.nodes))
-        self.assertEqual(8, len(reasoning_graph.dependencies))
+        self.assertEqual(7, len(reasoning_graph.nodes))
+        self.assertEqual(10, len(reasoning_graph.dependencies))
         self.assertIn("recommendation.system_reasoning_graph_v1", reasoning_graph.inspectability.rule_keys)
 
         node_map = {node.node_id: node for node in reasoning_graph.nodes}
         self.assertEqual("partial-home outage posture", node_map["backup_scope"].status)
+        self.assertEqual("microinverter system", node_map["current_topology"].status)
         self.assertEqual("partial-home backup", node_map["panel_service"].status)
-        self.assertEqual("battery-ready path needs inverter clarification", node_map["inverter_system"].status)
+        self.assertEqual("ac-coupled battery retrofit path", node_map["inverter_system"].status)
         self.assertEqual("balanced", node_map["battery_posture"].status)
         self.assertEqual("resilience_balanced", node_map["solar_posture"].status)
 
@@ -157,9 +169,10 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         }
         self.assertEqual("grounds outage posture", dependency_map[("loads", "backup_scope")].relationship)
         self.assertIn(
-            "recorded load scope supports",
+            "bounded by the selected outage posture",
             dependency_map[("backup_scope", "panel_service")].summary.lower(),
         )
+        self.assertEqual("grounds current-state pathway", dependency_map[("current_topology", "inverter_system")].relationship)
         self.assertIn(
             "recommendation.system_reasoning_graph_v1",
             dependency_map[("battery_posture", "solar_posture")].rule_keys,
@@ -175,6 +188,7 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         }
 
         self.assertEqual("Recommended profile: Premium / Future-Ready", reasoning_graph.scope_label)
+        self.assertEqual("unknown / not recorded topology", node_map["current_topology"].status)
         self.assertEqual("hybrid inverter backbone", node_map["inverter_system"].status)
         self.assertEqual("future-ready service upgrade path", node_map["panel_service"].status)
         self.assertEqual("robust", node_map["battery_posture"].status)

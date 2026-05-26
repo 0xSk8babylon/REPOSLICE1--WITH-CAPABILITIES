@@ -2,13 +2,13 @@
 
 ## Highest-Leverage Next Implementation Step
 
-Deepen the solar-readiness slice with better internal roof-capacity and placement realism while preserving the current additive profile architecture, explicit backup scope, inverter/system architecture reasoning, structured dependency traceability, and planning-only trust boundary ahead of any final inverter sizing.
+Deepen the solar-readiness slice with better internal roof-capacity and placement realism while preserving the current additive profile architecture, explicit current-state solar topology, explicit backup scope, inverter/system architecture reasoning, structured dependency traceability, and planning-only trust boundary ahead of any final inverter sizing.
 
 ## Why This Is Next
 
-- The current panel/service, profile-fit, inverter/system architecture, and structured reasoning-graph layers are now stabilized with explicit confidence framing and seeded regression coverage, so the next change can move forward without reopening those wording boundaries.
+- The current panel/service, profile-fit, current-home-energy-architecture, inverter/system architecture, and structured reasoning-graph layers are now stabilized with explicit confidence framing and seeded regression coverage, so the next change can move forward without reopening those wording boundaries.
 - Trust visibility now makes uncertainty obvious, and scenario comparison now exposes lineage, but the underlying provenance model is still thin.
-- Backup-load selection, profile architecture fit, inverter/system architecture reasoning, and structured dependency links are now explicit, so the next slice can strengthen solar realism from a narrower planning scope instead of broad inferred outage intent.
+- Backup-load selection, current-state topology modeling, profile architecture fit, inverter/system architecture reasoning, and structured dependency links are now explicit, so the next slice can strengthen solar realism from a narrower planning scope instead of broad inferred outage intent.
 - A provenance foundation now exists, but it still does not cover every field or every derived output path.
 - Generated takeoffs are intentionally transient and placeholder-priced until stronger source lineage exists.
 - Advisor intelligence is broader, but it still depends on planning heuristics rather than verified engineering inputs.

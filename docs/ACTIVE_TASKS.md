@@ -7,7 +7,7 @@
 3. Preserve API and persistence stability while editable workflows mature.
 4. Stabilize the new provenance foundation under the trust visibility, advisor intelligence, scenario comparison, and transient derived-takeoff workflows.
 5. Build deterministic profile-based resilience recommendation and sizing logic incrementally behind the advisor layer.
-6. Extend the current inspectable battery, solar, roof-readiness, panel/service, backup-load-selection, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph slices while keeping the newly stabilized trust wording intact.
+6. Extend the current inspectable battery, solar, roof-readiness, current-home-energy-architecture, panel/service, backup-load-selection, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph slices while keeping the newly stabilized trust wording intact.
 
 ## Open Technical Tasks
 

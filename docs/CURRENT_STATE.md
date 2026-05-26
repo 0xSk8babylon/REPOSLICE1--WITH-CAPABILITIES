@@ -37,10 +37,12 @@
 - Panel/service guidance now also carries an additive architecture-consistency check that keeps broader backup direction bounded by recorded outage posture and design-goal intent
 - Recommendation profiles now also carry an additive architecture-fit tradeoff layer that explains how current equipment mix, outage posture, panel/service direction, and architecture-consistency posture pull each profile narrower or broader
 - Recommendation outputs now also carry an additive inverter/system architecture layer that explains likely AC-coupled vs hybrid posture, inverter-path suitability, battery/solar/generator coexistence assumptions, expansion direction, and planning-only system-consistency posture
+- Recommendation outputs now also carry an additive current-home-energy-architecture layer that classifies current solar/inverter topology, preserves existing-vs-proposed equipment boundaries, and explains outage-solar, battery-retrofit, expansion, and generator-coexistence implications at planning level
 - Recommendation outputs now also carry an additive structured system reasoning graph that traces deterministic dependencies between recorded load grouping, backup scope, panel/service posture, inverter/system architecture, and the recommended battery/solar posture
 - The Design Advisor now surfaces panel/service planning-direction confidence, trust framing, and inspectability inputs more explicitly instead of showing only the high-level direction
 - The Design Advisor now also surfaces profile-level architecture-fit tradeoffs and warnings beside each recommendation profile card
 - The Design Advisor now also surfaces inverter/system architecture direction, coexistence assumptions, confidence, and inspectability alongside the panel/service layer
+- The Design Advisor now also surfaces a current home energy architecture panel that distinguishes existing microinverter/string/hybrid conditions from proposed battery, generator, smart-panel, and service-upgrade assumptions
 - Seeded advisor panel/service outputs now have narrow backend regression coverage for the current demo designs
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
@@ -53,7 +55,7 @@
 - Verified product ingestion and provenance
 - Exhaustive field-level provenance coverage across scenarios, pathways, designs, and home-model facts
 - Existing local databases may need reseeding or manual provenance entry to show the new seeded pathway lineage examples
-- Existing local databases may also need reseeding to surface the new backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-system-reasoning-graph rule provenance records
+- Existing local databases may also need reseeding to surface the new current-home-energy-architecture, backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-system-reasoning-graph rule provenance records
 - Recommendation profiles and sizing slices are now more inspectable, and the new reasoning graph makes their dependency chain explicit, but they still remain planning guidance only and are not yet connected to deeper site-aware recommendation logic
 - Battery sizing now has a first numeric planning layer, but richer battery/site constraints and product-specific sizing are still not implemented behind the profile system
 - Solar sizing now has a first numeric planning layer plus a coarse site-aware adjustment stage, but richer seasonal modeling, roof-capacity realism, and more grounded recovery inputs are still incomplete behind the profile system
@@ -90,5 +92,6 @@
 - The new architecture-consistency check narrows backup-direction claims when the design goal outruns recorded load grouping, but it remains a planning-only alignment check rather than an engineering validation.
 - The new profile architecture-fit layer explains tradeoffs around current equipment mix and backup-path direction, but it remains a planning-only interpretation layer rather than a final architecture approval.
 - The new inverter/system architecture layer explains likely AC-coupled vs hybrid direction and coexistence posture from current records, but it remains a planning-only architecture interpretation rather than inverter sizing, interconnection design, or compliance validation.
+- The new current-home-energy-architecture layer explains what the home appears to have today, but it still depends on recorded role markers and product signals rather than a verified field inventory.
 - The new structured reasoning graph improves advisor traceability, but it is an additive explanation layer for the recommended profile only rather than a generalized whole-system simulation graph.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

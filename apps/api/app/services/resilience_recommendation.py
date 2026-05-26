@@ -18,7 +18,9 @@ from app.design_advisor.schemas import (
     BackupLoadSelectionSummary,
     BatteryCapacityRange,
     BatterySizingEstimate,
+    CurrentHomeEnergyArchitectureEstimate,
     EstimateInspectability,
+    HomeEnergyArchitectureComponent,
     InverterSystemArchitectureEstimate,
     PanelServiceArchitectureEstimate,
     ReasoningGraphDependency,
@@ -117,6 +119,11 @@ PROFILE_LIBRARY = {
 
 
 class ResilienceRecommendationService:
+    EXISTING_ROLE_PREFIXES = ("existing_", "current_")
+    PROPOSED_ROLE_PREFIXES = ("proposed_", "planned_", "future_")
+    SOLAR_CONVERSION_TYPES = {"microinverter", "string_inverter", "hybrid_inverter"}
+    SOLAR_RELATED_TYPES = {"solar_panel", "microinverter", "string_inverter", "hybrid_inverter"}
+
     AUTONOMY_HOUR_RANGES = {
         AutonomyReservePosture.minimal: (4.0, 8.0),
         AutonomyReservePosture.standard: (8.0, 14.0),
@@ -213,6 +220,65 @@ class ResilienceRecommendationService:
         "WISCONSIN": "WI",
         "WYOMING": "WY",
     }
+
+    def _assignment_stage(self, assignment) -> str:
+        role = ((assignment["equipment"].role_in_system or "") if assignment.get("equipment") else "").strip().lower()
+        if role.startswith(self.EXISTING_ROLE_PREFIXES):
+            return "existing"
+        if role.startswith(self.PROPOSED_ROLE_PREFIXES):
+            return "proposed"
+        return "unclear"
+
+    def _product_note_blob(self, assignment) -> str:
+        product = assignment.get("product")
+        equipment = assignment.get("equipment")
+        parts = []
+        if product is not None:
+            parts.extend(
+                [
+                    product.manufacturer or "",
+                    product.model or "",
+                    str(product.specs or ""),
+                    product.notes or "",
+                ]
+            )
+        if equipment is not None:
+            parts.extend([equipment.role_in_system or "", equipment.notes or ""])
+        return " ".join(parts).lower()
+
+    def _has_optimizer_signal(self, assignment) -> bool:
+        blob = self._product_note_blob(assignment)
+        return "optimizer" in blob or "solaredge" in blob
+
+    def _component_state(self, assignments, product_types: set) -> str:
+        existing = [
+            assignment
+            for assignment in assignments
+            if self._assignment_stage(assignment) == "existing"
+            and assignment["product"]
+            and assignment["product"].product_type in product_types
+        ]
+        proposed = [
+            assignment
+            for assignment in assignments
+            if self._assignment_stage(assignment) == "proposed"
+            and assignment["product"]
+            and assignment["product"].product_type in product_types
+        ]
+        unclear = [
+            assignment
+            for assignment in assignments
+            if self._assignment_stage(assignment) == "unclear"
+            and assignment["product"]
+            and assignment["product"].product_type in product_types
+        ]
+        if existing:
+            return "existing"
+        if proposed:
+            return "proposed"
+        if unclear:
+            return "unclear"
+        return "missing"
 
     def _round_range(self, value: float) -> float:
         return round(value, 1)
@@ -753,6 +819,370 @@ class ResilienceRecommendationService:
             ),
         )
 
+    def _current_home_energy_architecture_estimate(
+        self,
+        db,
+        analysis,
+        backup_load_selection: BackupLoadSelectionSummary,
+        confidence: ConfidenceLevel,
+        rule_documents_map=None,
+    ) -> CurrentHomeEnergyArchitectureEstimate:
+        assignments = analysis["assigned_products"]
+        design = analysis["design"]
+
+        existing_assignments = [
+            assignment
+            for assignment in assignments
+            if self._assignment_stage(assignment) == "existing" and assignment["product"] is not None
+        ]
+        proposed_assignments = [
+            assignment
+            for assignment in assignments
+            if self._assignment_stage(assignment) == "proposed" and assignment["product"] is not None
+        ]
+        unclear_assignments = [
+            assignment
+            for assignment in assignments
+            if self._assignment_stage(assignment) == "unclear" and assignment["product"] is not None
+        ]
+
+        existing_types = {assignment["product"].product_type for assignment in existing_assignments}
+        proposed_types = {assignment["product"].product_type for assignment in proposed_assignments}
+        unclear_types = {assignment["product"].product_type for assignment in unclear_assignments}
+
+        existing_has_solar = bool(existing_types.intersection(self.SOLAR_RELATED_TYPES))
+        proposed_has_solar = bool(proposed_types.intersection(self.SOLAR_RELATED_TYPES))
+        unclear_has_solar = bool(unclear_types.intersection(self.SOLAR_RELATED_TYPES))
+
+        has_existing_micro = "microinverter" in existing_types
+        has_existing_string = "string_inverter" in existing_types
+        has_existing_hybrid = "hybrid_inverter" in existing_types
+        has_existing_battery = "battery" in existing_types
+        has_existing_generator = "generator" in existing_types
+        has_existing_transfer = bool(existing_types.intersection({"gateway", "transfer_switch", "disconnect"}))
+        has_existing_smart_panel = bool(existing_types.intersection({"smart_panel", "load_center"}))
+        has_existing_optimizer_signal = any(self._has_optimizer_signal(assignment) for assignment in existing_assignments)
+        has_unclear_optimizer_signal = any(self._has_optimizer_signal(assignment) for assignment in unclear_assignments)
+        topology_family_count = sum(
+            [
+                1 if has_existing_micro else 0,
+                1 if has_existing_string else 0,
+                1 if has_existing_hybrid else 0,
+                1 if has_existing_optimizer_signal else 0,
+            ]
+        )
+
+        if existing_has_solar:
+            solar_existing_state = "existing solar recorded"
+        elif proposed_has_solar:
+            solar_existing_state = "proposed solar only recorded"
+        elif unclear_has_solar:
+            solar_existing_state = "solar stage unclear"
+        else:
+            solar_existing_state = "solar not recorded"
+
+        if existing_has_solar and topology_family_count > 1:
+            inverter_topology = "mixed or unclear topology"
+            topology_confidence = ConfidenceLevel.medium
+            topology_confidence_reason = (
+                "Existing solar equipment is recorded, but multiple inverter-family signals appear together, so the current topology should be treated as mixed or unclear."
+            )
+        elif has_existing_hybrid and has_existing_battery and design.architecture_type in {"hybrid", "dc_coupled"}:
+            inverter_topology = "DC-coupled battery system"
+            topology_confidence = ConfidenceLevel.high
+            topology_confidence_reason = (
+                "Existing hybrid inverter and battery signals align with the recorded architecture type, so the current storage path reads as DC-coupled at planning level."
+            )
+        elif (has_existing_micro or has_existing_string or has_existing_optimizer_signal) and has_existing_battery:
+            inverter_topology = "AC-coupled battery retrofit"
+            topology_confidence = ConfidenceLevel.high
+            topology_confidence_reason = (
+                "Existing solar conversion equipment and existing battery signals together suggest an AC-coupled solar-plus-storage posture."
+            )
+        elif has_existing_micro:
+            inverter_topology = "microinverter system"
+            topology_confidence = ConfidenceLevel.high
+            topology_confidence_reason = (
+                "Existing microinverter equipment is explicitly recorded, so the current solar topology is grounded as a microinverter system."
+            )
+        elif has_existing_optimizer_signal:
+            inverter_topology = "optimizer-based system"
+            topology_confidence = ConfidenceLevel.medium
+            topology_confidence_reason = (
+                "Optimizer-oriented product or note signals are present, but the optimizer path is inferred from recorded product context rather than a dedicated optimizer equipment type."
+            )
+        elif has_existing_string:
+            inverter_topology = "string inverter system"
+            topology_confidence = ConfidenceLevel.high
+            topology_confidence_reason = (
+                "Existing string-inverter equipment is explicitly recorded, so the current solar topology is grounded as a string-inverter system."
+            )
+        elif has_existing_hybrid:
+            inverter_topology = "hybrid inverter system"
+            topology_confidence = ConfidenceLevel.high
+            topology_confidence_reason = (
+                "Existing hybrid-inverter equipment is explicitly recorded, so the current topology already includes a hybrid conversion backbone."
+            )
+        elif existing_has_solar:
+            inverter_topology = "unknown / not recorded topology"
+            topology_confidence = ConfidenceLevel.low
+            topology_confidence_reason = (
+                "Existing solar-related equipment is recorded without a matching inverter-family signal, so the current topology remains unknown."
+            )
+        elif proposed_has_solar or unclear_has_solar:
+            inverter_topology = "unknown / not recorded topology"
+            topology_confidence = ConfidenceLevel.low
+            topology_confidence_reason = (
+                "Solar-related equipment appears only as proposed or stage-unclear records, so the current home topology should remain unresolved instead of guessed."
+            )
+        else:
+            inverter_topology = "unknown / not recorded topology"
+            topology_confidence = ConfidenceLevel.low
+            topology_confidence_reason = (
+                "The current design does not record enough existing solar or inverter evidence to classify the home's current topology."
+            )
+
+        current_labels = []
+        if existing_has_solar:
+            current_labels.append(inverter_topology)
+        if has_existing_battery:
+            current_labels.append("existing battery")
+        if has_existing_generator:
+            current_labels.append("existing generator")
+        if has_existing_smart_panel:
+            current_labels.append("existing smart/load-control panel")
+        proposed_labels = sorted(
+            {
+                assignment["product"].product_type.replace("_", " ")
+                for assignment in proposed_assignments
+                if assignment["product"] is not None
+            }
+        )
+        current_description = ", ".join(current_labels) if current_labels else "no current topology clearly recorded"
+        proposed_description = ", ".join(proposed_labels) if proposed_labels else "no proposed add-ons clearly recorded"
+        current_vs_proposed_architecture = (
+            f"Current home energy architecture reads as {current_description}; proposed design additions read as {proposed_description}."
+        )
+
+        if inverter_topology in {"microinverter system", "string inverter system", "optimizer-based system"} and (
+            "battery" in proposed_types or "battery" in unclear_types or not has_existing_battery and "battery" in analysis["product_types"]
+        ):
+            battery_retrofit_implication = (
+                "Current solar topology commonly points toward an AC-coupled battery retrofit planning posture, but product-level gateway, controls, and battery compatibility still need validation."
+            )
+        elif inverter_topology in {"hybrid inverter system", "DC-coupled battery system"}:
+            battery_retrofit_implication = (
+                "Current topology already leans toward a shared hybrid/DC-coupled storage path, but final battery compatibility and operating behavior still require product-level validation."
+            )
+        elif inverter_topology == "unknown / not recorded topology":
+            battery_retrofit_implication = (
+                "Battery retrofit posture remains open because the current inverter topology is not yet recorded well enough to favor AC-coupled or hybrid planning."
+            )
+        else:
+            battery_retrofit_implication = (
+                "Battery retrofit posture remains planning-only because the current topology is either mixed or only partially grounded."
+            )
+
+        if inverter_topology == "microinverter system":
+            expansion_implication = (
+                "Microinverter-based solar is often expansion-friendly at planning level because conversion happens at the module level, but branch, gateway, and backup-control details still matter."
+            )
+        elif inverter_topology == "optimizer-based system":
+            expansion_implication = (
+                "Optimizer-based systems can preserve array-level flexibility, but future storage and backup behavior still depend on the recorded inverter/control path."
+            )
+        elif inverter_topology in {"hybrid inverter system", "DC-coupled battery system"}:
+            expansion_implication = (
+                "Hybrid-centered topology often preserves a broader storage path, but future expansion still depends on final equipment limits and service/panel constraints."
+            )
+        elif inverter_topology == "unknown / not recorded topology":
+            expansion_implication = (
+                "Expansion readiness remains only partially grounded because the current solar conversion path is not yet recorded."
+            )
+        else:
+            expansion_implication = (
+                "Current topology leaves room for expansion planning, but the exact future path remains dependent on panel, control, and product compatibility details."
+            )
+
+        if existing_has_solar and not (has_existing_transfer and (has_existing_battery or has_existing_hybrid)):
+            outage_solar_behavior_note = (
+                "Do not assume the recorded solar array can operate during an outage. Existing solar production may stay unavailable without compatible backup gateway, grid-forming equipment, and storage architecture."
+            )
+        elif existing_has_solar:
+            outage_solar_behavior_note = (
+                "Recorded solar and backup-control signals suggest outage solar operation may be possible, but product-level behavior still requires validation before assuming solar-backed outage support."
+            )
+        else:
+            outage_solar_behavior_note = (
+                "Outage solar behavior cannot be described yet because the current solar topology is not clearly recorded."
+            )
+
+        if "generator" in analysis["product_types"] and not bool(analysis["product_types"].intersection({"gateway", "transfer_switch", "disconnect"})):
+            generator_coexistence_note = (
+                "Generator coexistence should remain uncertain because no transfer switch, gateway, or disconnect path is recorded yet."
+            )
+        elif "generator" in analysis["product_types"]:
+            generator_coexistence_note = (
+                "Generator coexistence is partially grounded by recorded transfer/control hardware, but product-level operating coordination remains unverified."
+            )
+        else:
+            generator_coexistence_note = (
+                "No generator signal is recorded, so generator coexistence remains outside the current topology summary."
+            )
+
+        architecture_components = [
+            HomeEnergyArchitectureComponent(
+                component_key="solar_array",
+                label="Solar array",
+                state="existing" if existing_has_solar else "proposed" if proposed_has_solar else "unclear" if unclear_has_solar else "missing",
+                relationship="Solar array is the current generation anchor when recorded; otherwise it remains proposed or unresolved.",
+                note="Uses existing/proposed role markers when available and stays unresolved when stage markers are missing.",
+            ),
+            HomeEnergyArchitectureComponent(
+                component_key="inverter_topology",
+                label="Solar / inverter topology",
+                state="existing" if existing_has_solar else "unclear" if unclear_has_solar else "missing",
+                relationship=f"Current topology is classified as {inverter_topology}.",
+                note=topology_confidence_reason,
+            ),
+            HomeEnergyArchitectureComponent(
+                component_key="main_service_panel",
+                label="Main service panel",
+                state="existing" if analysis["main_panel"] is not None else "missing",
+                relationship="Current solar and backup pathways ultimately tie back to the main service context used by the planner.",
+                note="Panel/service posture remains a separate planning layer and is not inferred from topology alone.",
+            ),
+            HomeEnergyArchitectureComponent(
+                component_key="backup_loads",
+                label="Backup loads",
+                state="planning_assumption" if backup_load_selection.selected_load_count else "missing",
+                relationship="Backup loads represent the selected outage-scope assumption that downstream battery and architecture guidance consume.",
+                note="Load grouping is planning-only and does not prove existing transfer configuration.",
+            ),
+            HomeEnergyArchitectureComponent(
+                component_key="battery",
+                label="Battery",
+                state=self._component_state(assignments, {"battery"}),
+                relationship="Battery state is shown separately so current storage can be distinguished from a proposed retrofit path.",
+                note=battery_retrofit_implication,
+            ),
+            HomeEnergyArchitectureComponent(
+                component_key="generator",
+                label="Generator",
+                state=self._component_state(assignments, {"generator"}),
+                relationship="Generator is shown as a coexistence signal rather than automatic backup compatibility.",
+                note=generator_coexistence_note,
+            ),
+            HomeEnergyArchitectureComponent(
+                component_key="smart_panel",
+                label="Smart panel / load control",
+                state=self._component_state(assignments, {"smart_panel", "load_center"}),
+                relationship="Selective-load control can change future backup behavior, but it is separate from current solar topology.",
+                note="No smart-panel behavior is assumed unless equipment is explicitly recorded.",
+            ),
+            HomeEnergyArchitectureComponent(
+                component_key="service_upgrade_path",
+                label="Service upgrade path",
+                state="planning_assumption",
+                relationship="Service-upgrade direction remains a future planning path rather than a current-state topology component.",
+                note="Use the panel/service architecture layer for upgrade caution and backup-architecture consistency.",
+            ),
+        ]
+
+        topology_source_inputs = [
+            {
+                "key": "existing_stage_markers",
+                "label": "Existing-vs-proposed stage markers",
+                "value": (
+                    f"{len(existing_assignments)} existing, {len(proposed_assignments)} proposed, {len(unclear_assignments)} unclear"
+                ),
+                "status": "recorded" if assignments else "missing",
+                "note": "Current-state topology only treats equipment as existing when role markers explicitly say so; otherwise it preserves ambiguity.",
+            },
+            {
+                "key": "existing_solar_signals",
+                "label": "Existing solar signals",
+                "value": solar_existing_state,
+                "status": "recorded" if existing_has_solar else "missing" if not (proposed_has_solar or unclear_has_solar) else "estimated",
+                "note": "Existing solar is distinguished from proposed-only solar so the advisor does not silently turn future equipment into current-state evidence.",
+            },
+            {
+                "key": "inverter_family_signals",
+                "label": "Inverter family signals",
+                "value": ", ".join(
+                    sorted(
+                        {
+                            assignment["product"].product_type.replace("_", " ")
+                            for assignment in existing_assignments
+                            if assignment["product"].product_type in self.SOLAR_CONVERSION_TYPES
+                        }
+                    )
+                )
+                or ("optimizer-oriented context" if has_existing_optimizer_signal or has_unclear_optimizer_signal else "No explicit existing inverter family recorded"),
+                "status": "recorded" if existing_types.intersection(self.SOLAR_CONVERSION_TYPES) else "estimated" if has_existing_optimizer_signal or has_unclear_optimizer_signal else "missing",
+                "note": "Microinverter, string, hybrid, and inferred optimizer cues are used to classify current topology without claiming product compatibility.",
+            },
+            {
+                "key": "architecture_type",
+                "label": "Recorded design architecture type",
+                "value": (design.architecture_type or "not recorded").replace("_", " "),
+                "status": "recorded" if design.architecture_type else "missing",
+                "note": "Architecture type acts only as a supporting signal; it does not override missing current-state equipment records.",
+            },
+            {
+                "key": "transfer_gateway_signals",
+                "label": "Transfer or gateway signals",
+                "value": "present" if analysis["product_types"].intersection({"gateway", "transfer_switch", "disconnect"}) else "not recorded",
+                "status": "recorded" if analysis["product_types"].intersection({"gateway", "transfer_switch", "disconnect"}) else "missing",
+                "note": "Outage solar and generator coexistence remain cautious until control or transfer hardware is explicitly recorded.",
+            },
+        ]
+
+        incomplete_inputs: List[str] = []
+        if not existing_has_solar:
+            incomplete_inputs.append("Current-state solar inventory is incomplete or not explicitly marked as existing.")
+        if inverter_topology == "unknown / not recorded topology":
+            incomplete_inputs.append("Current inverter topology is not explicitly recorded, so AC-coupled vs hybrid planning remains less grounded.")
+        if unclear_assignments:
+            incomplete_inputs.append("Some equipment roles do not distinguish existing from proposed state, so topology confidence stays lower.")
+        if not analysis["main_panel"]:
+            incomplete_inputs.append("Main service panel details are missing, so topology relationships to the service equipment stay partial.")
+
+        inspectability = provenance_service.build_estimate_inspectability(
+            db,
+            basis="Current home energy architecture is derived from explicit existing-vs-proposed role markers, current solar and inverter product signals, transfer/gateway records, panel context, and the current backup-load scope.",
+            confidence_level=topology_confidence,
+            rule_keys=[
+                "recommendation.backup_load_selection_v1",
+                "recommendation.current_home_energy_architecture_v1",
+            ],
+            input_signals=topology_source_inputs,
+            estimated_inputs=[
+                "Topology classification is planning-only and preserves unknowns when the current-state equipment record is incomplete."
+            ],
+            incomplete_inputs=incomplete_inputs,
+            notes=[
+                "Current topology does not imply outage capability, NEC compliance, rapid-shutdown compliance, or final compatibility between solar, storage, and generator hardware."
+            ],
+            rule_documents_map=rule_documents_map,
+        )
+
+        return CurrentHomeEnergyArchitectureEstimate(
+            solar_existing_state=solar_existing_state,
+            inverter_topology=inverter_topology,
+            topology_confidence=topology_confidence,
+            topology_confidence_reason=topology_confidence_reason,
+            topology_source_inputs=topology_source_inputs,
+            current_vs_proposed_architecture=current_vs_proposed_architecture,
+            outage_solar_behavior_note=outage_solar_behavior_note,
+            battery_retrofit_implication=battery_retrofit_implication,
+            expansion_implication=expansion_implication,
+            generator_coexistence_note=generator_coexistence_note,
+            architecture_components=architecture_components,
+            scope_note="Planning-only current-state architecture summary. It helps explain what the home appears to have today versus what remains proposed, without claiming final electrical design, outage behavior approval, or compatibility validation.",
+            inspectability=inspectability,
+        )
+
     def _panel_service_architecture_estimate(
         self,
         db,
@@ -1006,7 +1436,11 @@ class ResilienceRecommendationService:
         )
 
     def _build_profile_input_signals(
-        self, analysis, completeness, profile: RecommendationProfile
+        self,
+        analysis,
+        completeness,
+        profile: RecommendationProfile,
+        current_home_energy_architecture: Optional[CurrentHomeEnergyArchitectureEstimate] = None,
     ) -> Tuple[List[Dict[str, object]], List[str], List[str]]:
         load_summary = self._backup_load_model_summary(analysis, profile)
         architecture_type = (analysis["design"].architecture_type or "not_recorded").replace("_", " ")
@@ -1042,6 +1476,17 @@ class ResilienceRecommendationService:
                 "value": architecture_type,
                 "status": "recorded" if analysis["design"].architecture_type else "missing",
                 "note": "The current design architecture helps explain whether the profile fit stays phase-one, hybrid, or future-ready.",
+            },
+            {
+                "key": "current_topology",
+                "label": "Current home energy topology",
+                "value": (
+                    current_home_energy_architecture.inverter_topology
+                    if current_home_energy_architecture is not None
+                    else "not evaluated"
+                ),
+                "status": "rule_based" if current_home_energy_architecture is not None else "missing",
+                "note": "Current-state solar topology is kept separate from future architecture direction so existing conditions do not get silently merged with proposals.",
             },
             {
                 "key": "outage_posture",
@@ -1092,6 +1537,7 @@ class ResilienceRecommendationService:
         self,
         analysis,
         profile: RecommendationProfile,
+        current_home_energy_architecture: CurrentHomeEnergyArchitectureEstimate,
         panel_service_architecture: PanelServiceArchitectureEstimate,
         inverter_system_architecture: InverterSystemArchitectureEstimate,
     ) -> ProfileArchitectureFitAssessment:
@@ -1111,8 +1557,15 @@ class ResilienceRecommendationService:
         has_generator = "generator" in product_types
         has_gateway = "gateway" in product_types
         has_smart_panel = "smart_panel" in product_types
+        current_topology = current_home_energy_architecture.inverter_topology
 
-        if has_hybrid and has_generator:
+        if current_topology == "microinverter system" and has_battery:
+            equipment_mix_summary = "Existing microinverter solar plus recorded battery signals point toward an AC-coupled retrofit planning path."
+        elif current_topology == "microinverter system":
+            equipment_mix_summary = "Existing microinverter solar is already recorded, so future storage fit should be read through an AC-coupled planning posture unless later hardware proves otherwise."
+        elif current_topology == "optimizer-based system":
+            equipment_mix_summary = "Current solar appears optimizer-based, so storage fit still depends on the inverter/control path rather than assuming simple backup behavior."
+        elif has_hybrid and has_generator:
             equipment_mix_summary = "Hybrid inverter and generator signals already push the design toward a broader, staged backup path."
         elif has_hybrid:
             equipment_mix_summary = "Hybrid inverter signals point toward a more integrated backup path than a simple starter architecture."
@@ -1204,6 +1657,11 @@ class ResilienceRecommendationService:
             if consistency_status == "conditional":
                 warnings.append("The design goal is broader than the recorded backup scope, so future-ready fit should not be treated as evidence of whole-home readiness.")
 
+        if current_topology == "microinverter system" and profile in {
+            RecommendationProfile.conservative,
+            RecommendationProfile.premium_future_ready,
+        }:
+            tradeoffs.append("Existing microinverter solar can still support broader resilience planning, but future-ready storage often depends on a clearer AC-coupled retrofit path than a hybrid-first posture.")
         if architecture_type == "hybrid" and profile in {
             RecommendationProfile.critical_efficient,
             RecommendationProfile.balanced,
@@ -1292,6 +1750,7 @@ class ResilienceRecommendationService:
         analysis,
         profile: RecommendationProfile,
         confidence: ConfidenceLevel,
+        current_home_energy_architecture: CurrentHomeEnergyArchitectureEstimate,
         panel_service_architecture: PanelServiceArchitectureEstimate,
         rule_documents_map=None,
     ) -> InverterSystemArchitectureEstimate:
@@ -1299,6 +1758,7 @@ class ResilienceRecommendationService:
         design = analysis["design"]
         load_summary = self._backup_load_model_summary(analysis, profile)
         architecture_type = (design.architecture_type or "not recorded").replace("_", " ")
+        current_topology = current_home_energy_architecture.inverter_topology
 
         has_battery = "battery" in product_types
         has_generator = "generator" in product_types
@@ -1310,7 +1770,28 @@ class ResilienceRecommendationService:
         multi_building = bool(analysis["workshop_buildings"] or len(analysis["linked_pathways"]) > 1)
         backup_direction = panel_service_architecture.recommended_backup_architecture
 
-        if has_hybrid and has_generator and has_transfer_path:
+        if current_topology == "DC-coupled battery system":
+            inverter_pathway_posture = "existing hybrid-centered solar-plus-storage path is explicitly signaled"
+            recommended_system_architecture = "hybrid inverter backbone"
+        elif current_topology == "AC-coupled battery retrofit":
+            inverter_pathway_posture = "existing solar-plus-storage topology already reads as an ac-coupled retrofit path"
+            recommended_system_architecture = "ac-coupled battery retrofit path"
+        elif current_topology == "microinverter system" and has_battery:
+            inverter_pathway_posture = "existing microinverter solar suggests an ac-coupled battery retrofit path"
+            recommended_system_architecture = "ac-coupled battery retrofit path"
+        elif current_topology == "microinverter system":
+            inverter_pathway_posture = "existing microinverter solar path is explicitly signaled"
+            recommended_system_architecture = "existing microinverter solar-first path"
+        elif current_topology == "string inverter system" and has_battery:
+            inverter_pathway_posture = "existing string-inverter solar suggests an ac-coupled battery retrofit path"
+            recommended_system_architecture = "ac-coupled battery retrofit path"
+        elif current_topology == "string inverter system":
+            inverter_pathway_posture = "existing string-inverter solar path is explicitly signaled"
+            recommended_system_architecture = "existing string-inverter solar-first path"
+        elif current_topology == "optimizer-based system" and has_battery:
+            inverter_pathway_posture = "existing optimizer-based solar suggests an ac-coupled battery retrofit path until a hybrid path is explicitly recorded"
+            recommended_system_architecture = "ac-coupled battery retrofit path"
+        elif has_hybrid and has_generator and has_transfer_path:
             inverter_pathway_posture = "hybrid-plus-generator path is explicitly signaled"
             recommended_system_architecture = "hybrid inverter backbone with generator coexistence"
         elif has_hybrid:
@@ -1335,7 +1816,9 @@ class ResilienceRecommendationService:
             inverter_pathway_posture = "no explicit inverter or backup-conversion path is recorded yet"
             recommended_system_architecture = "system architecture path remains open"
 
-        if has_hybrid or design.architecture_type == "hybrid":
+        if current_topology in {"microinverter system", "string inverter system", "optimizer-based system", "AC-coupled battery retrofit"}:
+            hybrid_inverter_pathway_suitability = "conditional" if has_battery or has_generator or multi_building else "limited"
+        elif has_hybrid or design.architecture_type == "hybrid":
             hybrid_inverter_pathway_suitability = (
                 "favorable"
                 if load_summary["supports_partial_home_backup"] or multi_building or has_generator
@@ -1346,7 +1829,13 @@ class ResilienceRecommendationService:
         else:
             hybrid_inverter_pathway_suitability = "limited"
 
-        if design.architecture_type == "ac_coupled" or has_ac_inverter:
+        if current_topology in {"microinverter system", "string inverter system", "optimizer-based system", "AC-coupled battery retrofit"}:
+            ac_coupled_pathway_suitability = (
+                "favorable"
+                if backup_direction in {"critical-loads subpanel", "partial-home backup"} and not has_hybrid
+                else "conditional"
+            )
+        elif design.architecture_type == "ac_coupled" or has_ac_inverter:
             ac_coupled_pathway_suitability = (
                 "favorable"
                 if backup_direction in {"critical-loads subpanel", "partial-home backup"} and not has_hybrid
@@ -1357,7 +1846,9 @@ class ResilienceRecommendationService:
         else:
             ac_coupled_pathway_suitability = "limited"
 
-        if has_battery and has_hybrid:
+        if current_topology in {"microinverter system", "string inverter system", "optimizer-based system"} and has_battery:
+            battery_integration_assumption = current_home_energy_architecture.battery_retrofit_implication
+        elif has_battery and has_hybrid:
             battery_integration_assumption = (
                 "Battery coexistence is most coherent through a hybrid-centered planning path, though final coupling details remain deferred."
             )
@@ -1372,7 +1863,19 @@ class ResilienceRecommendationService:
         else:
             battery_integration_assumption = "No battery signal is recorded, so storage coexistence remains outside the current architecture posture."
 
-        if has_solar_generation and has_hybrid:
+        if current_topology == "microinverter system":
+            solar_integration_assumption = (
+                "Existing solar appears microinverter-based. It should not be assumed to run through outages unless compatible backup gateway, grid-forming, and storage architecture is also present."
+            )
+        elif current_topology == "string inverter system":
+            solar_integration_assumption = (
+                "Existing solar appears string-inverter-based, but outage behavior and storage integration still depend on the recorded control and backup path."
+            )
+        elif current_topology == "optimizer-based system":
+            solar_integration_assumption = (
+                "Existing solar appears optimizer-based, but outage behavior still depends on the paired inverter and backup-control architecture rather than optimizer presence alone."
+            )
+        elif has_solar_generation and has_hybrid:
             solar_integration_assumption = (
                 "Solar and storage can be planned on a shared hybrid-centered architecture path, but product-specific topology remains deferred."
             )
@@ -1387,7 +1890,9 @@ class ResilienceRecommendationService:
         else:
             solar_integration_assumption = "No explicit solar-conversion signal is recorded, so solar coexistence remains only directional."
 
-        if has_generator and has_transfer_path and has_hybrid:
+        if current_home_energy_architecture.generator_coexistence_note:
+            generator_coexistence_assumption = current_home_energy_architecture.generator_coexistence_note
+        elif has_generator and has_transfer_path and has_hybrid:
             generator_coexistence_assumption = (
                 "Generator coexistence is planning-compatible with a hybrid-centered path because both generation and transfer/control signals are recorded."
             )
@@ -1402,14 +1907,21 @@ class ResilienceRecommendationService:
         else:
             generator_coexistence_assumption = "No generator signal is recorded, so generator coexistence remains outside the current architecture posture."
 
-        if design.design_goal in {"expansion_ready", "workshop_ready"} or multi_building or backup_direction == "future-ready service upgrade path":
+        if current_topology == "microinverter system":
+            expansion_path_posture = "existing microinverter solar keeps a modular expansion path open"
+        elif design.design_goal in {"expansion_ready", "workshop_ready"} or multi_building or backup_direction == "future-ready service upgrade path":
             expansion_path_posture = "future-ready expansion path is favored"
         elif load_summary["supports_partial_home_backup"] or has_battery or has_transfer_path:
             expansion_path_posture = "moderate expansion path is preserved"
         else:
             expansion_path_posture = "first-phase architecture remains narrower than future-ready expansion"
 
-        if has_hybrid and design.architecture_type == "hybrid" and panel_service_architecture.architecture_consistency and panel_service_architecture.architecture_consistency.status == "aligned":
+        if current_topology in {"microinverter system", "string inverter system", "AC-coupled battery retrofit"}:
+            confidence_level = current_home_energy_architecture.topology_confidence
+            confidence_reason = (
+                f"System-architecture confidence inherits the current topology classification because the home appears to have a {current_topology} and the future pathway remains planning-only."
+            )
+        elif has_hybrid and design.architecture_type == "hybrid" and panel_service_architecture.architecture_consistency and panel_service_architecture.architecture_consistency.status == "aligned":
             confidence_level = ConfidenceLevel.high
             confidence_reason = "System-architecture confidence is high because architecture type, hybrid equipment, and backup direction all point to the same planning path."
         elif (has_ac_inverter or has_hybrid or has_transfer_path) and design.architecture_type:
@@ -1429,6 +1941,13 @@ class ResilienceRecommendationService:
             confidence_reason = "System-architecture confidence drops to medium because the planning direction still has unresolved consistency gaps."
 
         input_signals = [
+            {
+                "key": "current_topology",
+                "label": "Current home energy topology",
+                "value": current_topology,
+                "status": "rule_based",
+                "note": "Current-state topology is kept separate from the future system recommendation so existing solar is not mistaken for a final backup-capable architecture.",
+            },
             {
                 "key": "recorded_architecture_type",
                 "label": "Recorded architecture type",
@@ -1484,6 +2003,8 @@ class ResilienceRecommendationService:
             "System architecture reasoning is planning-only and does not confirm inverter sizing, interconnection method, or final transfer topology."
         ]
         incomplete_inputs: List[str] = []
+        if current_topology == "microinverter system" and not has_transfer_path:
+            incomplete_inputs.append("Existing microinverter solar does not imply outage operation, because no gateway, transfer, or grid-forming path is recorded.")
         if has_battery and not (has_hybrid or has_ac_inverter):
             incomplete_inputs.append("Battery equipment is recorded without explicit inverter hardware, so storage topology remains provisional.")
         if has_generator and not has_transfer_path:
@@ -1499,10 +2020,11 @@ class ResilienceRecommendationService:
 
         inspectability = provenance_service.build_estimate_inspectability(
             db,
-            basis="Inverter and system architecture reasoning is based on recorded architecture type, explicit inverter/control equipment, backup-scope posture, panel/service direction, battery and generator coexistence signals, and pathway context.",
+            basis="Inverter and system architecture reasoning is based on current topology classification, recorded architecture type, explicit inverter/control equipment, backup-scope posture, panel/service direction, battery and generator coexistence signals, and pathway context.",
             confidence_level=confidence_level,
             rule_keys=[
                 "recommendation.backup_load_selection_v1",
+                "recommendation.current_home_energy_architecture_v1",
                 "recommendation.panel_service_preliminary_architecture_v1",
                 "recommendation.backup_architecture_consistency_v1",
                 "recommendation.inverter_system_architecture_v1",
@@ -2002,6 +2524,7 @@ class ResilienceRecommendationService:
         db,
         profile_card: RecommendationProfileCard,
         backup_load_selection: BackupLoadSelectionSummary,
+        current_home_energy_architecture: CurrentHomeEnergyArchitectureEstimate,
         panel_service_architecture: PanelServiceArchitectureEstimate,
         inverter_system_architecture: InverterSystemArchitectureEstimate,
         rule_documents_map=None,
@@ -2011,6 +2534,7 @@ class ResilienceRecommendationService:
         profile_inspectability = EstimateInspectability.parse_obj(profile_card.inspectability)
         graph_rule_keys = [
             "recommendation.backup_load_selection_v1",
+            "recommendation.current_home_energy_architecture_v1",
             "recommendation.panel_service_preliminary_architecture_v1",
             "recommendation.backup_architecture_consistency_v1",
             "recommendation.inverter_system_architecture_v1",
@@ -2057,6 +2581,15 @@ class ResilienceRecommendationService:
                 status=backup_load_selection.outage_posture,
                 confidence_level=backup_load_selection.confidence_level,
                 rule_keys=["recommendation.backup_load_selection_v1"],
+            ),
+            ReasoningGraphNode(
+                node_id="current_topology",
+                label="Current Solar / Inverter Topology",
+                category="current_home_energy_architecture",
+                summary=current_home_energy_architecture.current_vs_proposed_architecture,
+                status=current_home_energy_architecture.inverter_topology,
+                confidence_level=current_home_energy_architecture.topology_confidence,
+                rule_keys=["recommendation.current_home_energy_architecture_v1"],
             ),
             ReasoningGraphNode(
                 node_id="panel_service",
@@ -2112,6 +2645,18 @@ class ResilienceRecommendationService:
                 ["recommendation.backup_load_selection_v1", "recommendation.system_reasoning_graph_v1"],
             ),
             self._reasoning_graph_dependency(
+                "current_topology",
+                "inverter_system",
+                "grounds current-state pathway",
+                "Current solar and inverter topology determines whether future battery and backup planning starts from a microinverter, string, hybrid, AC-coupled, or unresolved existing-home posture.",
+                current_home_energy_architecture.topology_confidence,
+                [
+                    "recommendation.current_home_energy_architecture_v1",
+                    "recommendation.inverter_system_architecture_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+            self._reasoning_graph_dependency(
                 "backup_scope",
                 "panel_service",
                 "bounds backup architecture",
@@ -2134,6 +2679,18 @@ class ResilienceRecommendationService:
                     "recommendation.backup_load_selection_v1",
                     "recommendation.panel_service_preliminary_architecture_v1",
                     "recommendation.inverter_system_architecture_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+            self._reasoning_graph_dependency(
+                "current_topology",
+                "battery_posture",
+                "qualifies retrofit posture",
+                "Current solar topology changes how grounded an AC-coupled retrofit versus hybrid-centered storage path appears, even though battery sizing still uses the selected outage scope.",
+                battery_sizing.inspectability.confidence_level,
+                [
+                    "recommendation.current_home_energy_architecture_v1",
+                    "recommendation.profile_battery_sizing_v1",
                     "recommendation.system_reasoning_graph_v1",
                 ],
             ),
@@ -2228,6 +2785,13 @@ class ResilienceRecommendationService:
                         "note": "This is the root planning posture that downstream architecture and sizing layers consume.",
                     },
                     {
+                        "key": "current_topology",
+                        "label": "Current home energy topology",
+                        "value": current_home_energy_architecture.inverter_topology,
+                        "status": "rule_based",
+                        "note": "Current-state topology is shown separately so the graph can distinguish existing-home conditions from future recommendations.",
+                    },
+                    {
                         "key": "panel_service_direction",
                         "label": "Panel/service direction",
                         "value": panel_service_architecture.recommended_backup_architecture,
@@ -2289,6 +2853,7 @@ class ResilienceRecommendationService:
             [
                 "recommendation.resilience_profile_matrix_v1",
                 "recommendation.backup_load_selection_v1",
+                "recommendation.current_home_energy_architecture_v1",
                 "recommendation.panel_service_preliminary_architecture_v1",
                 "recommendation.backup_architecture_consistency_v1",
                 "recommendation.inverter_system_architecture_v1",
@@ -2303,20 +2868,30 @@ class ResilienceRecommendationService:
         backup_load_selection = self._backup_load_selection_summary(
             db, analysis, profile, confidence, recommendation_rule_documents
         )
+        current_home_energy_architecture = self._current_home_energy_architecture_estimate(
+            db, analysis, backup_load_selection, confidence, recommendation_rule_documents
+        )
         panel_service_architecture = self._panel_service_architecture_estimate(
             db, analysis, completeness, profile, confidence, recommendation_rule_documents
         )
         inverter_system_architecture = self._inverter_system_architecture_estimate(
-            db, analysis, profile, confidence, panel_service_architecture, recommendation_rule_documents
+            db,
+            analysis,
+            profile,
+            confidence,
+            current_home_energy_architecture,
+            panel_service_architecture,
+            recommendation_rule_documents,
         )
         profiles: List[RecommendationProfileCard] = []
         for key, config in PROFILE_LIBRARY.items():
             profile_signals, profile_estimated_inputs, profile_incomplete_inputs = self._build_profile_input_signals(
-                analysis, completeness, key
+                analysis, completeness, key, current_home_energy_architecture
             )
             architecture_fit = self._profile_architecture_fit(
                 analysis,
                 key,
+                current_home_energy_architecture,
                 panel_service_architecture,
                 inverter_system_architecture,
             )
@@ -2372,6 +2947,7 @@ class ResilienceRecommendationService:
                         rule_keys=[
                             "recommendation.resilience_profile_matrix_v1",
                             "recommendation.backup_load_selection_v1",
+                            "recommendation.current_home_energy_architecture_v1",
                             "recommendation.panel_service_preliminary_architecture_v1",
                             "recommendation.backup_architecture_consistency_v1",
                             "recommendation.inverter_system_architecture_v1",
@@ -2397,6 +2973,8 @@ class ResilienceRecommendationService:
             "selected_backup_scope_label": backup_load_selection.selected_scope_label,
             "backup_scope_outage_posture": backup_load_selection.outage_posture,
             "backup_scope_confidence_level": backup_load_selection.confidence_level,
+            "current_inverter_topology": current_home_energy_architecture.inverter_topology,
+            "current_solar_existing_state": current_home_energy_architecture.solar_existing_state,
             "recommended_system_architecture": inverter_system_architecture.recommended_system_architecture,
             "assigned_product_count": len(analysis["assigned_products"]),
             "pathway_count": len(analysis["linked_pathways"]),
@@ -2410,6 +2988,7 @@ class ResilienceRecommendationService:
                 db,
                 recommended_profile_card,
                 backup_load_selection,
+                current_home_energy_architecture,
                 panel_service_architecture,
                 inverter_system_architecture,
                 recommendation_rule_documents,
@@ -2422,6 +3001,7 @@ class ResilienceRecommendationService:
             rule_keys=[
                 "recommendation.resilience_profile_matrix_v1",
                 "recommendation.backup_load_selection_v1",
+                "recommendation.current_home_energy_architecture_v1",
                 "recommendation.backup_architecture_consistency_v1",
                 "recommendation.inverter_system_architecture_v1",
                 "recommendation.profile_architecture_fit_v1",
@@ -2430,6 +3010,7 @@ class ResilienceRecommendationService:
             notes=[
                 "Recommendation is derived from current design goal, load grouping, product assignments, panel context, and pathway planning.",
                 "Backup-scope selection is explicit: broader outage intent is only carried when preferred or broader recorded load grouping exists.",
+                "Current home energy architecture keeps existing solar/inverter topology separate from proposed future architecture so microinverter, string, hybrid, and unknown states remain inspectable.",
                 "Backup-architecture consistency checks keep panel/service direction bounded by recorded outage posture instead of silently escalating to broader backup assumptions.",
                 "Inverter/system architecture reasoning stays planning-only and uses recorded architecture type, inverter/control equipment, and coexistence signals instead of claiming final topology certainty.",
                 "Profile-fit explanations now also describe how the current equipment mix and backup-path direction pull each planning posture narrower or broader.",
@@ -2445,6 +3026,7 @@ class ResilienceRecommendationService:
                 recommended_profile=profile,
                 confidence_level=confidence,
                 backup_load_selection=backup_load_selection,
+                current_home_energy_architecture=current_home_energy_architecture,
                 panel_service_architecture=panel_service_architecture,
                 inverter_system_architecture=inverter_system_architecture,
                 reasoning_graph=reasoning_graph,

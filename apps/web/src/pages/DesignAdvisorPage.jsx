@@ -243,6 +243,89 @@ export function DesignAdvisorPage() {
                     </p>
                   </div>
                 ) : null}
+                {advisorQuery.data.recommendation_profiles.current_home_energy_architecture ? (
+                  <div className="panel">
+                    <div className="panel-header">
+                      <h3>Current Home Energy Architecture</h3>
+                      <div className="badge-row">
+                        <Badge tone="info">
+                          {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.inverter_topology}
+                        </Badge>
+                        <TrustBadge
+                          state={advisorQuery.data.recommendation_profiles.current_home_energy_architecture.inspectability?.trust_state || "derived_estimate"}
+                          label="Planning-only current-state model"
+                        />
+                        <Badge
+                          tone={getConfidenceTone(
+                            advisorQuery.data.recommendation_profiles.current_home_energy_architecture.topology_confidence ||
+                              advisorQuery.data.recommendation_profiles.current_home_energy_architecture.inspectability?.confidence_level
+                          )}
+                        >
+                          Confidence:{" "}
+                          {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.topology_confidence ||
+                            advisorQuery.data.recommendation_profiles.current_home_energy_architecture.inspectability?.confidence_level ||
+                            "unknown"}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="metric-stack">
+                      <MetricRow
+                        label="Solar existing state"
+                        value={advisorQuery.data.recommendation_profiles.current_home_energy_architecture.solar_existing_state}
+                      />
+                      <MetricRow
+                        label="Current topology"
+                        value={advisorQuery.data.recommendation_profiles.current_home_energy_architecture.inverter_topology}
+                      />
+                    </div>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.current_vs_proposed_architecture}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.topology_confidence_reason}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.outage_solar_behavior_note}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.battery_retrofit_implication}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.expansion_implication}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.generator_coexistence_note}
+                    </p>
+                    <div className="solution-list">
+                      <strong>Architecture relationships</strong>
+                      <ul>
+                        {(advisorQuery.data.recommendation_profiles.current_home_energy_architecture.architecture_components || []).map((component) => (
+                          <li key={component.component_key}>
+                            {component.label}: {component.state.replaceAll("_", " ")}. {component.relationship} {component.note}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="solution-list">
+                      <strong>Topology source inputs</strong>
+                      <ul>
+                        {(advisorQuery.data.recommendation_profiles.current_home_energy_architecture.topology_source_inputs || []).map((signal) => (
+                          <li key={signal.key}>
+                            {signal.label}: {signal.value} ({signal.status.replaceAll("_", " ")})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.inspectability?.partial_provenance_warning ? (
+                      <p className="callout-copy">
+                        {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.inspectability.partial_provenance_warning}
+                      </p>
+                    ) : null}
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.current_home_energy_architecture.scope_note}
+                    </p>
+                  </div>
+                ) : null}
                 {advisorQuery.data.recommendation_profiles.panel_service_architecture ? (
                   <div className="panel">
                     <div className="panel-header">
