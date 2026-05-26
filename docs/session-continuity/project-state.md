@@ -66,6 +66,7 @@ This document records the actual current state of the `residential-energy-planne
 - The Design Advisor UI now also renders a planning-pathway comparison workspace from the existing profile catalog so users can compare deterministic postures against the same current-home architecture context without adding frontend-side recommendation logic
 - The Design Advisor API now also exposes an additive `planning_state` snapshot envelope so deterministic advisor outputs can be explicitly tied to a specific live design state plus linked saved scenarios without introducing stored recommendation snapshots
 - Scenario persistence now also includes additive immutable scenario revisions so saved planning states can accumulate revision lineage and compact advisor-linked snapshot framing without replacing the editable live scenario row
+- The Scenario Comparison UI now also includes a historical revision-comparison workspace that reads drift directly from stored immutable revision snapshots rather than recomputing old advisor logic
 - Demo-vs-real separation is now explicit at the record level through `data_origin`, but not yet enforced through tenancy or permissions
 - Editable frontend workflows now exist for:
   - home overview
@@ -121,6 +122,7 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - The newer pathway-comparison surface is also presentation scaffolding only; it compares existing advisor outputs and does not introduce a new backend scenario engine or authoritative optimization model.
 - The newer planning-state snapshot layer is also additive framing only; it identifies the current planning state and linked scenarios, but it does not yet persist historical advisor-result revisions.
 - The newer scenario-revision layer persists compact historical framing, but it does not yet store full replayable advisor payloads or a generalized revision-diff engine.
+- The newer historical revision-comparison layer is presentation scaffolding over stored revision snapshots only; it does not yet provide arbitrary revision-pair selection or replayable historical advisor workspaces.
 - Design completeness is planning completeness only, not engineering completeness.
 - Trust visibility is now a first-class UX layer, even though deep provenance and audit systems are still deferred.
 - Verification status belongs to source documents; trust badges belong to current application presentation and should not be conflated.

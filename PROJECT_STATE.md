@@ -43,6 +43,7 @@
 - The Design Advisor UI now also includes a planning-pathway comparison workspace that anchors current state once and compares multiple deterministic profile postures against the same backup, panel/service, and inverter architecture context without adding frontend-side recommendation logic
 - The Design Advisor API now also includes an additive `planning_state` snapshot envelope so recommendation, architecture, and pathway-comparison outputs are explicitly tied to a specific live design state plus any linked persistent scenario records
 - Scenario persistence now also includes additive immutable scenario revisions so saved planning states can accumulate revision lineage and advisor-linked snapshot framing without replacing the current live scenario workspace model
+- The Scenario Comparison UI now also includes a historical revision-comparison workspace that compares saved revision drift for design goal, status, recommended pathway, current-state architecture framing, and pathway-confidence posture from stored revision snapshots
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target

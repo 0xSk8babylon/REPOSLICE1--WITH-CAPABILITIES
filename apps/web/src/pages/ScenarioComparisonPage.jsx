@@ -37,6 +37,178 @@ function getRevisionIdentityLabel(scenario) {
   return `${revisionOverview.latest_revision_label} (#${revisionOverview.latest_revision_number})`;
 }
 
+function formatRevisionDate(value) {
+  if (!value) {
+    return "Timestamp not recorded";
+  }
+  return new Date(value).toLocaleString();
+}
+
+function getRevisionVariant(snapshot, variantKey) {
+  return (snapshot?.variants || []).find((variant) => variant.variant_key === variantKey);
+}
+
+function formatConfidenceChange(previous, current) {
+  if (!previous && !current) {
+    return "Confidence not recorded";
+  }
+  if (previous === current) {
+    return current ? `${current} confidence retained` : "Confidence unchanged";
+  }
+  return `${previous || "unknown"} -> ${current || "unknown"}`;
+}
+
+function buildRevisionComparison(revisions) {
+  if (!revisions?.length || revisions.length < 2) {
+    return null;
+  }
+
+  const latest = revisions[0];
+  const previous = revisions[1];
+  const latestSnapshot = latest.planning_state_snapshot || {};
+  const previousSnapshot = previous.planning_state_snapshot || {};
+  const latestCurrentState = getRevisionVariant(latestSnapshot, "current_state");
+  const previousCurrentState = getRevisionVariant(previousSnapshot, "current_state");
+  const latestProposed = getRevisionVariant(latestSnapshot, "proposed_pathway");
+  const previousProposed = getRevisionVariant(previousSnapshot, "proposed_pathway");
+  const latestFutureReady = getRevisionVariant(latestSnapshot, "future_ready_pathway");
+  const previousFutureReady = getRevisionVariant(previousSnapshot, "future_ready_pathway");
+  const latestConstrained = getRevisionVariant(latestSnapshot, "constrained_pathway");
+  const previousConstrained = getRevisionVariant(previousSnapshot, "constrained_pathway");
+
+  return {
+    latest,
+    previous,
+    driftItems: [
+      {
+        label: "Linked design",
+        previous: previous.linked_design_id,
+        current: latest.linked_design_id,
+      },
+      {
+        label: "Design goal",
+        previous: previous.design_goal_snapshot?.replaceAll("_", " ") || "Not recorded",
+        current: latest.design_goal_snapshot?.replaceAll("_", " ") || "Not recorded",
+      },
+      {
+        label: "Design status",
+        previous: previous.design_status_snapshot?.replaceAll("_", " ") || "Not recorded",
+        current: latest.design_status_snapshot?.replaceAll("_", " ") || "Not recorded",
+      },
+      {
+        label: "Recommended pathway",
+        previous: previous.recommended_profile_snapshot?.replaceAll("_", " ") || "Not recorded",
+        current: latest.recommended_profile_snapshot?.replaceAll("_", " ") || "Not recorded",
+      },
+      {
+        label: "Current-state architecture",
+        previous: previousCurrentState?.summary || "Not recorded",
+        current: latestCurrentState?.summary || "Not recorded",
+      },
+      {
+        label: "Proposed pathway confidence",
+        previous: previousProposed?.confidence_level || "unknown",
+        current: latestProposed?.confidence_level || "unknown",
+        type: "confidence",
+      },
+      {
+        label: "Future-ready pathway",
+        previous: previousFutureReady?.profile?.replaceAll("_", " ") || "Not recorded",
+        current: latestFutureReady?.profile?.replaceAll("_", " ") || "Not recorded",
+      },
+      {
+        label: "Constrained pathway",
+        previous: previousConstrained?.profile?.replaceAll("_", " ") || "Not recorded",
+        current: latestConstrained?.profile?.replaceAll("_", " ") || "Not recorded",
+      },
+    ],
+    scopeNote:
+      "Historical revision comparison is interpretive and uses stored planning-state framing from saved revisions. It does not replay advisor logic against the older revision.",
+  };
+}
+
+function RevisionComparisonCard({ scenario }) {
+  const comparison = buildRevisionComparison(scenario?.revisions);
+
+  if (!comparison) {
+    return (
+      <article className="panel revision-comparison-card">
+        <div className="panel-header">
+          <div>
+            <h3>{scenario.name}</h3>
+            <p>Historical comparison becomes available after a second saved revision exists.</p>
+          </div>
+          <div className="badge-row">
+            <Badge tone="warning">single revision</Badge>
+            <TrustBadge state="derived_estimate" label="Planning-only revision framing" />
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <article className="panel revision-comparison-card">
+      <div className="panel-header">
+        <div>
+          <h3>{scenario.name}</h3>
+          <p>
+            Compare saved planning-state drift between {comparison.previous.revision_label} and {comparison.latest.revision_label}.
+          </p>
+        </div>
+        <div className="badge-row">
+          <Badge tone="warning">{comparison.latest.revision_label}</Badge>
+          <Badge tone="info">{comparison.previous.revision_label}</Badge>
+          <TrustBadge state="derived_estimate" label="Stored revision comparison" />
+        </div>
+      </div>
+      <div className="revision-pair-grid">
+        <div className="revision-pair-card">
+          <span>Previous saved state</span>
+          <strong>{comparison.previous.revision_label}</strong>
+          <small>{formatRevisionDate(comparison.previous.created_at)}</small>
+        </div>
+        <div className="revision-pair-card">
+          <span>Latest saved state</span>
+          <strong>{comparison.latest.revision_label}</strong>
+          <small>{formatRevisionDate(comparison.latest.created_at)}</small>
+        </div>
+      </div>
+      <div className="revision-drift-grid">
+        {comparison.driftItems.map((item) => {
+          const changed = item.previous !== item.current;
+          const driftValue =
+            item.type === "confidence"
+              ? formatConfidenceChange(item.previous, item.current)
+              : changed
+                ? `${item.previous} -> ${item.current}`
+                : `${item.current}`;
+
+          return (
+            <article key={item.label} className="revision-drift-card">
+              <div className="revision-drift-header">
+                <strong>{item.label}</strong>
+                <Badge tone={changed ? "warning" : "success"}>
+                  {changed ? "drift detected" : "stable"}
+                </Badge>
+              </div>
+              <p>{driftValue}</p>
+            </article>
+          );
+        })}
+      </div>
+      <details className="solution-list">
+        <summary>View stored revision summaries</summary>
+        <ul>
+          <li>{comparison.previous.revision_label}: {comparison.previous.planning_summary}</li>
+          <li>{comparison.latest.revision_label}: {comparison.latest.planning_summary}</li>
+        </ul>
+      </details>
+      <p className="callout-copy">{comparison.scopeNote}</p>
+    </article>
+  );
+}
+
 function ScenarioEditor({ homeId, designs, scenario, onSaved, isNew = false }) {
   const defaultDesignId = designs[0]?.id || "";
   const [formState, setFormState] = useState(buildScenarioState(homeId, defaultDesignId, scenario));
@@ -212,6 +384,19 @@ export function ScenarioComparisonPage() {
                 </article>
               ))}
             </div>
+          </div>
+        </PageSection>
+      ) : null}
+
+      {!homeQuery.loading && !scenariosQuery.loading && !designsQuery.loading && !comparisonQuery.loading && comparisonScenarios.length ? (
+        <PageSection
+          title="Historical Revision Comparison"
+          description="Saved revision drift stays separate from the live scenario editor so historical comparison remains inspectable without overwhelming the primary workflow."
+        >
+          <div className="page-section">
+            {comparisonScenarios.map((scenario) => (
+              <RevisionComparisonCard key={`revision-compare-${scenario.id}`} scenario={scenario} />
+            ))}
           </div>
         </PageSection>
       ) : null}

@@ -50,6 +50,7 @@
 - The Design Advisor UI now also surfaces snapshot identity, generated state variants, linked scenario metadata, and version framing so the workspace reads as an iterative planning state instead of a one-off recommendation page
 - Scenario persistence now also includes additive immutable scenario revisions so saved planning states can accumulate revision lineage, stable revision identity, and compact advisor-linked planning-state framing over time
 - The Design Advisor and Scenario Comparison UIs now also surface latest revision identity and revision counts so live workspace state, saved scenario state, and historical revision state remain visibly distinct
+- The Scenario Comparison UI now also surfaces a historical revision-comparison workspace that compares saved revision drift for architecture framing, recommended pathway, design-goal/status posture, and pathway-confidence changes using stored revision snapshots
 - Seeded advisor panel/service outputs now have narrow backend regression coverage for the current demo designs
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
@@ -105,4 +106,5 @@
 - The new pathway-comparison surface improves tradeoff readability, but it remains interpretive UI scaffolding over the current profile catalog rather than a dedicated backend scenario-diff model.
 - The new planning-state snapshot layer is identity framing only; it does not yet persist historical advisor payload revisions or scenario-specific recommendation snapshots.
 - The new scenario-revision layer persists compact planning-state framing and revision lineage, but it does not yet store full historical advisor payloads or replayable revision-specific reasoning graphs.
+- The new historical revision-comparison workspace is useful for drift inspection, but it currently compares the latest saved revision against the previous one per scenario rather than supporting arbitrary cross-revision matrices.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

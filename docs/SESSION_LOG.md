@@ -92,3 +92,6 @@
 - Added additive immutable `scenario_revisions` persistence so saved scenarios now accumulate revision lineage, revision timestamps, latest revision identity, and compact advisor-linked planning-state framing.
 - Surfaced revision-aware scenario metadata in the Design Advisor and Scenario Comparison UIs so live workspace state, saved scenario state, and historical revision identity remain visibly distinct without a broad version-control workflow.
 - Verified the persistent scenario/revision foundation with `python3 -m unittest discover -s tests -p 'test_scenario_revisions.py'`, `python3 -m unittest discover -s tests -p 'test_resilience_recommendation.py'`, `python3 -m compileall app`, `npm run build` in `apps/web`, and `git diff --check`.
+- Added a historical revision-comparison workspace to the Scenario Comparison page so saved revision drift can be inspected without flattening the page into a generic rankings dashboard.
+- Surfaced drift across linked design, design goal/status, recommended pathway, current-state architecture framing, and proposed-pathway confidence using stored immutable revision snapshots.
+- Verified the historical revision comparison workspace with `npm run build` in `apps/web` and `git diff --check`.

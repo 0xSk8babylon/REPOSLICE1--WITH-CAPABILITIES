@@ -490,7 +490,9 @@ a {
 .pathway-compare-grid,
 .pathway-chip-row,
 .snapshot-variant-grid,
-.scenario-link-grid {
+.scenario-link-grid,
+.revision-pair-grid,
+.revision-drift-grid {
   display: grid;
   gap: 16px;
 }
@@ -500,7 +502,9 @@ a {
 .comparison-context-card,
 .comparison-key-card,
 .snapshot-variant-card,
-.scenario-link-card {
+.scenario-link-card,
+.revision-pair-card,
+.revision-drift-card {
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(255, 250, 242, 0.6);
@@ -529,6 +533,16 @@ a {
   margin-top: 18px;
 }
 
+.revision-pair-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.revision-drift-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
 .scenario-link-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 12px;
@@ -541,7 +555,9 @@ a {
 .comparison-context-card,
 .comparison-key-card,
 .snapshot-variant-card,
-.scenario-link-card {
+.scenario-link-card,
+.revision-pair-card,
+.revision-drift-card {
   padding: 14px;
   display: grid;
   gap: 8px;
@@ -570,7 +586,8 @@ a {
 }
 
 .snapshot-variant-header,
-.scenario-link-header {
+.scenario-link-header,
+.revision-drift-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -581,8 +598,17 @@ a {
 .snapshot-variant-card p,
 .snapshot-variant-card small,
 .scenario-link-card p,
-.scenario-link-card small {
+.scenario-link-card small,
+.revision-drift-card p,
+.revision-pair-card small {
   margin: 0;
+  color: var(--muted);
+}
+
+.revision-pair-card span {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--muted);
 }
 
@@ -791,6 +817,8 @@ a {
   .comparison-context-grid,
   .snapshot-variant-grid,
   .scenario-link-grid,
+  .revision-pair-grid,
+  .revision-drift-grid,
   .pathway-compare-grid,
   .reasoning-dependency-grid,
   .dependency-chain {

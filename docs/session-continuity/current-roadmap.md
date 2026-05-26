@@ -93,6 +93,7 @@ Status:
 - the Design Advisor UI now also renders a planning-pathway comparison workspace on top of the existing profile outputs so pathway tradeoffs are easier to scan without introducing a new recommendation engine
 - the Design Advisor API and UI now also expose a lightweight planning-state snapshot envelope so deterministic advisor outputs can be framed as evolving planning states before any broader snapshot persistence system exists
 - scenario persistence now also includes a lightweight immutable revision layer so saved planning states can carry revision identity and compact advisor-linked framing before any broader historical comparison system exists
+- the Scenario Comparison UI now also renders a historical revision-comparison workspace so saved revision drift is easier to inspect without introducing a generalized revision engine
 
 ## Explicitly Deferred
 
