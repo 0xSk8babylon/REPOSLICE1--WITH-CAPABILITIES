@@ -76,3 +76,7 @@
 - Updated seeded design data so `design_001` now exercises an existing microinverter solar plus proposed battery retrofit path, while `design_002` remains proposed-only and preserves current-state unknowns.
 - Threaded current-state topology into future inverter/system reasoning and the structured reasoning graph so the advisor distinguishes existing-home architecture from future recommendations.
 - Verified the topology-modeling milestone with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall app`, `npm run build` in `apps/web`, and `git diff --check`.
+- Reorganized the Design Advisor UI into clearer workspace sections for current state, existing-vs-proposed system posture, recommendation path, and reasoning/evidence.
+- Moved deeper inspectability, provenance, and missing-input detail behind progressive disclosure so the default page reads like a planning workspace instead of a flat stack of peer panels.
+- Reduced local page duplication by introducing small helper render components inside the Design Advisor page without changing advisor logic or API contracts.
+- Verified the UI architecture foundation with `npm run build` in `apps/web` and `git diff --check`.

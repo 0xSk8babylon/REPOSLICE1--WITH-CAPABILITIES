@@ -88,6 +88,7 @@ Status:
 - recommendation outputs now also include an additive inverter/system architecture layer so AC-coupled vs hybrid posture, coexistence assumptions, and expansion direction are explicit before final inverter sizing
 - recommendation outputs now also include an additive current-home-energy-architecture layer so existing microinverter/string/hybrid/unknown solar topology is explicit before future architecture guidance is interpreted
 - recommendation outputs now also include an additive structured system reasoning graph so current advisor dependencies are inspectable before deeper site-aware reasoning is added
+- the Design Advisor UI now uses that advisor spine more explicitly through workspace-style grouping and progressive disclosure rather than a flat panel stack
 
 ## Explicitly Deferred
 

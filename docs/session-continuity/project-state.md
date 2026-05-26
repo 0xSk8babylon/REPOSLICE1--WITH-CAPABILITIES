@@ -61,6 +61,7 @@ This document records the actual current state of the `residential-energy-planne
 - Recommendation outputs now also include an additive inverter/system architecture layer that reasons about AC-coupled vs hybrid posture, coexistence assumptions, expansion direction, and planning-only system consistency
 - Recommendation outputs now also include an additive current-home-energy-architecture layer that models existing solar/inverter topology and separates current-state equipment from proposed future architecture
 - Recommendation outputs now also include an additive structured system reasoning graph that makes the deterministic dependency chain between load grouping, backup scope, architecture direction, and recommended battery/solar posture inspectable
+- The Design Advisor UI now organizes those layers into clearer workspace sections with progressive disclosure instead of presenting every inspectability detail at the top level
 - Demo-vs-real separation is now explicit at the record level through `data_origin`, but not yet enforced through tenancy or permissions
 - Editable frontend workflows now exist for:
   - home overview

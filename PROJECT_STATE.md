@@ -38,11 +38,12 @@
 - Recommendation outputs now also include an additive inverter/system architecture layer that explains AC-coupled vs hybrid posture, coexistence assumptions, pathway suitability, expansion direction, and planning-only architecture consistency before final inverter sizing
 - Recommendation outputs now also include an additive structured system reasoning graph that links recorded load grouping, backup scope, panel/service posture, inverter/system architecture, and the recommended battery/solar posture through inspectable planning-only dependencies
 - Recommendation outputs now also include an additive current-home-energy-architecture layer that models existing solar/inverter topology, explicit existing-vs-proposed equipment state, outage-solar cautions, battery retrofit implications, generator coexistence uncertainty, and topology confidence before future architecture recommendations are interpreted
+- The Design Advisor UI now organizes its reasoning spine into clearer workspace sections for current state, existing-vs-proposed posture, recommendation path, and reasoning/evidence with progressive disclosure for inspectability details
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that current-state solar topology, backup-scope posture, panel/service consistency, inverter/system architecture, and structured reasoning dependencies are explicit layers.
+Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that current-state solar topology, backup-scope posture, panel/service consistency, inverter/system architecture, structured reasoning dependencies, and the advisor workspace UI structure are explicit layers.
 
 ## Restore Model
 
