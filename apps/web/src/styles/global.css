@@ -484,6 +484,81 @@ a {
   flex-wrap: wrap;
 }
 
+.comparison-workspace,
+.pathway-grid,
+.comparison-context-grid,
+.pathway-compare-grid,
+.pathway-chip-row {
+  display: grid;
+  gap: 16px;
+}
+
+.comparison-anchor-card,
+.pathway-card,
+.comparison-context-card,
+.comparison-key-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.6);
+}
+
+.comparison-anchor-card,
+.pathway-card {
+  padding: 18px;
+}
+
+.comparison-anchor-card {
+  background:
+    linear-gradient(145deg, rgba(215, 239, 231, 0.55), rgba(255, 250, 242, 0.72));
+}
+
+.pathway-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.comparison-context-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pathway-compare-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.comparison-context-card,
+.comparison-key-card {
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.comparison-context-card span,
+.comparison-key-card span {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.comparison-context-card strong,
+.comparison-key-card strong {
+  font-size: 1rem;
+}
+
+.comparison-context-card small {
+  color: var(--muted);
+}
+
+.pathway-card {
+  display: grid;
+  gap: 16px;
+}
+
+.pathway-chip-row {
+  grid-template-columns: repeat(3, max-content);
+  align-items: center;
+  gap: 10px;
+}
+
 .architecture-map,
 .reasoning-trace {
   display: grid;
@@ -678,7 +753,10 @@ a {
   .form-grid,
   .architecture-map,
   .reasoning-trace,
+  .pathway-grid,
   .relationship-grid,
+  .comparison-context-grid,
+  .pathway-compare-grid,
   .reasoning-dependency-grid,
   .dependency-chain {
     grid-template-columns: 1fr;
@@ -701,6 +779,10 @@ a {
   .load-meta,
   .takeoff-meta {
     justify-items: start;
+  }
+
+  .pathway-chip-row {
+    grid-template-columns: 1fr;
   }
 
   .architecture-flow-arrow {

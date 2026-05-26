@@ -7,16 +7,16 @@
 ## Session Summary
 
 - Session date: 2026-05-25
-- Starting commit: `381a37e`
-- Current head commit before next commit: `381a37e`
+- Starting commit: `e6c17c7`
+- Current head commit before next commit: `e6c17c7`
 - Repo commits created this session:
   - none yet
 
 ## What Changed Last
 
-- Added a compact current-home-energy architecture visualization surface so existing equipment, proposed equipment, missing inputs, and planning assumptions appear in separate relationship cards instead of only long text blocks.
-- Added a compact reasoning dependency-chain surface so users can scan node-to-node planning relationships before opening deeper node, provenance, and missing-input detail.
-- Kept advisor logic and API contracts unchanged while extending the existing workspace UI with small local helper components and CSS-only visualization structure.
+- Extended the Design Advisor into a planning-pathway comparison workspace so multiple deterministic profile postures can be compared against the same current-home architecture context.
+- Added a current-state anchor card plus pathway comparison cards that surface backup posture, panel/service implications, inverter pathway context, future-ready direction, constrained posture, and shared planning tradeoffs without repeating large blocks of UI.
+- Kept advisor logic and API contracts unchanged while deriving the comparison view from existing structured outputs only.
 
 ## Verification Performed
 
@@ -28,17 +28,17 @@
 - Advisor logic stayed unchanged
 - No backend behavior or API contract changes were introduced
 - Planning-only trust framing remains visible near recommendation, topology, architecture, and reasoning outputs
-- The UI still surfaces inspectability and provenance, but now does so through progressive disclosure layered on top of clearer architecture and reasoning visuals
+- The UI still surfaces inspectability and provenance, and the new comparison layer keeps those details behind progressive disclosure instead of flattening them into a dashboard table
 
 ## Remaining Risks
 
 - The Design Advisor still relies on existing generic layout primitives rather than a dedicated architecture-visualization component system
-- The new reasoning and architecture surfaces are more diagrammatic, but they remain card-and-lane visualizations rather than a fully interactive system diagram
-- Scenario comparison still lives outside the recommendation workspace pattern and may need a similar pass later
+- The comparison workspace is still interpretive and depends on the existing profile catalog rather than a richer backend pathway model
+- The new pathway comparison view is card-based rather than a dedicated scenario-diff system, so very large profile sets would need a different layout later
 
 ## Current Resume Point
 
-The next implementation target remains the deeper solar-readiness and roof-capacity-realism slice, now that the advisor reasoning spine also has a clearer workspace-oriented and diagram-like UI surface.
+The next implementation target remains the deeper solar-readiness and roof-capacity-realism slice, now that the advisor reasoning spine also has a clearer workspace-oriented, diagram-like, and pathway-comparison UI surface.
 
 ## Copy/Paste Restore Prompt
 
@@ -56,7 +56,7 @@ Load skills:
 Current completed state:
 - current-state solar/inverter topology is explicit
 - panel/service, inverter/system, and reasoning graph are explicit
-- Design Advisor UI now groups those outputs into a workspace flow with progressive disclosure and compact architecture/reasoning visualizations
+- Design Advisor UI now groups those outputs into a workspace flow with progressive disclosure, compact architecture/reasoning visualizations, and a pathway-comparison surface
 
 Unfinished work:
 - deeper solar-readiness and roof-capacity realism
@@ -80,4 +80,4 @@ Verification commands:
 
 ## Latest Detailed Handoff
 
-See `docs/handoffs/2026-05-25-reasoning-graph-visualization-architecture-diagram-foundation.md`
+See `docs/handoffs/2026-05-25-scenario-comparison-planning-pathways-foundation.md`

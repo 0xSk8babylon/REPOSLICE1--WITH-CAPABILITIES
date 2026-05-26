@@ -45,6 +45,7 @@
 - The Design Advisor now also surfaces a current home energy architecture panel that distinguishes existing microinverter/string/hybrid conditions from proposed battery, generator, smart-panel, and service-upgrade assumptions
 - The Design Advisor now also groups advisor output into a clearer workspace flow: current state, existing-vs-proposed system posture, recommendation workspace, and reasoning/evidence, with deeper inspectability moved behind progressive disclosure
 - The Design Advisor now also renders the current-home architecture and structured reasoning graph through card-and-lane planning visuals so relationship mapping is easier to scan without hiding the underlying text fallback, provenance, or planning-only trust boundary
+- The Design Advisor now also renders a planning-pathway comparison workspace that anchors current state once and compares recommended, future-ready, staged, and constrained profile postures against the same backup, panel/service, and inverter architecture context
 - Seeded advisor panel/service outputs now have narrow backend regression coverage for the current demo designs
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
@@ -97,4 +98,5 @@
 - The new current-home-energy-architecture layer explains what the home appears to have today, but it still depends on recorded role markers and product signals rather than a verified field inventory.
 - The new structured reasoning graph improves advisor traceability, but it is an additive explanation layer for the recommended profile only rather than a generalized whole-system simulation graph.
 - The advisor page is now easier to scan and more diagrammatic, but it still relies on existing generic layout primitives rather than a dedicated architecture-visualization component system.
+- The new pathway-comparison surface improves tradeoff readability, but it remains interpretive UI scaffolding over the current profile catalog rather than a dedicated backend scenario-diff model.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

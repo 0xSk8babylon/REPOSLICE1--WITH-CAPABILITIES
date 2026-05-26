@@ -63,6 +63,7 @@ This document records the actual current state of the `residential-energy-planne
 - Recommendation outputs now also include an additive structured system reasoning graph that makes the deterministic dependency chain between load grouping, backup scope, architecture direction, and recommended battery/solar posture inspectable
 - The Design Advisor UI now organizes those layers into clearer workspace sections with progressive disclosure instead of presenting every inspectability detail at the top level
 - The Design Advisor UI now also renders compact architecture relationship maps and reasoning dependency-chain visuals from the existing advisor contracts so users can scan current state and planning dependencies more quickly without hiding text fallback or trust limits
+- The Design Advisor UI now also renders a planning-pathway comparison workspace from the existing profile catalog so users can compare deterministic postures against the same current-home architecture context without adding frontend-side recommendation logic
 - Demo-vs-real separation is now explicit at the record level through `data_origin`, but not yet enforced through tenancy or permissions
 - Editable frontend workflows now exist for:
   - home overview
@@ -115,6 +116,7 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - The panel/service layer is architectural scaffolding for future inverter, smart-panel modifier, and generator layers and should not be mistaken for a validated electrical design.
 - The refined backup-scope, current-home-energy-architecture, profile-architecture-fit, panel/service-consistency, inverter/system-architecture, and structured-reasoning-graph layers remain planning-only reasoning, not circuit-study, inverter-sizing, transfer-design, or compliance validation.
 - The newer architecture/reasoning visualizations are presentation scaffolding only; they do not add new modeling semantics or diagram-level source authority beyond the existing advisor payloads.
+- The newer pathway-comparison surface is also presentation scaffolding only; it compares existing advisor outputs and does not introduce a new backend scenario engine or authoritative optimization model.
 - Design completeness is planning completeness only, not engineering completeness.
 - Trust visibility is now a first-class UX layer, even though deep provenance and audit systems are still deferred.
 - Verification status belongs to source documents; trust badges belong to current application presentation and should not be conflated.

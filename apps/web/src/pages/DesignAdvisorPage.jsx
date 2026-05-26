@@ -50,6 +50,29 @@ function getDependencyTone(relationship) {
   return "default";
 }
 
+function getProfileFamily(profileKey) {
+  if (!profileKey) {
+    return { label: "planning pathway", tone: "info" };
+  }
+  if (profileKey.includes("premium")) {
+    return { label: "future ready", tone: "warning" };
+  }
+  if (profileKey.includes("critical")) {
+    return { label: "constrained", tone: "danger" };
+  }
+  if (profileKey.includes("balanced") || profileKey.includes("conservative")) {
+    return { label: "staged", tone: "info" };
+  }
+  return { label: "planning pathway", tone: "info" };
+}
+
+function getPathwayRole(profile) {
+  if (profile?.recommended) {
+    return { label: "recommended pathway", tone: "warning" };
+  }
+  return getProfileFamily(profile?.profile);
+}
+
 function formatStateLabel(value) {
   if (!value) {
     return "not recorded";
@@ -726,6 +749,184 @@ function RecommendedProfilePanel({ profile }) {
   );
 }
 
+function CurrentStateAnchorCard({ recommendation }) {
+  const architecture = recommendation.current_home_energy_architecture;
+  const backup = recommendation.backup_load_selection;
+  const panel = recommendation.panel_service_architecture;
+  const inverter = recommendation.inverter_system_architecture;
+
+  return (
+    <article className="comparison-anchor-card">
+      <div className="panel-header">
+        <div>
+          <h3>Current state anchor</h3>
+          <p className="callout-copy">
+            Use this card as the fixed current-home context before reading alternate planning pathways.
+          </p>
+        </div>
+        <div className="badge-row">
+          <Badge tone="success">current state</Badge>
+          <TrustBadge
+            state={architecture?.inspectability?.trust_state || "derived_estimate"}
+            label="Planning-only current-state model"
+          />
+        </div>
+      </div>
+      <div className="comparison-context-grid">
+        <div className="comparison-context-card">
+          <span>Current topology</span>
+          <strong>{architecture?.inverter_topology || "Not recorded"}</strong>
+          <small>{architecture?.solar_existing_state || "Solar state not recorded"}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Backup posture</span>
+          <strong>{backup?.selected_scope_label || "Not recorded"}</strong>
+          <small>{backup?.outage_posture || "Outage posture not recorded"}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Panel and service</span>
+          <strong>{panel?.recommended_backup_architecture || "Not recorded"}</strong>
+          <small>{panel?.panel_upgrade_likelihood || "Upgrade likelihood not recorded"}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Inverter pathway</span>
+          <strong>{inverter?.recommended_system_architecture || "Not recorded"}</strong>
+          <small>{inverter?.inverter_pathway_posture || "Pathway posture not recorded"}</small>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function PathwayComparisonCard({ profile, recommendation }) {
+  const role = getPathwayRole(profile);
+  const family = getProfileFamily(profile.profile);
+  const backup = recommendation.backup_load_selection;
+  const panel = recommendation.panel_service_architecture;
+  const inverter = recommendation.inverter_system_architecture;
+  const architecture = recommendation.current_home_energy_architecture;
+
+  return (
+    <article key={profile.profile} className="pathway-card">
+      <div className="panel-header">
+        <div>
+          <h3>{profile.label}</h3>
+          <p className="callout-copy">{profile.ui_description}</p>
+        </div>
+        <div className="badge-row">
+          <Badge tone={role.tone}>{role.label}</Badge>
+          <Badge tone={family.tone}>{family.label}</Badge>
+          <Badge tone={getConfidenceTone(profile.inspectability?.confidence_level)}>
+            Confidence: {profile.inspectability?.confidence_level || "unknown"}
+          </Badge>
+        </div>
+      </div>
+      <div className="pathway-chip-row">
+        <Badge tone="info">{profile.profile.replaceAll("_", " ")}</Badge>
+        <Badge>{profile.intent}</Badge>
+        <TrustBadge state={profile.inspectability?.trust_state || "derived_estimate"} label="Interpretive comparison" />
+      </div>
+      <div className="comparison-context-grid">
+        <div className="comparison-context-card">
+          <span>Current-home compatibility</span>
+          <strong>{profile.architecture_fit?.status || "Not recorded"}</strong>
+          <small>{profile.architecture_fit?.summary || architecture?.current_vs_proposed_architecture || "No compatibility summary recorded"}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Backup-scope context</span>
+          <strong>{backup?.selected_scope_label || "Not recorded"}</strong>
+          <small>{profile.architecture_fit?.backup_path_summary || backup?.selection_reason || "Backup tradeoff not recorded"}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Inverter pathway</span>
+          <strong>{inverter?.recommended_system_architecture || "Not recorded"}</strong>
+          <small>{inverter?.inverter_pathway_posture || "No inverter posture recorded"}</small>
+        </div>
+        <div className="comparison-context-card">
+          <span>Panel/service implication</span>
+          <strong>{panel?.panel_upgrade_likelihood || "Not recorded"}</strong>
+          <small>{panel?.main_service_panel_posture || "No panel posture recorded"}</small>
+        </div>
+      </div>
+      <div className="pathway-compare-grid">
+        <div className="comparison-key-card">
+          <span>Battery posture</span>
+          <strong>{profile.battery_sizing_posture.replaceAll("_", " ")}</strong>
+        </div>
+        <div className="comparison-key-card">
+          <span>Solar posture</span>
+          <strong>{profile.solar_sizing_posture.replaceAll("_", " ")}</strong>
+        </div>
+        <div className="comparison-key-card">
+          <span>Growth margin</span>
+          <strong>{profile.future_growth_margin_posture.replaceAll("_", " ")}</strong>
+        </div>
+        <div className="comparison-key-card">
+          <span>Reserve posture</span>
+          <strong>{profile.autonomy_reserve_posture.replaceAll("_", " ")}</strong>
+        </div>
+      </div>
+      <div className="solution-list">
+        <strong>Planning tradeoff snapshot</strong>
+        <ul>
+          <li>Reasoning focus: {profile.fit_reason}</li>
+          <li>Expansion direction: {inverter?.expansion_path_posture || "Not recorded"}</li>
+          <li>Battery retrofit implication: {architecture?.battery_retrofit_implication || "Not recorded"}</li>
+          <li>Generator coexistence note: {architecture?.generator_coexistence_note || inverter?.generator_coexistence_assumption || "Not recorded"}</li>
+        </ul>
+      </div>
+      {(profile.architecture_fit?.tradeoffs || []).length || (profile.architecture_fit?.warnings || []).length ? (
+        <details className="solution-list">
+          <summary>View pathway-specific tradeoffs</summary>
+          <ul>
+            {(profile.architecture_fit?.tradeoffs || []).map((item) => (
+              <li key={item}>Tradeoff: {item}</li>
+            ))}
+            {(profile.architecture_fit?.warnings || []).map((item) => (
+              <li key={item}>Warning: {item}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+      <ConsistencyDetails title="View architecture consistency" consistency={panel?.architecture_consistency || inverter?.architecture_consistency} />
+      <InspectabilityDetails
+        label="View pathway evidence and missing inputs"
+        inspectability={profile.inspectability}
+        trustLabel="Comparison remains a planning interpretation"
+      />
+    </article>
+  );
+}
+
+function PathwayComparisonWorkspace({ recommendation }) {
+  const profiles = recommendation.profiles || [];
+
+  return (
+    <div className="comparison-workspace">
+      <CurrentStateAnchorCard recommendation={recommendation} />
+      <div className="panel-subsection">
+        <div className="panel-header">
+          <div>
+            <h4>Planning pathway comparison</h4>
+            <p className="callout-copy">
+              Compare the same current-home context against multiple deterministic planning postures. This view explains tradeoffs; it does not introduce new recommendation logic.
+            </p>
+          </div>
+          <div className="badge-row">
+            <Badge tone="info">current vs proposed</Badge>
+            <Badge tone="warning">tradeoffs at a glance</Badge>
+          </div>
+        </div>
+        <div className="pathway-grid">
+          {profiles.map((profile) => (
+            <PathwayComparisonCard key={profile.profile} profile={profile} recommendation={recommendation} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ComparisonProfileCard({ profile }) {
   return (
     <article key={profile.profile} className="panel">
@@ -734,21 +935,6 @@ function ComparisonProfileCard({ profile }) {
         <Badge tone="info">{profile.profile.replaceAll("_", " ")}</Badge>
       </div>
       <p>{profile.ui_description}</p>
-      <div className="metric-stack">
-        <MetricRow label="Battery posture" value={profile.battery_sizing_posture.replaceAll("_", " ")} />
-        <MetricRow label="Solar posture" value={profile.solar_sizing_posture.replaceAll("_", " ")} />
-        <MetricRow label="Growth margin" value={profile.future_growth_margin_posture.replaceAll("_", " ")} />
-      </div>
-      {profile.architecture_fit ? (
-        <div className="solution-list">
-          <strong>Architecture-fit snapshot</strong>
-          <ul>
-            <li>Status: {profile.architecture_fit.status}</li>
-            <li>Summary: {profile.architecture_fit.summary}</li>
-            <li>Reason: {profile.architecture_fit.reason}</li>
-          </ul>
-        </div>
-      ) : null}
     </article>
   );
 }
@@ -791,18 +977,19 @@ function RecommendationWorkspace({ recommendation }) {
 
       <WorkspaceSection
         title="Recommendation Workspace"
-        description="The recommended profile stays in the primary path. Alternate profiles remain visible as comparison material, not competing primary calls to action."
+        description="Compare deterministic planning pathways against the same current-home architecture context before diving into the recommended path detail."
       >
+        <PathwayComparisonWorkspace recommendation={recommendation} />
         {recommendedProfile ? <RecommendedProfilePanel profile={recommendedProfile} /> : null}
         {alternateProfiles.length ? (
-          <>
-            <p className="callout-copy">Alternate planning profiles remain available for comparison if priorities shift.</p>
+          <details className="solution-list">
+            <summary>View alternate profile labels</summary>
             <div className="card-grid">
               {alternateProfiles.map((profile) => (
                 <ComparisonProfileCard key={profile.profile} profile={profile} />
               ))}
             </div>
-          </>
+          </details>
         ) : null}
       </WorkspaceSection>
 

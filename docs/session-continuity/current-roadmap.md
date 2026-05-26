@@ -90,6 +90,7 @@ Status:
 - recommendation outputs now also include an additive structured system reasoning graph so current advisor dependencies are inspectable before deeper site-aware reasoning is added
 - the Design Advisor UI now uses that advisor spine more explicitly through workspace-style grouping and progressive disclosure rather than a flat panel stack
 - the Design Advisor UI now also renders compact architecture relationship maps and dependency-chain visuals on top of that advisor spine so current state and deterministic planning relationships are easier to scan without changing contracts
+- the Design Advisor UI now also renders a planning-pathway comparison workspace on top of the existing profile outputs so pathway tradeoffs are easier to scan without introducing a new recommendation engine
 
 ## Explicitly Deferred
 

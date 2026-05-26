@@ -83,3 +83,6 @@
 - Added compact card-and-lane visualizations for current-home architecture and structured reasoning dependencies so the Design Advisor reads more like an explainable energy-planning workspace than a text-only panel stack.
 - Kept the visualization layer frontend-only and deterministic by deriving it from existing advisor contracts without recomputing backend reasoning in the client.
 - Verified the reasoning-graph visualization foundation with `npm run build` in `apps/web` and `git diff --check`.
+- Extended the Design Advisor into a planning-pathway comparison workspace anchored by current state so users can compare recommended, future-ready, staged, and constrained deterministic postures without a generic dashboard table.
+- Kept the new comparison layer frontend-only and interpretive by composing existing profile, backup-scope, panel/service, inverter, and current-architecture outputs rather than adding client-side optimization logic.
+- Verified the planning-pathways foundation with `npm run build` in `apps/web` and `git diff --check`.
