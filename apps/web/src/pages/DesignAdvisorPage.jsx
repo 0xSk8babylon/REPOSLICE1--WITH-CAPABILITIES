@@ -10,6 +10,16 @@ import { api } from "../lib/api";
 import { getAdvisorTrustStates } from "../lib/trust";
 import { useApiQuery } from "../lib/useApiQuery";
 
+function getConfidenceTone(confidenceLevel) {
+  if (confidenceLevel === "high") {
+    return "info";
+  }
+  if (confidenceLevel === "medium") {
+    return "warning";
+  }
+  return "danger";
+}
+
 export function DesignAdvisorPage() {
   const designsQuery = useApiQuery("designs", api.getDesigns);
   const designs = designsQuery.data || [];
@@ -192,9 +202,20 @@ export function DesignAdvisorPage() {
                   <div className="panel">
                     <div className="panel-header">
                       <h3>Panel And Service Posture</h3>
-                      <Badge tone="warning">
-                        {advisorQuery.data.recommendation_profiles.panel_service_architecture.recommended_backup_architecture}
-                      </Badge>
+                      <div className="badge-row">
+                        <Badge tone="warning">
+                          {advisorQuery.data.recommendation_profiles.panel_service_architecture.recommended_backup_architecture}
+                        </Badge>
+                        <TrustBadge state="derived_estimate" label="Planning-only architecture direction" />
+                        <Badge
+                          tone={getConfidenceTone(
+                            advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability?.confidence_level
+                          )}
+                        >
+                          Confidence:{" "}
+                          {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability?.confidence_level || "unknown"}
+                        </Badge>
+                      </div>
                     </div>
                     <div className="metric-stack">
                       <MetricRow
@@ -202,7 +223,7 @@ export function DesignAdvisorPage() {
                         value={advisorQuery.data.recommendation_profiles.panel_service_architecture.main_service_panel_posture}
                       />
                       <MetricRow
-                        label="Recommended backup architecture"
+                        label="Current planning direction"
                         value={advisorQuery.data.recommendation_profiles.panel_service_architecture.recommended_backup_architecture}
                       />
                       <MetricRow
@@ -219,6 +240,44 @@ export function DesignAdvisorPage() {
                     <p className="callout-copy">
                       {advisorQuery.data.recommendation_profiles.panel_service_architecture.generator_integration_readiness_note}
                     </p>
+                    {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability ? (
+                      <div className="solution-list">
+                        <strong>Architecture basis</strong>
+                        <ul>
+                          {(
+                            advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability.input_signals || []
+                          ).map((signal) => (
+                            <li key={signal.key}>
+                              {signal.label}: {signal.value} ({signal.status.replaceAll("_", " ")})
+                            </li>
+                          ))}
+                        </ul>
+                        {(
+                          advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability.estimated_inputs || []
+                        ).length ? (
+                          <>
+                            <strong>Estimated inputs</strong>
+                            <ul>
+                              {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability.estimated_inputs.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                        {(
+                          advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability.incomplete_inputs || []
+                        ).length ? (
+                          <>
+                            <strong>Incomplete inputs</strong>
+                            <ul>
+                              {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability.incomplete_inputs.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                      </div>
+                    ) : null}
                     {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability?.partial_provenance_warning ? (
                       <p className="callout-copy">
                         {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability.partial_provenance_warning}
