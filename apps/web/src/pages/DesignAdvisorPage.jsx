@@ -481,6 +481,89 @@ export function DesignAdvisorPage() {
                     </p>
                   </div>
                 ) : null}
+                {advisorQuery.data.recommendation_profiles.reasoning_graph ? (
+                  <div className="panel">
+                    <div className="panel-header">
+                      <h3>Structured Reasoning Graph</h3>
+                      <div className="badge-row">
+                        <Badge tone="info">
+                          {advisorQuery.data.recommendation_profiles.reasoning_graph.scope_label}
+                        </Badge>
+                        <TrustBadge
+                          state={advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability?.trust_state || "derived_estimate"}
+                          label="Planning-only dependency trace"
+                        />
+                        <Badge
+                          tone={getConfidenceTone(
+                            advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability?.confidence_level
+                          )}
+                        >
+                          Confidence:{" "}
+                          {advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability?.confidence_level || "unknown"}
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="callout-copy">{advisorQuery.data.recommendation_profiles.reasoning_graph.summary}</p>
+                    <div className="solution-list">
+                      <strong>Reasoning nodes</strong>
+                      <ul>
+                        {(advisorQuery.data.recommendation_profiles.reasoning_graph.nodes || []).map((node) => (
+                          <li key={node.node_id}>
+                            {node.label}: {node.status.replaceAll("_", " ")}. {node.summary}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="solution-list">
+                      <strong>Reasoning dependencies</strong>
+                      <ul>
+                        {(advisorQuery.data.recommendation_profiles.reasoning_graph.dependencies || []).map((dependency) => (
+                          <li key={`${dependency.source_node_id}-${dependency.target_node_id}-${dependency.relationship}`}>
+                            {`${dependency.source_node_id} -> ${dependency.target_node_id}: ${dependency.relationship}. ${dependency.summary}`}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability ? (
+                      <div className="solution-list">
+                        <strong>Graph basis</strong>
+                        <ul>
+                          {(advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability.input_signals || []).map((signal) => (
+                            <li key={signal.key}>
+                              {signal.label}: {signal.value} ({signal.status.replaceAll("_", " ")})
+                            </li>
+                          ))}
+                        </ul>
+                        {(advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability.estimated_inputs || []).length ? (
+                          <>
+                            <strong>Estimated inputs</strong>
+                            <ul>
+                              {advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability.estimated_inputs.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                        {(advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability.incomplete_inputs || []).length ? (
+                          <>
+                            <strong>Incomplete inputs</strong>
+                            <ul>
+                              {advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability.incomplete_inputs.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability?.partial_provenance_warning ? (
+                      <p className="callout-copy">
+                        {advisorQuery.data.recommendation_profiles.reasoning_graph.inspectability.partial_provenance_warning}
+                      </p>
+                    ) : null}
+                    <p className="callout-copy">{advisorQuery.data.recommendation_profiles.reasoning_graph.scope_note}</p>
+                  </div>
+                ) : null}
                 <div className="card-grid">
                   {(advisorQuery.data.recommendation_profiles.profiles || []).map((profile) => (
                     <article key={profile.profile} className="panel">

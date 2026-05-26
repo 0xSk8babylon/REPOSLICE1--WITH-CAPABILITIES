@@ -132,3 +132,54 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         self.assertEqual("future-ready service upgrade path", panel_service.recommended_backup_architecture)
         self.assertEqual("aligned", panel_service.architecture_consistency.status)
         self.assertEqual("battery-ready path needs inverter clarification", inverter_architecture.recommended_system_architecture)
+
+    def test_reasoning_graph_exposes_recommended_profile_dependencies_for_design_001(self):
+        result = self._advisor_summary("design_001")
+        recommendation = result["recommendation_profiles"]
+        reasoning_graph = recommendation.reasoning_graph
+
+        self.assertIsNotNone(reasoning_graph)
+        self.assertEqual("Recommended profile: Balanced", reasoning_graph.scope_label)
+        self.assertIn("dependency graph", reasoning_graph.summary)
+        self.assertEqual(6, len(reasoning_graph.nodes))
+        self.assertEqual(8, len(reasoning_graph.dependencies))
+        self.assertIn("recommendation.system_reasoning_graph_v1", reasoning_graph.inspectability.rule_keys)
+
+        node_map = {node.node_id: node for node in reasoning_graph.nodes}
+        self.assertEqual("partial-home outage posture", node_map["backup_scope"].status)
+        self.assertEqual("partial-home backup", node_map["panel_service"].status)
+        self.assertEqual("battery-ready path needs inverter clarification", node_map["inverter_system"].status)
+        self.assertEqual("balanced", node_map["battery_posture"].status)
+        self.assertEqual("resilience_balanced", node_map["solar_posture"].status)
+
+        dependency_map = {
+            (dependency.source_node_id, dependency.target_node_id): dependency for dependency in reasoning_graph.dependencies
+        }
+        self.assertEqual("grounds outage posture", dependency_map[("loads", "backup_scope")].relationship)
+        self.assertIn(
+            "recorded load scope supports",
+            dependency_map[("backup_scope", "panel_service")].summary.lower(),
+        )
+        self.assertIn(
+            "recommendation.system_reasoning_graph_v1",
+            dependency_map[("battery_posture", "solar_posture")].rule_keys,
+        )
+
+    def test_reasoning_graph_tracks_hybrid_path_for_design_002(self):
+        result = self._advisor_summary("design_002")
+        recommendation = result["recommendation_profiles"]
+        reasoning_graph = recommendation.reasoning_graph
+        node_map = {node.node_id: node for node in reasoning_graph.nodes}
+        dependency_map = {
+            (dependency.source_node_id, dependency.target_node_id): dependency for dependency in reasoning_graph.dependencies
+        }
+
+        self.assertEqual("Recommended profile: Premium / Future-Ready", reasoning_graph.scope_label)
+        self.assertEqual("hybrid inverter backbone", node_map["inverter_system"].status)
+        self.assertEqual("future-ready service upgrade path", node_map["panel_service"].status)
+        self.assertEqual("robust", node_map["battery_posture"].status)
+        self.assertEqual("future_weighted", node_map["solar_posture"].status)
+        self.assertIn(
+            "panel/service direction and consistency posture",
+            dependency_map[("panel_service", "inverter_system")].summary.lower(),
+        )

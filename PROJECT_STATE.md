@@ -36,11 +36,12 @@
 - Panel/service guidance now also includes an additive architecture-consistency check so broader backup direction stays bounded by recorded outage posture and design-goal intent
 - Recommendation profiles now also include an additive architecture-fit tradeoff layer that explains how recorded equipment mix, outage posture, and backup-path direction pull each profile narrower or broader without changing sizing formulas
 - Recommendation outputs now also include an additive inverter/system architecture layer that explains AC-coupled vs hybrid posture, coexistence assumptions, pathway suitability, expansion direction, and planning-only architecture consistency before final inverter sizing
+- Recommendation outputs now also include an additive structured system reasoning graph that links recorded load grouping, backup scope, panel/service posture, inverter/system architecture, and the recommended battery/solar posture through inspectable planning-only dependencies
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that backup-scope posture, panel/service consistency, profile-level architecture-fit tradeoffs, and inverter/system architecture reasoning are explicit layers.
+Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that backup-scope posture, panel/service consistency, inverter/system architecture, and structured reasoning dependencies are explicit layers.
 
 ## Restore Model
 
@@ -53,7 +54,7 @@ Deepen the solar-readiness and roof-capacity realism slice behind the current pr
 - Detailed continuity docs still exist and remain valuable, but they are too large to treat as mandatory startup context.
 - Provenance coverage is still partial, so trust messaging must stay explicit.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
-- Existing local databases may need reseeding to surface the new seeded backup-architecture-consistency, profile-architecture-fit, and inverter/system-architecture rule provenance records.
+- Existing local databases may need reseeding to surface the new seeded backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph rule provenance records.
 
 ## Canonical Detailed References
 

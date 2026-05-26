@@ -157,6 +157,36 @@ class SolarSizingEstimate(ORMModel):
     inspectability: Optional[EstimateInspectability] = None
 
 
+class ReasoningGraphNode(ORMModel):
+    node_id: str
+    label: str
+    category: str
+    summary: str
+    status: str
+    confidence_level: ConfidenceLevel
+    trust_state: DataOrigin = DataOrigin.derived_estimate
+    rule_keys: List[str] = Field(default_factory=list)
+
+
+class ReasoningGraphDependency(ORMModel):
+    source_node_id: str
+    target_node_id: str
+    relationship: str
+    summary: str
+    confidence_level: ConfidenceLevel
+    trust_state: DataOrigin = DataOrigin.derived_estimate
+    rule_keys: List[str] = Field(default_factory=list)
+
+
+class StructuredSystemReasoningGraph(ORMModel):
+    scope_label: str
+    summary: str
+    nodes: List[ReasoningGraphNode] = Field(default_factory=list)
+    dependencies: List[ReasoningGraphDependency] = Field(default_factory=list)
+    scope_note: str
+    inspectability: Optional[EstimateInspectability] = None
+
+
 class RecommendationProfileCard(ORMModel):
     profile: RecommendationProfile
     label: str
@@ -186,6 +216,7 @@ class ResilienceRecommendation(ORMModel):
     backup_load_selection: Optional[BackupLoadSelectionSummary] = None
     panel_service_architecture: Optional[PanelServiceArchitectureEstimate] = None
     inverter_system_architecture: Optional[InverterSystemArchitectureEstimate] = None
+    reasoning_graph: Optional[StructuredSystemReasoningGraph] = None
     profiles: List[RecommendationProfileCard] = Field(default_factory=list)
     context_signals: Dict[str, object] = Field(default_factory=dict)
     scope_note: str

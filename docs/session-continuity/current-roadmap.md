@@ -86,6 +86,7 @@ Status:
 - panel/service guidance now also includes an additive architecture-consistency check so broader backup direction does not outrun recorded outage posture or design-goal intent
 - recommendation profiles now also include profile-level architecture-fit tradeoffs so current equipment mix and backup-path direction can shape fit without changing sizing formulas
 - recommendation outputs now also include an additive inverter/system architecture layer so AC-coupled vs hybrid posture, coexistence assumptions, and expansion direction are explicit before final inverter sizing
+- recommendation outputs now also include an additive structured system reasoning graph so current advisor dependencies are inspectable before deeper site-aware reasoning is added
 
 ## Explicitly Deferred
 

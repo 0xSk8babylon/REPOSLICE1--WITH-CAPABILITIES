@@ -68,3 +68,7 @@
 - Surfaced inverter/system architecture confidence, inspectability, and consistency output in the Design Advisor UI.
 - Added seeded rule provenance for `recommendation.inverter_system_architecture_v1` and expanded backend regression coverage for the new inverter/system architecture states.
 - Verified the architecture reasoning layer with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall app`, and `npm run build` in `apps/web`.
+- Added an additive structured system reasoning graph to recommendation outputs so the recommended profile now exposes inspectable dependencies between recorded load grouping, backup scope, panel/service posture, inverter/system architecture, and battery/solar posture.
+- Added seeded rule provenance for `recommendation.system_reasoning_graph_v1` and surfaced the reasoning graph in the Design Advisor UI with planning-only dependency trace framing.
+- Expanded backend regression coverage to lock the seeded reasoning-graph nodes and dependency edges for `design_001` and `design_002`.
+- Verified the reasoning-graph foundation with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall app`, `npm run build` in `apps/web`, and `git diff --check`.

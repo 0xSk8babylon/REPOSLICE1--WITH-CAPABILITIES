@@ -18,14 +18,18 @@ from app.design_advisor.schemas import (
     BackupLoadSelectionSummary,
     BatteryCapacityRange,
     BatterySizingEstimate,
+    EstimateInspectability,
     InverterSystemArchitectureEstimate,
     PanelServiceArchitectureEstimate,
+    ReasoningGraphDependency,
+    ReasoningGraphNode,
     ProfileArchitectureFitAssessment,
     RecommendationProfileCard,
     ResilienceRecommendation,
     RoofGeometryReadiness,
     SolarCapacityRange,
     SolarSizingEstimate,
+    StructuredSystemReasoningGraph,
 )
 from app.services.design_analysis import design_analysis_service
 from app.services.design_completeness import design_completeness_service
@@ -1975,6 +1979,282 @@ class ResilienceRecommendationService:
             return f"Current design goal '{design_goal}' carries stronger resilience expectations, so a more protective posture fits best."
         return "Current design emphasizes future growth or broader continuity, so preserving long-term headroom is the best fit."
 
+    def _reasoning_graph_dependency(
+        self,
+        source_node_id: str,
+        target_node_id: str,
+        relationship: str,
+        summary: str,
+        confidence_level: ConfidenceLevel,
+        rule_keys: List[str],
+    ) -> ReasoningGraphDependency:
+        return ReasoningGraphDependency(
+            source_node_id=source_node_id,
+            target_node_id=target_node_id,
+            relationship=relationship,
+            summary=summary,
+            confidence_level=confidence_level,
+            rule_keys=rule_keys,
+        )
+
+    def _structured_system_reasoning_graph(
+        self,
+        db,
+        profile_card: RecommendationProfileCard,
+        backup_load_selection: BackupLoadSelectionSummary,
+        panel_service_architecture: PanelServiceArchitectureEstimate,
+        inverter_system_architecture: InverterSystemArchitectureEstimate,
+        rule_documents_map=None,
+    ) -> StructuredSystemReasoningGraph:
+        battery_sizing = BatterySizingEstimate.parse_obj(profile_card.battery_sizing_estimate)
+        solar_sizing = SolarSizingEstimate.parse_obj(profile_card.solar_sizing_estimate)
+        profile_inspectability = EstimateInspectability.parse_obj(profile_card.inspectability)
+        graph_rule_keys = [
+            "recommendation.backup_load_selection_v1",
+            "recommendation.panel_service_preliminary_architecture_v1",
+            "recommendation.backup_architecture_consistency_v1",
+            "recommendation.inverter_system_architecture_v1",
+            "recommendation.profile_battery_sizing_v1",
+            "recommendation.profile_solar_sizing_v1",
+            "recommendation.profile_solar_site_adjustment_v1",
+            "recommendation.system_reasoning_graph_v1",
+        ]
+
+        load_scope_summary = (
+            f"{backup_load_selection.selected_load_count} selected loads from {backup_load_selection.selected_scope_label} "
+            f"cover {int((backup_load_selection.coverage_ratio_of_recorded_loads or 0) * 100)}% of recorded loads."
+            if backup_load_selection.selected_load_count
+            else "No selected backup loads currently ground downstream planning layers."
+        )
+        battery_summary = (
+            f"{battery_sizing.recommended_battery_capacity_range_kwh.min_kwh}-{battery_sizing.recommended_battery_capacity_range_kwh.max_kwh} kWh planning range "
+            f"with a {battery_sizing.autonomy_duration_hours_min}-{battery_sizing.autonomy_duration_hours_max} hour autonomy posture."
+            if battery_sizing.recommended_battery_capacity_range_kwh is not None
+            else "Battery planning range remains unavailable until a selected backup scope exists."
+        )
+        solar_summary = (
+            f"{solar_sizing.recommended_solar_capacity_range_kw.min_kw}-{solar_sizing.recommended_solar_capacity_range_kw.max_kw} kW planning range "
+            f"with {solar_sizing.recovery_strength.replace('_', ' ')} recovery posture."
+            if solar_sizing.recommended_solar_capacity_range_kw is not None
+            else "Solar recovery guidance remains unavailable until battery and backup-scope planning are grounded."
+        )
+
+        nodes = [
+            ReasoningGraphNode(
+                node_id="loads",
+                label="Recorded Load Grouping",
+                category="loads",
+                summary=load_scope_summary,
+                status=backup_load_selection.selection_basis,
+                confidence_level=backup_load_selection.confidence_level,
+                rule_keys=["recommendation.backup_load_selection_v1"],
+            ),
+            ReasoningGraphNode(
+                node_id="backup_scope",
+                label="Backup Scope Posture",
+                category="backup_scope",
+                summary=backup_load_selection.outage_posture_reason,
+                status=backup_load_selection.outage_posture,
+                confidence_level=backup_load_selection.confidence_level,
+                rule_keys=["recommendation.backup_load_selection_v1"],
+            ),
+            ReasoningGraphNode(
+                node_id="panel_service",
+                label="Panel / Service Posture",
+                category="panel_service",
+                summary=panel_service_architecture.architecture_consistency.summary,
+                status=panel_service_architecture.recommended_backup_architecture,
+                confidence_level=panel_service_architecture.inspectability.confidence_level,
+                rule_keys=[
+                    "recommendation.panel_service_preliminary_architecture_v1",
+                    "recommendation.backup_architecture_consistency_v1",
+                ],
+            ),
+            ReasoningGraphNode(
+                node_id="inverter_system",
+                label="Inverter / System Architecture",
+                category="inverter_system_architecture",
+                summary=inverter_system_architecture.confidence_reason,
+                status=inverter_system_architecture.recommended_system_architecture,
+                confidence_level=inverter_system_architecture.inspectability.confidence_level,
+                rule_keys=["recommendation.inverter_system_architecture_v1"],
+            ),
+            ReasoningGraphNode(
+                node_id="battery_posture",
+                label="Battery Posture",
+                category="battery_posture",
+                summary=battery_summary,
+                status=profile_card.battery_sizing_posture.value,
+                confidence_level=battery_sizing.inspectability.confidence_level,
+                rule_keys=["recommendation.profile_battery_sizing_v1"],
+            ),
+            ReasoningGraphNode(
+                node_id="solar_posture",
+                label="Solar Posture",
+                category="solar_posture",
+                summary=solar_summary,
+                status=profile_card.solar_sizing_posture.value,
+                confidence_level=solar_sizing.inspectability.confidence_level,
+                rule_keys=[
+                    "recommendation.profile_solar_sizing_v1",
+                    "recommendation.profile_solar_site_adjustment_v1",
+                ],
+            ),
+        ]
+
+        dependencies = [
+            self._reasoning_graph_dependency(
+                "loads",
+                "backup_scope",
+                "grounds outage posture",
+                "Recorded essential/preferred load grouping determines whether the outage posture resolves to critical-load, partial-home, or whole-home candidate planning.",
+                backup_load_selection.confidence_level,
+                ["recommendation.backup_load_selection_v1", "recommendation.system_reasoning_graph_v1"],
+            ),
+            self._reasoning_graph_dependency(
+                "backup_scope",
+                "panel_service",
+                "bounds backup architecture",
+                "Panel and service posture remains bounded by the selected outage posture instead of assuming broader backup architecture than the recorded load scope supports.",
+                panel_service_architecture.inspectability.confidence_level,
+                [
+                    "recommendation.backup_load_selection_v1",
+                    "recommendation.panel_service_preliminary_architecture_v1",
+                    "recommendation.backup_architecture_consistency_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+            self._reasoning_graph_dependency(
+                "backup_scope",
+                "inverter_system",
+                "constrains system direction",
+                "Inverter/system direction inherits the current backup architecture direction and outage posture instead of inventing a broader whole-home pathway.",
+                inverter_system_architecture.inspectability.confidence_level,
+                [
+                    "recommendation.backup_load_selection_v1",
+                    "recommendation.panel_service_preliminary_architecture_v1",
+                    "recommendation.inverter_system_architecture_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+            self._reasoning_graph_dependency(
+                "panel_service",
+                "inverter_system",
+                "anchors pathway realism",
+                "Panel/service direction and consistency posture shape which inverter pathway remains coherent at planning time.",
+                inverter_system_architecture.inspectability.confidence_level,
+                [
+                    "recommendation.panel_service_preliminary_architecture_v1",
+                    "recommendation.backup_architecture_consistency_v1",
+                    "recommendation.inverter_system_architecture_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+            self._reasoning_graph_dependency(
+                "backup_scope",
+                "battery_posture",
+                "drives storage sizing basis",
+                "Battery planning range is derived from the selected backup-load scope and does not widen beyond that recorded outage posture.",
+                battery_sizing.inspectability.confidence_level,
+                [
+                    "recommendation.backup_load_selection_v1",
+                    "recommendation.profile_battery_sizing_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+            self._reasoning_graph_dependency(
+                "inverter_system",
+                "battery_posture",
+                "qualifies coexistence posture",
+                "Battery posture keeps the same sizing method, but the current inverter/system path explains how grounded storage coexistence appears.",
+                battery_sizing.inspectability.confidence_level,
+                [
+                    "recommendation.inverter_system_architecture_v1",
+                    "recommendation.profile_battery_sizing_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+            self._reasoning_graph_dependency(
+                "battery_posture",
+                "solar_posture",
+                "sets recovery burden",
+                "Solar recovery guidance is derived from the current battery planning range and recovery posture rather than being sized independently.",
+                solar_sizing.inspectability.confidence_level,
+                [
+                    "recommendation.profile_battery_sizing_v1",
+                    "recommendation.profile_solar_sizing_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+            self._reasoning_graph_dependency(
+                "backup_scope",
+                "solar_posture",
+                "preserves outage-scope discipline",
+                "Solar planning inherits the same explicit backup scope used by battery planning so broader resilience claims are not silently implied.",
+                solar_sizing.inspectability.confidence_level,
+                [
+                    "recommendation.backup_load_selection_v1",
+                    "recommendation.profile_solar_sizing_v1",
+                    "recommendation.profile_solar_site_adjustment_v1",
+                    "recommendation.system_reasoning_graph_v1",
+                ],
+            ),
+        ]
+
+        return StructuredSystemReasoningGraph(
+            scope_label=f"Recommended profile: {profile_card.label}",
+            summary="Inspectable planning-only dependency graph connecting recorded load grouping, outage posture, architecture direction, and recommended battery/solar posture.",
+            nodes=nodes,
+            dependencies=dependencies,
+            scope_note="Planning graph only. It traces deterministic recommendation dependencies for the currently recommended profile and does not represent final electrical design, compliance review, or engineering approval.",
+            inspectability=provenance_service.build_estimate_inspectability(
+                db,
+                basis="This reasoning graph is assembled from the existing deterministic backup-scope, panel/service, inverter/system, battery, and solar outputs for the currently recommended profile.",
+                confidence_level=profile_inspectability.confidence_level,
+                rule_keys=graph_rule_keys,
+                input_signals=[
+                    {
+                        "key": "recommended_profile",
+                        "label": "Recommended profile",
+                        "value": profile_card.profile.value.replace("_", " "),
+                        "status": "rule_based",
+                        "note": "The graph is anchored to the currently recommended profile so battery and solar posture remain concrete rather than generalized across every profile.",
+                    },
+                    {
+                        "key": "backup_scope_posture",
+                        "label": "Backup scope posture",
+                        "value": backup_load_selection.outage_posture,
+                        "status": "rule_based",
+                        "note": "This is the root planning posture that downstream architecture and sizing layers consume.",
+                    },
+                    {
+                        "key": "panel_service_direction",
+                        "label": "Panel/service direction",
+                        "value": panel_service_architecture.recommended_backup_architecture,
+                        "status": "rule_based",
+                        "note": "Panel/service direction is shown as a dependent planning layer, not a final service design.",
+                    },
+                    {
+                        "key": "system_direction",
+                        "label": "Inverter/system direction",
+                        "value": inverter_system_architecture.recommended_system_architecture,
+                        "status": "rule_based",
+                        "note": "Inverter/system direction remains planning-only and inherits prior architecture constraints.",
+                    },
+                ],
+                estimated_inputs=[
+                    "The reasoning graph is interpretive and assembled from deterministic advisor outputs; it does not introduce new sizing formulas."
+                ],
+                incomplete_inputs=[
+                    "The graph only traces the currently recommended profile, so alternative profile dependency graphs are not expanded yet."
+                ],
+                notes=[
+                    "Dependency summaries are additive traceability aids and should not be treated as standalone engineering determinations."
+                ],
+                rule_documents_map=rule_documents_map,
+            ),
+        )
+
     def recommend(self, db, design_id: str) -> ResilienceRecommendation:
         analysis = design_analysis_service.build(db, design_id)
         completeness = design_completeness_service.evaluate(db, design_id)
@@ -2017,6 +2297,7 @@ class ResilienceRecommendationService:
                 "recommendation.profile_solar_sizing_v1",
                 "recommendation.profile_solar_site_adjustment_v1",
                 "recommendation.roof_geometry_readiness_v1",
+                "recommendation.system_reasoning_graph_v1",
             ],
         )
         backup_load_selection = self._backup_load_selection_summary(
@@ -2123,6 +2404,19 @@ class ResilienceRecommendationService:
             "main_panel_known": analysis["main_panel"] is not None,
             "completeness_score": completeness["completeness_score"],
         }
+        recommended_profile_card = next((item for item in profiles if item.recommended), None)
+        reasoning_graph = (
+            self._structured_system_reasoning_graph(
+                db,
+                recommended_profile_card,
+                backup_load_selection,
+                panel_service_architecture,
+                inverter_system_architecture,
+                recommendation_rule_documents,
+            )
+            if recommended_profile_card is not None
+            else None
+        )
         provenance = provenance_service.build_recommendation_provenance(
             db,
             rule_keys=[
@@ -2131,6 +2425,7 @@ class ResilienceRecommendationService:
                 "recommendation.backup_architecture_consistency_v1",
                 "recommendation.inverter_system_architecture_v1",
                 "recommendation.profile_architecture_fit_v1",
+                "recommendation.system_reasoning_graph_v1",
             ],
             notes=[
                 "Recommendation is derived from current design goal, load grouping, product assignments, panel context, and pathway planning.",
@@ -2140,18 +2435,20 @@ class ResilienceRecommendationService:
                 "Profile-fit explanations now also describe how the current equipment mix and backup-path direction pull each planning posture narrower or broader.",
                 "Battery sizing ranges are planning estimates derived from profile posture and current backup-load modeling, not engineering sizing outputs.",
                 "Solar sizing ranges are planning estimates derived from recovery posture, low-solar assumptions, and coarse site-aware caution signals, not engineering production studies.",
+                "The structured reasoning graph makes those deterministic dependencies inspectable without changing the underlying selection or sizing rules.",
             ],
             rule_documents_map=recommendation_rule_documents,
         )
 
         return ResilienceRecommendation(
             design_id=design_id,
-            recommended_profile=profile,
-            confidence_level=confidence,
-            backup_load_selection=backup_load_selection,
-            panel_service_architecture=panel_service_architecture,
-            inverter_system_architecture=inverter_system_architecture,
-            profiles=profiles,
+                recommended_profile=profile,
+                confidence_level=confidence,
+                backup_load_selection=backup_load_selection,
+                panel_service_architecture=panel_service_architecture,
+                inverter_system_architecture=inverter_system_architecture,
+                reasoning_graph=reasoning_graph,
+                profiles=profiles,
             context_signals=context_signals,
             scope_note="Recommendation profiles express planning philosophies, tradeoffs, and resilience posture. They do not expose engineering formulas or imply permit-grade sizing certainty.",
             basis="Deterministic recommendation model based on design goal, backup load grouping, assigned architecture, panel headroom, and pathway context.",

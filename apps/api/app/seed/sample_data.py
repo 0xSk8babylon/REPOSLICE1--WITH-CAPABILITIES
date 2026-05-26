@@ -386,6 +386,16 @@ SAMPLE_RULE_PROVENANCE = [
         "notes": "Planning guidance only. Does not confirm final inverter sizing, interconnection, transfer topology, or code compliance.",
     },
     {
+        "id": "rule_prov_recommendation_system_reasoning_graph",
+        "rule_key": "recommendation.system_reasoning_graph_v1",
+        "rule_name": "Structured System Reasoning Graph",
+        "source_type": "internal_rule",
+        "source_document_id": "source_doc_internal_rulebook",
+        "trust_state": "derived_estimate",
+        "description": "Assembles an inspectable dependency graph that links recorded load grouping, outage posture, architecture direction, and the recommended battery and solar planning postures without changing the underlying deterministic rules.",
+        "notes": "Planning guidance only. Provides traceability between advisor layers, not engineering approval or a generalized system model.",
+    },
+    {
         "id": "rule_prov_advisor_ecosystems",
         "rule_key": "advisor.mixed_ecosystems",
         "rule_name": "Mixed Ecosystem Planning",
