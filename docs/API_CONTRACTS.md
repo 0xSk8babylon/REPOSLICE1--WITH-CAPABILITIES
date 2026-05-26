@@ -53,6 +53,7 @@
   - `recommendation_profiles.profiles[*]` now include additive planning-only battery sizing estimate ranges
   - `recommendation_profiles.profiles[*]` now include additive planning-only solar sizing and recovery estimate ranges
   - `recommendation_profiles.profiles[*]` now include additive `architecture_fit` tradeoff summaries, warnings, and status tied to recorded equipment mix and backup-path posture
+  - `recommendation_profiles.inverter_system_architecture` now includes additive AC-coupled vs hybrid posture, pathway suitability, coexistence assumptions, planning-only consistency output, confidence framing, and inspectability metadata
   - `recommendation_profiles.profiles[*]`, `battery_sizing_estimate`, and `solar_sizing_estimate` now include additive inspectability metadata for basis signals, estimated inputs, incomplete inputs, and planning-only warnings
   - `recommendation_profiles.backup_load_selection` now includes additive selected-scope reasoning, recorded-load coverage, outage posture, confidence posture, planning-gap warning, and inspectability metadata for deterministic backup/load selection
   - `solar_sizing_estimate` now also includes additive site-aware planning fields such as the base solar range, site capacity posture, shading caution, seasonal production caution, and install realism caution

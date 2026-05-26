@@ -18,7 +18,9 @@ from app.design_advisor.schemas import (
     BackupLoadSelectionSummary,
     BatteryCapacityRange,
     BatterySizingEstimate,
+    InverterSystemArchitectureEstimate,
     PanelServiceArchitectureEstimate,
+    ProfileArchitectureFitAssessment,
     RecommendationProfileCard,
     ResilienceRecommendation,
     RoofGeometryReadiness,
@@ -1082,6 +1084,450 @@ class ResilienceRecommendationService:
             incomplete_inputs.append(load_summary["planning_gap_warning"])
         return signals, estimated_inputs, incomplete_inputs
 
+    def _profile_architecture_fit(
+        self,
+        analysis,
+        profile: RecommendationProfile,
+        panel_service_architecture: PanelServiceArchitectureEstimate,
+        inverter_system_architecture: InverterSystemArchitectureEstimate,
+    ) -> ProfileArchitectureFitAssessment:
+        load_summary = self._backup_scope_selection(analysis, profile)
+        product_types = analysis["product_types"]
+        architecture_type = analysis["design"].architecture_type or "not_recorded"
+        consistency_status = (
+            panel_service_architecture.architecture_consistency.status
+            if panel_service_architecture.architecture_consistency is not None
+            else "unknown"
+        )
+        recommended_backup_architecture = panel_service_architecture.recommended_backup_architecture
+        recommended_system_architecture = inverter_system_architecture.recommended_system_architecture
+
+        has_battery = "battery" in product_types
+        has_hybrid = "hybrid_inverter" in product_types
+        has_generator = "generator" in product_types
+        has_gateway = "gateway" in product_types
+        has_smart_panel = "smart_panel" in product_types
+
+        if has_hybrid and has_generator:
+            equipment_mix_summary = "Hybrid inverter and generator signals already push the design toward a broader, staged backup path."
+        elif has_hybrid:
+            equipment_mix_summary = "Hybrid inverter signals point toward a more integrated backup path than a simple starter architecture."
+        elif has_smart_panel or has_gateway:
+            equipment_mix_summary = "Control-path equipment signals leave room for selective-load backup without forcing a whole-home claim."
+        elif has_battery:
+            equipment_mix_summary = "Battery equipment is already recorded, but control-path hardware remains intentionally open."
+        else:
+            equipment_mix_summary = "No explicit storage or control-path hardware is recorded yet, so profile fit stays more directional."
+
+        backup_path_summary = (
+            f"Recorded outage posture is '{load_summary['outage_posture']}', panel/service direction resolves to '{recommended_backup_architecture}', and inverter/system posture resolves to '{recommended_system_architecture}'."
+        )
+
+        tradeoffs: List[str] = []
+        warnings: List[str] = []
+
+        if profile == RecommendationProfile.critical_efficient:
+            if load_summary["supports_whole_home_backup"] or recommended_backup_architecture == "whole-home backup":
+                status = "stretched"
+                summary = "Critical / Efficient is narrower than the recorded backup path."
+                reason = "Whole-home-oriented outage posture or architecture direction exceeds a disciplined critical-load philosophy."
+            elif load_summary["supports_partial_home_backup"] or has_generator or has_hybrid:
+                status = "conditional"
+                summary = "Critical / Efficient can still fit, but broader backup signals are already present."
+                reason = "The design still supports a lean phase-one posture, yet the recorded backup path leaves room for a broader architecture than this profile prefers."
+            else:
+                status = "aligned"
+                summary = "Critical / Efficient matches the current narrow backup path."
+                reason = "Recorded loads and architecture signals still behave like a phase-one critical-load plan."
+            tradeoffs.append("Lower phase-one scope reduces upfront commitment but can slow expansion into broader backup coverage later.")
+            if load_summary["supports_partial_home_backup"]:
+                warnings.append("Preferred-load grouping already extends beyond essentials, so this profile would intentionally understate the broader recorded outage posture.")
+        elif profile == RecommendationProfile.balanced:
+            if recommended_backup_architecture in {"partial-home backup", "smart-panel/load-control assisted"} and consistency_status == "aligned":
+                status = "aligned"
+                summary = "Balanced matches the current partial-home planning posture."
+                reason = "Recorded outage posture and panel/service direction both support a practical middle path without forcing premium future-ready scope."
+            elif load_summary["supports_whole_home_backup"] or has_generator or has_hybrid:
+                status = "conditional"
+                summary = "Balanced remains viable, but the architecture already contains broader continuity signals."
+                reason = "The design can still be planned as a middle path, though generator, hybrid, or near-whole-home signals pull the fit upward."
+            else:
+                status = "conditional"
+                summary = "Balanced remains viable, but the current scope is still narrow."
+                reason = "The design is still close to critical-load planning, so this profile assumes some broader backup growth that is not fully recorded yet."
+            tradeoffs.append("Balanced preserves meaningful outage coverage without committing as early to premium future-ready infrastructure.")
+            if consistency_status != "aligned":
+                warnings.append("Architecture consistency is not fully aligned, so balanced fit should be read as planning guidance rather than settled architecture direction.")
+        elif profile == RecommendationProfile.conservative:
+            if (
+                load_summary["supports_partial_home_backup"]
+                and recommended_backup_architecture in {"partial-home backup", "whole-home backup", "future-ready service upgrade path"}
+            ):
+                status = "aligned"
+                summary = "Conservative matches the stronger outage-protection posture."
+                reason = "Recorded backup scope already reaches beyond essentials, and the current architecture direction keeps more resilience headroom available."
+            elif load_summary["selected_load_count"]:
+                status = "conditional"
+                summary = "Conservative can fit, but the current backup path is not fully broadened."
+                reason = "The design shows some resilience ambition, yet the selected outage posture or architecture direction still stops short of a clearly broader backup path."
+            else:
+                status = "stretched"
+                summary = "Conservative is weakly grounded until backup scope is recorded."
+                reason = "Without explicit load grouping, the stronger outage-protection stance becomes harder to justify from structured evidence."
+            tradeoffs.append("Conservative adds resilience headroom, but that caution can overshoot a lean first-phase design.")
+            if not has_battery:
+                warnings.append("No battery equipment is recorded yet, so the conservative posture leans on planning intent more than equipment evidence.")
+        else:
+            if (
+                analysis["design"].design_goal in {"expansion_ready", "workshop_ready", "whole_home_backup", "off_grid_capable"}
+                or has_hybrid
+                or has_generator
+                or len(analysis["linked_pathways"]) > 1
+                or recommended_backup_architecture == "future-ready service upgrade path"
+            ):
+                status = "aligned"
+                summary = "Premium / Future-Ready matches the broader architecture and expansion posture."
+                reason = "Current equipment mix or design intent already preserves future flexibility beyond a simple starter backup path."
+            elif load_summary["supports_partial_home_backup"]:
+                status = "conditional"
+                summary = "Premium / Future-Ready remains plausible, but the recorded path is still only partial-home."
+                reason = "The design carries some broader backup ambition, yet the current outage posture and architecture direction are not fully future-ready on their own."
+            else:
+                status = "stretched"
+                summary = "Premium / Future-Ready is broader than the current design evidence."
+                reason = "The recorded outage posture and equipment mix are still closer to an early-phase resilience plan than a future-ready architecture."
+            tradeoffs.append("Future-ready posture preserves headroom and retrofit flexibility but can raise phase-one complexity before the broader scope is fully grounded.")
+            if consistency_status == "conditional":
+                warnings.append("The design goal is broader than the recorded backup scope, so future-ready fit should not be treated as evidence of whole-home readiness.")
+
+        if architecture_type == "hybrid" and profile in {
+            RecommendationProfile.critical_efficient,
+            RecommendationProfile.balanced,
+        }:
+            tradeoffs.append("The recorded hybrid architecture keeps broader integration options open, which can be more infrastructure than a narrower profile strictly needs.")
+        elif architecture_type == "ac_coupled" and profile in {
+            RecommendationProfile.conservative,
+            RecommendationProfile.premium_future_ready,
+        }:
+            tradeoffs.append("The recorded AC-coupled architecture keeps phase one simpler, but it may preserve less long-term flexibility than this profile prefers.")
+
+        return ProfileArchitectureFitAssessment(
+            status=status,
+            equipment_mix_summary=equipment_mix_summary,
+            backup_path_summary=backup_path_summary,
+            summary=summary,
+            reason=reason,
+            tradeoffs=tradeoffs,
+            warnings=warnings,
+        )
+
+    def _system_architecture_consistency_check(
+        self,
+        analysis,
+        recommended_system_architecture: str,
+        panel_service_architecture: PanelServiceArchitectureEstimate,
+    ) -> ArchitectureConsistencyCheck:
+        product_types = analysis["product_types"]
+        architecture_type = analysis["design"].architecture_type or "not_recorded"
+        backup_direction = panel_service_architecture.recommended_backup_architecture
+        warnings: List[str] = []
+
+        has_hybrid = "hybrid_inverter" in product_types
+        has_ac_inverter = bool(product_types.intersection({"microinverter", "string_inverter"}))
+        has_generator = "generator" in product_types
+        has_transfer_path = bool(product_types.intersection({"gateway", "transfer_switch", "disconnect"}))
+        has_battery = "battery" in product_types
+
+        if "hybrid inverter backbone" in recommended_system_architecture and architecture_type == "ac_coupled" and not has_hybrid:
+            warnings.append(
+                "Hybrid-centered system direction is still partially inferred because the recorded architecture type remains AC-coupled and no hybrid inverter is assigned."
+            )
+            status = "conditional"
+            summary = "System architecture direction is broader than the recorded architecture type."
+            reason = "Current backup and expansion signals pull toward a hybrid path, but the structured architecture record does not fully support that shift yet."
+        elif "ac-coupled" in recommended_system_architecture and has_hybrid:
+            warnings.append(
+                "AC-coupled system direction is narrow compared with the assigned hybrid inverter signal."
+            )
+            status = "conditional"
+            summary = "System architecture direction is narrower than the recorded equipment path."
+            reason = "The assigned equipment already supports a more integrated hybrid path than the current system-direction label suggests."
+        elif has_generator and "generator" in recommended_system_architecture and not has_transfer_path:
+            warnings.append(
+                "Generator coexistence remains weakly grounded because no gateway, transfer switch, or disconnect path is recorded."
+            )
+            status = "conditional"
+            summary = "System architecture direction is only partially grounded."
+            reason = "Generator signals exist, but the control or transfer path needed to describe coexistence is still incomplete."
+        elif has_battery and not (has_hybrid or has_ac_inverter) and "needs inverter clarification" in recommended_system_architecture:
+            status = "conditional"
+            summary = "System architecture direction correctly reflects an unresolved inverter path."
+            reason = "Battery signals exist without explicit inverter hardware, so the planning direction stays intentionally provisional."
+        elif architecture_type == "hybrid" and backup_direction == "critical-loads subpanel" and not has_hybrid:
+            warnings.append(
+                "The recorded hybrid architecture type is stronger than the currently assigned hardware and backup direction."
+            )
+            status = "conditional"
+            summary = "System architecture direction is only partially aligned with the recorded architecture type."
+            reason = "The design record points toward a hybrid path, but hardware and backup-path signals still behave like an early-phase architecture."
+        else:
+            status = "aligned"
+            summary = "System architecture direction is consistent with the recorded architecture and equipment signals."
+            reason = "Recorded architecture type, inverter/control equipment, and current backup direction point to the same planning posture."
+
+        return ArchitectureConsistencyCheck(
+            status=status,
+            summary=summary,
+            reason=reason,
+            warnings=warnings,
+        )
+
+    def _inverter_system_architecture_estimate(
+        self,
+        db,
+        analysis,
+        profile: RecommendationProfile,
+        confidence: ConfidenceLevel,
+        panel_service_architecture: PanelServiceArchitectureEstimate,
+        rule_documents_map=None,
+    ) -> InverterSystemArchitectureEstimate:
+        product_types = analysis["product_types"]
+        design = analysis["design"]
+        load_summary = self._backup_load_model_summary(analysis, profile)
+        architecture_type = (design.architecture_type or "not recorded").replace("_", " ")
+
+        has_battery = "battery" in product_types
+        has_generator = "generator" in product_types
+        has_hybrid = "hybrid_inverter" in product_types
+        has_ac_inverter = bool(product_types.intersection({"microinverter", "string_inverter"}))
+        has_gateway = "gateway" in product_types
+        has_transfer_path = bool(product_types.intersection({"gateway", "transfer_switch", "disconnect"}))
+        has_solar_generation = bool(product_types.intersection({"solar_panel", "microinverter", "string_inverter", "hybrid_inverter"}))
+        multi_building = bool(analysis["workshop_buildings"] or len(analysis["linked_pathways"]) > 1)
+        backup_direction = panel_service_architecture.recommended_backup_architecture
+
+        if has_hybrid and has_generator and has_transfer_path:
+            inverter_pathway_posture = "hybrid-plus-generator path is explicitly signaled"
+            recommended_system_architecture = "hybrid inverter backbone with generator coexistence"
+        elif has_hybrid:
+            inverter_pathway_posture = "hybrid inverter path is explicitly signaled"
+            recommended_system_architecture = "hybrid inverter backbone"
+        elif has_ac_inverter and has_battery:
+            inverter_pathway_posture = "ac-coupled solar-plus-storage path is partially signaled"
+            recommended_system_architecture = "ac-coupled solar plus storage path"
+        elif has_ac_inverter:
+            inverter_pathway_posture = "ac-coupled solar path is explicitly signaled"
+            recommended_system_architecture = "ac-coupled solar-first path"
+        elif has_battery and has_transfer_path:
+            inverter_pathway_posture = "battery-first backup path is signaled, but inverter posture remains partially inferred"
+            recommended_system_architecture = "battery-ready path with control hardware"
+        elif has_battery:
+            inverter_pathway_posture = "battery-first backup path is signaled, but inverter posture is still open"
+            recommended_system_architecture = "battery-ready path needs inverter clarification"
+        elif has_generator:
+            inverter_pathway_posture = "generator coexistence is signaled, but inverter/control posture is incomplete"
+            recommended_system_architecture = "generator-augmented path needs inverter clarification"
+        else:
+            inverter_pathway_posture = "no explicit inverter or backup-conversion path is recorded yet"
+            recommended_system_architecture = "system architecture path remains open"
+
+        if has_hybrid or design.architecture_type == "hybrid":
+            hybrid_inverter_pathway_suitability = (
+                "favorable"
+                if load_summary["supports_partial_home_backup"] or multi_building or has_generator
+                else "conditional"
+            )
+        elif has_battery or has_generator or multi_building:
+            hybrid_inverter_pathway_suitability = "conditional"
+        else:
+            hybrid_inverter_pathway_suitability = "limited"
+
+        if design.architecture_type == "ac_coupled" or has_ac_inverter:
+            ac_coupled_pathway_suitability = (
+                "favorable"
+                if backup_direction in {"critical-loads subpanel", "partial-home backup"} and not has_hybrid
+                else "conditional"
+            )
+        elif has_solar_generation and not has_hybrid:
+            ac_coupled_pathway_suitability = "conditional"
+        else:
+            ac_coupled_pathway_suitability = "limited"
+
+        if has_battery and has_hybrid:
+            battery_integration_assumption = (
+                "Battery coexistence is most coherent through a hybrid-centered planning path, though final coupling details remain deferred."
+            )
+        elif has_battery and has_ac_inverter:
+            battery_integration_assumption = (
+                "Battery coexistence likely depends on an AC-coupled control strategy, but the exact inverter/control relationship is still planning-only."
+            )
+        elif has_battery:
+            battery_integration_assumption = (
+                "Battery signals exist, but the conversion/control path is still incomplete, so storage topology remains provisional."
+            )
+        else:
+            battery_integration_assumption = "No battery signal is recorded, so storage coexistence remains outside the current architecture posture."
+
+        if has_solar_generation and has_hybrid:
+            solar_integration_assumption = (
+                "Solar and storage can be planned on a shared hybrid-centered architecture path, but product-specific topology remains deferred."
+            )
+        elif has_solar_generation and has_ac_inverter:
+            solar_integration_assumption = (
+                "Solar appears to fit an AC-coupled path, and storage additions would likely layer on top of that planning posture."
+            )
+        elif has_solar_generation:
+            solar_integration_assumption = (
+                "Solar generation is implied by product signals, but the conversion path is still incomplete."
+            )
+        else:
+            solar_integration_assumption = "No explicit solar-conversion signal is recorded, so solar coexistence remains only directional."
+
+        if has_generator and has_transfer_path and has_hybrid:
+            generator_coexistence_assumption = (
+                "Generator coexistence is planning-compatible with a hybrid-centered path because both generation and transfer/control signals are recorded."
+            )
+        elif has_generator and has_transfer_path:
+            generator_coexistence_assumption = (
+                "Generator coexistence is partially grounded through transfer/control signals, though inverter behavior remains planning-only."
+            )
+        elif has_generator:
+            generator_coexistence_assumption = (
+                "Generator coexistence is weakly grounded because generation is recorded without a matching transfer or gateway path."
+            )
+        else:
+            generator_coexistence_assumption = "No generator signal is recorded, so generator coexistence remains outside the current architecture posture."
+
+        if design.design_goal in {"expansion_ready", "workshop_ready"} or multi_building or backup_direction == "future-ready service upgrade path":
+            expansion_path_posture = "future-ready expansion path is favored"
+        elif load_summary["supports_partial_home_backup"] or has_battery or has_transfer_path:
+            expansion_path_posture = "moderate expansion path is preserved"
+        else:
+            expansion_path_posture = "first-phase architecture remains narrower than future-ready expansion"
+
+        if has_hybrid and design.architecture_type == "hybrid" and panel_service_architecture.architecture_consistency and panel_service_architecture.architecture_consistency.status == "aligned":
+            confidence_level = ConfidenceLevel.high
+            confidence_reason = "System-architecture confidence is high because architecture type, hybrid equipment, and backup direction all point to the same planning path."
+        elif (has_ac_inverter or has_hybrid or has_transfer_path) and design.architecture_type:
+            confidence_level = ConfidenceLevel.medium
+            confidence_reason = "System-architecture confidence is medium because some inverter or control-path signals are recorded, but coexistence assumptions are still planning-only."
+        else:
+            confidence_level = ConfidenceLevel.low
+            confidence_reason = "System-architecture confidence is low because the current design lacks explicit inverter or transfer-path records."
+
+        consistency = self._system_architecture_consistency_check(
+            analysis,
+            recommended_system_architecture,
+            panel_service_architecture,
+        )
+        if consistency.status != "aligned" and confidence_level == ConfidenceLevel.high:
+            confidence_level = ConfidenceLevel.medium
+            confidence_reason = "System-architecture confidence drops to medium because the planning direction still has unresolved consistency gaps."
+
+        input_signals = [
+            {
+                "key": "recorded_architecture_type",
+                "label": "Recorded architecture type",
+                "value": architecture_type,
+                "status": "recorded" if design.architecture_type else "missing",
+                "note": "The stored architecture type is a planning posture, not a final engineered topology.",
+            },
+            {
+                "key": "inverter_equipment_signals",
+                "label": "Inverter equipment signals",
+                "value": ", ".join(
+                    sorted(
+                        product_type.replace("_", " ")
+                        for product_type in product_types.intersection({"microinverter", "string_inverter", "hybrid_inverter"})
+                    )
+                )
+                or "No explicit inverter products recorded",
+                "status": "recorded" if has_hybrid or has_ac_inverter else "missing",
+                "note": "Explicit inverter products make the system-architecture path more grounded than architecture type alone.",
+            },
+            {
+                "key": "backup_direction",
+                "label": "Backup architecture direction",
+                "value": backup_direction,
+                "status": "rule_based",
+                "note": "Inverter/system reasoning inherits the current planning-only backup direction rather than inventing a broader backup path.",
+            },
+            {
+                "key": "battery_generator_signals",
+                "label": "Battery and generator coexistence signals",
+                "value": (
+                    f"battery={has_battery}, generator={has_generator}, control_path={has_transfer_path}"
+                ),
+                "status": "recorded" if has_battery or has_generator or has_transfer_path else "missing",
+                "note": "Coexistence assumptions stay grounded in recorded equipment and transfer/control-path signals only.",
+            },
+            {
+                "key": "pathway_context",
+                "label": "Pathway and expansion context",
+                "value": f"{len(analysis['linked_pathways'])} linked pathways, {len(analysis['workshop_buildings'])} workshop buildings",
+                "status": "recorded" if analysis["linked_pathways"] or analysis["workshop_buildings"] else "missing",
+                "note": "Multi-building or longer-path context can make hybrid or future-ready paths more realistic at planning time.",
+            },
+            {
+                "key": "system_architecture_consistency",
+                "label": "System architecture consistency",
+                "value": consistency.status,
+                "status": "rule_based",
+                "note": "Checks whether architecture type, equipment signals, and backup direction describe the same planning posture.",
+            },
+        ]
+        estimated_inputs: List[str] = [
+            "System architecture reasoning is planning-only and does not confirm inverter sizing, interconnection method, or final transfer topology."
+        ]
+        incomplete_inputs: List[str] = []
+        if has_battery and not (has_hybrid or has_ac_inverter):
+            incomplete_inputs.append("Battery equipment is recorded without explicit inverter hardware, so storage topology remains provisional.")
+        if has_generator and not has_transfer_path:
+            incomplete_inputs.append("Generator signals exist without a gateway, transfer switch, or disconnect path, so coexistence remains only partially grounded.")
+        if not design.architecture_type:
+            incomplete_inputs.append("Architecture type is not recorded, so system direction relies more heavily on partial equipment signals.")
+        if not analysis["linked_pathways"]:
+            incomplete_inputs.append("No linked pathways are recorded, so inverter/system direction remains less grounded in install-path realism.")
+        if load_summary["planning_gap_warning"]:
+            incomplete_inputs.append(load_summary["planning_gap_warning"])
+        if consistency.warnings:
+            incomplete_inputs.extend(consistency.warnings)
+
+        inspectability = provenance_service.build_estimate_inspectability(
+            db,
+            basis="Inverter and system architecture reasoning is based on recorded architecture type, explicit inverter/control equipment, backup-scope posture, panel/service direction, battery and generator coexistence signals, and pathway context.",
+            confidence_level=confidence_level,
+            rule_keys=[
+                "recommendation.backup_load_selection_v1",
+                "recommendation.panel_service_preliminary_architecture_v1",
+                "recommendation.backup_architecture_consistency_v1",
+                "recommendation.inverter_system_architecture_v1",
+            ],
+            input_signals=input_signals,
+            estimated_inputs=estimated_inputs,
+            incomplete_inputs=incomplete_inputs,
+            notes=[
+                "This layer reasons about planning architecture posture only and should not be treated as an electrical design approval or final inverter selection.",
+            ],
+            rule_documents_map=rule_documents_map,
+        )
+
+        return InverterSystemArchitectureEstimate(
+            recorded_architecture_type=architecture_type,
+            inverter_pathway_posture=inverter_pathway_posture,
+            recommended_system_architecture=recommended_system_architecture,
+            ac_coupled_pathway_suitability=ac_coupled_pathway_suitability,
+            hybrid_inverter_pathway_suitability=hybrid_inverter_pathway_suitability,
+            battery_integration_assumption=battery_integration_assumption,
+            solar_integration_assumption=solar_integration_assumption,
+            generator_coexistence_assumption=generator_coexistence_assumption,
+            expansion_path_posture=expansion_path_posture,
+            confidence_reason=confidence_reason,
+            scope_note="Planning estimate only. This inverter/system architecture layer explains likely AC-coupled vs hybrid posture, coexistence assumptions, and expansion direction before final inverter, generator, or interconnection design.",
+            architecture_consistency=consistency,
+            inspectability=inspectability,
+        )
+
     def _battery_sizing_estimate(
         self, analysis, profile: RecommendationProfile, config
     ) -> BatterySizingEstimate:
@@ -1512,8 +1958,15 @@ class ResilienceRecommendationService:
             return ConfidenceLevel.medium
         return ConfidenceLevel.low
 
-    def _fit_reason(self, profile: RecommendationProfile, analysis) -> str:
+    def _fit_reason(
+        self,
+        profile: RecommendationProfile,
+        analysis,
+        architecture_fit: Optional[ProfileArchitectureFitAssessment] = None,
+    ) -> str:
         design_goal = analysis["design"].design_goal.replace("_", " ")
+        if architecture_fit is not None:
+            return f"{architecture_fit.summary} {architecture_fit.reason}"
         if profile == RecommendationProfile.critical_efficient:
             return "Current design signals favor essential resilience scope over broader redundancy."
         if profile == RecommendationProfile.balanced:
@@ -1540,6 +1993,7 @@ class ResilienceRecommendationService:
                 recommended_profile=None,
                 confidence_level=ConfidenceLevel.low,
                 panel_service_architecture=None,
+                inverter_system_architecture=None,
                 profiles=[],
                 context_signals={"design_present": False},
                 scope_note="Recommendation profiles are planning-oriented guidance only. They do not replace engineering sizing or site validation.",
@@ -1557,6 +2011,8 @@ class ResilienceRecommendationService:
                 "recommendation.backup_load_selection_v1",
                 "recommendation.panel_service_preliminary_architecture_v1",
                 "recommendation.backup_architecture_consistency_v1",
+                "recommendation.inverter_system_architecture_v1",
+                "recommendation.profile_architecture_fit_v1",
                 "recommendation.profile_battery_sizing_v1",
                 "recommendation.profile_solar_sizing_v1",
                 "recommendation.profile_solar_site_adjustment_v1",
@@ -1569,11 +2025,47 @@ class ResilienceRecommendationService:
         panel_service_architecture = self._panel_service_architecture_estimate(
             db, analysis, completeness, profile, confidence, recommendation_rule_documents
         )
+        inverter_system_architecture = self._inverter_system_architecture_estimate(
+            db, analysis, profile, confidence, panel_service_architecture, recommendation_rule_documents
+        )
         profiles: List[RecommendationProfileCard] = []
         for key, config in PROFILE_LIBRARY.items():
             profile_signals, profile_estimated_inputs, profile_incomplete_inputs = self._build_profile_input_signals(
                 analysis, completeness, key
             )
+            architecture_fit = self._profile_architecture_fit(
+                analysis,
+                key,
+                panel_service_architecture,
+                inverter_system_architecture,
+            )
+            profile_signals.extend(
+                [
+                    {
+                        "key": "equipment_mix_posture",
+                        "label": "Equipment mix posture",
+                        "value": architecture_fit.equipment_mix_summary,
+                        "status": "rule_based" if analysis["assigned_products"] else "missing",
+                        "note": "Summarizes how the currently recorded product mix shapes profile fit without introducing inverter or generator sizing logic.",
+                    },
+                    {
+                        "key": "backup_path_fit",
+                        "label": "Backup path fit",
+                        "value": architecture_fit.status,
+                        "status": "rule_based",
+                        "note": "Profile fit now reflects outage posture, panel/service direction, and architecture-consistency posture together.",
+                    },
+                    {
+                        "key": "inverter_system_posture",
+                        "label": "Inverter/system architecture posture",
+                        "value": inverter_system_architecture.recommended_system_architecture,
+                        "status": "rule_based",
+                        "note": "Profile fit also reflects the current planning-only inverter/system direction without changing sizing formulas.",
+                    },
+                ]
+            )
+            if architecture_fit.warnings:
+                profile_incomplete_inputs.extend(architecture_fit.warnings)
             battery_sizing = self._battery_sizing_estimate(analysis, key, config)
             battery_inspectability = self._battery_inspectability(
                 db, analysis, key, config, battery_sizing, confidence, recommendation_rule_documents
@@ -1586,18 +2078,23 @@ class ResilienceRecommendationService:
                 RecommendationProfileCard(
                     profile=key,
                     recommended=key == profile,
-                    fit_reason=self._fit_reason(key, analysis),
+                    fit_reason=self._fit_reason(key, analysis, architecture_fit),
+                    architecture_fit=architecture_fit,
                     battery_sizing_estimate=battery_sizing.copy(
                         update={"inspectability": battery_inspectability}
                     ),
                     solar_sizing_estimate=solar_sizing.copy(update={"inspectability": solar_inspectability}),
                     inspectability=provenance_service.build_estimate_inspectability(
                         db,
-                        basis="Profile fit is based on current design goal, load grouping, assigned architecture, panel context, pathway planning, and overall planning completeness.",
+                        basis="Profile fit is based on current design goal, load grouping, recorded architecture type, equipment mix, panel/service direction, pathway planning, and overall planning completeness.",
                         confidence_level=confidence,
                         rule_keys=[
                             "recommendation.resilience_profile_matrix_v1",
                             "recommendation.backup_load_selection_v1",
+                            "recommendation.panel_service_preliminary_architecture_v1",
+                            "recommendation.backup_architecture_consistency_v1",
+                            "recommendation.inverter_system_architecture_v1",
+                            "recommendation.profile_architecture_fit_v1",
                         ],
                         input_signals=profile_signals,
                         estimated_inputs=profile_estimated_inputs,
@@ -1619,6 +2116,7 @@ class ResilienceRecommendationService:
             "selected_backup_scope_label": backup_load_selection.selected_scope_label,
             "backup_scope_outage_posture": backup_load_selection.outage_posture,
             "backup_scope_confidence_level": backup_load_selection.confidence_level,
+            "recommended_system_architecture": inverter_system_architecture.recommended_system_architecture,
             "assigned_product_count": len(analysis["assigned_products"]),
             "pathway_count": len(analysis["linked_pathways"]),
             "workshop_building_count": len(analysis["workshop_buildings"]),
@@ -1631,11 +2129,15 @@ class ResilienceRecommendationService:
                 "recommendation.resilience_profile_matrix_v1",
                 "recommendation.backup_load_selection_v1",
                 "recommendation.backup_architecture_consistency_v1",
+                "recommendation.inverter_system_architecture_v1",
+                "recommendation.profile_architecture_fit_v1",
             ],
             notes=[
                 "Recommendation is derived from current design goal, load grouping, product assignments, panel context, and pathway planning.",
                 "Backup-scope selection is explicit: broader outage intent is only carried when preferred or broader recorded load grouping exists.",
                 "Backup-architecture consistency checks keep panel/service direction bounded by recorded outage posture instead of silently escalating to broader backup assumptions.",
+                "Inverter/system architecture reasoning stays planning-only and uses recorded architecture type, inverter/control equipment, and coexistence signals instead of claiming final topology certainty.",
+                "Profile-fit explanations now also describe how the current equipment mix and backup-path direction pull each planning posture narrower or broader.",
                 "Battery sizing ranges are planning estimates derived from profile posture and current backup-load modeling, not engineering sizing outputs.",
                 "Solar sizing ranges are planning estimates derived from recovery posture, low-solar assumptions, and coarse site-aware caution signals, not engineering production studies.",
             ],
@@ -1648,6 +2150,7 @@ class ResilienceRecommendationService:
             confidence_level=confidence,
             backup_load_selection=backup_load_selection,
             panel_service_architecture=panel_service_architecture,
+            inverter_system_architecture=inverter_system_architecture,
             profiles=profiles,
             context_signals=context_signals,
             scope_note="Recommendation profiles express planning philosophies, tradeoffs, and resilience posture. They do not expose engineering formulas or imply permit-grade sizing certainty.",

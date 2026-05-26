@@ -94,6 +94,22 @@ class PanelServiceArchitectureEstimate(ORMModel):
     inspectability: Optional[EstimateInspectability] = None
 
 
+class InverterSystemArchitectureEstimate(ORMModel):
+    recorded_architecture_type: str
+    inverter_pathway_posture: str
+    recommended_system_architecture: str
+    ac_coupled_pathway_suitability: str
+    hybrid_inverter_pathway_suitability: str
+    battery_integration_assumption: str
+    solar_integration_assumption: str
+    generator_coexistence_assumption: str
+    expansion_path_posture: str
+    confidence_reason: str
+    scope_note: str
+    architecture_consistency: Optional[ArchitectureConsistencyCheck] = None
+    inspectability: Optional[EstimateInspectability] = None
+
+
 class BatterySizingEstimate(ORMModel):
     backup_load_energy_need_kwh: Optional[float] = None
     autonomy_duration_hours_min: float
@@ -169,6 +185,7 @@ class ResilienceRecommendation(ORMModel):
     confidence_level: ConfidenceLevel
     backup_load_selection: Optional[BackupLoadSelectionSummary] = None
     panel_service_architecture: Optional[PanelServiceArchitectureEstimate] = None
+    inverter_system_architecture: Optional[InverterSystemArchitectureEstimate] = None
     profiles: List[RecommendationProfileCard] = Field(default_factory=list)
     context_signals: Dict[str, object] = Field(default_factory=dict)
     scope_note: str

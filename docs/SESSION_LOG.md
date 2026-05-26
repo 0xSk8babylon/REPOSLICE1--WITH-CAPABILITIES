@@ -63,3 +63,8 @@
 - Surfaced backup-scope confidence/provenance and architecture-consistency output in the Design Advisor UI.
 - Expanded backend regression coverage to include whole-home-goal fallback and whole-home-candidate boundary cases.
 - Verified the stabilization with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall app`, and `npm run build` in `apps/web`.
+- Added a deterministic inverter/system architecture layer that explains AC-coupled vs hybrid posture, pathway suitability, coexistence assumptions, expansion direction, and planning-only system consistency.
+- Fully wired the profile-architecture-fit layer so recommendation profiles now incorporate current inverter/system posture in addition to equipment mix, outage posture, and panel/service direction.
+- Surfaced inverter/system architecture confidence, inspectability, and consistency output in the Design Advisor UI.
+- Added seeded rule provenance for `recommendation.inverter_system_architecture_v1` and expanded backend regression coverage for the new inverter/system architecture states.
+- Verified the architecture reasoning layer with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall app`, and `npm run build` in `apps/web`.

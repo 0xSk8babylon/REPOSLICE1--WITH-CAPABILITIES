@@ -57,6 +57,8 @@ This document records the actual current state of the `residential-energy-planne
 - Recommendation outputs now also include a preliminary panel/service architecture layer that constrains backup design direction before deeper electrical sizing layers
 - Backup-load selection now also distinguishes recorded-load coverage, outage posture, and planning-only scope confidence before panel/service, battery, or solar guidance inherits the scope
 - Panel/service guidance now also includes an additive architecture-consistency check so broader backup direction stays bounded by recorded outage posture and design-goal intent
+- Recommendation profiles now also include a profile-level architecture-fit tradeoff layer tied to equipment mix, backup-path direction, and current outage posture
+- Recommendation outputs now also include an additive inverter/system architecture layer that reasons about AC-coupled vs hybrid posture, coexistence assumptions, expansion direction, and planning-only system consistency
 - Demo-vs-real separation is now explicit at the record level through `data_origin`, but not yet enforced through tenancy or permissions
 - Editable frontend workflows now exist for:
   - home overview
@@ -107,7 +109,7 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - The site-aware solar layer is intentionally coarse and should not be mistaken for a roof-fit, shading, or production simulation engine.
 - The roof-readiness layer is architectural scaffolding for future geometry ingestion and should not be mistaken for measured roof-capacity certainty.
 - The panel/service layer is architectural scaffolding for future inverter, smart-panel modifier, and generator layers and should not be mistaken for a validated electrical design.
-- The refined backup-scope and architecture-consistency layers remain planning-only reasoning, not circuit-study, transfer-design, or compliance validation.
+- The refined backup-scope, profile-architecture-fit, panel/service-consistency, and inverter/system-architecture layers remain planning-only reasoning, not circuit-study, inverter-sizing, transfer-design, or compliance validation.
 - Design completeness is planning completeness only, not engineering completeness.
 - Trust visibility is now a first-class UX layer, even though deep provenance and audit systems are still deferred.
 - Verification status belongs to source documents; trust badges belong to current application presentation and should not be conflated.

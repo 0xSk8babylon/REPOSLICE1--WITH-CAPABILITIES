@@ -2,13 +2,13 @@
 
 ## Highest-Leverage Next Implementation Step
 
-Deepen the solar-readiness slice with better internal roof-capacity and placement realism while preserving the current additive profile architecture, explicit backup scope, and planning-only trust boundary ahead of any inverter sizing.
+Deepen the solar-readiness slice with better internal roof-capacity and placement realism while preserving the current additive profile architecture, explicit backup scope, inverter/system architecture reasoning, and planning-only trust boundary ahead of any final inverter sizing.
 
 ## Why This Is Next
 
-- The current panel/service and profile-fit trust-signal layers are now stabilized with explicit confidence framing and seeded regression coverage, so the next change can move forward without reopening that wording boundary.
+- The current panel/service, profile-fit, and inverter/system architecture trust-signal layers are now stabilized with explicit confidence framing and seeded regression coverage, so the next change can move forward without reopening those wording boundaries.
 - Trust visibility now makes uncertainty obvious, and scenario comparison now exposes lineage, but the underlying provenance model is still thin.
-- Backup-load selection and profile architecture fit are now explicit, so the next slice can strengthen solar realism from a narrower planning scope instead of broad inferred outage intent.
+- Backup-load selection, profile architecture fit, and inverter/system architecture reasoning are now explicit, so the next slice can strengthen solar realism from a narrower planning scope instead of broad inferred outage intent.
 - A provenance foundation now exists, but it still does not cover every field or every derived output path.
 - Generated takeoffs are intentionally transient and placeholder-priced until stronger source lineage exists.
 - Advisor intelligence is broader, but it still depends on planning heuristics rather than verified engineering inputs.

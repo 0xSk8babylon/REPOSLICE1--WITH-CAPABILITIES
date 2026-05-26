@@ -84,6 +84,8 @@ Status:
 - recommendation outputs now also include a preliminary panel/service architecture layer so future inverter, smart-panel modifier, and generator layers can plug into a stable backup-architecture posture
 - backup-load selection now also exposes outage posture, recorded-load coverage, and planning-only confidence so later architecture-fit slices inherit a narrower and more inspectable scope model
 - panel/service guidance now also includes an additive architecture-consistency check so broader backup direction does not outrun recorded outage posture or design-goal intent
+- recommendation profiles now also include profile-level architecture-fit tradeoffs so current equipment mix and backup-path direction can shape fit without changing sizing formulas
+- recommendation outputs now also include an additive inverter/system architecture layer so AC-coupled vs hybrid posture, coexistence assumptions, and expansion direction are explicit before final inverter sizing
 
 ## Explicitly Deferred
 

@@ -357,6 +357,130 @@ export function DesignAdvisorPage() {
                     </p>
                   </div>
                 ) : null}
+                {advisorQuery.data.recommendation_profiles.inverter_system_architecture ? (
+                  <div className="panel">
+                    <div className="panel-header">
+                      <h3>Inverter And System Architecture</h3>
+                      <div className="badge-row">
+                        <Badge tone="warning">
+                          {advisorQuery.data.recommendation_profiles.inverter_system_architecture.recommended_system_architecture}
+                        </Badge>
+                        <TrustBadge state="derived_estimate" label="Planning-only system direction" />
+                        <Badge
+                          tone={getConfidenceTone(
+                            advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability?.confidence_level
+                          )}
+                        >
+                          Confidence:{" "}
+                          {advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability?.confidence_level || "unknown"}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="metric-stack">
+                      <MetricRow
+                        label="Recorded architecture type"
+                        value={advisorQuery.data.recommendation_profiles.inverter_system_architecture.recorded_architecture_type}
+                      />
+                      <MetricRow
+                        label="Inverter pathway posture"
+                        value={advisorQuery.data.recommendation_profiles.inverter_system_architecture.inverter_pathway_posture}
+                      />
+                      <MetricRow
+                        label="AC-coupled suitability"
+                        value={advisorQuery.data.recommendation_profiles.inverter_system_architecture.ac_coupled_pathway_suitability}
+                      />
+                      <MetricRow
+                        label="Hybrid suitability"
+                        value={advisorQuery.data.recommendation_profiles.inverter_system_architecture.hybrid_inverter_pathway_suitability}
+                      />
+                    </div>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.inverter_system_architecture.battery_integration_assumption}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.inverter_system_architecture.solar_integration_assumption}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.inverter_system_architecture.generator_coexistence_assumption}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.inverter_system_architecture.expansion_path_posture}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.inverter_system_architecture.confidence_reason}
+                    </p>
+                    {advisorQuery.data.recommendation_profiles.inverter_system_architecture.architecture_consistency ? (
+                      <div className="solution-list">
+                        <strong>System architecture consistency</strong>
+                        <ul>
+                          <li>
+                            Status:{" "}
+                            {advisorQuery.data.recommendation_profiles.inverter_system_architecture.architecture_consistency.status}
+                          </li>
+                          <li>
+                            Summary:{" "}
+                            {advisorQuery.data.recommendation_profiles.inverter_system_architecture.architecture_consistency.summary}
+                          </li>
+                          <li>
+                            Reason:{" "}
+                            {advisorQuery.data.recommendation_profiles.inverter_system_architecture.architecture_consistency.reason}
+                          </li>
+                          {(
+                            advisorQuery.data.recommendation_profiles.inverter_system_architecture.architecture_consistency.warnings || []
+                          ).map((item) => (
+                            <li key={item}>Warning: {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    {advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability ? (
+                      <div className="solution-list">
+                        <strong>System architecture basis</strong>
+                        <ul>
+                          {(
+                            advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability.input_signals || []
+                          ).map((signal) => (
+                            <li key={signal.key}>
+                              {signal.label}: {signal.value} ({signal.status.replaceAll("_", " ")})
+                            </li>
+                          ))}
+                        </ul>
+                        {(
+                          advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability.estimated_inputs || []
+                        ).length ? (
+                          <>
+                            <strong>Estimated inputs</strong>
+                            <ul>
+                              {advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability.estimated_inputs.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                        {(
+                          advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability.incomplete_inputs || []
+                        ).length ? (
+                          <>
+                            <strong>Incomplete inputs</strong>
+                            <ul>
+                              {advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability.incomplete_inputs.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability?.partial_provenance_warning ? (
+                      <p className="callout-copy">
+                        {advisorQuery.data.recommendation_profiles.inverter_system_architecture.inspectability.partial_provenance_warning}
+                      </p>
+                    ) : null}
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.inverter_system_architecture.scope_note}
+                    </p>
+                  </div>
+                ) : null}
                 <div className="card-grid">
                   {(advisorQuery.data.recommendation_profiles.profiles || []).map((profile) => (
                     <article key={profile.profile} className="panel">
@@ -373,6 +497,24 @@ export function DesignAdvisorPage() {
                         <MetricRow label="Growth margin" value={profile.future_growth_margin_posture.replaceAll("_", " ")} />
                         <MetricRow label="Low-solar stance" value={profile.low_solar_assumption_posture.replaceAll("_", " ")} />
                       </div>
+                      {profile.architecture_fit ? (
+                        <div className="solution-list">
+                          <strong>Architecture-fit tradeoffs</strong>
+                          <ul>
+                            <li>Status: {profile.architecture_fit.status}</li>
+                            <li>Equipment mix: {profile.architecture_fit.equipment_mix_summary}</li>
+                            <li>Backup path: {profile.architecture_fit.backup_path_summary}</li>
+                            <li>Summary: {profile.architecture_fit.summary}</li>
+                            <li>Reason: {profile.architecture_fit.reason}</li>
+                            {(profile.architecture_fit.tradeoffs || []).map((item) => (
+                              <li key={item}>Tradeoff: {item}</li>
+                            ))}
+                            {(profile.architecture_fit.warnings || []).map((item) => (
+                              <li key={item}>Warning: {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                       {profile.recommended && profile.inspectability ? (
                         <div className="solution-list">
                           <strong>What this recommendation is based on</strong>
