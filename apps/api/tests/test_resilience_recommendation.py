@@ -6,6 +6,7 @@ os.environ.setdefault("DATA_DIR", "/tmp/residential-energy-planner-tests")
 os.environ.setdefault("DATABASE_FILE", "resilience_recommendation_test.sqlite3")
 
 from app.core.database import database_path, engine  # noqa: E402
+from app.core.models import EnergySystemDesign, Load  # noqa: E402
 from app.seed.runtime import reset_and_reseed  # noqa: E402
 from app.services.design_advisor import design_advisor_service  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
@@ -20,18 +21,26 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
             db_path.unlink()
         reset_and_reseed()
 
+    def setUp(self):
+        reset_and_reseed()
+
     def _advisor_summary(self, design_id: str):
         with Session(engine) as db:
             return design_advisor_service.explain(db, design_id)
 
-    def test_design_001_panel_service_stays_partial_home_planning_direction(self):
+    def test_design_001_backup_scope_stays_partial_home_and_high_confidence(self):
         result = self._advisor_summary("design_001")
         recommendation = result["recommendation_profiles"]
+        selection = recommendation.backup_load_selection
         panel_service = recommendation.panel_service_architecture
 
         self.assertEqual("balanced", recommendation.recommended_profile.value)
         self.assertEqual("high", recommendation.confidence_level.value)
+        self.assertEqual("partial-home outage posture", selection.outage_posture)
+        self.assertEqual("high", selection.confidence_level.value)
+        self.assertEqual(0.67, selection.coverage_ratio_of_recorded_loads)
         self.assertEqual("partial-home backup", panel_service.recommended_backup_architecture)
+        self.assertEqual("aligned", panel_service.architecture_consistency.status)
         self.assertEqual("conditional", panel_service.partial_home_backup_suitability)
         self.assertEqual("poor", panel_service.whole_home_backup_suitability)
         self.assertIn("Planning estimate only.", panel_service.scope_note)
@@ -46,6 +55,43 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         self.assertEqual("future-ready service upgrade path", panel_service.recommended_backup_architecture)
         self.assertEqual("limited", panel_service.partial_home_backup_suitability)
         self.assertEqual("poor", panel_service.whole_home_backup_suitability)
+        self.assertEqual("aligned", panel_service.architecture_consistency.status)
         self.assertIn("Generator-related tie-in signals exist", panel_service.generator_integration_readiness_note)
         self.assertEqual("derived_estimate", panel_service.inspectability.trust_state.value)
         self.assertTrue(panel_service.inspectability.partial_provenance_warning)
+
+    def test_whole_home_goal_stays_conditional_when_grouping_is_only_partial_home(self):
+        with Session(engine) as db:
+            design = db.get(EnergySystemDesign, "design_001")
+            design.design_goal = "whole_home_backup"
+            db.commit()
+
+        result = self._advisor_summary("design_001")
+        recommendation = result["recommendation_profiles"]
+        selection = recommendation.backup_load_selection
+        panel_service = recommendation.panel_service_architecture
+
+        self.assertEqual("premium_future_ready", recommendation.recommended_profile.value)
+        self.assertEqual("partial-home outage posture", selection.outage_posture)
+        self.assertEqual("future-ready service upgrade path", panel_service.recommended_backup_architecture)
+        self.assertEqual("conditional", panel_service.architecture_consistency.status)
+        self.assertIn("intentionally narrower than the design goal", panel_service.architecture_consistency.summary)
+
+    def test_whole_home_candidate_can_resolve_to_whole_home_backup_direction(self):
+        with Session(engine) as db:
+            design = db.get(EnergySystemDesign, "design_001")
+            design.design_goal = "whole_home_backup"
+            workshop_load = db.get(Load, "load_003")
+            workshop_load.backup_priority = "preferred"
+            db.commit()
+
+        result = self._advisor_summary("design_001")
+        recommendation = result["recommendation_profiles"]
+        selection = recommendation.backup_load_selection
+        panel_service = recommendation.panel_service_architecture
+
+        self.assertEqual("premium_future_ready", recommendation.recommended_profile.value)
+        self.assertEqual("whole-home outage posture candidate", selection.outage_posture)
+        self.assertEqual(1.0, selection.coverage_ratio_of_recorded_loads)
+        self.assertEqual("future-ready service upgrade path", panel_service.recommended_backup_architecture)
+        self.assertEqual("aligned", panel_service.architecture_consistency.status)

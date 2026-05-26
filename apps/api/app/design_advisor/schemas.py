@@ -43,6 +43,13 @@ class EstimateInspectability(ORMModel):
     partial_provenance_warning: Optional[str] = None
 
 
+class ArchitectureConsistencyCheck(ORMModel):
+    status: str
+    summary: str
+    reason: str
+    warnings: List[str] = Field(default_factory=list)
+
+
 class BackupLoadSelectionSummary(ORMModel):
     selected_scope_label: str
     selection_basis: str
@@ -50,6 +57,12 @@ class BackupLoadSelectionSummary(ORMModel):
     selected_load_count: int
     recorded_essential_load_count: int
     recorded_preferred_load_count: int
+    recorded_total_load_count: int
+    coverage_ratio_of_recorded_loads: Optional[float] = None
+    outage_posture: str
+    outage_posture_reason: str
+    confidence_level: ConfidenceLevel
+    confidence_reason: str
     selection_reason: str
     planning_gap_warning: Optional[str] = None
     scope_note: str
@@ -67,6 +80,7 @@ class PanelServiceArchitectureEstimate(ORMModel):
     generator_integration_readiness_note: str
     recommended_backup_architecture: str
     scope_note: str
+    architecture_consistency: Optional[ArchitectureConsistencyCheck] = None
     inspectability: Optional[EstimateInspectability] = None
 
 

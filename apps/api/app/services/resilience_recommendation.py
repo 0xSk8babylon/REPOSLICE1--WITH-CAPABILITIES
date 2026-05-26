@@ -14,6 +14,7 @@ from app.core.types import (
     SolarSizingPosture,
 )
 from app.design_advisor.schemas import (
+    ArchitectureConsistencyCheck,
     BackupLoadSelectionSummary,
     BatteryCapacityRange,
     BatterySizingEstimate,
@@ -407,6 +408,7 @@ class ResilienceRecommendationService:
     def _backup_scope_selection(self, analysis, profile: Optional[RecommendationProfile] = None) -> Dict[str, object]:
         essential_loads = analysis["essential_loads"]
         preferred_loads = self._preferred_loads(analysis)
+        total_recorded_load_count = len(analysis["loads"])
         selected_loads = []
         selection_basis = "missing"
         selected_priority_band = "none"
@@ -460,6 +462,57 @@ class ResilienceRecommendationService:
                     "Broader backup ambition is not yet reflected in load grouping, so current planning remains limited to essential loads."
                 )
 
+        selected_load_count = len(selected_loads)
+        coverage_ratio = None
+        if total_recorded_load_count:
+            coverage_ratio = round(selected_load_count / total_recorded_load_count, 2)
+
+        if not selected_load_count:
+            outage_posture = "ungrounded outage posture"
+            outage_posture_reason = (
+                "No selected backup scope exists yet, so the planner cannot describe even a critical-load outage posture from recorded loads."
+            )
+            confidence_level = ConfidenceLevel.low
+            confidence_reason = (
+                "Backup-scope confidence is low because no essential or preferred load grouping currently grounds the outage posture."
+            )
+        elif selection_basis == "preferred_only":
+            outage_posture = "partial-home outage posture"
+            outage_posture_reason = (
+                "Preferred loads extend backup scope beyond essentials, but the missing essential anchor weakens outage-priority discipline."
+            )
+            confidence_level = ConfidenceLevel.low
+            confidence_reason = (
+                "Backup-scope confidence stays low because preferred loads are recorded without a matching essential-load anchor."
+            )
+        elif selection_basis in {"essential_only", "essential_fallback"}:
+            outage_posture = "critical-load outage posture"
+            outage_posture_reason = (
+                f"Selected scope covers {selected_load_count} of {total_recorded_load_count} recorded loads and stays anchored to essentials only."
+            )
+            confidence_level = ConfidenceLevel.medium
+            confidence_reason = (
+                "Backup-scope confidence is medium because essential loads are grounded, but broader partial-home or whole-home grouping is not yet recorded."
+            )
+        elif coverage_ratio is not None and coverage_ratio >= 0.85:
+            outage_posture = "whole-home outage posture candidate"
+            outage_posture_reason = (
+                f"Selected scope covers {selected_load_count} of {total_recorded_load_count} recorded loads, so the recorded grouping resembles a whole-home planning candidate."
+            )
+            confidence_level = ConfidenceLevel.high
+            confidence_reason = (
+                "Backup-scope confidence is high because both essential and preferred grouping are recorded and they cover nearly all recorded loads."
+            )
+        else:
+            outage_posture = "partial-home outage posture"
+            outage_posture_reason = (
+                f"Selected scope covers {selected_load_count} of {total_recorded_load_count} recorded loads and extends beyond essentials without claiming every recorded load."
+            )
+            confidence_level = ConfidenceLevel.high
+            confidence_reason = (
+                "Backup-scope confidence is high because both essential and preferred grouping are recorded and the broader outage posture is explicit."
+            )
+
         return {
             "selected_loads": selected_loads,
             "selection_basis": selection_basis,
@@ -467,10 +520,21 @@ class ResilienceRecommendationService:
             "selected_scope_label": selected_scope_label,
             "selection_reason": selection_reason,
             "planning_gap_warning": planning_gap_warning,
+            "outage_posture": outage_posture,
+            "outage_posture_reason": outage_posture_reason,
+            "confidence_level": confidence_level,
+            "confidence_reason": confidence_reason,
             "recorded_essential_load_count": len(essential_loads),
             "recorded_preferred_load_count": len(preferred_loads),
-            "selected_load_count": len(selected_loads),
+            "recorded_total_load_count": total_recorded_load_count,
+            "selected_load_count": selected_load_count,
+            "coverage_ratio_of_recorded_loads": coverage_ratio,
             "supports_broader_backup": selection_basis in {"essential_and_preferred", "preferred_only"},
+            "supports_partial_home_backup": outage_posture in {
+                "partial-home outage posture",
+                "whole-home outage posture candidate",
+            },
+            "supports_whole_home_backup": outage_posture == "whole-home outage posture candidate",
         }
 
     def _selected_backup_loads(self, analysis, profile: Optional[RecommendationProfile] = None):
@@ -503,12 +567,90 @@ class ResilienceRecommendationService:
             "selected_priority_band": selection["selected_priority_band"],
             "selection_reason": selection["selection_reason"],
             "planning_gap_warning": selection["planning_gap_warning"],
+            "outage_posture": selection["outage_posture"],
+            "outage_posture_reason": selection["outage_posture_reason"],
+            "confidence_level": selection["confidence_level"],
+            "confidence_reason": selection["confidence_reason"],
             "recorded_essential_load_count": selection["recorded_essential_load_count"],
             "recorded_preferred_load_count": selection["recorded_preferred_load_count"],
+            "recorded_total_load_count": selection["recorded_total_load_count"],
+            "coverage_ratio_of_recorded_loads": selection["coverage_ratio_of_recorded_loads"],
             "supports_broader_backup": selection["supports_broader_backup"],
+            "supports_partial_home_backup": selection["supports_partial_home_backup"],
+            "supports_whole_home_backup": selection["supports_whole_home_backup"],
             "missing_daily_hour_loads": missing_daily_hours,
             "fallback_applied": fallback_applied,
         }
+
+    def _architecture_consistency_check(
+        self,
+        analysis,
+        load_summary,
+        recommended_backup_architecture: str,
+    ) -> ArchitectureConsistencyCheck:
+        design_goal = analysis["design"].design_goal
+        warnings: List[str] = []
+
+        if design_goal == "lowest_cost":
+            goal_target = "critical-load planning"
+        elif design_goal == "partial_backup":
+            goal_target = "partial-home planning"
+        elif design_goal in {"whole_home_backup", "off_grid_capable"}:
+            goal_target = "whole-home planning"
+        elif design_goal in {"workshop_ready", "expansion_ready"}:
+            goal_target = "future-ready planning"
+        else:
+            goal_target = "phased backup planning"
+
+        if recommended_backup_architecture == "whole-home backup" and not load_summary["supports_whole_home_backup"]:
+            warnings.append(
+                "Whole-home architecture should not be treated as grounded until the selected scope covers nearly all recorded loads."
+            )
+            status = "misaligned"
+            summary = "Architecture direction is broader than the recorded backup scope."
+            reason = (
+                "The current recommendation reaches whole-home architecture without a whole-home outage-posture candidate in recorded load grouping."
+            )
+        elif design_goal in {"whole_home_backup", "off_grid_capable"} and not load_summary["supports_whole_home_backup"]:
+            warnings.append(
+                "The current design goal is broader than the recorded load grouping, so architecture remains intentionally narrower than the stated ambition."
+            )
+            status = "conditional"
+            summary = "Architecture direction is intentionally narrower than the design goal."
+            reason = (
+                "Recorded load grouping does not yet justify whole-home outage posture, so the architecture recommendation remains bounded to planning evidence."
+            )
+        elif recommended_backup_architecture == "partial-home backup" and not load_summary["supports_partial_home_backup"]:
+            warnings.append(
+                "Partial-home architecture remains weakly grounded because recorded loads currently resolve only to an essential-only outage posture."
+            )
+            status = "conditional"
+            summary = "Architecture direction is slightly broader than the current load grouping."
+            reason = (
+                "Panel/service posture leaves room for partial-home planning, but the selected backup scope still behaves like critical-load planning."
+            )
+        elif goal_target == "critical-load planning" and recommended_backup_architecture != "critical-loads subpanel":
+            warnings.append(
+                "The design goal is cost-disciplined critical-load planning, so broader architecture should be treated cautiously."
+            )
+            status = "conditional"
+            summary = "Architecture direction is broader than the cost-disciplined goal."
+            reason = (
+                "Current architecture signals allow a broader path, but the design goal still points toward critical-load discipline."
+            )
+        else:
+            status = "aligned"
+            summary = "Architecture direction is consistent with the recorded backup scope."
+            reason = (
+                f"The current recommendation stays aligned with {load_summary['outage_posture']} and the '{goal_target}' design-goal posture."
+            )
+
+        return ArchitectureConsistencyCheck(
+            status=status,
+            summary=summary,
+            reason=reason,
+            warnings=warnings,
+        )
 
     def _backup_load_selection_summary(
         self,
@@ -535,11 +677,29 @@ class ResilienceRecommendationService:
                 "note": "Preferred-load tagging is the current structured signal that the backup scope extends beyond essentials.",
             },
             {
+                "key": "recorded_load_coverage",
+                "label": "Selected coverage of recorded loads",
+                "value": (
+                    f"{int(load_summary['coverage_ratio_of_recorded_loads'] * 100)}% of recorded loads"
+                    if load_summary["coverage_ratio_of_recorded_loads"] is not None
+                    else "No recorded loads"
+                ),
+                "status": "rule_based" if load_summary["selected_load_count"] else "missing",
+                "note": "Coverage is measured only against currently recorded loads, so it remains a planning signal rather than a validated whole-home inventory.",
+            },
+            {
                 "key": "selected_backup_scope",
                 "label": "Selected backup scope",
                 "value": f"{load_summary['selected_load_count']} loads from {load_summary['selected_scope_label']}",
                 "status": "rule_based" if load_summary["selected_load_count"] else "missing",
                 "note": "Battery, solar, and backup-architecture planning consume this selected scope instead of inferring broader outage intent.",
+            },
+            {
+                "key": "outage_posture",
+                "label": "Derived outage posture",
+                "value": load_summary["outage_posture"],
+                "status": "rule_based" if load_summary["selected_load_count"] else "missing",
+                "note": "The outage posture distinguishes critical-load, partial-home, and whole-home candidates from recorded grouping only.",
             },
             {
                 "key": "recommendation_profile",
@@ -560,13 +720,19 @@ class ResilienceRecommendationService:
             selected_load_count=load_summary["selected_load_count"],
             recorded_essential_load_count=load_summary["recorded_essential_load_count"],
             recorded_preferred_load_count=load_summary["recorded_preferred_load_count"],
+            recorded_total_load_count=load_summary["recorded_total_load_count"],
+            coverage_ratio_of_recorded_loads=load_summary["coverage_ratio_of_recorded_loads"],
+            outage_posture=load_summary["outage_posture"],
+            outage_posture_reason=load_summary["outage_posture_reason"],
+            confidence_level=load_summary["confidence_level"],
+            confidence_reason=load_summary["confidence_reason"],
             selection_reason=load_summary["selection_reason"],
             planning_gap_warning=load_summary["planning_gap_warning"],
             scope_note="Planning-only selection summary. It explains which recorded loads currently ground backup architecture and sizing, not final transfer, inverter, or generator design.",
             inspectability=provenance_service.build_estimate_inspectability(
                 db,
                 basis="Backup scope selection is derived from recorded essential/preferred load grouping plus explicit profile-aware selection rules.",
-                confidence_level=confidence,
+                confidence_level=load_summary["confidence_level"],
                 rule_keys=[
                     "recommendation.resilience_profile_matrix_v1",
                     "recommendation.backup_load_selection_v1",
@@ -596,7 +762,8 @@ class ResilienceRecommendationService:
         linked_pathways = analysis["linked_pathways"]
         product_types = analysis["product_types"]
         design_goal = analysis["design"].design_goal
-        supports_broader_backup = load_summary["supports_broader_backup"]
+        supports_partial_home_backup = load_summary["supports_partial_home_backup"]
+        supports_whole_home_backup = load_summary["supports_whole_home_backup"]
 
         if main_panel is None:
             main_service_panel_posture = "main service panel not recorded"
@@ -640,12 +807,17 @@ class ResilienceRecommendationService:
             else:
                 service_upgrade_caution = "Service size is not recorded, so service-upgrade risk remains a planning caution."
 
-        if not supports_broader_backup:
+        if not supports_partial_home_backup:
             if partial_home_backup_suitability == "conditional":
                 partial_home_backup_suitability = "limited"
             elif partial_home_backup_suitability == "favorable":
                 partial_home_backup_suitability = "conditional"
             whole_home_backup_suitability = "poor"
+        elif not supports_whole_home_backup:
+            if whole_home_backup_suitability == "conditional":
+                whole_home_backup_suitability = "limited"
+            elif whole_home_backup_suitability == "favorable":
+                whole_home_backup_suitability = "conditional"
 
         if linked_pathways and any(pathway.route_difficulty == "high" or pathway.visibility_level == "high" for pathway in linked_pathways):
             if partial_home_backup_suitability == "conditional":
@@ -677,7 +849,7 @@ class ResilienceRecommendationService:
 
         if main_panel is None:
             recommended_backup_architecture = "future-ready service upgrade path"
-        elif supports_broader_backup and "smart_panel" in product_types and profile in {
+        elif supports_partial_home_backup and "smart_panel" in product_types and profile in {
             RecommendationProfile.balanced,
             RecommendationProfile.conservative,
             RecommendationProfile.premium_future_ready,
@@ -688,32 +860,38 @@ class ResilienceRecommendationService:
         elif profile == RecommendationProfile.balanced:
             recommended_backup_architecture = (
                 "partial-home backup"
-                if supports_broader_backup and partial_home_backup_suitability in {"favorable", "conditional"}
+                if supports_partial_home_backup and partial_home_backup_suitability in {"favorable", "conditional"}
                 else "critical-loads subpanel"
             )
         elif profile == RecommendationProfile.conservative:
             if (
-                supports_broader_backup
-                and whole_home_backup_suitability == "conditional"
+                supports_whole_home_backup
+                and whole_home_backup_suitability in {"favorable", "conditional"}
                 and design_goal in {"whole_home_backup", "off_grid_capable"}
             ):
                 recommended_backup_architecture = "whole-home backup"
-            elif supports_broader_backup:
+            elif supports_partial_home_backup:
                 recommended_backup_architecture = "partial-home backup"
             else:
                 recommended_backup_architecture = "critical-loads subpanel"
         else:
             if (
-                supports_broader_backup
+                supports_whole_home_backup
                 and whole_home_backup_suitability in {"favorable", "conditional"}
                 and home is not None
                 and (home.service_size or 0) >= 200
             ):
                 recommended_backup_architecture = "whole-home backup"
-            elif supports_broader_backup and "smart_panel" in product_types:
+            elif supports_partial_home_backup and "smart_panel" in product_types:
                 recommended_backup_architecture = "smart-panel/load-control assisted"
             else:
                 recommended_backup_architecture = "future-ready service upgrade path"
+
+        consistency = self._architecture_consistency_check(
+            analysis,
+            load_summary,
+            recommended_backup_architecture,
+        )
 
         input_signals = [
             {
@@ -742,6 +920,13 @@ class ResilienceRecommendationService:
                 "note": "Current architecture posture uses the selected backup scope rather than silently assuming broader outage intent.",
             },
             {
+                "key": "outage_posture",
+                "label": "Outage posture from recorded grouping",
+                "value": load_summary["outage_posture"],
+                "status": "rule_based" if load_summary["selected_load_count"] else "missing",
+                "note": "Panel/service posture now distinguishes critical-load, partial-home, and whole-home candidates from the selected scope.",
+            },
+            {
                 "key": "pathway_realism",
                 "label": "Install and pathway realism",
                 "value": f"{len(linked_pathways)} linked pathways",
@@ -754,6 +939,13 @@ class ResilienceRecommendationService:
                 "value": profile.value.replace("_", " "),
                 "status": "rule_based",
                 "note": "Panel/service architecture posture is interpreted in the context of the selected planning philosophy.",
+            },
+            {
+                "key": "architecture_consistency",
+                "label": "Architecture consistency check",
+                "value": consistency.status,
+                "status": "rule_based",
+                "note": "Checks whether the architecture direction stays bounded by the recorded backup scope and the stated design-goal posture.",
             },
         ]
         estimated_inputs: List[str] = [
@@ -781,6 +973,7 @@ class ResilienceRecommendationService:
                 "recommendation.resilience_profile_matrix_v1",
                 "recommendation.backup_load_selection_v1",
                 "recommendation.panel_service_preliminary_architecture_v1",
+                "recommendation.backup_architecture_consistency_v1",
             ],
             input_signals=input_signals,
             estimated_inputs=estimated_inputs,
@@ -802,6 +995,7 @@ class ResilienceRecommendationService:
             generator_integration_readiness_note=generator_integration_readiness_note,
             recommended_backup_architecture=recommended_backup_architecture,
             scope_note="Planning estimate only. This preliminary panel/service architecture layer constrains backup design direction before final load, inverter, smart-panel, or generator sizing.",
+            architecture_consistency=consistency,
             inspectability=inspectability,
         )
 
@@ -809,6 +1003,7 @@ class ResilienceRecommendationService:
         self, analysis, completeness, profile: RecommendationProfile
     ) -> Tuple[List[Dict[str, object]], List[str], List[str]]:
         load_summary = self._backup_load_model_summary(analysis, profile)
+        architecture_type = (analysis["design"].architecture_type or "not_recorded").replace("_", " ")
         signals = [
             {
                 "key": "design_goal",
@@ -834,6 +1029,20 @@ class ResilienceRecommendationService:
                 "value": f"{len(analysis['assigned_products'])} assigned products",
                 "status": "recorded" if analysis["assigned_products"] else "missing",
                 "note": "Assigned products indicate whether battery and backup architecture planning exists.",
+            },
+            {
+                "key": "architecture_type",
+                "label": "Recorded architecture type",
+                "value": architecture_type,
+                "status": "recorded" if analysis["design"].architecture_type else "missing",
+                "note": "The current design architecture helps explain whether the profile fit stays phase-one, hybrid, or future-ready.",
+            },
+            {
+                "key": "outage_posture",
+                "label": "Recorded outage posture",
+                "value": load_summary["outage_posture"],
+                "status": "rule_based" if load_summary["selected_load_count"] else "missing",
+                "note": "Profile fit now inherits the explicit outage posture rather than inferring broader backup intent from the design goal alone.",
             },
             {
                 "key": "panel_context",
@@ -1347,6 +1556,7 @@ class ResilienceRecommendationService:
                 "recommendation.resilience_profile_matrix_v1",
                 "recommendation.backup_load_selection_v1",
                 "recommendation.panel_service_preliminary_architecture_v1",
+                "recommendation.backup_architecture_consistency_v1",
                 "recommendation.profile_battery_sizing_v1",
                 "recommendation.profile_solar_sizing_v1",
                 "recommendation.profile_solar_site_adjustment_v1",
@@ -1385,7 +1595,10 @@ class ResilienceRecommendationService:
                         db,
                         basis="Profile fit is based on current design goal, load grouping, assigned architecture, panel context, pathway planning, and overall planning completeness.",
                         confidence_level=confidence,
-                        rule_keys=["recommendation.resilience_profile_matrix_v1"],
+                        rule_keys=[
+                            "recommendation.resilience_profile_matrix_v1",
+                            "recommendation.backup_load_selection_v1",
+                        ],
                         input_signals=profile_signals,
                         estimated_inputs=profile_estimated_inputs,
                         incomplete_inputs=profile_incomplete_inputs,
@@ -1404,6 +1617,8 @@ class ResilienceRecommendationService:
             "backup_load_count": len(analysis["backup_loads"]),
             "selected_backup_load_count": backup_load_selection.selected_load_count,
             "selected_backup_scope_label": backup_load_selection.selected_scope_label,
+            "backup_scope_outage_posture": backup_load_selection.outage_posture,
+            "backup_scope_confidence_level": backup_load_selection.confidence_level,
             "assigned_product_count": len(analysis["assigned_products"]),
             "pathway_count": len(analysis["linked_pathways"]),
             "workshop_building_count": len(analysis["workshop_buildings"]),
@@ -1415,10 +1630,12 @@ class ResilienceRecommendationService:
             rule_keys=[
                 "recommendation.resilience_profile_matrix_v1",
                 "recommendation.backup_load_selection_v1",
+                "recommendation.backup_architecture_consistency_v1",
             ],
             notes=[
                 "Recommendation is derived from current design goal, load grouping, product assignments, panel context, and pathway planning.",
                 "Backup-scope selection is explicit: broader outage intent is only carried when preferred or broader recorded load grouping exists.",
+                "Backup-architecture consistency checks keep panel/service direction bounded by recorded outage posture instead of silently escalating to broader backup assumptions.",
                 "Battery sizing ranges are planning estimates derived from profile posture and current backup-load modeling, not engineering sizing outputs.",
                 "Solar sizing ranges are planning estimates derived from recovery posture, low-solar assumptions, and coarse site-aware caution signals, not engineering production studies.",
             ],

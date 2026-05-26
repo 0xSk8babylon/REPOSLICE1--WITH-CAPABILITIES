@@ -2,13 +2,13 @@
 
 ## Highest-Leverage Next Implementation Step
 
-Extend the inspectable recommendation-profile model into the next architecture-fit recommendation slice, explaining how current equipment mix, backup path, and explicit selected backup scope shift profile fit without exposing deeper engineering math.
+Deepen the solar-readiness slice with better internal roof-capacity and placement realism while preserving the current additive profile architecture, explicit backup scope, and planning-only trust boundary ahead of any inverter sizing.
 
 ## Why This Is Next
 
-- The current panel/service trust-signal layer is now stabilized with explicit confidence framing and seeded regression coverage, so the next change can move forward without reopening that wording boundary.
+- The current panel/service and profile-fit trust-signal layers are now stabilized with explicit confidence framing and seeded regression coverage, so the next change can move forward without reopening that wording boundary.
 - Trust visibility now makes uncertainty obvious, and scenario comparison now exposes lineage, but the underlying provenance model is still thin.
-- Backup-load selection is now explicit, so the next slice can reason about architecture fit from a better-grounded planning scope instead of broad inferred outage intent.
+- Backup-load selection and profile architecture fit are now explicit, so the next slice can strengthen solar realism from a narrower planning scope instead of broad inferred outage intent.
 - A provenance foundation now exists, but it still does not cover every field or every derived output path.
 - Generated takeoffs are intentionally transient and placeholder-priced until stronger source lineage exists.
 - Advisor intelligence is broader, but it still depends on planning heuristics rather than verified engineering inputs.
@@ -16,11 +16,10 @@ Extend the inspectable recommendation-profile model into the next architecture-f
 
 ## Near-Term Follow-On Work
 
-1. Add the next recommendation slice that explains how current architecture choices and equipment mix shift profile fit without exposing deeper engineering math.
-2. Deepen the solar readiness layer with better internal roof-capacity and placement realism before introducing inverter sizing.
-3. Add future geometry-ingest hooks for traced polygons, roof planes, and usable-area estimates without replacing the current recommendation system.
-4. Extend field-level provenance and lineage summaries for design facts, scenario inputs, and broader home-model records beyond the current products, loads, pathways, and recommendation inspectability layer.
-5. Add delete/archive workflows for mutable planning records.
+1. Deepen the solar readiness layer with better internal roof-capacity and placement realism before introducing inverter sizing.
+2. Add future geometry-ingest hooks for traced polygons, roof planes, and usable-area estimates without replacing the current recommendation system.
+3. Extend field-level provenance and lineage summaries for design facts, scenario inputs, and broader home-model records beyond the current products, loads, pathways, and recommendation inspectability layer.
+4. Add delete/archive workflows for mutable planning records.
 
 ## Strategic Guardrail
 

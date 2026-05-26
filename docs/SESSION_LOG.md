@@ -57,3 +57,9 @@
 - Stabilized the Design Advisor panel/service card so it shows explicit planning-only trust framing, confidence posture, and inspectability inputs.
 - Added minimal backend regression coverage for seeded panel/service advisor outputs on `design_001` and `design_002`.
 - Verified the stabilization with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall apps/api/app`, and `npm run build` in `apps/web`.
+- Stabilized backup-scope modeling by adding explicit outage-posture classification, recorded-load coverage, and planning-only backup-scope confidence to the recommendation output.
+- Refined panel/service architecture assumptions so partial-home and whole-home direction now respect the explicit outage posture instead of only a broad backup-scope boolean.
+- Added an additive backup-architecture consistency check that narrows architecture direction when design-goal ambition outruns recorded load grouping.
+- Surfaced backup-scope confidence/provenance and architecture-consistency output in the Design Advisor UI.
+- Expanded backend regression coverage to include whole-home-goal fallback and whole-home-candidate boundary cases.
+- Verified the stabilization with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall app`, and `npm run build` in `apps/web`.

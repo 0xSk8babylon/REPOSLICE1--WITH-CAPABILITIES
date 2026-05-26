@@ -82,6 +82,8 @@ Status:
 - solar sizing now also includes a coarse site-aware adjustment layer before any future inverter sizing or production modeling
 - solar sizing now also includes a roof-readiness layer so future GIS/maps/traced-geometry inputs can plug into the current planning architecture instead of replacing it
 - recommendation outputs now also include a preliminary panel/service architecture layer so future inverter, smart-panel modifier, and generator layers can plug into a stable backup-architecture posture
+- backup-load selection now also exposes outage posture, recorded-load coverage, and planning-only confidence so later architecture-fit slices inherit a narrower and more inspectable scope model
+- panel/service guidance now also includes an additive architecture-consistency check so broader backup direction does not outrun recorded outage posture or design-goal intent
 
 ## Explicitly Deferred
 

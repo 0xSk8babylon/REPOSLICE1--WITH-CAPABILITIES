@@ -52,11 +52,12 @@
   - `GET /api/design-advisor/summary/{design_id}` now includes additive `recommendation_profiles` guidance
   - `recommendation_profiles.profiles[*]` now include additive planning-only battery sizing estimate ranges
   - `recommendation_profiles.profiles[*]` now include additive planning-only solar sizing and recovery estimate ranges
+  - `recommendation_profiles.profiles[*]` now include additive `architecture_fit` tradeoff summaries, warnings, and status tied to recorded equipment mix and backup-path posture
   - `recommendation_profiles.profiles[*]`, `battery_sizing_estimate`, and `solar_sizing_estimate` now include additive inspectability metadata for basis signals, estimated inputs, incomplete inputs, and planning-only warnings
-  - `recommendation_profiles.backup_load_selection` now includes additive selected-scope reasoning, counts, planning-gap warning, and inspectability metadata for deterministic backup/load selection
+  - `recommendation_profiles.backup_load_selection` now includes additive selected-scope reasoning, recorded-load coverage, outage posture, confidence posture, planning-gap warning, and inspectability metadata for deterministic backup/load selection
   - `solar_sizing_estimate` now also includes additive site-aware planning fields such as the base solar range, site capacity posture, shading caution, seasonal production caution, and install realism caution
   - `solar_sizing_estimate.roof_geometry_readiness` now includes additive roof-data completeness, roof-measurement confidence, measured-vs-estimated status, future geometry source placeholders, and missing-geometry warnings
-  - `recommendation_profiles.panel_service_architecture` now includes additive panel/service posture, backup-architecture recommendation, upgrade cautions, readiness notes, and planning-only inspectability metadata
+  - `recommendation_profiles.panel_service_architecture` now includes additive panel/service posture, backup-architecture recommendation, architecture-consistency output, upgrade cautions, readiness notes, and planning-only inspectability metadata
 - scenario and takeoff endpoints
   - current UI treats placeholder score/cost content as planning-level outputs only
 - `GET /api/scenarios/compare`

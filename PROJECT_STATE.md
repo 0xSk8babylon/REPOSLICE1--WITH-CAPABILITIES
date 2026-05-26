@@ -31,12 +31,15 @@
 - Solar guidance now also includes an explicit roof-data-completeness and roof-measurement-confidence layer that distinguishes inferred placement realism from future measured roof geometry
 - Recommendation outputs now also include a preliminary panel/service architecture layer that constrains backup design direction before inverter, smart-panel modifier, or generator sizing
 - Recommendation outputs now also include an explicit deterministic backup-load selection layer that distinguishes recorded load grouping from the currently selected planning scope before battery, solar, or backup-architecture guidance is interpreted
+- Backup-load selection now also classifies outage posture from recorded load coverage, exposes planning-only scope confidence, and distinguishes critical-load, partial-home, and whole-home candidates without inferring missing load grouping
 - The Design Advisor now surfaces panel/service planning-direction confidence and inspectability more explicitly, and seeded advisor states now have minimal backend regression coverage
+- Panel/service guidance now also includes an additive architecture-consistency check so broader backup direction stays bounded by recorded outage posture and design-goal intent
+- Recommendation profiles now also include an additive architecture-fit tradeoff layer that explains how recorded equipment mix, outage posture, and backup-path direction pull each profile narrower or broader without changing sizing formulas
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Extend profile-based planning guidance into the next architecture-fit and equipment-mix recommendation slice while keeping formulas internal, provenance-aware, and planning-only, now that backup-load selection, panel/service posture, roof-capacity certainty, and current panel/service trust framing are each explicit layers.
+Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that backup-scope posture, architecture-consistency checks, and profile-level equipment-mix tradeoffs are explicit layers.
 
 ## Restore Model
 
@@ -49,7 +52,7 @@ Extend profile-based planning guidance into the next architecture-fit and equipm
 - Detailed continuity docs still exist and remain valuable, but they are too large to treat as mandatory startup context.
 - Provenance coverage is still partial, so trust messaging must stay explicit.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
-- Existing local databases may need reseeding to surface the new seeded backup-load-selection rule provenance record.
+- Existing local databases may need reseeding to surface the new seeded backup-architecture-consistency and profile-architecture-fit rule provenance records.
 
 ## Canonical Detailed References
 

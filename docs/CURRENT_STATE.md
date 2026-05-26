@@ -30,11 +30,14 @@
 - Recommendation profiles now include a first internal battery sizing estimate layer based on current backup-load modeling and profile posture
 - Recommendation profiles now include a first internal solar sizing and recovery estimate layer based on recovery posture, low-solar assumptions, and battery-recovery planning
 - Recommendation profile fit, battery guidance, and solar guidance now include additive inspectability metadata that exposes basis signals, estimated inputs, incomplete inputs, confidence posture, and partial-provenance warnings without exposing raw formulas
-- Recommendation outputs now also include an additive deterministic backup-load selection summary that makes current backup scope, fallback posture, and planning gaps explicit before panel/service, battery, or solar guidance is interpreted
+- Recommendation outputs now also include an additive deterministic backup-load selection summary that makes current backup scope, recorded-load coverage, outage posture, confidence posture, fallback posture, and planning gaps explicit before panel/service, battery, or solar guidance is interpreted
 - Solar guidance now also applies a first coarse site-aware adjustment layer using recorded roof placement where available, fallback shading caution, coarse seasonal region posture, and install-path realism signals
 - Solar guidance now also carries an explicit roof-readiness layer that distinguishes inferred placement realism, estimated roof-capacity posture, measured roof-geometry availability, and future usable-area support
 - Recommendation outputs now also carry a preliminary panel/service architecture layer that classifies likely service posture and backup-architecture direction before inverter, smart-panel modifier, or generator sizing
+- Panel/service guidance now also carries an additive architecture-consistency check that keeps broader backup direction bounded by recorded outage posture and design-goal intent
+- Recommendation profiles now also carry an additive architecture-fit tradeoff layer that explains how current equipment mix, outage posture, panel/service direction, and architecture-consistency posture pull each profile narrower or broader
 - The Design Advisor now surfaces panel/service planning-direction confidence, trust framing, and inspectability inputs more explicitly instead of showing only the high-level direction
+- The Design Advisor now also surfaces profile-level architecture-fit tradeoffs and warnings beside each recommendation profile card
 - Seeded advisor panel/service outputs now have narrow backend regression coverage for the current demo designs
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
@@ -47,7 +50,7 @@
 - Verified product ingestion and provenance
 - Exhaustive field-level provenance coverage across scenarios, pathways, designs, and home-model facts
 - Existing local databases may need reseeding or manual provenance entry to show the new seeded pathway lineage examples
-- Existing local databases may also need reseeding to surface the new backup-load-selection rule provenance record
+- Existing local databases may also need reseeding to surface the new backup-architecture-consistency and profile-architecture-fit rule provenance records
 - Recommendation profiles and sizing slices are now more inspectable, but they still remain planning guidance only and are not yet connected to deeper site-aware recommendation logic
 - Battery sizing now has a first numeric planning layer, but richer battery/site constraints and product-specific sizing are still not implemented behind the profile system
 - Solar sizing now has a first numeric planning layer plus a coarse site-aware adjustment stage, but richer seasonal modeling, roof-capacity realism, and more grounded recovery inputs are still incomplete behind the profile system
@@ -80,5 +83,7 @@
 - The new roof-readiness layer is architectural scaffolding for future measured-geometry inputs; it does not imply that scaled or traced roof data already exists.
 - The new panel/service layer uses current panel, service, load-grouping, and pathway signals only; it does not confirm busbar compliance, transfer topology, or final backup hardware architecture.
 - The panel/service UI now makes its confidence posture more visible, but that confidence still reflects deterministic planning evidence rather than electrical verification.
-- The new backup-load selection layer prevents silent scope inflation, but it still depends on recorded essential/preferred tagging rather than circuit-level load studies or outage sequencing.
+- The new backup-load selection layer prevents silent scope inflation and now distinguishes critical-load, partial-home, and whole-home candidates from recorded load coverage, but it still depends on recorded essential/preferred tagging rather than circuit-level load studies or outage sequencing.
+- The new architecture-consistency check narrows backup-direction claims when the design goal outruns recorded load grouping, but it remains a planning-only alignment check rather than an engineering validation.
+- The new profile architecture-fit layer explains tradeoffs around current equipment mix and backup-path direction, but it remains a planning-only interpretation layer rather than a final architecture approval.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

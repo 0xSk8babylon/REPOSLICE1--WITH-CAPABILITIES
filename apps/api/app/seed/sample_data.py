@@ -356,6 +356,16 @@ SAMPLE_RULE_PROVENANCE = [
         "notes": "Planning guidance only. Does not confirm busbar compliance, interlock details, or final backup architecture engineering.",
     },
     {
+        "id": "rule_prov_recommendation_backup_architecture_consistency",
+        "rule_key": "recommendation.backup_architecture_consistency_v1",
+        "rule_name": "Backup Architecture Consistency Check",
+        "source_type": "internal_rule",
+        "source_document_id": "source_doc_internal_rulebook",
+        "trust_state": "derived_estimate",
+        "description": "Checks whether partial-home or whole-home backup direction stays consistent with the recorded outage posture, current design goal, and current panel/service planning evidence.",
+        "notes": "Planning guidance only. Narrows architecture claims when recorded load grouping does not justify broader outage assumptions.",
+    },
+    {
         "id": "rule_prov_advisor_ecosystems",
         "rule_key": "advisor.mixed_ecosystems",
         "rule_name": "Mixed Ecosystem Planning",

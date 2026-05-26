@@ -15,7 +15,7 @@ This pressure has been reduced but not eliminated.
 
 ## 12. Recommendation Architecture Exists Before Deep Sizing Math
 
-- Current pressure: the recommendation-profile model now includes first battery and solar sizing layers, better inspectability, a coarse site-aware solar adjustment, a roof-readiness layer, and a preliminary panel/service architecture layer, but provenance depth and richer site-aware sizing behavior are still incomplete.
+- Current pressure: the recommendation-profile model now includes first battery and solar sizing layers, better inspectability, explicit backup-scope posture/confidence, a coarse site-aware solar adjustment, a roof-readiness layer, and a preliminary panel/service architecture layer with consistency checks, but provenance depth and richer site-aware sizing behavior are still incomplete.
 - Risk: future sessions may overclaim the current slices as a full sizing engine or bypass the profile architecture with ad hoc recommendation logic.
 
 ## 3. Seed Data And Real Data Share The Same Persistence Layer

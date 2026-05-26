@@ -20,6 +20,13 @@ function getConfidenceTone(confidenceLevel) {
   return "danger";
 }
 
+function formatCoveragePercent(ratio) {
+  if (typeof ratio !== "number") {
+    return "Not recorded";
+  }
+  return `${Math.round(ratio * 100)}%`;
+}
+
 export function DesignAdvisorPage() {
   const designsQuery = useApiQuery("designs", api.getDesigns);
   const designs = designsQuery.data || [];
@@ -155,9 +162,26 @@ export function DesignAdvisorPage() {
                   <div className="panel">
                     <div className="panel-header">
                       <h3>Backup Scope Selection</h3>
-                      <Badge tone="info">
-                        {advisorQuery.data.recommendation_profiles.backup_load_selection.selected_scope_label}
-                      </Badge>
+                      <div className="badge-row">
+                        <Badge tone="info">
+                          {advisorQuery.data.recommendation_profiles.backup_load_selection.selected_scope_label}
+                        </Badge>
+                        <TrustBadge
+                          state={advisorQuery.data.recommendation_profiles.backup_load_selection.inspectability?.trust_state || "derived_estimate"}
+                          label="Planning-only outage posture"
+                        />
+                        <Badge
+                          tone={getConfidenceTone(
+                            advisorQuery.data.recommendation_profiles.backup_load_selection.confidence_level ||
+                              advisorQuery.data.recommendation_profiles.backup_load_selection.inspectability?.confidence_level
+                          )}
+                        >
+                          Confidence:{" "}
+                          {advisorQuery.data.recommendation_profiles.backup_load_selection.confidence_level ||
+                            advisorQuery.data.recommendation_profiles.backup_load_selection.inspectability?.confidence_level ||
+                            "unknown"}
+                        </Badge>
+                      </div>
                     </div>
                     <div className="metric-stack">
                       <MetricRow
@@ -172,9 +196,25 @@ export function DesignAdvisorPage() {
                         label="Priority band"
                         value={advisorQuery.data.recommendation_profiles.backup_load_selection.selected_priority_band.replaceAll("_", " ")}
                       />
+                      <MetricRow
+                        label="Outage posture"
+                        value={advisorQuery.data.recommendation_profiles.backup_load_selection.outage_posture}
+                      />
+                      <MetricRow
+                        label="Coverage of recorded loads"
+                        value={formatCoveragePercent(
+                          advisorQuery.data.recommendation_profiles.backup_load_selection.coverage_ratio_of_recorded_loads
+                        )}
+                      />
                     </div>
                     <p className="callout-copy">
                       {advisorQuery.data.recommendation_profiles.backup_load_selection.selection_reason}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.backup_load_selection.outage_posture_reason}
+                    </p>
+                    <p className="callout-copy">
+                      {advisorQuery.data.recommendation_profiles.backup_load_selection.confidence_reason}
                     </p>
                     {advisorQuery.data.recommendation_profiles.backup_load_selection.planning_gap_warning ? (
                       <p className="callout-copy">
@@ -192,6 +232,11 @@ export function DesignAdvisorPage() {
                           ))}
                         </ul>
                       </div>
+                    ) : null}
+                    {advisorQuery.data.recommendation_profiles.backup_load_selection.inspectability?.partial_provenance_warning ? (
+                      <p className="callout-copy">
+                        {advisorQuery.data.recommendation_profiles.backup_load_selection.inspectability.partial_provenance_warning}
+                      </p>
                     ) : null}
                     <p className="callout-copy">
                       {advisorQuery.data.recommendation_profiles.backup_load_selection.scope_note}
@@ -240,6 +285,30 @@ export function DesignAdvisorPage() {
                     <p className="callout-copy">
                       {advisorQuery.data.recommendation_profiles.panel_service_architecture.generator_integration_readiness_note}
                     </p>
+                    {advisorQuery.data.recommendation_profiles.panel_service_architecture.architecture_consistency ? (
+                      <div className="solution-list">
+                        <strong>Architecture consistency</strong>
+                        <ul>
+                          <li>
+                            Status:{" "}
+                            {advisorQuery.data.recommendation_profiles.panel_service_architecture.architecture_consistency.status}
+                          </li>
+                          <li>
+                            Summary:{" "}
+                            {advisorQuery.data.recommendation_profiles.panel_service_architecture.architecture_consistency.summary}
+                          </li>
+                          <li>
+                            Reason:{" "}
+                            {advisorQuery.data.recommendation_profiles.panel_service_architecture.architecture_consistency.reason}
+                          </li>
+                          {(
+                            advisorQuery.data.recommendation_profiles.panel_service_architecture.architecture_consistency.warnings || []
+                          ).map((item) => (
+                            <li key={item}>Warning: {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
                     {advisorQuery.data.recommendation_profiles.panel_service_architecture.inspectability ? (
                       <div className="solution-list">
                         <strong>Architecture basis</strong>
