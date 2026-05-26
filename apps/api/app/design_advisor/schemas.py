@@ -50,6 +50,16 @@ class ArchitectureConsistencyCheck(ORMModel):
     warnings: List[str] = Field(default_factory=list)
 
 
+class ProfileArchitectureFitAssessment(ORMModel):
+    status: str
+    equipment_mix_summary: str
+    backup_path_summary: str
+    summary: str
+    reason: str
+    tradeoffs: List[str] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
+
+
 class BackupLoadSelectionSummary(ORMModel):
     selected_scope_label: str
     selection_basis: str
@@ -149,6 +159,7 @@ class RecommendationProfileCard(ORMModel):
     ui_description: str
     recommended: bool = False
     fit_reason: Optional[str] = None
+    architecture_fit: Optional[ProfileArchitectureFitAssessment] = None
     inspectability: Optional[EstimateInspectability] = None
 
 
