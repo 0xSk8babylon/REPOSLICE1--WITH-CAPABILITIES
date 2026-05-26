@@ -6,6 +6,7 @@ Extend the inspectable recommendation-profile model into the next architecture-f
 
 ## Why This Is Next
 
+- The current panel/service trust-signal layer is now stabilized with explicit confidence framing and seeded regression coverage, so the next change can move forward without reopening that wording boundary.
 - Trust visibility now makes uncertainty obvious, and scenario comparison now exposes lineage, but the underlying provenance model is still thin.
 - Backup-load selection is now explicit, so the next slice can reason about architecture fit from a better-grounded planning scope instead of broad inferred outage intent.
 - A provenance foundation now exists, but it still does not cover every field or every derived output path.

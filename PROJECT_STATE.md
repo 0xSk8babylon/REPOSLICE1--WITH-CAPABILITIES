@@ -31,11 +31,12 @@
 - Solar guidance now also includes an explicit roof-data-completeness and roof-measurement-confidence layer that distinguishes inferred placement realism from future measured roof geometry
 - Recommendation outputs now also include a preliminary panel/service architecture layer that constrains backup design direction before inverter, smart-panel modifier, or generator sizing
 - Recommendation outputs now also include an explicit deterministic backup-load selection layer that distinguishes recorded load grouping from the currently selected planning scope before battery, solar, or backup-architecture guidance is interpreted
+- The Design Advisor now surfaces panel/service planning-direction confidence and inspectability more explicitly, and seeded advisor states now have minimal backend regression coverage
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Extend profile-based planning guidance into the next architecture-fit and equipment-mix recommendation slice while keeping formulas internal, provenance-aware, and planning-only, now that backup-load selection, panel/service posture, and roof-capacity certainty are each explicit layers.
+Extend profile-based planning guidance into the next architecture-fit and equipment-mix recommendation slice while keeping formulas internal, provenance-aware, and planning-only, now that backup-load selection, panel/service posture, roof-capacity certainty, and current panel/service trust framing are each explicit layers.
 
 ## Restore Model
 

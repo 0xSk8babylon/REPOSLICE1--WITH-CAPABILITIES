@@ -34,6 +34,8 @@
 - Solar guidance now also applies a first coarse site-aware adjustment layer using recorded roof placement where available, fallback shading caution, coarse seasonal region posture, and install-path realism signals
 - Solar guidance now also carries an explicit roof-readiness layer that distinguishes inferred placement realism, estimated roof-capacity posture, measured roof-geometry availability, and future usable-area support
 - Recommendation outputs now also carry a preliminary panel/service architecture layer that classifies likely service posture and backup-architecture direction before inverter, smart-panel modifier, or generator sizing
+- The Design Advisor now surfaces panel/service planning-direction confidence, trust framing, and inspectability inputs more explicitly instead of showing only the high-level direction
+- Seeded advisor panel/service outputs now have narrow backend regression coverage for the current demo designs
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
 - Scenario comparison now consumes linked design completeness, pathway signals, trust warnings, and source-lineage summaries instead of returning a placeholder-only comparison shell
@@ -77,5 +79,6 @@
 - The new solar site-aware layer uses only coarse internal postures and fallback caution defaults; it is not a production model, roof-fit model, or shading analysis.
 - The new roof-readiness layer is architectural scaffolding for future measured-geometry inputs; it does not imply that scaled or traced roof data already exists.
 - The new panel/service layer uses current panel, service, load-grouping, and pathway signals only; it does not confirm busbar compliance, transfer topology, or final backup hardware architecture.
+- The panel/service UI now makes its confidence posture more visible, but that confidence still reflects deterministic planning evidence rather than electrical verification.
 - The new backup-load selection layer prevents silent scope inflation, but it still depends on recorded essential/preferred tagging rather than circuit-level load studies or outage sequencing.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

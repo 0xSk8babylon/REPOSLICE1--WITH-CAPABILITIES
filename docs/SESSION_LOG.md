@@ -54,3 +54,6 @@
 - Battery, solar, and panel/service guidance now consume the explicit selected backup scope and expose planning-gap warnings when broader backup ambition is not actually recorded in load grouping.
 - Added a seeded internal rule provenance record for deterministic backup-load selection.
 - Verified the refinement with `python3 -m compileall apps/api/app` and `npm run build` in `apps/web`.
+- Stabilized the Design Advisor panel/service card so it shows explicit planning-only trust framing, confidence posture, and inspectability inputs.
+- Added minimal backend regression coverage for seeded panel/service advisor outputs on `design_001` and `design_002`.
+- Verified the stabilization with `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 -m compileall apps/api/app`, and `npm run build` in `apps/web`.
