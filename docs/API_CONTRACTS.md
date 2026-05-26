@@ -22,6 +22,7 @@
 - `GET /api/compatibility-rules/evaluate/{design_id}`
 - `GET /api/scenarios`
 - `GET /api/scenarios/compare`
+- `GET /api/scenarios/{scenario_id}/revisions`
 - `GET /api/equipment/locations`
 - `GET /api/estimated-pathways`
 - `GET /api/takeoffs/current`
@@ -40,6 +41,8 @@
 - `POST/PATCH /api/designs`
 - `POST/PATCH /api/product-library`
 - `POST/PATCH /api/scenarios`
+  - scenario responses now include additive `created_at`, `updated_at`, `revision_overview`, and `revisions`
+  - create/update flows now capture additive immutable scenario revisions behind the existing live scenario record
 - `POST/PATCH /api/equipment/locations`
 - `POST/PATCH /api/estimated-pathways`
 
@@ -49,8 +52,9 @@
   - frontend depends on nested buildings and panels
 - design/advisor/context endpoints
   - frontend assumes stable design IDs and current persisted demo data
-  - `GET /api/design-advisor/summary/{design_id}` now includes additive `recommendation_profiles` guidance
-  - `GET /api/design-advisor/summary/{design_id}` now also includes additive `planning_state` snapshot framing for the live design state, generated pathway variants, and linked saved-scenario metadata
+- `GET /api/design-advisor/summary/{design_id}` now includes additive `recommendation_profiles` guidance
+- `GET /api/design-advisor/summary/{design_id}` now also includes additive `planning_state` snapshot framing for the live design state, generated pathway variants, and linked saved-scenario metadata
+  - `planning_state.linked_scenarios[*]` now also includes additive latest-revision identity metadata when saved scenario revisions exist
   - `recommendation_profiles.profiles[*]` now include additive planning-only battery sizing estimate ranges
   - `recommendation_profiles.profiles[*]` now include additive planning-only solar sizing and recovery estimate ranges
   - `recommendation_profiles.profiles[*]` now include additive `architecture_fit` tradeoff summaries, warnings, and status tied to recorded equipment mix and backup-path posture
@@ -66,6 +70,7 @@
   - current UI treats placeholder score/cost content as planning-level outputs only
 - `GET /api/scenarios/compare`
   - now returns additive comparison metadata, rankings, warnings, completeness, and lineage summaries on top of scenario records
+  - scenario records returned in comparison now also include additive revision framing and immutable revision history summaries
 - `GET /api/loads`
   - now returns additive `provenance_summary` metadata on each load record
 - `GET /api/estimated-pathways`

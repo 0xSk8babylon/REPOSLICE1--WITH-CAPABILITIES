@@ -248,6 +248,34 @@ class Scenario(Base, TimestampMixin):
 
     home: Mapped["Home"] = relationship("Home", back_populates="scenarios")
     design: Mapped["EnergySystemDesign"] = relationship("EnergySystemDesign", back_populates="scenarios")
+    revisions: Mapped[List["ScenarioRevision"]] = relationship(
+        "ScenarioRevision", back_populates="scenario", cascade="all, delete-orphan"
+    )
+
+
+class ScenarioRevision(Base, TimestampMixin):
+    __tablename__ = "scenario_revisions"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    scenario_id: Mapped[str] = mapped_column(ForeignKey("scenarios.id"), index=True)
+    parent_revision_id: Mapped[Optional[str]] = mapped_column(
+        ForeignKey("scenario_revisions.id"), nullable=True, index=True
+    )
+    revision_number: Mapped[int] = mapped_column(Integer)
+    revision_label: Mapped[str] = mapped_column(String)
+    revision_status: Mapped[str] = mapped_column(String, default="saved_revision")
+    linked_design_id: Mapped[str] = mapped_column(String, index=True)
+    design_goal_snapshot: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    design_status_snapshot: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    recommended_profile_snapshot: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    planning_summary: Mapped[str] = mapped_column(Text)
+    planning_state_snapshot: Mapped[dict] = mapped_column(JSON)
+    data_origin: Mapped[str] = mapped_column(String, default="derived_estimate", index=True)
+
+    scenario: Mapped["Scenario"] = relationship("Scenario", back_populates="revisions")
+    parent_revision: Mapped[Optional["ScenarioRevision"]] = relationship(
+        "ScenarioRevision", remote_side="ScenarioRevision.id"
+    )
 
 
 class TakeoffRequest(Base, TimestampMixin):

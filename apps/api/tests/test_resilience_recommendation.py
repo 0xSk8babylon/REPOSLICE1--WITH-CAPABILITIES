@@ -222,6 +222,9 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         self.assertEqual(1, len(planning_state.linked_scenarios))
         self.assertEqual("scenario_001", planning_state.linked_scenarios[0].scenario_id)
         self.assertEqual("design_001", planning_state.linked_scenarios[0].linked_design_id)
+        self.assertEqual("scenario_001_rev_001", planning_state.linked_scenarios[0].latest_revision_id)
+        self.assertEqual("Revision 1", planning_state.linked_scenarios[0].latest_revision_label)
+        self.assertEqual(1, planning_state.linked_scenarios[0].latest_revision_number)
 
     def test_planning_state_snapshot_frames_design_002_scenarios_without_new_recommendation_logic(self):
         result = self._advisor_summary("design_002")
@@ -232,6 +235,7 @@ class ResilienceRecommendationRegressionTests(unittest.TestCase):
         self.assertEqual(1, planning_state.scenario_count)
         self.assertEqual("scenario_002", planning_state.linked_scenarios[0].scenario_id)
         self.assertEqual("linked planning scenario", planning_state.linked_scenarios[0].state_label)
+        self.assertEqual("scenario_002_rev_001", planning_state.linked_scenarios[0].latest_revision_id)
 
         variant_map = {variant.variant_key: variant for variant in planning_state.variants}
         self.assertEqual("premium_future_ready", variant_map["proposed_pathway"].profile.value)

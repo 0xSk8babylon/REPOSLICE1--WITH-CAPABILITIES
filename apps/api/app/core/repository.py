@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core import models
+from app.scenarios.schemas import Scenario
 
 
 def _apply_updates(instance, update_model):
@@ -12,6 +13,21 @@ def _apply_updates(instance, update_model):
 
 
 class DatabaseRepository:
+    def _serialize_scenario(self, db: Session, scenario):
+        if scenario is None:
+            return None
+        from app.services.scenario_revision import scenario_revision_service
+
+        serialized = Scenario.from_orm(scenario).dict()
+        serialized["revision_overview"] = scenario_revision_service.build_revision_overview(
+            db, scenario.id
+        ).dict()
+        serialized["revisions"] = [
+            revision.dict()
+            for revision in scenario_revision_service.list_revision_summaries(db, scenario.id)
+        ]
+        return serialized
+
     def list_accounts(self, db: Session):
         statement = select(models.Account).order_by(models.Account.created_at)
         return db.scalars(statement).all()
@@ -305,29 +321,43 @@ class DatabaseRepository:
             statement = statement.where(models.CompatibilityIssue.design_id == design_id)
         return db.scalars(statement).all()
 
-    def list_scenarios(self, db: Session):
-        statement = select(models.Scenario).order_by(models.Scenario.created_at)
+    def list_scenario_models(self, db: Session):
+        statement = (
+            select(models.Scenario)
+            .options(selectinload(models.Scenario.revisions))
+            .order_by(models.Scenario.created_at)
+        )
         return db.scalars(statement).all()
 
+    def get_scenario_model(self, db: Session, scenario_id: str):
+        statement = (
+            select(models.Scenario)
+            .where(models.Scenario.id == scenario_id)
+            .options(selectinload(models.Scenario.revisions))
+        )
+        return db.scalars(statement).first()
+
+    def list_scenarios(self, db: Session):
+        return [self._serialize_scenario(db, scenario) for scenario in self.list_scenario_models(db)]
+
     def get_scenario(self, db: Session, scenario_id: str):
-        return db.get(models.Scenario, scenario_id)
+        return self._serialize_scenario(db, self.get_scenario_model(db, scenario_id))
 
     def create_scenario(self, db: Session, payload):
         scenario = models.Scenario(**payload.dict())
         db.add(scenario)
         db.commit()
         db.refresh(scenario)
-        return scenario
+        return self.get_scenario(db, scenario.id)
 
     def update_scenario(self, db: Session, scenario_id: str, payload):
-        scenario = self.get_scenario(db, scenario_id)
+        scenario = db.get(models.Scenario, scenario_id)
         _apply_updates(scenario, payload)
         db.commit()
-        db.refresh(scenario)
-        return scenario
+        return self.get_scenario(db, scenario_id)
 
     def delete_scenario(self, db: Session, scenario_id: str):
-        scenario = self.get_scenario(db, scenario_id)
+        scenario = db.get(models.Scenario, scenario_id)
         db.delete(scenario)
         db.commit()
 

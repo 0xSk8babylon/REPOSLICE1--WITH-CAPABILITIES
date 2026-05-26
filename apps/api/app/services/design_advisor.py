@@ -126,16 +126,24 @@ class DesignAdvisorService:
                 scenario_name=scenario.name,
                 description=scenario.description,
                 linked_design_id=scenario.linked_design_id,
+                latest_revision_id=latest_revision.id if latest_revision else None,
+                latest_revision_label=latest_revision.revision_label if latest_revision else None,
+                latest_revision_number=latest_revision.revision_number if latest_revision else 0,
                 data_origin=scenario.data_origin,
                 updated_at_label=self._format_version_label(scenario.updated_at),
                 state_label="linked planning scenario",
-                note="Saved scenario metadata exists for this design, but the current advisor output still reflects the live linked design state.",
+                note=(
+                    "Latest immutable revision metadata is attached when available, but the current advisor output still reflects the live linked design state."
+                    if latest_revision
+                    else "Saved scenario metadata exists for this design, but no immutable revision has been captured yet."
+                ),
             )
             for scenario in sorted(
                 [scenario for scenario in getattr(design, "scenarios", []) if scenario.linked_design_id == design.id],
                 key=lambda scenario: (scenario.updated_at or scenario.created_at),
                 reverse=True,
             )
+            for latest_revision in [max(getattr(scenario, "revisions", []), key=lambda revision: revision.revision_number, default=None)]
         ]
 
         return PlanningStateSnapshot(

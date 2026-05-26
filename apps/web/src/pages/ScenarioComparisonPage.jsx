@@ -29,6 +29,14 @@ function buildScenarioState(homeId, linkedDesignId, scenario) {
   };
 }
 
+function getRevisionIdentityLabel(scenario) {
+  const revisionOverview = scenario?.revision_overview;
+  if (!revisionOverview?.latest_revision_label) {
+    return "No saved revision yet";
+  }
+  return `${revisionOverview.latest_revision_label} (#${revisionOverview.latest_revision_number})`;
+}
+
 function ScenarioEditor({ homeId, designs, scenario, onSaved, isNew = false }) {
   const defaultDesignId = designs[0]?.id || "";
   const [formState, setFormState] = useState(buildScenarioState(homeId, defaultDesignId, scenario));
@@ -79,6 +87,9 @@ function ScenarioEditor({ homeId, designs, scenario, onSaved, isNew = false }) {
             {scenario?.data_origin === "user_created" && scenario?.upfront_cost_placeholder != null ? (
               <TrustBadge state="user_created" label="User-entered estimate" />
             ) : null}
+            {scenario?.revision_overview?.latest_revision_label ? (
+              <Badge tone="warning">{getRevisionIdentityLabel(scenario)}</Badge>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -98,6 +109,16 @@ function ScenarioEditor({ homeId, designs, scenario, onSaved, isNew = false }) {
           <ScoreCard label="Install complexity" value={formState.install_complexity_score || "N/A"} />
           <ScoreCard label="Backup capability" value={formState.backup_capability_score || "N/A"} />
         </div>
+      ) : null}
+      {!isNew ? (
+        <details className="solution-list">
+          <summary>View revision framing</summary>
+          <div className="metric-stack">
+            <MetricRow label="Revision count" value={scenario?.revision_overview?.revision_count ?? 0} />
+            <MetricRow label="Latest revision" value={getRevisionIdentityLabel(scenario)} />
+            <MetricRow label="Revision note" value={scenario?.revision_overview?.note || "No revision note yet"} />
+          </div>
+        </details>
       ) : null}
       <FormStatus saving={mutation.saving} error={mutation.error} />
       <FormActions saving={mutation.saving} onCancel={() => setFormState(buildScenarioState(homeId, defaultDesignId, scenario))} saveLabel={isNew ? "Create Scenario" : "Save Scenario"} />
@@ -213,6 +234,9 @@ export function ScenarioComparisonPage() {
                     </div>
                     <div className="badge-row">
                       <Badge tone="info">{linkedDesign?.design_goal || "Unknown goal"}</Badge>
+                      {scenario.revision_overview?.latest_revision_label ? (
+                        <Badge tone="warning">{getRevisionIdentityLabel(scenario)}</Badge>
+                      ) : null}
                       {getScenarioTrustStates(scenario).map((state) => (
                         <TrustBadge
                           key={`summary-${scenario.id}-${state}`}
@@ -233,6 +257,7 @@ export function ScenarioComparisonPage() {
                     <MetricRow label="Linked pathways" value={scenario.comparison_summary?.pathway_count ?? 0} />
                     <MetricRow label="Low-confidence pathways" value={scenario.comparison_summary?.low_confidence_pathway_count ?? 0} />
                     <MetricRow label="Provenance documents" value={scenario.lineage_summary?.source_document_ids?.length ?? 0} />
+                    <MetricRow label="Revision count" value={scenario.revision_overview?.revision_count ?? 0} />
                   </div>
                   <div className="score-grid">
                     <ScoreCard label="Expansion readiness" value={scenario.future_expansion_score ?? "N/A"} />
@@ -258,6 +283,20 @@ export function ScenarioComparisonPage() {
                       value={scenario.lineage_summary?.notes?.length ? scenario.lineage_summary.notes.join(" | ") : "No lineage notes yet"}
                     />
                   </div>
+                  {scenario.revisions?.length ? (
+                    <details className="solution-list">
+                      <summary>View saved revisions</summary>
+                      <div className="metric-stack">
+                        {scenario.revisions.map((revision) => (
+                          <MetricRow
+                            key={revision.id}
+                            label={`${revision.revision_label} (${revision.revision_status.replaceAll("_", " ")})`}
+                            value={`${revision.created_at} | ${revision.recommended_profile_snapshot || "No profile snapshot"} | ${revision.design_status_snapshot || "No status snapshot"}`}
+                          />
+                        ))}
+                      </div>
+                    </details>
+                  ) : null}
                   {scenario.warnings?.length ? (
                     <div className="metric-stack">
                       {scenario.warnings.map((warning) => (

@@ -48,6 +48,8 @@
 - The Design Advisor now also renders a planning-pathway comparison workspace that anchors current state once and compares recommended, future-ready, staged, and constrained profile postures against the same backup, panel/service, and inverter architecture context
 - The Design Advisor API now also carries an additive `planning_state` snapshot envelope that ties current recommendation, architecture, reasoning, and pathway-comparison outputs to a specific live design state plus any linked saved scenario records
 - The Design Advisor UI now also surfaces snapshot identity, generated state variants, linked scenario metadata, and version framing so the workspace reads as an iterative planning state instead of a one-off recommendation page
+- Scenario persistence now also includes additive immutable scenario revisions so saved planning states can accumulate revision lineage, stable revision identity, and compact advisor-linked planning-state framing over time
+- The Design Advisor and Scenario Comparison UIs now also surface latest revision identity and revision counts so live workspace state, saved scenario state, and historical revision state remain visibly distinct
 - Seeded advisor panel/service outputs now have narrow backend regression coverage for the current demo designs
 - Expanded AI grounding context with trust state, completeness, maturity, ecosystem mixing, and pathway confidence
 - Source-document, data-provenance, and rule-provenance foundation for products, assumptions, internal rules, and transient takeoff reasoning
@@ -102,4 +104,5 @@
 - The advisor page is now easier to scan and more diagrammatic, but it still relies on existing generic layout primitives rather than a dedicated architecture-visualization component system.
 - The new pathway-comparison surface improves tradeoff readability, but it remains interpretive UI scaffolding over the current profile catalog rather than a dedicated backend scenario-diff model.
 - The new planning-state snapshot layer is identity framing only; it does not yet persist historical advisor payload revisions or scenario-specific recommendation snapshots.
+- The new scenario-revision layer persists compact planning-state framing and revision lineage, but it does not yet store full historical advisor payloads or replayable revision-specific reasoning graphs.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.

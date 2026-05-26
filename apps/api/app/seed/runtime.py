@@ -22,6 +22,7 @@ from app.seed.sample_data import (
     SAMPLE_SOURCE_DOCUMENTS,
     SAMPLE_TAKEOFF,
 )
+from app.services.scenario_revision import scenario_revision_service
 
 
 DEMO_SEED_HOME_ID = SAMPLE_HOME["id"]
@@ -136,6 +137,7 @@ def seed_database(db: Session, force: bool = False):
         _backfill_global_rule_provenance_rows(db)
         if _is_demo_seed_dataset(db):
             _backfill_demo_entity_provenance_rows(db)
+        scenario_revision_service.ensure_revisions_for_existing_scenarios(db)
         return
 
     if force:
@@ -210,6 +212,7 @@ def seed_database(db: Session, force: bool = False):
         db.add(models.RuleProvenance(**record))
 
     db.commit()
+    scenario_revision_service.ensure_revisions_for_existing_scenarios(db)
 
 
 def initialize_and_seed(db: Session):

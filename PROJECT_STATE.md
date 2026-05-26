@@ -42,11 +42,12 @@
 - The Design Advisor UI now also renders the current-home-energy-architecture and structured reasoning graph layers through more visual planning surfaces, including architecture relationship mapping, explicit existing/proposed/missing state cards, and a compact dependency-chain trace while preserving text fallback and trust framing
 - The Design Advisor UI now also includes a planning-pathway comparison workspace that anchors current state once and compares multiple deterministic profile postures against the same backup, panel/service, and inverter architecture context without adding frontend-side recommendation logic
 - The Design Advisor API now also includes an additive `planning_state` snapshot envelope so recommendation, architecture, and pathway-comparison outputs are explicitly tied to a specific live design state plus any linked persistent scenario records
+- Scenario persistence now also includes additive immutable scenario revisions so saved planning states can accumulate revision lineage and advisor-linked snapshot framing without replacing the current live scenario workspace model
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that current-state solar topology, backup-scope posture, panel/service consistency, inverter/system architecture, structured reasoning dependencies, advisor pathway comparison, and the planning-state snapshot envelope are explicit layers.
+Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that current-state solar topology, backup-scope posture, panel/service consistency, inverter/system architecture, structured reasoning dependencies, advisor pathway comparison, the planning-state snapshot envelope, and lightweight persistent scenario revisions are explicit layers.
 
 ## Restore Model
 
@@ -60,6 +61,7 @@ Deepen the solar-readiness and roof-capacity realism slice behind the current pr
 - Provenance coverage is still partial, so trust messaging must stay explicit.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
 - Existing local databases may need reseeding to surface the new seeded current-home-energy-architecture, backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph rule provenance records.
+- Existing local databases may also need either app restart or reseeding to create baseline rows in the new `scenario_revisions` table for older scenario records.
 
 ## Canonical Detailed References
 

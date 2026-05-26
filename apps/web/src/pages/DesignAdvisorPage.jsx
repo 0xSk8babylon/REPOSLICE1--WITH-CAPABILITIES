@@ -484,6 +484,11 @@ function PlanningStateSnapshotPanel({ planningState }) {
                 <p>{scenario.description}</p>
                 <div className="trust-row">
                   <Badge>{scenario.updated_at_label}</Badge>
+                  {scenario.latest_revision_label ? (
+                    <Badge tone="warning">
+                      {scenario.latest_revision_label}#{scenario.latest_revision_number}
+                    </Badge>
+                  ) : null}
                   <TrustBadge state={scenario.data_origin} />
                 </div>
                 <small>{scenario.note}</small>

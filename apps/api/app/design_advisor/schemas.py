@@ -228,6 +228,9 @@ class PlanningStateScenarioLink(ORMModel):
     scenario_name: str
     description: str
     linked_design_id: str
+    latest_revision_id: Optional[str] = None
+    latest_revision_label: Optional[str] = None
+    latest_revision_number: int = 0
     data_origin: DataOrigin
     updated_at_label: str
     state_label: str
