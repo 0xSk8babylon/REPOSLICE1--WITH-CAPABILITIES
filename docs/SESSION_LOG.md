@@ -107,3 +107,6 @@
 - Normalized source-of-truth terminology for authority layers, provenance lineage, trust zones, data classification, scoped API views, and RBAC boundaries.
 - Clarified that data classification and scoped API views are future design boundaries only; current APIs do not implement RBAC, tenant isolation, contractor packets, utility submissions, or operational-control enforcement.
 - Updated API, trust, provenance, security, governance, orchestration, continuity, and state docs without changing runtime behavior.
+- Added backend authority-layer, data-classification, API-view audience, view-boundary, and permission-readiness metadata types.
+- Added descriptive boundary metadata to provenance summaries, recommendation inspectability, AI context, scenario comparison, account responses, and the placeholder estimate endpoint without filtering responses or changing recommendation behavior.
+- Verified the additive backend metadata with `python3 -m unittest discover -s tests -p 'test_*.py'` and `python3 -m compileall app` in `apps/api`.

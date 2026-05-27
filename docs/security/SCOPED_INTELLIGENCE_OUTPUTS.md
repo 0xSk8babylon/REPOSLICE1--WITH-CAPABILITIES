@@ -17,6 +17,13 @@ Future scoped API views should include:
 - provenance summary with source objects, data origin, confidence, assumptions, and missing inputs
 - explicit planning-only limitations where engineering, permitting, utility, or operational authority is absent
 
+Current additive metadata support:
+
+- Backend enums now represent authority layers, data classifications, and intended API-view audiences.
+- Backend schema helpers now represent view-boundary and permission-readiness metadata.
+- AI context and scenario comparison responses now carry additive view-boundary metadata.
+- Account responses may carry additive permission-readiness metadata that explicitly marks role, plan, and subscription fields as non-enforcing scaffolding.
+
 Future scoped API views should exclude:
 
 - hidden AI-derived facts

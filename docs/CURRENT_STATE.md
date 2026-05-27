@@ -62,6 +62,8 @@
 - Repository-specific portable project skills now exist under `.codex/project-skills/` to reduce future restore-prompt size and route model-agnostic agents toward the right doctrine.
 - Canonical authority, trust-zone, provenance, data-classification, API-view, and RBAC-boundary language is now normalized across the source-of-truth docs.
 - Scoped API views and data classifications are documented as future contract boundaries only; existing APIs are not RBAC, tenant isolation, contractor packet, utility submission, or operational-control enforcement layers.
+- Backend schemas now include additive authority-layer, data-classification, API-view audience, view-boundary, and permission-readiness metadata types.
+- AI context, scenario comparison, provenance summaries, recommendation inspectability, account responses, and the placeholder estimate endpoint now include additive metadata that labels broad/raw exposure, derived estimates, limitations, and non-enforced permission posture without changing recommendation behavior or filtering responses.
 
 ## Still Incomplete
 

@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from app.core.schemas import ORMModel
+from pydantic import Field
+
+from app.core.schemas import ORMModel, PermissionReadinessMetadata
 from app.core.types import AccountRole, DataOrigin, PlanType, SubscriptionStatus
 
 
@@ -18,6 +20,14 @@ class Account(AccountBase):
     id: str
     created_at: datetime
     updated_at: datetime
+    permission_readiness: PermissionReadinessMetadata = Field(
+        default_factory=lambda: PermissionReadinessMetadata(
+            notes=[
+                "Account role, plan, and subscription fields are scaffolding only.",
+                "No RBAC, tenant isolation, subscription gating, or export authorization is enforced by these fields.",
+            ]
+        )
+    )
 
 
 class AccountCreate(AccountBase):

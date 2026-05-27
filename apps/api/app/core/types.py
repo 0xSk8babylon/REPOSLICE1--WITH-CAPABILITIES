@@ -166,6 +166,32 @@ class ConfidenceLevel(str, Enum):
     high = "high"
 
 
+class AuthorityLayer(str, Enum):
+    canonical = "canonical"
+    derived = "derived"
+    advisory = "advisory"
+    operational = "operational"
+    historical = "historical"
+
+
+class DataClassification(str, Enum):
+    public_reference = "public_reference"
+    planning_private = "planning_private"
+    contractor_scoped = "contractor_scoped"
+    utility_scoped = "utility_scoped"
+    operational_control = "operational_control"
+    internal_governance = "internal_governance"
+
+
+class ApiViewAudience(str, Enum):
+    consumer = "consumer"
+    ai = "ai"
+    contractor = "contractor"
+    utility = "utility"
+    operator = "operator"
+    internal = "internal"
+
+
 class RecommendationProfile(str, Enum):
     critical_efficient = "critical_efficient"
     balanced = "balanced"

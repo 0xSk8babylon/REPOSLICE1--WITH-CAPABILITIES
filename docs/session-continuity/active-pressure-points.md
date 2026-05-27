@@ -12,6 +12,7 @@ This pressure has been reduced but not eliminated.
 
 - Current pressure: a provenance foundation now exists, and scenario comparison, products, loads, and pathways now consume lineage summaries, but coverage is still partial and does not yet reach every important field or derived path.
 - Risk: future AI layers may overstate confidence unless provenance becomes explicit.
+- Stabilization: additive authority-layer, data-classification, derivation-type, limitation, view-boundary, and permission-readiness metadata now labels key derived and AI-facing outputs without changing behavior.
 
 ## 12. Recommendation Architecture Exists Before Deep Sizing Math
 
@@ -53,6 +54,7 @@ This pressure has been reduced but not eliminated.
 - Current pressure: `account_id`, roles, and subscription states are present but inactive.
 - Risk: future sessions may mistakenly assume multi-user safety, RBAC filtering, tenant isolation, or scoped exports already exist.
 - Current boundary: data classification and scoped API views are documented design concepts only; no runtime access-control enforcement exists.
+- Current stabilization: account responses may expose permission-readiness metadata, but it explicitly says role, plan, subscription, RBAC, tenant isolation, and export authorization are not enforced.
 
 ## 8. Continuity Risk From Context Resets
 
@@ -72,5 +74,6 @@ This pressure has been reduced but not eliminated.
 - Expand provenance coverage without implying that placeholder references are verified.
 - Continue extending scenario/pathway/design lineage beyond the current summary layer.
 - Define a future role-aware API view matrix before implementing contractor, utility, AI, or operational-control views.
+- Decide whether to split broad AI context into narrower additive view models before any future AI-safe, contractor-safe, or utility-safe endpoint work.
 - Convert Alembic from scaffold to normal practice before substantial schema expansion.
 - Keep root discovery files, affected continuity docs, and handoffs synchronized with real implementation state.

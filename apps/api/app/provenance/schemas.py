@@ -4,7 +4,14 @@ from typing import Any, List, Optional
 from pydantic import Field
 
 from app.core.schemas import ORMModel
-from app.core.types import ConfidenceLevel, DataOrigin, SourceDocumentType, VerificationStatus
+from app.core.types import (
+    AuthorityLayer,
+    ConfidenceLevel,
+    DataClassification,
+    DataOrigin,
+    SourceDocumentType,
+    VerificationStatus,
+)
 
 
 class SourceDocumentBase(ORMModel):
@@ -110,6 +117,8 @@ class RuleProvenanceUpdate(ORMModel):
 class ProvenanceSummary(ORMModel):
     entity_type: str
     entity_id: str
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
     source_types: List[str] = Field(default_factory=list)
     trust_states: List[str] = Field(default_factory=list)
     confidence_levels: List[str] = Field(default_factory=list)
@@ -119,3 +128,4 @@ class ProvenanceSummary(ORMModel):
     last_verified_at: Optional[datetime] = None
     unverified_fields: List[str] = Field(default_factory=list)
     notes: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)

@@ -56,6 +56,10 @@ class ProvenanceService:
             last_verified_at=last_verified_at,
             unverified_fields=unverified_fields,
             notes=notes,
+            limitations=[
+                "Provenance summaries are derived metadata and do not make records engineering-verified or access-controlled.",
+                "Field-level provenance remains partial unless all important fields have explicit source records.",
+            ],
         )
 
     def summarize_entity(self, db, entity_type: str, entity_id: str) -> ProvenanceSummary:
@@ -119,10 +123,16 @@ class ProvenanceService:
         rule_records = repository.list_rule_provenance(db, rule_key="takeoff.design_composition_v1")
         return {
             "basis": "Derived from current design composition",
+            "authority_layer": "derived",
+            "data_classification": "planning_private",
+            "derivation_type": "deterministic_rule",
             "source_types": ["calculation", "internal_rule"] + (summary.source_types if summary else []),
             "trust_states": ["derived_estimate"] + (summary.trust_states if summary else []),
             "rule_keys": [record.rule_key for record in rule_records],
             "source_document_ids": summary.source_document_ids if summary else [],
+            "limitations": [
+                "Transient takeoff line only; not a persisted procurement, bid, or installation record.",
+            ],
             "notes": [
                 f"Role '{equipment.role_in_system}' was translated into a transient takeoff line.",
                 "No persistent takeoff snapshot was stored in this phase.",
@@ -148,9 +158,15 @@ class ProvenanceService:
         persisted_rule_keys = sorted({record.rule_key for record in rules})
         return {
             "basis": "Deterministic planning rule output",
+            "authority_layer": "derived",
+            "data_classification": "planning_private",
+            "derivation_type": "deterministic_rule",
             "source_types": ["internal_rule"],
             "trust_states": [issue.data_origin],
             "rule_keys": persisted_rule_keys,
+            "limitations": [
+                "Advisor issues are planning guidance and do not represent engineering, code, permit, or utility approval.",
+            ],
             "notes": [record.description for record in rules]
             or ["This issue is derived from explicit planning rules, not conversational inference."],
         }
@@ -170,9 +186,15 @@ class ProvenanceService:
         persisted_rule_keys = sorted({record.rule_key for record in rules})
         return {
             "basis": "Deterministic recommendation-profile selection",
+            "authority_layer": "derived",
+            "data_classification": "planning_private",
+            "derivation_type": "deterministic_rule",
             "source_types": ["internal_rule"],
             "trust_states": ["derived_estimate"],
             "rule_keys": persisted_rule_keys,
+            "limitations": [
+                "Recommendation profiles are advisory planning outputs and do not create canonical site facts or operational authority.",
+            ],
             "notes": notes
             or [record.description for record in rules]
             or ["Recommendation profiles are derived from explicit planning rules."],
@@ -210,12 +232,18 @@ class ProvenanceService:
             )
         return {
             "basis": basis,
+            "authority_layer": "derived",
+            "data_classification": "planning_private",
+            "derivation_type": "deterministic_rule",
             "confidence_level": confidence_level,
             "trust_state": "derived_estimate",
             "rule_keys": persisted_rule_keys,
             "input_signals": input_signals,
             "estimated_inputs": estimated_inputs,
             "incomplete_inputs": incomplete_inputs,
+            "limitations": [
+                "Planning-only derived estimate; not an engineered design, permit finding, utility approval, or operational command.",
+            ],
             "notes": notes
             or [record.description for record in rules]
             or ["This planning estimate is derived from explicit deterministic rules."],

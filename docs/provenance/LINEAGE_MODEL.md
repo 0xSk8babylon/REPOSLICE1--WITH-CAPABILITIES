@@ -26,6 +26,8 @@ Each derived or advisory output should identify:
 - Products, loads, estimated pathways, advisor outputs, scenario comparison, and recommendation inspectability have partial provenance surfaces.
 - Scenario revisions preserve compact planning-state lineage.
 - Rule provenance seed records exist for major advisor rules.
+- Recommendation inspectability and provenance summary payloads now carry additive authority-layer, data-classification, derivation-type, and limitation metadata.
+- AI context and scenario comparison payloads now carry additive view-boundary metadata so broad/raw response exposure is labeled as compatibility and grounding context, not scoped RBAC output.
 
 ## Known Gaps
 

@@ -1,5 +1,7 @@
 from app.compatibility_rules.schemas import CompatibilityIssue
 from app.core.repository import repository
+from app.core.schemas import ViewBoundaryMetadata
+from app.core.types import ApiViewAudience, AuthorityLayer, DataClassification
 from app.designs.schemas import EnergySystemDesign
 from app.equipment.schemas import EquipmentProduct
 from app.homes.schemas import Home
@@ -44,6 +46,41 @@ class AIContextService:
                 )
 
         return {
+            "view_boundary": ViewBoundaryMetadata(
+                view_name="ai_design_context",
+                audience=ApiViewAudience.ai,
+                authority_layer=AuthorityLayer.advisory,
+                trust_zone="advisory_explanation",
+                data_classification=DataClassification.planning_private,
+                exposed_authority_layers=[
+                    AuthorityLayer.canonical,
+                    AuthorityLayer.derived,
+                    AuthorityLayer.advisory,
+                    AuthorityLayer.historical,
+                ],
+                limitations=[
+                    "This is an AI-grounding context, not a source of new canonical facts.",
+                    "Broad raw object exposure is retained for compatibility and grounding inspection only.",
+                    "Data classifications are advisory metadata only; no RBAC or tenant isolation is enforced.",
+                ],
+                excluded_capabilities=[
+                    "engineering_approval",
+                    "permit_readiness",
+                    "utility_submission",
+                    "contractor_packet",
+                    "operational_control",
+                ],
+            ).dict(),
+            "permission_readiness": {
+                "account_scaffolding_only": True,
+                "role_enforcement": "not_enforced",
+                "tenant_isolation": "not_enforced",
+                "subscription_enforcement": "not_enforced",
+                "notes": [
+                    "AI context may include account-linked planning records, but account, role, and subscription fields do not enforce access.",
+                    "Future AI-safe views should narrow this broad context through explicit view contracts before adding RBAC or exports.",
+                ],
+            },
             "design": EnergySystemDesign.from_orm(design).dict() if design else None,
             "home": Home.from_orm(home).dict() if home else None,
             "products": [

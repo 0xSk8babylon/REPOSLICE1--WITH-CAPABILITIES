@@ -15,6 +15,14 @@
 - Future consumer, contractor, utility, AI, or orchestration views must not scrape prose as source of truth. They should consume structured fields that distinguish canonical objects, derived estimates, advisory explanations, operational state, and historical lineage.
 - Existing compatibility-sensitive GET contracts should not be narrowed or reclassified as role-filtered views without a deliberate versioning and migration plan.
 
+## Additive Boundary Metadata In Current Responses
+
+- Shared backend enums now exist for `authority_layer`, `data_classification`, and intended API-view audience.
+- Shared additive metadata models now exist for view-boundary and permission-readiness descriptions.
+- These metadata fields are descriptive only. They do not filter responses, enforce RBAC, enforce tenant isolation, authorize exports, or change account/session behavior.
+- Provenance and recommendation inspectability surfaces may now include additive `authority_layer`, `data_classification`, `derivation_type`, and `limitations` fields.
+- Account responses may now include additive `permission_readiness` metadata explaining that role, plan, and subscription fields remain scaffolding only.
+
 ## Core GET Contracts In Use
 
 - `GET /api/homes`
@@ -60,7 +68,9 @@
   - frontend depends on nested buildings and panels
 - design/advisor/context endpoints
   - frontend assumes stable design IDs and current persisted demo data
+- `GET /api/ai-context/design/{design_id}` now includes additive `view_boundary` and `permission_readiness` metadata that identifies the endpoint as broad AI-grounding context, not a filtered RBAC view or source of new canonical facts
 - `GET /api/design-advisor/summary/{design_id}` now includes additive `recommendation_profiles` guidance
+- `GET /api/design-advisor/summary/{design_id}` recommendation and inspectability payloads now include additive authority/classification/derivation/limitation metadata so derived estimates stay distinct from canonical facts and advisory text
 - `GET /api/design-advisor/summary/{design_id}` now also includes additive `planning_state` snapshot framing for the live design state, generated pathway variants, and linked saved-scenario metadata
   - `planning_state.linked_scenarios[*]` now also includes additive latest-revision identity metadata when saved scenario revisions exist
   - `recommendation_profiles.profiles[*]` now include additive planning-only battery sizing estimate ranges
@@ -79,7 +89,10 @@
 - `GET /api/scenarios/compare`
   - now returns additive comparison metadata, rankings, warnings, completeness, and lineage summaries on top of scenario records
   - scenario records returned in comparison now also include additive revision framing and immutable revision history summaries
+  - comparison payloads now include additive `view_boundary`, and lineage summaries now include additive authority/classification/derivation/limitation metadata
 - `GET /api/loads`
   - now returns additive `provenance_summary` metadata on each load record
 - `GET /api/estimated-pathways`
   - now returns additive `provenance_summary` metadata on each pathway record
+- `GET /api/estimates/placeholder`
+  - now returns additive authority/classification/derivation/limitation metadata clarifying that estimate generation remains deferred

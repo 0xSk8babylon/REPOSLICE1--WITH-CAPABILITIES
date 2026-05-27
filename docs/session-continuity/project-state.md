@@ -98,6 +98,7 @@ This document records the actual current state of the `residential-energy-planne
 - Restore now starts from a compact root discovery layer plus repo-local skills instead of requiring an immediate sweep across all detailed continuity and doctrine docs.
 - A repository cognition layer now formalizes canonical, derived, advisory, operational, and historical knowledge boundaries.
 - Source-of-truth docs now normalize canonical authority, provenance, trust-zone, data-classification, scoped API-view, and RBAC-boundary language.
+- Selected backend responses now carry additive metadata for authority layer, data classification, derivation type, view boundary, limitations, and permission-readiness posture.
 - Project-specific portable skills now exist under `.codex/project-skills/` so future agents can restore from concise repository-native workflows.
 
 ## What Is Not Implemented
@@ -143,6 +144,7 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - Philosophy and ADR documents remain durable deep references, but they are no longer mandatory startup reads for every session.
 - The new cognition and governance docs are routing and authority-boundary documents, not evidence that operational orchestration, utility abstractions, deployment lineage, or contractor-safe packets are implemented.
 - Data classification and scoped API views are future design boundaries, not current RBAC, tenant isolation, export filtering, utility submission, or operational-control enforcement.
+- The broad AI context endpoint remains a compatibility and grounding endpoint; its new view-boundary metadata labels exposure but does not narrow the payload.
 
 ## Important Current Constraints
 

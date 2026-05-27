@@ -104,12 +104,19 @@ class ScenarioComparisonService:
             )
 
         return {
+            "authority_layer": "derived",
+            "data_classification": "planning_private",
+            "derivation_type": "deterministic_summary",
             "source_types": sorted(source_types),
             "trust_states": sorted(trust_states),
             "verification_statuses": sorted(verification_statuses),
             "source_document_ids": sorted(source_document_ids),
             "unverified_fields": sorted(unverified_fields),
             "rule_keys": sorted({record.rule_key for record in rule_records}),
+            "limitations": [
+                "Scenario comparison is planning intelligence over current records and compact revisions, not a replayable historical advisor payload.",
+                "Placeholder scores and costs remain non-authoritative until stronger estimating provenance exists.",
+            ],
             "notes": notes[:5],
         }
 
@@ -194,6 +201,23 @@ class ScenarioComparisonService:
         )
         return {
             "status": "planning_comparison",
+            "view_boundary": {
+                "view_name": "scenario_comparison",
+                "audience": "consumer",
+                "authority_layer": "derived",
+                "trust_zone": "derived_planning_intelligence",
+                "data_classification": "planning_private",
+                "permission_enforcement": "not_enforced",
+                "limitations": [
+                    "Comparison output is a planning view and does not enforce RBAC, contractor export scope, or utility submission rules.",
+                ],
+                "excluded_capabilities": [
+                    "engineering_approval",
+                    "contractor_packet",
+                    "utility_submission",
+                    "operational_control",
+                ],
+            },
             "comparison_dimensions": [
                 "upfront_cost_placeholder",
                 "future_expansion_score",

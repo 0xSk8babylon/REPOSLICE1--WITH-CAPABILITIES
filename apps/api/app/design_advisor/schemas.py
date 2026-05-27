@@ -5,8 +5,10 @@ from pydantic import Field
 from app.core.schemas import ORMModel
 from app.core.types import (
     AutonomyReservePosture,
+    AuthorityLayer,
     BatterySizingPosture,
     ConfidenceLevel,
+    DataClassification,
     DataOrigin,
     FutureGrowthMarginPosture,
     LowSolarAssumptionPosture,
@@ -33,12 +35,16 @@ class InspectabilitySignal(ORMModel):
 
 class EstimateInspectability(ORMModel):
     basis: str
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    derivation_type: str = "deterministic_rule"
     confidence_level: ConfidenceLevel
     trust_state: DataOrigin = DataOrigin.derived_estimate
     rule_keys: List[str] = Field(default_factory=list)
     input_signals: List[InspectabilitySignal] = Field(default_factory=list)
     estimated_inputs: List[str] = Field(default_factory=list)
     incomplete_inputs: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
     notes: List[str] = Field(default_factory=list)
     partial_provenance_warning: Optional[str] = None
 
@@ -288,5 +294,8 @@ class ResilienceRecommendation(ORMModel):
     context_signals: Dict[str, object] = Field(default_factory=dict)
     scope_note: str
     basis: str
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    advisory_boundary: str = "planning_guidance_only"
     data_origin: DataOrigin = DataOrigin.derived_estimate
     provenance_summary: Optional[Dict[str, object]] = None
