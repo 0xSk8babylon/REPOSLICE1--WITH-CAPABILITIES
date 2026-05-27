@@ -50,6 +50,8 @@
 - The repository now includes canonical cognition-layer definitions, terminology, governance gap analysis, trust zones, provenance lineage model, topology lifecycle, scoped intelligence boundaries, orchestration readiness gaps, and roadmap sequencing docs.
 - ADR 0007 now records the decision to treat the repository as the durable project memory substrate.
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
+- Canonical authority, trust-zone, provenance, data-classification, API-view, and RBAC-boundary language is now normalized across the source-of-truth docs without implementing auth, access control, telemetry, DER/ADR control, or migrations.
+- Backend responses now include additive authority/classification/view-boundary/permission-readiness metadata on selected provenance, recommendation, AI context, scenario comparison, account, and placeholder estimate surfaces without changing recommendation behavior or enforcing access.
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
@@ -67,6 +69,8 @@ Near-term implementation still points toward deepening the solar-readiness and r
 - Detailed continuity docs still exist and remain valuable, but they are too large to treat as mandatory startup context.
 - Cognition docs now reduce restore ambiguity, but future sessions must avoid duplicating state summaries across root discovery files and detailed docs.
 - Provenance coverage is still partial, so trust messaging must stay explicit.
+- Data classification and scoped API views are documentation/design boundaries only; current API responses are not RBAC-filtered views.
+- Broad AI context exposure remains compatibility-oriented and labeled with view-boundary metadata; it is not yet split into scoped consumer/AI/contractor/utility view models.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
 - Existing local databases may need reseeding to surface the new seeded current-home-energy-architecture, backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph rule provenance records.
 - Existing local databases may also need either app restart or reseeding to create baseline rows in the new `scenario_revisions` table for older scenario records.

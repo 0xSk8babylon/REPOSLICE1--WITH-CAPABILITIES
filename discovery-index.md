@@ -51,6 +51,8 @@ Read these first:
 - Trust or provenance changes:
   - `docs/trust/TRUST_ZONES.md`
   - `docs/provenance/LINEAGE_MODEL.md`
+  - `docs/security/SCOPED_INTELLIGENCE_OUTPUTS.md`
+  - `docs/governance/AI_AUTHORITY_LIMITS.md`
 - Topology or orchestration planning:
   - `docs/topology/TOPOLOGY_LIFECYCLE.md`
   - `docs/orchestration/READINESS_GAPS.md`

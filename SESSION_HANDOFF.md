@@ -7,40 +7,43 @@
 ## Session Summary
 
 - Session date: 2026-05-27
-- Starting head commit: `e8097e3`
+- Starting head commit: `304b135`
 - Repo commits created this session:
-  - none yet
+  - `ec22f63` Add provenance and API boundary readiness metadata
 
 ## What Changed Last
 
-- Formalized repository cognition layers so future agents can distinguish canonical knowledge, derived intelligence, advisory knowledge, operational knowledge, and historical knowledge.
-- Added canonical terminology for canonical objects, derived estimates, transient recommendations, operational state, revision graphs, continuity lineage, deployment lineage, and orchestration-safe abstractions.
-- Added governance, trust, provenance, topology, security, roadmap, continuity, and orchestration readiness docs under dedicated `docs/*/` directories.
-- Added ADR 0007 to record the repository-as-memory-substrate decision.
-- Added concise project-specific skills under `.codex/project-skills/` for doctrine, continuity, topology, orchestration, canonical authority, provenance, and roadmap work.
-- Updated discovery routing so future restore can start from a lean prompt such as `Load project skills before implementation.`
+- Continued Trust Boundary + Canonical Authority Stabilization after the docs/source-of-truth pass.
+- Added backend enums for authority layer, data classification, and API-view audience.
+- Added shared additive view-boundary and permission-readiness metadata schemas.
+- Added descriptive metadata to provenance summaries, recommendation inspectability, AI context, scenario comparison, account responses, and the placeholder estimate endpoint.
+- Preserved existing behavior: no filtering, RBAC, tenant isolation, auth rewrite, migrations, telemetry, contractor packets, utility exports, or operational-control runtime.
 
 ## Verification Performed
 
-- Documentation-only changes so far.
-- Pending: `git diff --check`
+- `python3 -m unittest discover -s tests -p 'test_*.py'` in `apps/api` passed.
+- `python3 -m compileall app` in `apps/api` passed.
+- `git diff --check` passed.
 
 ## Protections Verified
 
 - No runtime behavior changed.
-- No API, persistence, migration, advisor, or frontend contract changed.
+- API changes are additive metadata only.
+- No persistence, migration, frontend, recommendation decision behavior, auth rewrite, telemetry, DER/ADR control behavior, RBAC enforcement, scoped API filtering, contractor packet, utility export, or operational-control behavior was introduced.
 - New docs preserve structured-data authority, planning-only boundaries, provenance lineage, and model-agnostic restore posture.
 
 ## Remaining Risks
 
-- New canonical docs add surface area; future sessions must avoid duplicating state summaries into every document.
-- `.codex/project-skills/` is not yet integrated with all possible tool discovery systems, so discovery-index routing remains important.
+- Field-level data classification is not persisted or enforced.
+- A role-aware API view matrix is still not implemented.
+- Existing account, role, and subscription fields remain scaffolding only.
+- Broad AI context remains a compatibility/grounding endpoint and is labeled rather than narrowed.
 - Deployment lineage is defined as a gap, not implemented.
-- Orchestration readiness is documented only; no DER, utility, or contractor operational behavior exists.
+- Orchestration readiness is documented only; no DER, utility, contractor, or operational behavior exists.
 
 ## Current Resume Point
 
-Continue the cognition formalization closeout: run doc hygiene checks, update affected continuity docs, append the session log, create a dated handoff, and verify whitespace. Runtime implementation can resume afterward from the solar-readiness target if requested.
+Runtime implementation can resume from the solar-readiness target if requested. If continuing trust/security design first, define the role-aware API view matrix and decide whether broad AI context should split into narrower scoped view models before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
 
 ## Lean Restore Prompt
 
@@ -51,9 +54,9 @@ Load project skills before implementation.
 ## If You Resume Now
 
 - Start from `AGENTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, and `discovery-index.md`.
-- For cognition or governance work, load `.codex/project-skills/doctrine-formalization/SKILL.md`, `.codex/project-skills/continuity-governance/SKILL.md`, and the task-specific project skill.
+- For cognition, governance, trust, provenance, or scoped API-view work, load `.codex/project-skills/canonical-authority-discipline/SKILL.md`, `.codex/project-skills/provenance-lineage/SKILL.md`, `.codex/project-skills/continuity-governance/SKILL.md`, and the task-specific project skill.
 - For runtime advisor work, continue using the existing `.codex/skills/energy-planner-*` guardrail skills.
 
 ## Latest Detailed Handoff
 
-Create `docs/handoffs/2026-05-27-repository-cognition-formalization.md` during closeout.
+See `docs/handoffs/2026-05-27-provenance-api-permission-readiness.md`.
