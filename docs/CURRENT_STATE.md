@@ -64,6 +64,7 @@
 - Scoped API views and data classifications are documented as future contract boundaries only; existing APIs are not RBAC, tenant isolation, contractor packet, utility submission, or operational-control enforcement layers.
 - Backend schemas now include additive authority-layer, data-classification, API-view audience, view-boundary, and permission-readiness metadata types.
 - AI context, scenario comparison, provenance summaries, recommendation inspectability, account responses, and the placeholder estimate endpoint now include additive metadata that labels broad/raw exposure, derived estimates, limitations, and non-enforced permission posture without changing recommendation behavior or filtering responses.
+- `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` now maps current broad/raw response surfaces to candidate consumer-safe, AI-safe, contractor-safe, and future utility-safe view models, including narrowing candidates for AI context, home/design/advisor/scenario/load/pathway/takeoff/product/provenance/account surfaces.
 
 ## Still Incomplete
 
@@ -81,6 +82,7 @@
 - Delete/archive workflows
 - Auth and billing enforcement
 - Runtime data-classification enforcement, scoped API view filtering, RBAC, tenant isolation, and role-aware exports
+- Runtime scoped view schemas/endpoints for the mapped consumer-safe, AI-safe, contractor-safe, and utility-safe candidates
 - Persisted/versioned takeoff snapshots remain intentionally deferred
 
 ## Notable Documentation Drift Resolved This Session
@@ -119,3 +121,4 @@
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.
 - The new cognition docs are canonical routing and governance aids, not proof that deployment lineage, utility-safe abstractions, contractor-safe packets, or operational orchestration are implemented.
 - The new data-classification and API-view terminology prepares future RBAC design, but current account, role, and subscription fields remain scaffolding only.
+- The new scoped view-model mapping is a contract-design guide only; current endpoints remain broad compatibility surfaces and are not filtered, minimized, export-ready, or permission-bound.

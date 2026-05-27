@@ -110,3 +110,5 @@
 - Added backend authority-layer, data-classification, API-view audience, view-boundary, and permission-readiness metadata types.
 - Added descriptive boundary metadata to provenance summaries, recommendation inspectability, AI context, scenario comparison, account responses, and the placeholder estimate endpoint without filtering responses or changing recommendation behavior.
 - Verified the additive backend metadata with `python3 -m unittest discover -s tests -p 'test_*.py'` and `python3 -m compileall app` in `apps/api`.
+- Added `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` to map consumer-safe, AI-safe, contractor-safe, and future utility-safe response boundaries.
+- Identified broad/raw exposure and narrowing candidates for AI context, home/design/advisor/scenario/load/pathway/takeoff/product/provenance/account surfaces without changing runtime behavior, recommendation behavior, RBAC, tenant isolation, auth, telemetry, encryption, migrations, contractor packets, utility packets, or exports.

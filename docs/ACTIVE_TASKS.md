@@ -9,7 +9,7 @@
 5. Build deterministic profile-based resilience recommendation and sizing logic incrementally behind the advisor layer.
 6. Extend the current inspectable battery, solar, roof-readiness, current-home-energy-architecture, panel/service, backup-load-selection, profile-architecture-fit, inverter/system-architecture, structured-reasoning-graph, planning-state snapshot, scenario revision, and workspace/diagram/comparison/history-oriented advisor UI slices while keeping the newly stabilized trust wording intact.
 7. Preserve the new repository cognition structure so future agents can restore from project skills, canonical docs, and compact discovery files rather than transient chat history.
-8. Keep data-classification, scoped API-view, and RBAC-boundary terminology aligned with the source-of-truth docs while enforcement remains deferred.
+8. Keep data-classification, scoped API-view, RBAC-boundary, and scoped view-model mapping terminology aligned with the source-of-truth docs while enforcement remains deferred.
 9. Keep additive authority/classification/view-boundary metadata synchronized with provenance summaries, advisor inspectability, AI context, and scenario comparison outputs.
 
 ## Open Technical Tasks
@@ -18,8 +18,8 @@
 - Improve migration discipline beyond the baseline scaffold
 - Deepen provenance/source-lineage modeling behind visible trust states and extend coverage beyond products, internal rules, loads, pathways, and the current scenario-comparison lineage layer
 - Maintain normalized terminology across future docs around canonical objects, derived estimates, advisory outputs, operational state, revision lineage, deployment lineage, data classification, API view boundaries, RBAC boundaries, and orchestration-safe abstractions.
-- Define a future role-aware API view matrix before implementing access control, contractor exports, utility packets, or operational-control views.
-- Decide whether the broad AI context endpoint should remain a compatibility endpoint or split into narrower scoped view models.
+- Implement explicit scoped view schemas/endpoints only after preserving current compatibility-sensitive GET contracts and using the scoped view-model mapping as the contract guide.
+- Treat the broad AI context endpoint as a compatibility endpoint unless or until a narrower additive `AIDesignGroundingView` exists.
 
 ## Deferred Technical Tasks
 

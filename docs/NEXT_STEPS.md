@@ -22,8 +22,8 @@ Preserve and use the new repository cognition structure as the restore and gover
 1. Deepen the solar readiness layer with better internal roof-capacity and placement realism before introducing inverter sizing.
 2. Add future geometry-ingest hooks for traced polygons, roof planes, and usable-area estimates without replacing the current recommendation system.
 3. Extend field-level provenance and lineage summaries for design facts, scenario inputs, and broader home-model records beyond the current products, loads, pathways, and recommendation inspectability layer.
-4. Define a future role-aware API view matrix before implementing RBAC, exports, utility-facing packets, contractor-facing packets, or operational-control views; current additive metadata only labels boundaries.
-5. Decide whether broad AI context should remain one compatibility endpoint or be split later into explicit consumer-safe, AI-safe, contractor-safe, and utility-safe view models.
+4. Use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` as the contract-design map before implementing RBAC, exports, utility-facing packets, contractor-facing packets, or operational-control views; current additive metadata and mapping only label boundaries.
+5. If scoped-view work resumes, start with an additive `AIDesignGroundingView` candidate rather than narrowing the existing broad AI context endpoint.
 6. Add delete/archive workflows for mutable planning records.
 7. Keep `.codex/project-skills/` and `discovery-index.md` synchronized when canonical docs move or new governance areas are introduced.
 

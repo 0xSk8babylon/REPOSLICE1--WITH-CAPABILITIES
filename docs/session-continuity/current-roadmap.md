@@ -126,3 +126,4 @@ Status:
 - Prepare for future DER, contractor, utility, and AI-safe architecture views without implementing operational behavior prematurely.
 - Treat data classification and scoped API views as design boundaries until future RBAC, tenant isolation, export filtering, audit, and compatibility plans are implemented.
 - Treat broad AI context as compatibility-oriented grounding context until explicit scoped view models exist.
+- Use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` as the current map for consumer-safe, AI-safe, contractor-safe, and future utility-safe view candidates.

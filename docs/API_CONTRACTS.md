@@ -14,6 +14,7 @@
 - Future scoped API views should be additive and should carry explicit authority layer, trust-zone posture, data classification, and provenance summaries where they expose derived or advisory intelligence.
 - Future consumer, contractor, utility, AI, or orchestration views must not scrape prose as source of truth. They should consume structured fields that distinguish canonical objects, derived estimates, advisory explanations, operational state, and historical lineage.
 - Existing compatibility-sensitive GET contracts should not be narrowed or reclassified as role-filtered views without a deliberate versioning and migration plan.
+- `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` is the current source-of-truth map for broad/raw response exposure and future scoped view-model candidates. It is not an enforcement plan and does not change current endpoint behavior.
 
 ## Additive Boundary Metadata In Current Responses
 
@@ -96,3 +97,10 @@
   - now returns additive `provenance_summary` metadata on each pathway record
 - `GET /api/estimates/placeholder`
   - now returns additive authority/classification/derivation/limitation metadata clarifying that estimate generation remains deferred
+
+## Scoped View-Model Mapping Notes
+
+- Highest-priority narrowing candidate: `GET /api/ai-context/design/{design_id}`. It intentionally remains a broad compatibility/grounding payload today, but a future `AIDesignGroundingView` should minimize raw object exposure and preserve source-linked summaries.
+- Contractor-safe and utility-safe outputs should be new explicit view contracts, not filtered copies of existing broad responses.
+- Consumer-safe views may reuse much of the current frontend planning surface, but they still need explicit planning-only limitation and provenance framing for derived estimates.
+- Future scoped views should be added before RBAC/ABAC enforcement so permissions can bind to stable response shapes instead of ad hoc endpoint filtering.

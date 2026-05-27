@@ -23,6 +23,7 @@ Current additive metadata support:
 - Backend schema helpers now represent view-boundary and permission-readiness metadata.
 - AI context and scenario comparison responses now carry additive view-boundary metadata.
 - Account responses may carry additive permission-readiness metadata that explicitly marks role, plan, and subscription fields as non-enforcing scaffolding.
+- `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` now maps current broad/raw response surfaces to candidate consumer-safe, AI-safe, contractor-safe, and future utility-safe view models without changing behavior or implementing enforcement.
 
 Future scoped API views should exclude:
 
@@ -109,3 +110,5 @@ Before implementation, each future role-aware API view needs:
 - explicit excluded fields
 - audit and revision expectations
 - compatibility plan for existing `/api/*` contracts
+
+The current scoped view-model mapping is the next design input for that work; it should be treated as a contract-design guide, not as a runtime access-control policy.

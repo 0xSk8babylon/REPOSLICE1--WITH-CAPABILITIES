@@ -55,6 +55,7 @@ This pressure has been reduced but not eliminated.
 - Risk: future sessions may mistakenly assume multi-user safety, RBAC filtering, tenant isolation, or scoped exports already exist.
 - Current boundary: data classification and scoped API views are documented design concepts only; no runtime access-control enforcement exists.
 - Current stabilization: account responses may expose permission-readiness metadata, but it explicitly says role, plan, subscription, RBAC, tenant isolation, and export authorization are not enforced.
+- Current mapping: `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` identifies consumer-safe, AI-safe, contractor-safe, and future utility-safe candidate view models, but none are implemented as enforcement or filtered exports.
 
 ## 8. Continuity Risk From Context Resets
 
@@ -73,7 +74,7 @@ This pressure has been reduced but not eliminated.
 - Preserve the planning-only boundary around completeness and advisor reasoning.
 - Expand provenance coverage without implying that placeholder references are verified.
 - Continue extending scenario/pathway/design lineage beyond the current summary layer.
-- Define a future role-aware API view matrix before implementing contractor, utility, AI, or operational-control views.
-- Decide whether to split broad AI context into narrower additive view models before any future AI-safe, contractor-safe, or utility-safe endpoint work.
+- Use the scoped view-model mapping before implementing contractor, utility, AI, or operational-control views.
+- Start scoped-view implementation with additive contracts, especially a narrower AI grounding view, instead of narrowing existing broad compatibility endpoints.
 - Convert Alembic from scaffold to normal practice before substantial schema expansion.
 - Keep root discovery files, affected continuity docs, and handoffs synchronized with real implementation state.

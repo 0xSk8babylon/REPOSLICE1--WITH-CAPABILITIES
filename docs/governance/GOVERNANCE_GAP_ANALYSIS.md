@@ -42,7 +42,7 @@ Initial definitions now live in `docs/architecture/CANONICAL_TERMINOLOGY.md`.
 - Deployment lineage is not yet formalized.
 - Model-agnostic restore relies on human agents honoring the discovery layer.
 - Data classification is now defined as a design boundary but is not persisted or enforced.
-- API scoped views are defined as future contract boundaries, not current access-control behavior.
+- API scoped views are mapped as future contract boundaries, not current access-control behavior.
 - Account, role, and subscription fields remain scaffolding and must not be described as active RBAC.
 
 ## Orchestration-Readiness Gaps
@@ -51,8 +51,8 @@ Initial definitions now live in `docs/architecture/CANONICAL_TERMINOLOGY.md`.
 - No contractor-safe packet boundary exists.
 - No utility-safe abstraction exists.
 - No deployment manifest links code revision, schema revision, seed revision, and trust posture.
-- No explicit AI visibility matrix defines which facts future agents may see, summarize, or act on.
-- No implemented role-aware API view matrix exists.
+- A scoped view-model map now identifies AI-safe candidates, but no AI-safe endpoint, write boundary, or action authority exists.
+- No implemented role-aware API view matrix, permission binding, or scoped filtering exists.
 - No audit model exists for future role-scoped exports or operational-control events.
 
 ## Preservation Rules

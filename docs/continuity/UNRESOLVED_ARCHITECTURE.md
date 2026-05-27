@@ -9,7 +9,7 @@
 - topology lifecycle graph
 - contractor-safe output package
 - utility-safe abstraction model
-- role-aware API view matrix
+- role-aware API view implementation and permission binding
 - field-level data classification policy
 - audit trail and change history
 - delete/archive behavior
