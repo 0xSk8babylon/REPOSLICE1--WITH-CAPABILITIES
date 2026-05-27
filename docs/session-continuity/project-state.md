@@ -97,6 +97,7 @@ This document records the actual current state of the `residential-energy-planne
 - A dedicated doctrine layer now exists under `docs/philosophy/` and `docs/adr/` to preserve strategic coherence across future implementation sessions.
 - Restore now starts from a compact root discovery layer plus repo-local skills instead of requiring an immediate sweep across all detailed continuity and doctrine docs.
 - A repository cognition layer now formalizes canonical, derived, advisory, operational, and historical knowledge boundaries.
+- Source-of-truth docs now normalize canonical authority, provenance, trust-zone, data-classification, scoped API-view, and RBAC-boundary language.
 - Project-specific portable skills now exist under `.codex/project-skills/` so future agents can restore from concise repository-native workflows.
 
 ## What Is Not Implemented
@@ -104,11 +105,12 @@ This document records the actual current state of the `residential-energy-planne
 - Authentication
 - Billing or subscription enforcement
 - Multi-tenant authorization
+- RBAC enforcement, tenant isolation, scoped API view filtering, or role-aware exports
 - NEC compliance engine
 - Permitting workflows
 - Product ingestion with verified manufacturer provenance
 - exhaustive field-level provenance coverage
-- DB migration tooling such as Alembic
+- Mature DB migration practice beyond the current Alembic scaffold
 - Change history, audit trail, or provenance ledger
 - delete/archive workflows for editable records
 - persisted takeoff snapshots
@@ -140,6 +142,7 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - Verification status belongs to source documents; trust badges belong to current application presentation and should not be conflated.
 - Philosophy and ADR documents remain durable deep references, but they are no longer mandatory startup reads for every session.
 - The new cognition and governance docs are routing and authority-boundary documents, not evidence that operational orchestration, utility abstractions, deployment lineage, or contractor-safe packets are implemented.
+- Data classification and scoped API views are future design boundaries, not current RBAC, tenant isolation, export filtering, utility submission, or operational-control enforcement.
 
 ## Important Current Constraints
 

@@ -28,6 +28,9 @@ Recommended posture: keep root files as discovery surfaces, use subdirectories f
 - deployment lineage
 - orchestration-safe abstraction
 - scoped intelligence exposure
+- data classification
+- API view boundary
+- RBAC boundary
 
 Initial definitions now live in `docs/architecture/CANONICAL_TERMINOLOGY.md`.
 
@@ -38,6 +41,9 @@ Initial definitions now live in `docs/architecture/CANONICAL_TERMINOLOGY.md`.
 - Scenario revisions do not yet store full advisor payloads or replayable reasoning.
 - Deployment lineage is not yet formalized.
 - Model-agnostic restore relies on human agents honoring the discovery layer.
+- Data classification is now defined as a design boundary but is not persisted or enforced.
+- API scoped views are defined as future contract boundaries, not current access-control behavior.
+- Account, role, and subscription fields remain scaffolding and must not be described as active RBAC.
 
 ## Orchestration-Readiness Gaps
 
@@ -46,6 +52,8 @@ Initial definitions now live in `docs/architecture/CANONICAL_TERMINOLOGY.md`.
 - No utility-safe abstraction exists.
 - No deployment manifest links code revision, schema revision, seed revision, and trust posture.
 - No explicit AI visibility matrix defines which facts future agents may see, summarize, or act on.
+- No implemented role-aware API view matrix exists.
+- No audit model exists for future role-scoped exports or operational-control events.
 
 ## Preservation Rules
 

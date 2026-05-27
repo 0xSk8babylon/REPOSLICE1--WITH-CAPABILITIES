@@ -60,6 +60,8 @@
 - Canonical cognition, governance, trust, provenance, topology, security, roadmap, continuity, and orchestration readiness docs now exist in dedicated `docs/*/` directories.
 - ADR 0007 now records the repository-as-memory-substrate decision.
 - Repository-specific portable project skills now exist under `.codex/project-skills/` to reduce future restore-prompt size and route model-agnostic agents toward the right doctrine.
+- Canonical authority, trust-zone, provenance, data-classification, API-view, and RBAC-boundary language is now normalized across the source-of-truth docs.
+- Scoped API views and data classifications are documented as future contract boundaries only; existing APIs are not RBAC, tenant isolation, contractor packet, utility submission, or operational-control enforcement layers.
 
 ## Still Incomplete
 
@@ -76,6 +78,7 @@
 - Audit trail and change history
 - Delete/archive workflows
 - Auth and billing enforcement
+- Runtime data-classification enforcement, scoped API view filtering, RBAC, tenant isolation, and role-aware exports
 - Persisted/versioned takeoff snapshots remain intentionally deferred
 
 ## Notable Documentation Drift Resolved This Session
@@ -113,3 +116,4 @@
 - The new historical revision-comparison workspace is useful for drift inspection, but it currently compares the latest saved revision against the previous one per scenario rather than supporting arbitrary cross-revision matrices.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.
 - The new cognition docs are canonical routing and governance aids, not proof that deployment lineage, utility-safe abstractions, contractor-safe packets, or operational orchestration are implemented.
+- The new data-classification and API-view terminology prepares future RBAC design, but current account, role, and subscription fields remain scaffolding only.

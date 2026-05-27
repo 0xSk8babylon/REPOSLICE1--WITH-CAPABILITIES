@@ -4,6 +4,26 @@
 
 Define safe output boundaries before contractor, utility, consumer, or orchestration intelligence becomes operational.
 
+These boundaries are source-of-truth design constraints, not runtime security controls. Current APIs do not implement RBAC, tenant isolation, contractor portals, utility packets, or operational control permissions.
+
+## Shared Envelope Requirements
+
+Future scoped API views should include:
+
+- object identity and lifecycle stage
+- authority layer: canonical, derived, advisory, operational, or historical
+- trust zone
+- data classification
+- provenance summary with source objects, data origin, confidence, assumptions, and missing inputs
+- explicit planning-only limitations where engineering, permitting, utility, or operational authority is absent
+
+Future scoped API views should exclude:
+
+- hidden AI-derived facts
+- fields whose classification is broader than the requested view
+- advisory text without structured source context
+- operational-control fields unless an operational authority model exists
+
 ## Consumer-Safe
 
 May include:
@@ -14,12 +34,15 @@ May include:
 - missing inputs
 - non-authoritative next steps
 
+Typical classification: `planning_private` plus selected `public_reference` material.
+
 Must not include:
 
 - permit readiness
 - engineering approval
 - utility approval
 - hidden confidence upgrades
+- contractor, utility, or operational-control claims
 
 ## Contractor-Safe
 
@@ -31,16 +54,51 @@ May include:
 - known missing field checks
 - planning-only derived estimates
 
+Typical classification: `contractor_scoped`.
+
 Must not include:
 
 - stamped design claims
 - code compliance claims
 - verified site conditions unless explicitly recorded
+- access to unrelated homeowner-private planning context
+- AI explanations separated from their structured source context
 
 ## Utility-Safe
 
 Deferred. Future outputs must be source-linked, minimized, and separated from AI-generated advisory text.
 
+Typical classification: `utility_scoped`.
+
+Future requirements:
+
+- explicit site and service-territory identity model
+- utility-facing data minimization
+- interconnection-state authority model
+- no submission, approval, tariff, or program eligibility claim without a dedicated authority layer
+
 ## Orchestration-Safe
 
 Deferred. Future outputs require operational authority, device identity, auditability, and failure handling before control behavior exists.
+
+Typical classification: `operational_control`.
+
+Future requirements:
+
+- permission and control boundary
+- auditable command/event lineage
+- failure and fallback model
+- no DER dispatch, device-control, or live operational behavior from advisory context
+
+## RBAC Preparation Boundary
+
+Role labels, account fields, and subscription fields are currently scaffolding only. Documentation may define future consumer, contractor, utility, operator, or internal views, but no current endpoint should be described as enforcing those roles.
+
+Before implementation, each future role-aware API view needs:
+
+- allowed authority layers
+- allowed data classifications
+- required provenance fields
+- explicit excluded fields
+- audit and revision expectations
+- compatibility plan for existing `/api/*` contracts

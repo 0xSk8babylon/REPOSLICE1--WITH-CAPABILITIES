@@ -104,3 +104,6 @@
 - Added ADR 0007 for the repository-as-memory-substrate decision.
 - Added project-specific portable skills under `.codex/project-skills/` for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
 - Updated discovery routing and continuity docs so future restore can start from a lean prompt such as `Load project skills before implementation.`
+- Normalized source-of-truth terminology for authority layers, provenance lineage, trust zones, data classification, scoped API views, and RBAC boundaries.
+- Clarified that data classification and scoped API views are future design boundaries only; current APIs do not implement RBAC, tenant isolation, contractor packets, utility submissions, or operational-control enforcement.
+- Updated API, trust, provenance, security, governance, orchestration, continuity, and state docs without changing runtime behavior.

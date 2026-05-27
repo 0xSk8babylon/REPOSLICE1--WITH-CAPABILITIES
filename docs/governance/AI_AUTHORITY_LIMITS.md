@@ -28,6 +28,9 @@ AI can explain, summarize, compare, and suggest next questions. AI cannot create
 Every AI-facing context should preserve:
 
 - source object identity
+- authority layer
+- trust zone
+- data classification
 - data origin
 - confidence posture
 - missing inputs
@@ -37,3 +40,5 @@ Every AI-facing context should preserve:
 ## Future Agent Boundary
 
 Future orchestration agents must consume structured context envelopes. They should not scrape prose summaries as their source of truth.
+
+Future AI-facing, contractor-facing, utility-facing, or orchestration-facing API views must remain scoped representations, not evidence of current RBAC or operational authorization. Role or audience labels may describe intended consumers, but they do not grant authority until an enforcement layer, audit model, and compatibility plan exist.

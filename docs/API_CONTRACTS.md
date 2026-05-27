@@ -7,6 +7,14 @@
 - `/api/v1` is reserved for the first explicit breaking version if needed later.
 - Current policy is additive-first.
 
+## Authority And View Boundary Policy
+
+- Current API responses are product data contracts, not security enforcement boundaries.
+- Existing account, role, and subscription fields are scaffolding only; they do not imply RBAC, tenant isolation, contractor authorization, utility submission, or operational-control permission.
+- Future scoped API views should be additive and should carry explicit authority layer, trust-zone posture, data classification, and provenance summaries where they expose derived or advisory intelligence.
+- Future consumer, contractor, utility, AI, or orchestration views must not scrape prose as source of truth. They should consume structured fields that distinguish canonical objects, derived estimates, advisory explanations, operational state, and historical lineage.
+- Existing compatibility-sensitive GET contracts should not be narrowed or reclassified as role-filtered views without a deliberate versioning and migration plan.
+
 ## Core GET Contracts In Use
 
 - `GET /api/homes`

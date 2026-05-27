@@ -12,6 +12,9 @@ Each derived or advisory output should identify:
 - rule keys
 - source documents when available
 - data origin
+- authority layer
+- trust zone
+- data classification
 - confidence level
 - missing inputs
 - assumptions
@@ -31,7 +34,20 @@ Each derived or advisory output should identify:
 - Transient takeoffs are not versioned.
 - Full advisor payload replay is not persisted for revisions.
 - Deployment lineage is not formalized.
+- Data classification is not yet persisted or enforced as an API policy.
+- Existing API responses are not scoped RBAC views.
 
 ## Derivation Rule
 
 Provenance must survive derivation. If a derived output cannot expose lineage, confidence must be downgraded or the output must remain clearly provisional.
+
+## Classification Rule
+
+Provenance describes where information came from and how it was derived. Data classification describes intended handling and visibility. Neither replaces the other.
+
+Future scoped API views should preserve both:
+
+- provenance lineage for source quality, assumptions, and missing inputs
+- data classification for audience-specific exposure
+- authority layer for canonical, derived, advisory, operational, or historical status
+- trust zone for recorded, derived, advisory, or operational posture

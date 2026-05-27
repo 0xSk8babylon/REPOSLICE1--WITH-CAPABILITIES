@@ -38,10 +38,25 @@ Future AI and orchestration agents should consume structured envelopes that incl
 - object IDs
 - role and lifecycle stage
 - authority level
+- trust zone
+- data classification
 - data origin
 - provenance summary
 - derived-output rule keys
 - explicit non-authoritative fields
+
+These envelopes are future API-view contracts, not current RBAC or operational-control enforcement.
+
+## Scoped API View Gaps
+
+Before role-aware API views exist, the project still needs:
+
+- a visibility matrix for consumer, contractor, utility, AI, operator, and internal governance audiences
+- field-level data classifications for canonical objects and derived outputs
+- provenance requirements per view
+- explicit exclusion lists for private planning, utility-scoped, and operational-control fields
+- compatibility rules for additive `/api/*` evolution
+- audit expectations for exports and future operational events
 
 ## Non-Goals For Now
 

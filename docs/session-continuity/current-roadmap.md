@@ -115,6 +115,7 @@ Status:
 - strategic doctrine files now exist under `docs/philosophy/`
 - core architecture decisions are now captured under `docs/adr/`
 - canonical cognition, trust, provenance, topology, governance, roadmap, security, and orchestration readiness docs now exist under dedicated `docs/*/` directories
+- canonical authority, provenance, trust-zone, data-classification, scoped API-view, and RBAC-boundary language is now normalized across source-of-truth docs
 - future sessions should update the root discovery files plus only the detailed continuity files affected by the change
 
 ## Cognition And Portability Track
@@ -122,3 +123,4 @@ Status:
 - Formalize repository memory so future agents can restore from project skills and canonical docs instead of long chat prompts.
 - Keep canonical objects, derived estimates, advisory outputs, operational state, revision lineage, deployment lineage, and orchestration-safe abstractions distinct.
 - Prepare for future DER, contractor, utility, and AI-safe architecture views without implementing operational behavior prematurely.
+- Treat data classification and scoped API views as design boundaries until future RBAC, tenant isolation, export filtering, audit, and compatibility plans are implemented.

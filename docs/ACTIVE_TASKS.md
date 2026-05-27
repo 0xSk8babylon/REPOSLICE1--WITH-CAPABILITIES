@@ -9,17 +9,21 @@
 5. Build deterministic profile-based resilience recommendation and sizing logic incrementally behind the advisor layer.
 6. Extend the current inspectable battery, solar, roof-readiness, current-home-energy-architecture, panel/service, backup-load-selection, profile-architecture-fit, inverter/system-architecture, structured-reasoning-graph, planning-state snapshot, scenario revision, and workspace/diagram/comparison/history-oriented advisor UI slices while keeping the newly stabilized trust wording intact.
 7. Preserve the new repository cognition structure so future agents can restore from project skills, canonical docs, and compact discovery files rather than transient chat history.
+8. Keep data-classification, scoped API-view, and RBAC-boundary terminology aligned with the source-of-truth docs while enforcement remains deferred.
 
 ## Open Technical Tasks
 
 - Keep derived takeoffs transient while provenance remains incomplete
 - Improve migration discipline beyond the baseline scaffold
 - Deepen provenance/source-lineage modeling behind visible trust states and extend coverage beyond products, internal rules, loads, pathways, and the current scenario-comparison lineage layer
-- Normalize terminology across future docs around canonical objects, derived estimates, advisory outputs, operational state, revision lineage, deployment lineage, and orchestration-safe abstractions.
+- Maintain normalized terminology across future docs around canonical objects, derived estimates, advisory outputs, operational state, revision lineage, deployment lineage, data classification, API view boundaries, RBAC boundaries, and orchestration-safe abstractions.
+- Define a future role-aware API view matrix before implementing access control, contractor exports, utility packets, or operational-control views.
 
 ## Deferred Technical Tasks
 
 - Auth and access control
+- RBAC enforcement and tenant isolation
+- Scoped API view filtering and role-aware exports
 - Billing and subscription enforcement
 - Provenance ledger
 - Audit trail
