@@ -52,11 +52,12 @@
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
 - Canonical authority, trust-zone, provenance, data-classification, API-view, and RBAC-boundary language is now normalized across the source-of-truth docs without implementing auth, access control, telemetry, DER/ADR control, or migrations.
 - Backend responses now include additive authority/classification/view-boundary/permission-readiness metadata on selected provenance, recommendation, AI context, scenario comparison, account, and placeholder estimate surfaces without changing recommendation behavior or enforcing access.
+- Scoped view-model mapping now identifies consumer-safe, AI-safe, contractor-safe, and future utility-safe response boundaries, names broad/raw exposure surfaces, and defines narrowing candidates without changing recommendation behavior or implementing enforcement.
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture. The current repository-architecture priority is preserving the new cognition structure so future implementation can resume from lean project-skill restore rather than long chat prompts.
+Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture. The current repository-architecture priority is preserving the cognition and scoped-view structure so future implementation can resume from lean project-skill restore and explicit view-model contracts rather than long chat prompts or ad hoc endpoint filtering.
 
 ## Restore Model
 
@@ -70,7 +71,7 @@ Near-term implementation still points toward deepening the solar-readiness and r
 - Cognition docs now reduce restore ambiguity, but future sessions must avoid duplicating state summaries across root discovery files and detailed docs.
 - Provenance coverage is still partial, so trust messaging must stay explicit.
 - Data classification and scoped API views are documentation/design boundaries only; current API responses are not RBAC-filtered views.
-- Broad AI context exposure remains compatibility-oriented and labeled with view-boundary metadata; it is not yet split into scoped consumer/AI/contractor/utility view models.
+- Broad AI context exposure remains compatibility-oriented and labeled with view-boundary metadata; scoped consumer/AI/contractor/utility view models are mapped but not implemented.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
 - Existing local databases may need reseeding to surface the new seeded current-home-energy-architecture, backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph rule provenance records.
 - Existing local databases may also need either app restart or reseeding to create baseline rows in the new `scenario_revisions` table for older scenario records.
@@ -84,4 +85,5 @@ Near-term implementation still points toward deepening the solar-readiness and r
 - Repository cognition structure: `docs/architecture/REPOSITORY_COGNITION_STRUCTURE.md`
 - Cognition layers: `docs/architecture/COGNITION_LAYERS.md`
 - Canonical terminology: `docs/architecture/CANONICAL_TERMINOLOGY.md`
+- Scoped view-model mapping: `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`
 - Continuity workflow: `docs/session-continuity/continuity-workflow.md`
