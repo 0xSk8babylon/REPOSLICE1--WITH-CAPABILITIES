@@ -12,6 +12,7 @@ This is the canonical continuity procedure for this repository. It complements t
    - `SESSION_HANDOFF.md`
    - `discovery-index.md`
    - repo-local skills under `.codex/skills/`
+   - task-relevant project skills under `.codex/project-skills/`
 2. Identify the task category.
 3. Load only the task-relevant operational references from `discovery-index.md`.
 4. Load deep references only when the task actually depends on them.
@@ -36,6 +37,8 @@ At the end of a meaningful session:
 - Read `docs/DATABASE_SCHEMA.md` for schema or persistence changes.
 - Read `docs/API_CONTRACTS.md` for API shape changes.
 - Read philosophy and ADR files only for doctrine-sensitive work.
+- Read `docs/architecture/COGNITION_LAYERS.md` and project skills for cognition, portability, or authority-boundary work.
+- Read `docs/trust/`, `docs/provenance/`, `docs/topology/`, `docs/governance/`, or `docs/orchestration/` only when the task touches those boundaries.
 - Read historical handoffs only when the latest handoff or discovery files are insufficient.
 
 ## Anti-Patterns

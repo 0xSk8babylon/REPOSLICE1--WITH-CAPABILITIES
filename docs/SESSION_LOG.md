@@ -95,3 +95,12 @@
 - Added a historical revision-comparison workspace to the Scenario Comparison page so saved revision drift can be inspected without flattening the page into a generic rankings dashboard.
 - Surfaced drift across linked design, design goal/status, recommended pathway, current-state architecture framing, and proposed-pathway confidence using stored immutable revision snapshots.
 - Verified the historical revision comparison workspace with `npm run build` in `apps/web` and `git diff --check`.
+
+## 2026-05-27
+
+- Formalized repository cognition layers so future agents can distinguish canonical knowledge, derived intelligence, advisory knowledge, operational knowledge, and historical knowledge.
+- Added canonical terminology for canonical objects, derived estimates, transient recommendations, operational state, revision graphs, continuity lineage, deployment lineage, and orchestration-safe abstractions.
+- Added governance, trust, provenance, topology, security, roadmap, continuity, and orchestration readiness docs under dedicated `docs/*/` directories.
+- Added ADR 0007 for the repository-as-memory-substrate decision.
+- Added project-specific portable skills under `.codex/project-skills/` for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
+- Updated discovery routing and continuity docs so future restore can start from a lean prompt such as `Load project skills before implementation.`

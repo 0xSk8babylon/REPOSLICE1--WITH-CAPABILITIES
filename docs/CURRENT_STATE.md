@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-05-25
+2026-05-27
 
 ## Platform State
 
@@ -57,10 +57,14 @@
 - Scenario comparison now consumes linked design completeness, pathway signals, trust warnings, and source-lineage summaries instead of returning a placeholder-only comparison shell
 - A repo-level doctrine layer now exists under `docs/philosophy/` and `docs/adr/` to preserve strategic coherence across future sessions
 - A compact root discovery layer and repo-local skills now exist so restore can start without a mandatory full-doc sweep
+- Canonical cognition, governance, trust, provenance, topology, security, roadmap, continuity, and orchestration readiness docs now exist in dedicated `docs/*/` directories.
+- ADR 0007 now records the repository-as-memory-substrate decision.
+- Repository-specific portable project skills now exist under `.codex/project-skills/` to reduce future restore-prompt size and route model-agnostic agents toward the right doctrine.
 
 ## Still Incomplete
 
 - Verified product ingestion and provenance
+- Full model-agnostic tool discovery for `.codex/project-skills/` across every agent environment
 - Exhaustive field-level provenance coverage across scenarios, pathways, designs, and home-model facts
 - Existing local databases may need reseeding or manual provenance entry to show the new seeded pathway lineage examples
 - Existing local databases may also need reseeding to surface the new current-home-energy-architecture, backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-system-reasoning-graph rule provenance records
@@ -108,3 +112,4 @@
 - The new scenario-revision layer persists compact planning-state framing and revision lineage, but it does not yet store full historical advisor payloads or replayable revision-specific reasoning graphs.
 - The new historical revision-comparison workspace is useful for drift inspection, but it currently compares the latest saved revision against the previous one per scenario rather than supporting arbitrary cross-revision matrices.
 - Recommendation inspectability is now broader, but it still depends on deterministic planning signals and partial provenance rather than verified engineering inputs or full field-level lineage.
+- The new cognition docs are canonical routing and governance aids, not proof that deployment lineage, utility-safe abstractions, contractor-safe packets, or operational orchestration are implemented.

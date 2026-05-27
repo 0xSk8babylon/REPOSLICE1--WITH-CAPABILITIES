@@ -21,6 +21,7 @@ At session start, read these files in order:
 5. repo-local skills if present:
    - `.codex/skills/repo-memory-map/SKILL.md`
    - `.codex/skills/repo-guardrails/SKILL.md`
+   - task-relevant `.codex/project-skills/*/SKILL.md`
 
 Then:
 
@@ -40,6 +41,7 @@ If any discovery-layer file is missing or stale, treat that as a continuity defe
   - repo-local skills under `.codex/skills/`
 - Operational layer:
   - selected global skill instructions
+  - selected project skills under `.codex/project-skills/`
   - task-relevant continuity workflow docs
   - specific current-state or contract docs needed for the task
 - Deep-reference layer:

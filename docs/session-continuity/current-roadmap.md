@@ -111,6 +111,14 @@ Status:
 - canonical repo-level memory files are now in place
 - compact root discovery files now route restore before any detailed continuity sweep
 - repo-local skills now capture project-specific memory routing and guardrails
+- project skills under `.codex/project-skills/` now capture portable cognition, continuity, provenance, topology, orchestration, canonical-authority, and roadmap workflows
 - strategic doctrine files now exist under `docs/philosophy/`
 - core architecture decisions are now captured under `docs/adr/`
+- canonical cognition, trust, provenance, topology, governance, roadmap, security, and orchestration readiness docs now exist under dedicated `docs/*/` directories
 - future sessions should update the root discovery files plus only the detailed continuity files affected by the change
+
+## Cognition And Portability Track
+
+- Formalize repository memory so future agents can restore from project skills and canonical docs instead of long chat prompts.
+- Keep canonical objects, derived estimates, advisory outputs, operational state, revision lineage, deployment lineage, and orchestration-safe abstractions distinct.
+- Prepare for future DER, contractor, utility, and AI-safe architecture views without implementing operational behavior prematurely.

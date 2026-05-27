@@ -4,7 +4,7 @@
 
 This document records the actual current state of the `residential-energy-planner` repo so future AI-assisted sessions can resume work without re-inferring architecture from partial context.
 
-## Repo Status As Of 2026-05-24
+## Repo Status As Of 2026-05-27
 
 - Monorepo structure is stable:
   - `apps/api`: FastAPI backend
@@ -25,6 +25,16 @@ This document records the actual current state of the `residential-energy-planne
   - `docs/SESSION_LOG.md`
   - `docs/philosophy/*`
   - `docs/adr/*`
+  - `docs/architecture/*`
+  - `docs/continuity/*`
+  - `docs/governance/*`
+  - `docs/provenance/*`
+  - `docs/roadmap/*`
+  - `docs/security/*`
+  - `docs/topology/*`
+  - `docs/trust/*`
+  - `docs/orchestration/*`
+  - `.codex/project-skills/*`
   - `docs/handoffs/`
 - Backend has completed Phase 2A persistence:
   - SQLite local database
@@ -86,6 +96,8 @@ This document records the actual current state of the `residential-energy-planne
 - Design status now acts as a lightweight planning maturity model, not an engineering approval state.
 - A dedicated doctrine layer now exists under `docs/philosophy/` and `docs/adr/` to preserve strategic coherence across future implementation sessions.
 - Restore now starts from a compact root discovery layer plus repo-local skills instead of requiring an immediate sweep across all detailed continuity and doctrine docs.
+- A repository cognition layer now formalizes canonical, derived, advisory, operational, and historical knowledge boundaries.
+- Project-specific portable skills now exist under `.codex/project-skills/` so future agents can restore from concise repository-native workflows.
 
 ## What Is Not Implemented
 
@@ -127,6 +139,7 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - Trust visibility is now a first-class UX layer, even though deep provenance and audit systems are still deferred.
 - Verification status belongs to source documents; trust badges belong to current application presentation and should not be conflated.
 - Philosophy and ADR documents remain durable deep references, but they are no longer mandatory startup reads for every session.
+- The new cognition and governance docs are routing and authority-boundary documents, not evidence that operational orchestration, utility abstractions, deployment lineage, or contractor-safe packets are implemented.
 
 ## Important Current Constraints
 

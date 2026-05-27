@@ -8,12 +8,14 @@
 4. Stabilize the new provenance foundation under the trust visibility, advisor intelligence, scenario comparison, and transient derived-takeoff workflows.
 5. Build deterministic profile-based resilience recommendation and sizing logic incrementally behind the advisor layer.
 6. Extend the current inspectable battery, solar, roof-readiness, current-home-energy-architecture, panel/service, backup-load-selection, profile-architecture-fit, inverter/system-architecture, structured-reasoning-graph, planning-state snapshot, scenario revision, and workspace/diagram/comparison/history-oriented advisor UI slices while keeping the newly stabilized trust wording intact.
+7. Preserve the new repository cognition structure so future agents can restore from project skills, canonical docs, and compact discovery files rather than transient chat history.
 
 ## Open Technical Tasks
 
 - Keep derived takeoffs transient while provenance remains incomplete
 - Improve migration discipline beyond the baseline scaffold
 - Deepen provenance/source-lineage modeling behind visible trust states and extend coverage beyond products, internal rules, loads, pathways, and the current scenario-comparison lineage layer
+- Normalize terminology across future docs around canonical objects, derived estimates, advisory outputs, operational state, revision lineage, deployment lineage, and orchestration-safe abstractions.
 
 ## Deferred Technical Tasks
 

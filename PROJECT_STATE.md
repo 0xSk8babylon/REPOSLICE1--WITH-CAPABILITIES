@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-05-25
+2026-05-27
 
 ## Repo Shape
 
@@ -10,12 +10,15 @@
 - SQLite-backed FastAPI backend with SQLAlchemy persistence
 - React/Vite frontend with core editable planning workflows
 - Continuity and doctrine docs under `docs/`
+- Canonical cognition, governance, topology, provenance, trust, roadmap, security, and orchestration docs now exist under dedicated `docs/*/` directories
+- Repository-specific portable project skills now exist under `.codex/project-skills/`
 
 ## Current Product Phase
 
 - Phase 2A persistence is complete.
 - Phase 2B editable workflows are materially in place.
 - Current work sits in the Phase 2D/2E trust, advisor, and provenance layer.
+- A repository-cognition formalization layer now supports model-agnostic restore and governance routing without changing runtime behavior.
 
 ## What Is Live
 
@@ -44,21 +47,25 @@
 - The Design Advisor API now also includes an additive `planning_state` snapshot envelope so recommendation, architecture, and pathway-comparison outputs are explicitly tied to a specific live design state plus any linked persistent scenario records
 - Scenario persistence now also includes additive immutable scenario revisions so saved planning states can accumulate revision lineage and advisor-linked snapshot framing without replacing the current live scenario workspace model
 - The Scenario Comparison UI now also includes a historical revision-comparison workspace that compares saved revision drift for design goal, status, recommended pathway, current-state architecture framing, and pathway-confidence posture from stored revision snapshots
+- The repository now includes canonical cognition-layer definitions, terminology, governance gap analysis, trust zones, provenance lineage model, topology lifecycle, scoped intelligence boundaries, orchestration readiness gaps, and roadmap sequencing docs.
+- ADR 0007 now records the decision to treat the repository as the durable project memory substrate.
+- `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
 - `/api/*` support with legacy route compatibility
 
 ## Current Next Product Target
 
-Deepen the solar-readiness and roof-capacity realism slice behind the current profile architecture while keeping formulas internal, provenance-aware, and planning-only, now that current-state solar topology, backup-scope posture, panel/service consistency, inverter/system architecture, structured reasoning dependencies, advisor pathway comparison, the planning-state snapshot envelope, and lightweight persistent scenario revisions are explicit layers.
+Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture. The current repository-architecture priority is preserving the new cognition structure so future implementation can resume from lean project-skill restore rather than long chat prompts.
 
 ## Restore Model
 
-- Discovery: `AGENTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, `discovery-index.md`, repo-local skills
+- Discovery: `AGENTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, `discovery-index.md`, repo-local skills, task-relevant `.codex/project-skills/*`
 - Operational: only the specific global skills and docs needed for the task
-- Deep reference: detailed docs, continuity files, doctrine, ADRs, and historical handoffs only when relevant
+- Deep reference: detailed docs, cognition docs, continuity files, doctrine, ADRs, and historical handoffs only when relevant
 
 ## Current Continuity Risks
 
 - Detailed continuity docs still exist and remain valuable, but they are too large to treat as mandatory startup context.
+- Cognition docs now reduce restore ambiguity, but future sessions must avoid duplicating state summaries across root discovery files and detailed docs.
 - Provenance coverage is still partial, so trust messaging must stay explicit.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
 - Existing local databases may need reseeding to surface the new seeded current-home-energy-architecture, backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph rule provenance records.
@@ -69,4 +76,8 @@ Deepen the solar-readiness and roof-capacity realism slice behind the current pr
 - Product and implementation state: `docs/CURRENT_STATE.md`
 - Product next step: `docs/NEXT_STEPS.md`
 - Active work: `docs/ACTIVE_TASKS.md`
+- Lean restore workflow: `docs/continuity/LEAN_RESTORE_WORKFLOW.md`
+- Repository cognition structure: `docs/architecture/REPOSITORY_COGNITION_STRUCTURE.md`
+- Cognition layers: `docs/architecture/COGNITION_LAYERS.md`
+- Canonical terminology: `docs/architecture/CANONICAL_TERMINOLOGY.md`
 - Continuity workflow: `docs/session-continuity/continuity-workflow.md`
