@@ -4,6 +4,8 @@
 
 Topology continuity tracks how the home energy system changes over time without collapsing current state, proposed state, and operational truth.
 
+For the Phase 2 topology lifecycle domain architecture note, see `docs/architecture/TopologyLifecycleDomains.md`. That document is docs-only and does not approve runtime topology graphs, lifecycle event logs, schema, API, utility, telemetry, or operational-control implementation.
+
 ## Lifecycle Stages
 
 1. Recorded current state

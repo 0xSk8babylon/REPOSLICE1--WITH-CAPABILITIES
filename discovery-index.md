@@ -35,6 +35,7 @@ Read these first:
 - Architecture changes:
   - `docs/ARCHITECTURE.md`
   - `docs/architecture/ResidentialEnergyTwinContractV1.md`
+  - `docs/architecture/TopologyLifecycleDomains.md`
   - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
   - `docs/architecture/COGNITION_LAYERS.md`
   - `docs/architecture/CANONICAL_TERMINOLOGY.md`
@@ -59,6 +60,7 @@ Read these first:
   - `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`
   - `docs/governance/AI_AUTHORITY_LIMITS.md`
 - Topology or orchestration planning:
+  - `docs/architecture/TopologyLifecycleDomains.md`
   - `docs/topology/TOPOLOGY_LIFECYCLE.md`
   - `docs/orchestration/READINESS_GAPS.md`
   - `docs/security/SCOPED_INTELLIGENCE_OUTPUTS.md`
