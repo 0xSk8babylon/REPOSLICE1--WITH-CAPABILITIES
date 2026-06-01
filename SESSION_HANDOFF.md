@@ -2,23 +2,21 @@
 
 ## Updated
 
-2026-05-27
+2026-06-01
 
 ## Session Summary
 
-- Session date: 2026-05-27
-- Starting head commit: `c67b693`
+- Session date: 2026-06-01
+- Starting head commit: `7f493b1`
 - Repo commits created this session:
-  - none yet
+  - Residential Energy Twin Contract v1 docs-only governance commit
 
 ## What Changed Last
 
-- Restored from the latest clean state and recent handoffs.
-- Added `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` as the source-of-truth map for scoped response/view boundaries.
-- Mapped consumer-safe, AI-safe, contractor-safe, and future utility-safe audience boundaries.
-- Identified broad/raw exposure surfaces and narrowing candidates for AI context, home/design/advisor/scenario/load/pathway/takeoff/product/provenance/account responses.
-- Cross-linked the mapping from API, security, discovery, current-state, next-step, active-task, pressure-point, roadmap, and unresolved-architecture docs.
-- Preserved existing behavior: no runtime endpoint changes, recommendation changes, filtering, RBAC, tenant isolation, auth rewrite, migrations, telemetry, encryption/KMS, contractor packets, utility exports, or operational-control runtime.
+- Added `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` as the documentation/governance-only Residential Energy Twin aggregate contract.
+- Cross-linked the contract from the lightweight discovery/project-state layer.
+- Preserved existing behavior: no schema changes, migrations, runtime behavior changes, auth/permission enforcement, new canonical `ResidentialEnergyTwin` model, API contract changes, utility semantics, DERMS semantics, dispatch semantics, contractor packets, utility exports, or operational-control runtime.
+- No implementation approval is implied by the contract; next implementation requires explicit Matt approval.
 
 ## Verification Performed
 
@@ -29,9 +27,10 @@
 
 - No runtime behavior changed.
 - Existing compatibility-sensitive API contracts were not narrowed or reclassified as filtered role views.
+- Residential Energy Twin Contract v1 is governance/doctrine documentation only.
 - Scoped view models are mapped only; they are not implemented as endpoints, filters, exports, or permissions.
 - AI remains advisory/grounding-only and cannot create canonical facts.
-- New docs preserve structured-data authority, planning-only boundaries, provenance lineage, strict-client concerns, and model-agnostic restore posture.
+- New docs preserve structured-data authority, planning-only boundaries, provenance lineage, permission-first twin boundaries, strict-client concerns, and model-agnostic restore posture.
 
 ## Remaining Risks
 
@@ -42,10 +41,11 @@
 - Deployment lineage is defined as a gap, not implemented.
 - Orchestration readiness is documented only; no DER, utility, contractor, or operational behavior exists.
 - Strict clients that reject additive fields still require contract review before consuming future scoped envelopes.
+- The contract defines a future canonical aggregate boundary but does not create persistence, API, or enforcement behavior.
 
 ## Current Resume Point
 
-Runtime implementation can resume from the solar-readiness target if requested. If continuing scoped view/security design first, use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` and start with additive view schemas, especially a narrower AI grounding view, before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
+Runtime implementation can resume from the solar-readiness target if requested. Twin implementation work must not begin from the contract alone; it requires explicit Matt approval for schema, migrations, persistence contracts, canonical model changes, scoped API contracts, permission enforcement, or provenance policy changes. If continuing scoped view/security design first, use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` and start with additive view schemas, especially a narrower AI grounding view, before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
 
 ## Lean Restore Prompt
 
@@ -56,9 +56,10 @@ Load project skills before implementation.
 ## If You Resume Now
 
 - Start from `AGENTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, and `discovery-index.md`.
+- For Residential Energy Twin aggregate governance, load `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`.
 - For cognition, governance, trust, provenance, or scoped API-view work, load `.codex/project-skills/canonical-authority-discipline/SKILL.md`, `.codex/project-skills/provenance-lineage/SKILL.md`, `.codex/project-skills/continuity-governance/SKILL.md`, and the task-specific project skill.
 - For runtime advisor work, continue using the existing `.codex/skills/energy-planner-*` guardrail skills.
 
 ## Latest Detailed Handoff
 
-See `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
+See `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` for the latest canonical twin contract. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
