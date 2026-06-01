@@ -19,12 +19,19 @@
 
 ## What Changed Last
 
+- Added `docs/architecture/InfrastructureSimulation.md` as a docs-only Phase 3 architecture planning document.
+- Defined Infrastructure Simulation as a future derived/advisory layer for estimating modeled Residential Energy Twin behavior across resilience, production, storage, loads, topology constraints, economic sensitivity, DER/ADR readiness, and future-state planning.
+- Documented future simulation categories, grounding requirements, simulation outputs, missing-data behavior, permission-filtered simulation views, lifecycle/scenario boundaries, utility/DER/ADR readiness limits, operational-control separation, and non-goals.
+- Reaffirmed that this document does not approve runtime simulation engines, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, operational control, financial authority, final engineering design, or authority-of-record replacement.
+
+## Previous Change
+
 - Added `docs/architecture/ScenarioIntelligence.md` as a docs-only Phase 3 architecture planning document.
 - Defined Scenario Intelligence as a future derived/advisory layer for comparing Residential Energy Twin scenarios using Phase 2 contracts, topology/lifecycle states, permissions, provenance, view contracts, grounding layers, Phase 3 boundaries, and the Structured System Reasoning Graph.
 - Documented future scenario categories, comparison dimensions, grounding requirements, scenario outputs, planning tradeoff language, permission-filtered scenario views, lifecycle boundaries, and non-goals.
 - Reaffirmed that this document does not approve runtime scenario engines, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, operational control, financial authority, final engineering design, or authority-of-record replacement.
 
-## Previous Change
+## Earlier Change
 
 - Added `docs/architecture/StructuredSystemReasoningGraph.md` as a docs-only Phase 3 architecture planning document.
 - Defined the Structured System Reasoning Graph as a future derived/advisory graph over Residential Energy Twin facts, topology, lifecycle states, products, permissions, provenance, grounding layers, constraints, and missing data.
@@ -150,6 +157,7 @@ Load project skills before implementation.
 - For Phase 3 Twin Intelligence planning, load `docs/architecture/Phase3TwinIntelligenceLayer.md`.
 - For Phase 3 Structured System Reasoning Graph planning, load `docs/architecture/StructuredSystemReasoningGraph.md`.
 - For Phase 3 Scenario Intelligence planning, load `docs/architecture/ScenarioIntelligence.md`.
+- For Phase 3 Infrastructure Simulation planning, load `docs/architecture/InfrastructureSimulation.md`.
 - For the first Residential Energy Twin runtime-boundary design question, load `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`.
 - For Residential Energy Twin provenance policy planning, load `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`.
 - For Residential Energy Twin permissioned-view planning, load `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`.
@@ -158,4 +166,4 @@ Load project skills before implementation.
 
 ## Latest Detailed Handoff
 
-See `docs/architecture/ResidentialEnergyTwinContractV1.md` for the latest canonical twin contract, `docs/architecture/TopologyLifecycleDomains.md` for topology lifecycle domains, `docs/architecture/PermissionPlacement.md` for permission placement, `docs/architecture/ProvenancePlacement.md` for provenance placement, `docs/architecture/ViewContracts.md` for actor-specific view contracts, `docs/architecture/SolarMarketProductIntelligenceGrounding.md` for future Phase 3 grounding, `docs/architecture/Phase3TwinIntelligenceLayer.md` for Phase 3 Twin Intelligence planning, `docs/architecture/StructuredSystemReasoningGraph.md` for Phase 3 graph planning, `docs/architecture/ScenarioIntelligence.md` for Phase 3 scenario planning, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note, and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` for the latest permissioned-view planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
+See `docs/architecture/ResidentialEnergyTwinContractV1.md` for the latest canonical twin contract, `docs/architecture/TopologyLifecycleDomains.md` for topology lifecycle domains, `docs/architecture/PermissionPlacement.md` for permission placement, `docs/architecture/ProvenancePlacement.md` for provenance placement, `docs/architecture/ViewContracts.md` for actor-specific view contracts, `docs/architecture/SolarMarketProductIntelligenceGrounding.md` for future Phase 3 grounding, `docs/architecture/Phase3TwinIntelligenceLayer.md` for Phase 3 Twin Intelligence planning, `docs/architecture/StructuredSystemReasoningGraph.md` for Phase 3 graph planning, `docs/architecture/ScenarioIntelligence.md` for Phase 3 scenario planning, `docs/architecture/InfrastructureSimulation.md` for Phase 3 simulation planning, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note, and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` for the latest permissioned-view planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
