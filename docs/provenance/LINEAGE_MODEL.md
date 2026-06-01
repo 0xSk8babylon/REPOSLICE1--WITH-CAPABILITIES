@@ -4,6 +4,8 @@
 
 Preserve lineage as information moves from recorded facts to derived estimates, advisory outputs, revisions, and future orchestration abstractions.
 
+For Residential Energy Twin provenance policy planning, see `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`. That note is design-only and does not approve schema, API, runtime, permission, utility, operational-control, or canonical twin implementation.
+
 ## Lineage Elements
 
 Each derived or advisory output should identify:

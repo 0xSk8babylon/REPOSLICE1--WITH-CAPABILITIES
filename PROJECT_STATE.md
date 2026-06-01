@@ -89,5 +89,6 @@ Near-term implementation still points toward deepening the solar-readiness and r
 - Canonical terminology: `docs/architecture/CANONICAL_TERMINOLOGY.md`
 - Residential Energy Twin Contract v1: `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`
 - First Residential Energy Twin runtime-boundary planning note: `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
+- Residential Energy Twin provenance policy planning note: `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - Scoped view-model mapping: `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`
 - Continuity workflow: `docs/session-continuity/continuity-workflow.md`

@@ -53,6 +53,7 @@ Read these first:
 - Trust or provenance changes:
   - `docs/trust/TRUST_ZONES.md`
   - `docs/provenance/LINEAGE_MODEL.md`
+  - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
   - `docs/security/SCOPED_INTELLIGENCE_OUTPUTS.md`
   - `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`
   - `docs/governance/AI_AUTHORITY_LIMITS.md`

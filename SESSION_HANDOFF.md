@@ -8,19 +8,26 @@
 
 - Session date: 2026-06-01
 - Starting head commit: `7f493b1`
-- Current continuation starting head: `9503df4`
+- Current continuation starting head: `7acb9e7`
 - Repo commits created this session:
   - Residential Energy Twin Contract v1 docs-only governance commit
   - Residential Energy Twin first runtime-boundary planning docs-only commit
   - Residential Energy Twin governance discoverability stabilization docs-only commit
+  - Residential Energy Twin provenance policy planning docs-only commit
 
 ## What Changed Last
+
+- Added `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` as a docs-only planning note for authority-bearing twin facts, field/domain/derived-output provenance, current provenance structure mapping, partial areas, and Matt approval gates.
+- Cross-linked the note from the lightweight project state, discovery index, and existing provenance lineage doc.
+- No schema changes, migrations, APIs, runtime behavior, permission enforcement, utility authority, operational control, or canonical `ResidentialEnergyTwin` model were made.
+
+## Prior Session Change
 
 - Stabilized Residential Energy Twin governance discoverability across the architecture overview, discovery index, project state, and first-boundary planning note.
 - Added only lightweight cross-links and clarified that recorded planner inputs are not a canonical Residential Energy Twin implementation.
 - No schema changes, migrations, API changes, runtime behavior changes, permission enforcement, auth, utility authority, operational control, or new `ResidentialEnergyTwin` model were made.
 
-## Prior Session Change
+## Initial Session Change
 
 - Added `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` as a docs-only planning note for the first possible Residential Energy Twin runtime boundary.
 - The note recommends using `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation, while reserving `twin_id` for a future approved canonical aggregate implementation.
@@ -36,6 +43,7 @@
 
 ## Verification Performed
 
+- Current provenance planning pass: `git diff --check` passed.
 - Current stabilization pass: `git diff --check` passed.
 - Current docs-only planning note: `git diff --check` passed.
 - Previous session: `git diff --check` passed.
@@ -63,7 +71,7 @@
 
 ## Current Resume Point
 
-Runtime implementation can resume from the solar-readiness target if requested. Twin implementation work must not begin from the contract or first-boundary planning note alone; it requires explicit Matt approval for schema, migrations, persistence contracts, canonical model changes, scoped API contracts, permission enforcement, or provenance policy changes. If continuing twin-boundary design first, use `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` and keep the next step design-only unless Matt approves implementation. If continuing scoped view/security design first, use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` and start with additive view schemas, especially a narrower AI grounding view, before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
+Runtime implementation can resume from the solar-readiness target if requested. Twin implementation work must not begin from the contract, first-boundary planning note, or provenance policy planning note alone; it requires explicit Matt approval for schema, migrations, persistence contracts, canonical model changes, scoped API contracts, permission enforcement, or provenance policy changes. If continuing twin-boundary design first, use `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` and keep the next step design-only unless Matt approves implementation. If continuing twin provenance policy design first, use `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing scoped view/security design first, use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` and start with additive view schemas, especially a narrower AI grounding view, before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
 
 ## Lean Restore Prompt
 
@@ -76,9 +84,10 @@ Load project skills before implementation.
 - Start from `AGENTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, and `discovery-index.md`.
 - For Residential Energy Twin aggregate governance, load `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`.
 - For the first Residential Energy Twin runtime-boundary design question, load `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`.
+- For Residential Energy Twin provenance policy planning, load `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`.
 - For cognition, governance, trust, provenance, or scoped API-view work, load `.codex/project-skills/canonical-authority-discipline/SKILL.md`, `.codex/project-skills/provenance-lineage/SKILL.md`, `.codex/project-skills/continuity-governance/SKILL.md`, and the task-specific project skill.
 - For runtime advisor work, continue using the existing `.codex/skills/energy-planner-*` guardrail skills.
 
 ## Latest Detailed Handoff
 
-See `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` for the latest canonical twin contract and `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
+See `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` for the latest canonical twin contract, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, and `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
