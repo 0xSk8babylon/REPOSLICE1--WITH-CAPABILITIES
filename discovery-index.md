@@ -36,6 +36,9 @@ Read these first:
   - `docs/ARCHITECTURE.md`
   - `docs/architecture/ResidentialEnergyTwinContractV1.md`
   - `docs/architecture/TopologyLifecycleDomains.md`
+  - `docs/architecture/PermissionPlacement.md`
+  - `docs/architecture/ProvenancePlacement.md`
+  - `docs/architecture/ViewContracts.md`
   - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
   - `docs/architecture/COGNITION_LAYERS.md`
   - `docs/architecture/CANONICAL_TERMINOLOGY.md`
@@ -52,6 +55,9 @@ Read these first:
   - `apps/web/src/lib/api.js`
   - task-relevant pages/components
 - Trust or provenance changes:
+  - `docs/architecture/PermissionPlacement.md`
+  - `docs/architecture/ProvenancePlacement.md`
+  - `docs/architecture/ViewContracts.md`
   - `docs/trust/TRUST_ZONES.md`
   - `docs/provenance/LINEAGE_MODEL.md`
   - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
