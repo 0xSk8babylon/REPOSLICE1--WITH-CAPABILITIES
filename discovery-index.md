@@ -42,6 +42,7 @@ Read these first:
   - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
   - `docs/architecture/Phase3TwinIntelligenceLayer.md`
   - `docs/architecture/StructuredSystemReasoningGraph.md`
+  - `docs/architecture/ScenarioIntelligence.md`
   - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
   - `docs/architecture/COGNITION_LAYERS.md`
   - `docs/architecture/CANONICAL_TERMINOLOGY.md`
@@ -64,6 +65,7 @@ Read these first:
   - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
   - `docs/architecture/Phase3TwinIntelligenceLayer.md`
   - `docs/architecture/StructuredSystemReasoningGraph.md`
+  - `docs/architecture/ScenarioIntelligence.md`
   - `docs/trust/TRUST_ZONES.md`
   - `docs/provenance/LINEAGE_MODEL.md`
   - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
@@ -76,6 +78,7 @@ Read these first:
   - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
   - `docs/architecture/Phase3TwinIntelligenceLayer.md`
   - `docs/architecture/StructuredSystemReasoningGraph.md`
+  - `docs/architecture/ScenarioIntelligence.md`
   - `docs/topology/TOPOLOGY_LIFECYCLE.md`
   - `docs/orchestration/READINESS_GAPS.md`
   - `docs/security/SCOPED_INTELLIGENCE_OUTPUTS.md`
