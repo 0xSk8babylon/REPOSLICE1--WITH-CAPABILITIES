@@ -23,6 +23,7 @@
 - `docs/architecture/ProvenancePlacement.md` defines where source lineage, evidence, confidence, verification, and authority metadata attach to the twin as documentation/governance doctrine only.
 - `docs/architecture/ViewContracts.md` defines actor-specific, permission-filtered, provenance-preserving view-contract expectations as documentation/governance doctrine only.
 - `docs/architecture/SolarMarketProductIntelligenceGrounding.md` defines Phase 2 placement boundaries for future solar production, market/economic, and verified product intelligence grounding as documentation/governance doctrine only.
+- `docs/architecture/Phase3TwinIntelligenceLayer.md` defines the governing Phase 3 derived/advisory Twin Intelligence planning layer as documentation/governance doctrine only.
 - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` plans the first possible runtime boundary as docs-only design work; it recommends `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation and reserves `twin_id` for a future approved canonical aggregate.
 - None of these documents approve schema changes, migrations, API changes, runtime behavior changes, permission enforcement, utility authority, operational control, or a canonical `ResidentialEnergyTwin` model.
 
