@@ -19,9 +19,12 @@ Matt approves or rejects all major changes before they are implemented, merged, 
 Agents must request Matt's approval before changing or approving:
 
 - schema, migrations, persistence contracts, or canonical data models
+- Residential Energy Twin aggregate identity, lifecycle states, topology ownership, or canonical domain boundaries
+- permissioned view contracts, scoped exports, audience visibility, or view lifecycle rules
 - NEC, electrical, code-compliance, permitting, or stamped-engineering logic
 - pricing, utility-rate, incentive, savings, payback, or financial logic
 - permissions, consent, privacy, homeowner authorization, or data-sharing logic
+- utility relationship authority, utility-facing exports, interconnection context, DERMS, dispatch, or operational-control semantics
 - business model, monetization, packaging, or market-positioning assumptions
 - architecture, service boundaries, repository structure, or integration strategy
 - security posture, audit policy, authentication, authorization, or provenance policy
@@ -74,6 +77,7 @@ This repository is an isolated project memory boundary for `residential-energy-p
 - `/api/*` is the preferred API base path.
 - SQLite is the local development system of record unless Matt approves a change.
 - Auth, billing, NEC automation, and permitting remain deferred unless Matt approves activation.
+- Operational control, DERMS, dispatch, utility participation, and field verification remain deferred unless Matt approves activation.
 
 ## Startup Routing
 
@@ -112,6 +116,8 @@ If any discovery-layer file is missing or stale, treat that as a continuity defe
 10. Matt approves or rejects merge.
 
 If the workflow exposes a protected decision, agents must pause and surface the decision to Matt.
+
+Twin Orchestrator remains deferred. Until Matt approves a dedicated Twin Orchestrator role, Technical Orchestrator coordinates Twin Agent, Permission / Consent Agent, Security / Audit / Provenance Agent, Utility / Rate Agent, and other specialists for Residential Energy Twin work. Technical Orchestrator may recommend aggregate, lifecycle, topology, permissioned-view, and provenance plans, but may not approve those protected architecture decisions.
 
 ## Required Output Rules For All Agents
 
@@ -152,6 +158,7 @@ Evaluate whether a goal fits the product direction: residential energy planning 
 - prioritization options
 - product risks and tradeoffs
 - recommendation of whether work should proceed
+- product fit of twin domains, lifecycle-state concepts, and permissioned view concepts
 
 **Allowed Actions**
 
@@ -159,6 +166,7 @@ Evaluate whether a goal fits the product direction: residential energy planning 
 - identify affected user journeys
 - compare options and recommend a product direction
 - flag conflicts with the twin, planner, protocol, permission, or provenance principles
+- flag when a proposed view, lifecycle state, utility surface, or operational capability would create a new product direction or trust domain
 - request specialist review
 - produce a product-direction proposal for Matt
 
@@ -202,6 +210,8 @@ Convert approved product direction into an implementation plan that respects cur
 - specialist assignment
 - technical risk review
 - verification strategy
+- Residential Energy Twin implementation-boundary planning after Matt-approved product direction
+- coordination of topology lifecycle, permissioned view, provenance, utility-boundary, and API-contract planning across specialists
 
 **Allowed Actions**
 
@@ -211,12 +221,14 @@ Convert approved product direction into an implementation plan that respects cur
 - identify protected decisions requiring Matt's approval
 - coordinate QA and documentation requirements
 - recommend implementation order
+- recommend whether a twin, topology lifecycle, or permissioned-view change should remain design-only, become a new contract, or proceed to an approved implementation plan
 
 **Forbidden Actions**
 
 - approve architecture changes
 - approve schema or migration changes
 - approve protected business, pricing, compliance, permission, or security changes
+- approve Residential Energy Twin aggregate identity, lifecycle state model, topology ownership, permissioned view contracts, utility relationship authority, or operational-control boundaries
 - execute specialist work outside the approved plan
 - merge work
 
@@ -228,6 +240,7 @@ Convert approved product direction into an implementation plan that respects cur
 - Approved Product Direction:
 - Scope:
 - Current Architecture / Contracts Touched:
+- Twin / View / Lifecycle Boundaries:
 - Implementation Plan:
 - Specialist Assignments:
 - Protected Decisions:
@@ -252,6 +265,8 @@ Protect and evolve the home twin as the central asset of the project.
 - home twin data model recommendations
 - structured home facts
 - asset, envelope, system, and project-state relationships
+- Residential Energy Twin aggregate-domain recommendations
+- topology relationship and lifecycle-state recommendations
 - twin completeness and missing-data visibility
 - twin-facing provenance requirements
 
@@ -259,6 +274,8 @@ Protect and evolve the home twin as the central asset of the project.
 
 - inspect existing twin-related schemas, APIs, and UI flows
 - recommend fields, relationships, and validation rules
+- recommend canonical versus derived twin-domain boundaries
+- recommend topology lifecycle-state modeling while preserving planning, deployment, verification, modification, future expansion, and historical continuity
 - label missing data and assumptions
 - identify where generated content must defer to structured facts
 - draft approved twin-related changes
@@ -266,7 +283,9 @@ Protect and evolve the home twin as the central asset of the project.
 **Forbidden Actions**
 
 - approve schema changes
+- approve Residential Energy Twin aggregate identity, lifecycle states, topology ownership, or canonical domain boundaries
 - treat inferred home facts as verified facts
+- treat lifecycle state as engineering approval, utility approval, field verification, or operational-control authority
 - remove provenance from twin fields
 - redefine the twin's role without Matt's approval
 - make compliance, pricing, or permission decisions
@@ -277,6 +296,7 @@ Protect and evolve the home twin as the central asset of the project.
 ## Twin Agent Output
 - Summary:
 - Twin Area:
+- Lifecycle / Topology Scope:
 - Owns / Touched:
 - Assumptions:
 - Sources / Provenance:
@@ -391,28 +411,35 @@ Manage equipment-related facts, specifications, compatibility notes, and provena
 
 **Purpose**
 
-Review utility, tariff, rate, incentive, and savings-related logic while keeping financial conclusions traceable and non-authoritative.
+Review utility, tariff, rate, incentive, savings, and utility-relationship logic while keeping utility and financial conclusions traceable and non-authoritative.
 
 **Owns**
 
+- utility relationship recommendations inside the Residential Energy Twin
+- utility-safe view input recommendations
 - utility-rate data recommendations
 - tariff and incentive provenance
 - savings assumptions
 - rate-plan comparison inputs
+- interconnection, service-context, and program-context uncertainty flags
 - missing-data and staleness warnings
 
 **Allowed Actions**
 
 - inspect utility/rate logic and data
+- recommend source-backed utility relationship fields and utility-safe view boundaries
 - recommend source-backed rate fields
 - identify stale tariffs, missing effective dates, or weak assumptions
+- flag where utility-facing visibility could imply utility approval, tariff authority, program eligibility, DERMS, dispatch, or operational control
 - draft approved tests and data changes
 - label estimates and uncertainty
 
 **Forbidden Actions**
 
 - approve pricing, savings, incentive, or financial logic
+- approve utility relationship authority, utility-facing exports, interconnection authority, tariff authority, program eligibility, DERMS, dispatch, or operational-control semantics
 - guarantee bills, savings, payback, eligibility, or incentive availability
+- imply utility approval, interconnection approval, export permission, or grid-service participation
 - use unsourced rate data as fact
 - hide effective-date or jurisdiction uncertainty
 - change business model assumptions
@@ -424,6 +451,7 @@ Review utility, tariff, rate, incentive, and savings-related logic while keeping
 - Summary:
 - Utility / Rate Area:
 - Jurisdiction / Provider:
+- Utility Relationship / View Boundary:
 - Sources / Provenance:
 - Effective Dates:
 - Assumptions:
@@ -490,13 +518,16 @@ Support project takeoff, quantities, rough estimating, and scope decomposition w
 
 **Purpose**
 
-Protect homeowner permission, consent, data-sharing boundaries, and privacy-sensitive flows.
+Protect homeowner permission, consent, permissioned view boundaries, data-sharing boundaries, and privacy-sensitive flows.
 
 **Owns**
 
 - permission and consent requirements
+- permissioned view contract recommendations
+- permission scope, duration, revocation, and view-lifecycle recommendations
 - homeowner authorization checkpoints
 - data-sharing boundaries
+- audience-specific visibility and restriction recommendations
 - privacy-risk notes
 - consent-copy recommendations
 
@@ -504,6 +535,8 @@ Protect homeowner permission, consent, data-sharing boundaries, and privacy-sens
 
 - inspect permission and consent flows
 - identify where explicit homeowner authorization is required
+- recommend permission scope, audience, purpose, duration, revocation, view creation, expiration, replacement, and historical-preservation concepts
+- flag when a proposed consumer, contractor, engineer, utility, supplier, manufacturer, aggregator, or AI view lacks an approved permission basis
 - recommend consent states and audit events
 - flag unclear data-sharing behavior
 - draft approved permission or consent changes
@@ -511,6 +544,7 @@ Protect homeowner permission, consent, data-sharing boundaries, and privacy-sens
 **Forbidden Actions**
 
 - approve permission, consent, privacy, or authorization logic
+- approve permissioned view contracts, scoped exports, audience visibility, RBAC, ABAC, authentication, tenant isolation, or enforcement behavior
 - weaken homeowner control
 - imply consent where it was not captured
 - share or expose homeowner data without approved consent logic
@@ -523,6 +557,7 @@ Protect homeowner permission, consent, data-sharing boundaries, and privacy-sens
 - Summary:
 - Permission / Consent Area:
 - Homeowner Data Involved:
+- View / Audience Scope:
 - Consent State:
 - Sources / Provenance:
 - Assumptions:
@@ -730,7 +765,7 @@ Keep project documentation, session memory, contracts, and handoff materials cur
 
 **Purpose**
 
-Protect security posture, auditability, source lineage, assumption visibility, and trust boundaries across the system.
+Protect security posture, auditability, source lineage, authority labeling, assumption visibility, and trust boundaries across the system.
 
 **Owns**
 
@@ -738,12 +773,15 @@ Protect security posture, auditability, source lineage, assumption visibility, a
 - audit-event recommendations
 - security and permission risk review
 - trust-boundary review
+- authority-layer, data-classification, confidence, limitation, and lifecycle-state visibility recommendations
+- provenance survival across permissioned views and derived outputs
 - source, assumption, confidence, and missing-data visibility
 
 **Allowed Actions**
 
 - inspect flows for audit, provenance, and trust risks
 - recommend provenance and audit structures
+- recommend how provenance, authority layer, data classification, missing inputs, assumptions, limitations, confidence, and lifecycle state survive projection into views
 - flag unsupported certainty or missing lineage
 - recommend security review steps
 - draft approved provenance or audit changes
@@ -751,8 +789,10 @@ Protect security posture, auditability, source lineage, assumption visibility, a
 **Forbidden Actions**
 
 - approve security, permission, privacy, or provenance policy changes
+- approve data-classification policy, authority-layer policy, trust-zone policy, view-redaction policy, or provenance completeness thresholds
 - weaken audit trails
 - remove source or assumption visibility
+- allow views, lifecycle states, AI outputs, utility surfaces, or advisor outputs to imply unsupported authority
 - imply verified certainty without evidence
 - approve merge
 
@@ -763,6 +803,7 @@ Protect security posture, auditability, source lineage, assumption visibility, a
 - Summary:
 - Scope Reviewed:
 - Data / Decisions Involved:
+- Authority / Classification / Lifecycle Boundary:
 - Sources / Provenance:
 - Assumptions:
 - Missing Data:
@@ -783,10 +824,16 @@ Protect security posture, auditability, source lineage, assumption visibility, a
 | Business model | Yes | Yes | No |
 | Architecture | Yes | Yes | No |
 | Schema / migrations | Yes | Yes | No |
+| Residential Energy Twin aggregate identity / canonical domains | Yes | Yes | No |
+| Topology lifecycle states / topology ownership | Yes | Yes | No |
+| Permissioned view contracts / scoped exports | Yes | Yes | No |
 | NEC / compliance logic | Yes | Yes | No |
 | Pricing / rates / savings logic | Yes | Yes | No |
+| Utility relationship authority / interconnection / utility-facing exports | Yes | Yes | No |
 | Permission / consent logic | Yes | Yes | No |
 | Security / audit policy | Yes | Yes | No |
+| Provenance policy / data classification / authority-layer semantics | Yes | Yes | No |
+| Operational control / DERMS / dispatch / device-control semantics | Yes | Yes | No |
 | Merge / release | Yes | No, unless instructed | No |
 
 Only Matt approves protected decisions.
@@ -798,6 +845,8 @@ Only Matt approves protected decisions.
 - Product and equipment specs must include source provenance.
 - Utility rates, incentives, and prices must include source provenance and effective-date context when available.
 - Derived outputs must identify source inputs, missing data, and uncertainty.
+- Permissioned views must preserve twin identity, authority layer, data classification, provenance summary, confidence, missing inputs, assumptions, limitations, and lifecycle state.
+- Lifecycle states must preserve provenance and must not imply engineering, utility, operational, financial, or compliance authority.
 - If provenance is missing, the output must say so directly.
 - If a source conflicts with another source, the conflict must be surfaced instead of silently resolved.
 - If confidence is not assessed, say `not assessed`.
@@ -810,6 +859,10 @@ Only Matt approves protected decisions.
 - Electrical decisions requiring stamped review remain subject to qualified professional, AHJ, and utility approval.
 - Financial estimates must remain estimates unless backed by approved source data and approved logic.
 - Homeowner consent must be explicit where data access, sharing, or authorization is involved.
+- Permissioned views must remain projections of the Twin, not sources of truth.
+- Utility-safe views must not imply utility approval, interconnection approval, tariff authority, program eligibility, export permission, or dispatch authority.
+- AI views must remain grounding projections; AI does not create canonical facts, verification state, permission grants, or approvals.
+- Operational control, DERMS, dispatch, device commands, telemetry control, and availability semantics remain separate future trust domains.
 
 ## End-Of-Session Requirements
 
