@@ -52,6 +52,7 @@
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
 - Canonical authority, trust-zone, provenance, data-classification, API-view, and RBAC-boundary language is now normalized across the source-of-truth docs without implementing auth, access control, telemetry, DER/ADR control, or migrations.
 - `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` now defines the Residential Energy Twin aggregate contract as documentation/governance only; it does not approve schema changes, migrations, runtime behavior, auth/permission enforcement, API contract changes, utility semantics, DERMS/dispatch semantics, or a new canonical runtime model.
+- `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` now records the docs-only first-boundary planning recommendation: use `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation, while reserving `twin_id` for a future approved canonical aggregate.
 - Backend responses now include additive authority/classification/view-boundary/permission-readiness metadata on selected provenance, recommendation, AI context, scenario comparison, account, and placeholder estimate surfaces without changing recommendation behavior or enforcing access.
 - Scoped view-model mapping now identifies consumer-safe, AI-safe, contractor-safe, and future utility-safe response boundaries, names broad/raw exposure surfaces, and defines narrowing candidates without changing recommendation behavior or implementing enforcement.
 - `/api/*` support with legacy route compatibility
@@ -87,5 +88,6 @@ Near-term implementation still points toward deepening the solar-readiness and r
 - Cognition layers: `docs/architecture/COGNITION_LAYERS.md`
 - Canonical terminology: `docs/architecture/CANONICAL_TERMINOLOGY.md`
 - Residential Energy Twin Contract v1: `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`
+- First Residential Energy Twin runtime-boundary planning note: `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
 - Scoped view-model mapping: `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`
 - Continuity workflow: `docs/session-continuity/continuity-workflow.md`

@@ -15,6 +15,12 @@
 - Estimate artifacts: takeoff requests and line items
 - AI context: grounded summaries assembled from persisted structured state
 
+## Residential Energy Twin Governance
+
+- `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` defines the Residential Energy Twin aggregate contract as documentation/governance doctrine only.
+- `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` plans the first possible runtime boundary as docs-only design work; it recommends `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation and reserves `twin_id` for a future approved canonical aggregate.
+- Neither document approves schema changes, migrations, API changes, runtime behavior changes, permission enforcement, utility authority, operational control, or a canonical `ResidentialEnergyTwin` model.
+
 ## Persistence Architecture
 
 - SQLAlchemy ORM models in `apps/api/app/core/models.py`

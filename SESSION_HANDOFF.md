@@ -12,15 +12,22 @@
 - Repo commits created this session:
   - Residential Energy Twin Contract v1 docs-only governance commit
   - Residential Energy Twin first runtime-boundary planning docs-only commit
+  - Residential Energy Twin governance discoverability stabilization docs-only commit
 
 ## What Changed Last
+
+- Stabilized Residential Energy Twin governance discoverability across the architecture overview, discovery index, project state, and first-boundary planning note.
+- Added only lightweight cross-links and clarified that recorded planner inputs are not a canonical Residential Energy Twin implementation.
+- No schema changes, migrations, API changes, runtime behavior changes, permission enforcement, auth, utility authority, operational control, or new `ResidentialEnergyTwin` model were made.
+
+## Prior Session Change
 
 - Added `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` as a docs-only planning note for the first possible Residential Energy Twin runtime boundary.
 - The note recommends using `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation, while reserving `twin_id` for a future approved canonical aggregate implementation.
 - No schema changes, migrations, API changes, runtime behavior changes, permission enforcement, auth, or new `ResidentialEnergyTwin` model were made.
 - Next safe step is doc cross-linking or a separate Matt-approved implementation design for a read-only, source-labeled twin-context boundary.
 
-## Prior Session Change
+## Earlier Session Change
 
 - Added `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` as the documentation/governance-only Residential Energy Twin aggregate contract.
 - Cross-linked the contract from the lightweight discovery/project-state layer.
@@ -29,6 +36,7 @@
 
 ## Verification Performed
 
+- Current stabilization pass: `git diff --check` passed.
 - Current docs-only planning note: `git diff --check` passed.
 - Previous session: `git diff --check` passed.
 - No backend/frontend tests are required for the current change because this session is documentation only.

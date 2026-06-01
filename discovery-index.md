@@ -35,6 +35,7 @@ Read these first:
 - Architecture changes:
   - `docs/ARCHITECTURE.md`
   - `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`
+  - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
   - `docs/architecture/COGNITION_LAYERS.md`
   - `docs/architecture/CANONICAL_TERMINOLOGY.md`
   - task-relevant files in `docs/session-continuity/`

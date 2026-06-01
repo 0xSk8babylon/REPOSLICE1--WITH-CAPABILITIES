@@ -37,9 +37,9 @@ No current model, table, route, or service is a canonical `ResidentialEnergyTwin
 | Scenarios | `Scenario`, `ScenarioRevision` | Scenario records and revision lineage are persisted planning history. Embedded snapshots preserve historical context but do not make derived advisor content canonical facts. |
 | Provenance | `SourceDocument`, `DataProvenance`, `RuleProvenance`, provenance summaries | Source and rule lineage records exist. Coverage is partial and does not by itself enforce authority, access control, or verification. |
 
-## Canonical Planning Record Versus Derived Or Application-Only
+## Recorded Planner Inputs Versus Derived Or Application-Only
 
-Current canonical planning records, within the existing planner scope:
+Current recorded planner inputs that can act as canonical planner records within the existing planner scope, but are not a canonical Residential Energy Twin implementation:
 
 - Home/premise records and their direct home-linked structures.
 - Building, panel, load, equipment-location, design, design-equipment, pathway, scenario, and scenario-revision records.
@@ -54,7 +54,7 @@ Current derived, advisory, placeholder, or application-only data:
 - AI context payloads, generated explanations, UI layouts, sorted table state, and broad response shapes.
 - Account role, plan, and subscription fields, which remain scaffolding and do not imply permission or authorization.
 
-Derived outputs may be useful planning artifacts. They do not create canonical home facts unless a future Matt-approved source-backed promotion workflow exists.
+Derived outputs may be useful planning artifacts. They do not create canonical home facts or twin records unless a future Matt-approved source-backed promotion workflow exists.
 
 ## Option A: Use `home_id` As A Temporary Twin Boundary
 
