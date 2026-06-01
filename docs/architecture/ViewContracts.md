@@ -280,6 +280,14 @@ Must exclude or label:
 
 AI may explain and organize. AI may not create canonical facts, permission grants, verification claims, compliance claims, utility authority, or operational authorization.
 
+## Future Grounding-Layer Views
+
+Future views may expose solar production grounding, market/economic grounding, and verified product intelligence only as permission-filtered, provenance-preserving derived or reference context.
+
+See `SolarMarketProductIntelligenceGrounding.md` for the Phase 2 bridge. Homeowner, contractor, engineer, utility, aggregator, supplier/manufacturer, AI, and audit views should minimize grounding-layer fields by audience and preserve provider/source references, confidence, assumptions, missing inputs, limitations, and estimated/modeled/quoted/verified/benchmarked labels.
+
+Grounding-layer views must not imply provider integration, partnership, verified pricing, guaranteed savings, production guarantee, product compatibility approval, engineering approval, utility approval, operational authority, or AI-based authority of record.
+
 ### Audit View
 
 Purpose:
@@ -346,6 +354,7 @@ Matt approval is required before any of the following become implementation, sch
 - `docs/architecture/TopologyLifecycleDomains.md`
 - `docs/architecture/PermissionPlacement.md`
 - `docs/architecture/ProvenancePlacement.md`
+- `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
 - `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`
 - `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`
 - `docs/provenance/LINEAGE_MODEL.md`

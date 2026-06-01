@@ -406,6 +406,14 @@ Deferred implementation:
 
 Future utility compatibility must not become uncontrolled utility access to homeowner data.
 
+## Future Twin Intelligence Grounding
+
+Future Phase 3 Twin Intelligence may use provider-backed production calculations, benchmark-backed market/economic checks, and verified product intelligence only as derived grounding layers.
+
+See `SolarMarketProductIntelligenceGrounding.md` for the Phase 2 architecture bridge. That document does not approve provider integrations, schemas, APIs, spec-sheet ingestion, product catalogs, AI engineering automation, utility APIs, telemetry, or operational control.
+
+The Residential Energy Twin remains homeowner-governed. AI may explain future grounded outputs, but deterministic providers, normalized product evidence, structured quotes, benchmarks, and rules remain the source for production, economic, and product-capability outputs.
+
 ## Future Operational-Control Separation
 
 Operational control is a separate future trust domain.
@@ -454,6 +462,7 @@ Matt approval is required before any of the following become implementation, sch
 - `docs/architecture/COGNITION_LAYERS.md`
 - `docs/architecture/CANONICAL_TERMINOLOGY.md`
 - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
+- `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
 - `docs/provenance/LINEAGE_MODEL.md`
 - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`

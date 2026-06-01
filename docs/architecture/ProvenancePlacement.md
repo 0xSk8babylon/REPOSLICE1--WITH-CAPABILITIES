@@ -170,6 +170,14 @@ Utility provenance must not imply:
 - utility submission authority
 - DERMS, dispatch, demand response, VPP, aggregator enrollment, device availability, or operational control
 
+## Future Grounding-Layer Provenance
+
+Future solar production, market/economic, and verified product intelligence grounding must preserve provider, quote, product, benchmark, and derived-output provenance.
+
+See `SolarMarketProductIntelligenceGrounding.md` for the Phase 2 architecture bridge. Provider-backed or benchmark-backed outputs should identify source/provider references, provider/version where applicable, source dates, input assumptions, normalized fields used, confidence, missing inputs, limitations, and whether the output is estimated, modeled, quoted, parsed, verified, manufacturer-backed, contractor-reviewed, engineer-reviewed, or market-benchmarked.
+
+No grounding-layer output should become canonical, verified, financial, utility, engineering, or operational authority without a future approved source-backed promotion workflow.
+
 ## Future Audit And Security Compatibility
 
 Provenance placement should prepare for future audit and security layers without claiming they exist now.
@@ -215,6 +223,7 @@ Matt approval is required before any of the following become implementation, sch
 - `discovery-index.md`
 - `docs/architecture/ResidentialEnergyTwinContractV1.md`
 - `docs/architecture/TopologyLifecycleDomains.md`
+- `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
 - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - `docs/provenance/LINEAGE_MODEL.md`
 - `docs/trust/TRUST_ZONES.md`

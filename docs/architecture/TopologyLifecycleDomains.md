@@ -55,6 +55,14 @@ Each topology fact should belong to a lifecycle domain before downstream views, 
 
 Only recorded current topology, sandbox planning topology, proposed pathway topology, and saved scenario revision topology are partially represented in the current product. Even there, coverage is planning-oriented and incomplete.
 
+## Product-Topology Grounding
+
+For the Phase 2 bridge covering future solar production, market/economic, and verified product intelligence grounding, see `SolarMarketProductIntelligenceGrounding.md`.
+
+Future calculations and recommendations must follow product topology. Solar production, battery, backup, economic, scenario, resilience, DER readiness, and ADR readiness calculations should use only the product capabilities and topology assignments relevant to the modeled current state, sandbox state, proposed pathway, or scenario revision.
+
+This is documentation-only. It does not approve normalized product schemas, product catalogs, spec-sheet ingestion, provider integrations, or runtime calculations.
+
 ## Domain Placement
 
 Topology lifecycle state can attach to multiple Residential Energy Twin domains. Placement should follow the source of truth for the fact.
@@ -235,6 +243,7 @@ Matt approval is required before any of the following become implementation, sch
 - `SESSION_HANDOFF.md`
 - `discovery-index.md`
 - `docs/architecture/ResidentialEnergyTwinContractV1.md`
+- `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
 - `docs/topology/TOPOLOGY_LIFECYCLE.md`
 - `docs/architecture/COGNITION_LAYERS.md`
 - `docs/architecture/CANONICAL_TERMINOLOGY.md`

@@ -19,13 +19,20 @@
 
 ## What Changed Last
 
+- Added `docs/architecture/SolarMarketProductIntelligenceGrounding.md` as a docs-only Phase 2 bridge for future Phase 3 solar production, market/economic, and verified product intelligence grounding.
+- Documented future PVWatts-style trusted calculator grounding, EnergySage-style market reasonableness concepts without proprietary logic or integration claims, verified product intelligence requirements, product-topology grounding, contractor value, and Phase 3 derived-intelligence support.
+- Cross-linked the bridge from the canonical twin contract, topology lifecycle domains, provenance placement, view contracts, architecture overview, project state, handoff, and discovery index.
+- Reaffirmed that this bridge does not approve provider integrations, spec-sheet ingestion, schemas, APIs, product catalogs, AI engineering automation, utility APIs, telemetry, DERMS/dispatch, operational control, partnership claims, verified pricing, or authority-of-record replacement.
+
+## Previous Change
+
 - Added `docs/architecture/PermissionPlacement.md`, `docs/architecture/ProvenancePlacement.md`, and `docs/architecture/ViewContracts.md` as docs-only Phase 2 Residential Energy Twin architecture documents.
 - Permission placement now defines homeowner authority, attachment levels, audience/purpose/duration/revocation concepts, lifecycle permission differences, utility/grid-edge sharing boundaries, and future privacy-enforcement compatibility.
 - Provenance placement now defines twin/domain/field/source/derived/lifecycle/view provenance attachment, source-of-truth expectations, confidence/verification posture, utility/grid-edge trust implications, and future audit/security compatibility.
 - View contracts now define homeowner, contractor, engineer, utility, aggregator, supplier/manufacturer, AI advisor, and audit view boundaries with data minimization, permission-filtered visibility, provenance-preserving outputs, and no direct operational-control view.
 - Reaffirmed that these docs complete Phase 2 architecture only and do not approve schema, APIs, runtime enforcement, RBAC/ABAC, encryption, telemetry governance, utility APIs, DERMS/dispatch, or operational control.
 
-## Previous Change
+## Earlier Change
 
 - Added `docs/architecture/TopologyLifecycleDomains.md` as a docs-only Phase 2 architecture document for topology lifecycle domains, current/proposed/scenario boundaries, future reviewed/contractual/verified/utility-facing states, and operational-control separation.
 - Cross-linked the topology lifecycle domains document from lightweight discovery state and the topology lifecycle reference.
@@ -118,6 +125,7 @@ Load project skills before implementation.
 - For Residential Energy Twin aggregate governance, load `docs/architecture/ResidentialEnergyTwinContractV1.md`.
 - For topology lifecycle domain governance, load `docs/architecture/TopologyLifecycleDomains.md`.
 - For permission, provenance, or view-contract placement, load `docs/architecture/PermissionPlacement.md`, `docs/architecture/ProvenancePlacement.md`, and `docs/architecture/ViewContracts.md`.
+- For future Phase 3 solar production, market/economic, or verified product intelligence grounding, load `docs/architecture/SolarMarketProductIntelligenceGrounding.md`.
 - For the first Residential Energy Twin runtime-boundary design question, load `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`.
 - For Residential Energy Twin provenance policy planning, load `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`.
 - For Residential Energy Twin permissioned-view planning, load `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`.
@@ -126,4 +134,4 @@ Load project skills before implementation.
 
 ## Latest Detailed Handoff
 
-See `docs/architecture/ResidentialEnergyTwinContractV1.md` for the latest canonical twin contract, `docs/architecture/TopologyLifecycleDomains.md` for topology lifecycle domains, `docs/architecture/PermissionPlacement.md` for permission placement, `docs/architecture/ProvenancePlacement.md` for provenance placement, `docs/architecture/ViewContracts.md` for actor-specific view contracts, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note, and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` for the latest permissioned-view planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
+See `docs/architecture/ResidentialEnergyTwinContractV1.md` for the latest canonical twin contract, `docs/architecture/TopologyLifecycleDomains.md` for topology lifecycle domains, `docs/architecture/PermissionPlacement.md` for permission placement, `docs/architecture/ProvenancePlacement.md` for provenance placement, `docs/architecture/ViewContracts.md` for actor-specific view contracts, `docs/architecture/SolarMarketProductIntelligenceGrounding.md` for future Phase 3 grounding, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note, and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` for the latest permissioned-view planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
