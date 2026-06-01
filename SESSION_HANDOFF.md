@@ -9,6 +9,13 @@
 - Session date: 2026-06-01
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
+- Latest committed milestone: `31d75e5f0b314ac04c63c51d6cb5e6d7bacbd225`
+- Latest commit: `Document what-if analysis planning`
+- Phase 2 Residential Energy Twin architecture is substantially complete as a documentation-only foundation.
+- Phase 3 Twin Intelligence Layer architecture planning has started with `docs/architecture/Phase3TwinIntelligenceLayer.md`, `docs/architecture/StructuredSystemReasoningGraph.md`, `docs/architecture/ScenarioIntelligence.md`, `docs/architecture/InfrastructureSimulation.md`, and `docs/architecture/WhatIfAnalysis.md`.
+- Next recommended Phase 3 architecture-only document: `docs/architecture/DependencyImpactPropagation.md`.
+- Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, and operational control remain unapproved.
+- `.github/` remains out of scope for this session.
 - Repo commits created this session:
   - Residential Energy Twin Contract v1 docs-only governance commit
   - Residential Energy Twin first runtime-boundary planning docs-only commit
@@ -146,7 +153,7 @@
 
 ## Current Resume Point
 
-Runtime implementation can resume from the solar-readiness target if requested. Twin implementation work must not begin from the contract, first-boundary planning note, provenance policy planning note, or permissioned-view planning note alone; it requires explicit Matt approval for schema, migrations, persistence contracts, canonical model changes, scoped API contracts, permission enforcement, or provenance policy changes. If continuing twin-boundary design first, use `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` and keep the next step design-only unless Matt approves implementation. If continuing twin provenance policy design first, use `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing permissioned-view design first, use `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing scoped view/security design first, use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` and start with additive view schemas, especially a narrower AI grounding view, before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
+The next recommended architecture-only Phase 3 document is `docs/architecture/DependencyImpactPropagation.md`. Runtime implementation can resume from the solar-readiness target only if explicitly requested and approved. Twin implementation work must not begin from the contract, first-boundary planning note, provenance policy planning note, permissioned-view planning note, or Phase 3 intelligence planning docs alone; it requires explicit Matt approval for schema, migrations, persistence contracts, canonical model changes, scoped API contracts, permission enforcement, provenance policy changes, runtime intelligence behavior, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control. If continuing Phase 3 architecture, keep the next step design-only unless Matt approves implementation. If continuing twin-boundary design first, use `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` and keep the next step design-only unless Matt approves implementation. If continuing twin provenance policy design first, use `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing permissioned-view design first, use `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing scoped view/security design first, use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` and start with additive view schemas, especially a narrower AI grounding view, before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
 
 ## Lean Restore Prompt
 

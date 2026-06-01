@@ -19,6 +19,8 @@
 - Phase 2B editable workflows are materially in place.
 - Current work sits in the Phase 2D/2E trust, advisor, and provenance layer.
 - A repository-cognition formalization layer now supports model-agnostic restore and governance routing without changing runtime behavior.
+- Phase 2 Residential Energy Twin architecture is substantially complete as a documentation-only foundation.
+- Phase 3 Twin Intelligence Layer architecture planning has started; current Phase 3 docs remain documentation/governance only and do not approve runtime implementation.
 
 ## What Is Live
 
@@ -68,7 +70,9 @@
 
 ## Current Next Product Target
 
-Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture. The current repository-architecture priority is preserving the cognition and scoped-view structure so future implementation can resume from lean project-skill restore and explicit view-model contracts rather than long chat prompts or ad hoc endpoint filtering.
+Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture, but no implementation work is approved by the Phase 2 or Phase 3 architecture docs. The current architecture-only next target is `docs/architecture/DependencyImpactPropagation.md`.
+
+Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, and operational control remain unapproved. `.github/` remains out of scope for the current Residential Energy Twin architecture session.
 
 ## Restore Model
 
