@@ -153,7 +153,7 @@ Matt approval is required before any of the following:
 - `AGENTS.md`
 - `PROJECT_STATE.md`
 - `SESSION_HANDOFF.md`
-- `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`
+- `docs/architecture/ResidentialEnergyTwinContractV1.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DATABASE_SCHEMA.md`
 - `docs/API_CONTRACTS.md`

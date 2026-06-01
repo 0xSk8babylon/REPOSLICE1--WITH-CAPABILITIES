@@ -51,7 +51,7 @@
 - ADR 0007 now records the decision to treat the repository as the durable project memory substrate.
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
 - Canonical authority, trust-zone, provenance, data-classification, API-view, and RBAC-boundary language is now normalized across the source-of-truth docs without implementing auth, access control, telemetry, DER/ADR control, or migrations.
-- `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` now defines the Residential Energy Twin aggregate contract as documentation/governance only; it does not approve schema changes, migrations, runtime behavior, auth/permission enforcement, API contract changes, utility semantics, DERMS/dispatch semantics, or a new canonical runtime model.
+- `docs/architecture/ResidentialEnergyTwinContractV1.md` now defines the Residential Energy Twin aggregate contract as documentation/governance only; it does not approve schema changes, migrations, runtime behavior, auth/permission enforcement, API contract changes, utility semantics, DERMS/dispatch semantics, or a new canonical runtime model. `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` remains only a compatibility pointer.
 - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` now records the docs-only first-boundary planning recommendation: use `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation, while reserving `twin_id` for a future approved canonical aggregate.
 - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` complete the current Residential Energy Twin governance/design milestone as documentation-only planning for provenance authority and permissioned-view boundaries; no schema, API, runtime, auth/RBAC/ABAC, permission enforcement, utility authority, operational control, or canonical `ResidentialEnergyTwin` model is approved or implemented.
 - Backend responses now include additive authority/classification/view-boundary/permission-readiness metadata on selected provenance, recommendation, AI context, scenario comparison, account, and placeholder estimate surfaces without changing recommendation behavior or enforcing access.
@@ -88,7 +88,7 @@ Near-term implementation still points toward deepening the solar-readiness and r
 - Repository cognition structure: `docs/architecture/REPOSITORY_COGNITION_STRUCTURE.md`
 - Cognition layers: `docs/architecture/COGNITION_LAYERS.md`
 - Canonical terminology: `docs/architecture/CANONICAL_TERMINOLOGY.md`
-- Residential Energy Twin Contract v1: `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`
+- Residential Energy Twin Contract v1: `docs/architecture/ResidentialEnergyTwinContractV1.md`
 - First Residential Energy Twin runtime-boundary planning note: `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
 - Residential Energy Twin provenance policy planning note: `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - Residential Energy Twin permissioned-view planning note: `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`

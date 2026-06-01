@@ -205,7 +205,7 @@ Matt approval is required before any of the following:
 - `PROJECT_STATE.md`
 - `SESSION_HANDOFF.md`
 - `discovery-index.md`
-- `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`
+- `docs/architecture/ResidentialEnergyTwinContractV1.md`
 - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
 - `docs/provenance/LINEAGE_MODEL.md`
 - `docs/trust/TRUST_ZONES.md`

@@ -19,9 +19,10 @@
 
 ## What Changed Last
 
-- Closed the Residential Energy Twin governance/design milestone in the lightweight discovery and handoff state.
-- Confirmed the completed docs-only chain: Contract v1, first runtime-boundary planning, provenance policy planning, and permissioned-view planning.
-- Reaffirmed that implementation remains gated by explicit Matt approval before schema, migrations, APIs, runtime behavior, auth/RBAC/ABAC, permission enforcement, utility authority, operational control, or a canonical `ResidentialEnergyTwin` model.
+- Normalized the canonical Phase 2 Residential Energy Twin Contract v1 to `docs/architecture/ResidentialEnergyTwinContractV1.md`.
+- Converted `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` into a compatibility pointer so the repo does not carry two competing twin contracts.
+- Expanded the contract's docs-only governance coverage for aggregate identity, canonical/derived boundaries, lifecycle states, permission/provenance/utility placement, scoped view expectations, future privacy/security compatibility, future utility/grid-edge compatibility, and operational-control separation.
+- Reaffirmed that implementation remains gated by explicit Matt approval before schema, migrations, APIs, runtime behavior, auth/RBAC/ABAC, permission enforcement, utility authority, operational control, or a canonical runtime `ResidentialEnergyTwin` model.
 
 ## Prior Session Change
 
@@ -50,13 +51,14 @@
 
 ## Original Contract Change
 
-- Added `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` as the documentation/governance-only Residential Energy Twin aggregate contract.
+- Added `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` as the original documentation/governance-only Residential Energy Twin aggregate contract. The canonical Phase 2 contract now lives at `docs/architecture/ResidentialEnergyTwinContractV1.md`, and the uppercase filename is a compatibility pointer.
 - Cross-linked the contract from the lightweight discovery/project-state layer.
 - Preserved existing behavior: no schema changes, migrations, runtime behavior changes, auth/permission enforcement, new canonical `ResidentialEnergyTwin` model, API contract changes, utility semantics, DERMS semantics, dispatch semantics, contractor packets, utility exports, or operational-control runtime.
 - No implementation approval is implied by the contract; next implementation requires explicit Matt approval.
 
 ## Verification Performed
 
+- Current contract normalization pass: `git diff --check` passed.
 - Current milestone closeout: `git diff --check` passed.
 - Current permissioned-view planning pass: `git diff --check` passed.
 - Current provenance planning pass: `git diff --check` passed.
@@ -99,7 +101,7 @@ Load project skills before implementation.
 ## If You Resume Now
 
 - Start from `AGENTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, and `discovery-index.md`.
-- For Residential Energy Twin aggregate governance, load `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`.
+- For Residential Energy Twin aggregate governance, load `docs/architecture/ResidentialEnergyTwinContractV1.md`.
 - For the first Residential Energy Twin runtime-boundary design question, load `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`.
 - For Residential Energy Twin provenance policy planning, load `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`.
 - For Residential Energy Twin permissioned-view planning, load `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`.
@@ -108,4 +110,4 @@ Load project skills before implementation.
 
 ## Latest Detailed Handoff
 
-See `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` for the latest canonical twin contract, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note, and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` for the latest permissioned-view planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
+See `docs/architecture/ResidentialEnergyTwinContractV1.md` for the latest canonical twin contract, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note, and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` for the latest permissioned-view planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.

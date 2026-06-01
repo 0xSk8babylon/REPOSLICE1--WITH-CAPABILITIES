@@ -181,7 +181,7 @@ Matt approval is required before any of the following:
 - `docs/API_CONTRACTS.md`
 - `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`
 - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
-- `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md`
+- `docs/architecture/ResidentialEnergyTwinContractV1.md`
 - `docs/provenance/LINEAGE_MODEL.md`
 - `docs/trust/TRUST_ZONES.md`
 
