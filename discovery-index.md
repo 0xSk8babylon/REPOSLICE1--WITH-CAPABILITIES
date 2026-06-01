@@ -56,6 +56,7 @@ Read these first:
   - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
   - `docs/security/SCOPED_INTELLIGENCE_OUTPUTS.md`
   - `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`
+  - `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`
   - `docs/governance/AI_AUTHORITY_LIMITS.md`
 - Topology or orchestration planning:
   - `docs/topology/TOPOLOGY_LIFECYCLE.md`
