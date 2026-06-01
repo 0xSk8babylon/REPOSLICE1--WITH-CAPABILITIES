@@ -8,21 +8,28 @@
 
 - Session date: 2026-06-01
 - Starting head commit: `7f493b1`
-- Current continuation starting head: `efb1da6`
+- Current continuation starting head: `f666ec3`
 - Repo commits created this session:
   - Residential Energy Twin Contract v1 docs-only governance commit
   - Residential Energy Twin first runtime-boundary planning docs-only commit
   - Residential Energy Twin governance discoverability stabilization docs-only commit
   - Residential Energy Twin provenance policy planning docs-only commit
   - Residential Energy Twin permissioned view planning docs-only commit
+  - Residential Energy Twin governance/design milestone closeout docs-only commit
 
 ## What Changed Last
+
+- Closed the Residential Energy Twin governance/design milestone in the lightweight discovery and handoff state.
+- Confirmed the completed docs-only chain: Contract v1, first runtime-boundary planning, provenance policy planning, and permissioned-view planning.
+- Reaffirmed that implementation remains gated by explicit Matt approval before schema, migrations, APIs, runtime behavior, auth/RBAC/ABAC, permission enforcement, utility authority, operational control, or a canonical `ResidentialEnergyTwin` model.
+
+## Prior Session Change
 
 - Added `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` as a docs-only planning note for the first permissioned-view boundary, audience-specific visibility, default exclusions, provenance expectations, and Matt approval gates.
 - Cross-linked the note from `discovery-index.md` for future trust/provenance/security routing.
 - No schema changes, migrations, APIs, runtime behavior, auth, RBAC, ABAC, permission enforcement, utility authority, DERMS, dispatch, operational control, or canonical `ResidentialEnergyTwin` model were made.
 
-## Prior Session Change
+## Earlier Session Change
 
 - Added `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` as a docs-only planning note for authority-bearing twin facts, field/domain/derived-output provenance, current provenance structure mapping, partial areas, and Matt approval gates.
 - Cross-linked the note from the lightweight project state, discovery index, and existing provenance lineage doc.
@@ -50,6 +57,7 @@
 
 ## Verification Performed
 
+- Current milestone closeout: `git diff --check` passed.
 - Current permissioned-view planning pass: `git diff --check` passed.
 - Current provenance planning pass: `git diff --check` passed.
 - Current stabilization pass: `git diff --check` passed.
@@ -76,6 +84,7 @@
 - Orchestration readiness is documented only; no DER, utility, contractor, or operational behavior exists.
 - Strict clients that reject additive fields still require contract review before consuming future scoped envelopes.
 - The contract defines a future canonical aggregate boundary but does not create persistence, API, or enforcement behavior.
+- The Residential Energy Twin governance/design milestone is closed as documentation only; next implementation design still requires explicit Matt approval.
 
 ## Current Resume Point
 
