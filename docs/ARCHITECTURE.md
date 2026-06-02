@@ -22,6 +22,7 @@
 - `docs/architecture/ContinuityDomain.md` defines the Residential Energy Twin Continuity Domain for preserving lifecycle history across ownership, contractor, infrastructure, utility, safety, permission, provenance, equipment, and software/platform changes as documentation/governance doctrine only.
 - `docs/architecture/SafetyDomain.md` defines the Residential Energy Twin Safety Domain for persistent, provenance-bearing, permissioned safety context as documentation/governance doctrine only.
 - `docs/architecture/InteroperabilityDomain.md` defines the Residential Energy Twin Interoperability Domain for shared cross-industry semantic interpretation of Twin information as documentation/governance doctrine only.
+- `docs/architecture/EcosystemParticipantBoundaryMatrix.md` consolidates participant-purpose boundaries for ecosystem actors before future Exchange Domain work as documentation/governance doctrine only; it is not a new Twin domain.
 - `docs/architecture/PermissionPlacement.md` defines where homeowner-governed permission concepts attach to the twin as documentation/governance doctrine only.
 - `docs/architecture/ProvenancePlacement.md` defines where source lineage, evidence, confidence, verification, and authority metadata attach to the twin as documentation/governance doctrine only.
 - `docs/architecture/ViewContracts.md` defines actor-specific, permission-filtered, provenance-preserving view-contract expectations as documentation/governance doctrine only.

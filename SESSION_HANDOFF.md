@@ -23,6 +23,7 @@
 - Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
 - The normalized doctrine states that the planner is not the long-term moat; Twin adoption, trusted records, permissions, provenance, continuity, interoperability, ecosystem participation, and network effects are the strategic moat.
 - Current doctrine now includes a docs-only Residential Energy Twin Interoperability Domain for shared cross-industry semantic interpretation without approving exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, or runtime implementation.
+- Current doctrine now includes a docs-only Ecosystem Participant Boundary Matrix that consolidates participant-purpose boundaries before any Exchange Domain work without creating a new Twin domain or approving exchange, ownership transfer, APIs, schemas, protocols, or runtime implementation.
 - Repo commits created this session:
   - Residential Energy Twin Contract v1 docs-only governance commit
   - Residential Energy Twin first runtime-boundary planning docs-only commit
@@ -33,12 +34,19 @@
 
 ## What Changed Last
 
+- Added `docs/architecture/EcosystemParticipantBoundaryMatrix.md` as a docs-only Residential Energy Twin doctrine consolidation document.
+- Defined participant-purpose boundaries for homeowners, contractors, utilities, real estate, insurance, finance, manufacturers, and aggregators.
+- Documented each participant's purpose, contributed information, consumed information, minimum necessary domains, permission requirements, provenance requirements, continuity requirements, interoperability requirements, prohibited claims, and prohibited authority assumptions.
+- Reaffirmed that the matrix is not a new Twin domain and does not define exchange, ownership transfer, APIs, schemas, protocols, standards, runtime implementation, utility control, or operational control.
+
+## Previous Change
+
 - Added `docs/architecture/InteroperabilityDomain.md` as a docs-only Residential Energy Twin architecture/governance document.
 - Defined the Interoperability Domain as shared semantic interpretation for common understanding, domain interpretation, authority semantics, lifecycle semantics, provenance semantics, permission semantics, safety semantics, continuity semantics, view semantics, and industry interpretation.
 - Clarified that interoperability answers how different industries can understand the same Twin without answering how the Twin is exchanged.
 - Reaffirmed that the Interoperability Domain does not approve exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, integrations, runtime implementation, utility authority, compliance approval, safety certification, DERMS/dispatch, operational control, or a separate product.
 
-## Previous Change
+## Earlier Change
 
 - Added `docs/architecture/ContinuityDomain.md` as a docs-only Residential Energy Twin architecture/governance document.
 - Defined the Continuity Domain as a foundational Twin domain for preserving lifecycle history and keeping the Twin attached to the home across ownership, contractor, utility, infrastructure, safety, permission, provenance, equipment, project, and software/platform changes.

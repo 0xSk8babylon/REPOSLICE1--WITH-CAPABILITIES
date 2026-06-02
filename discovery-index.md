@@ -49,6 +49,7 @@ Read these first:
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/InteroperabilityDomain.md`
+  - `docs/architecture/EcosystemParticipantBoundaryMatrix.md`
   - `docs/architecture/PermissionPlacement.md`
   - `docs/architecture/ProvenancePlacement.md`
   - `docs/architecture/ViewContracts.md`
@@ -77,6 +78,7 @@ Read these first:
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/InteroperabilityDomain.md`
+  - `docs/architecture/EcosystemParticipantBoundaryMatrix.md`
   - `docs/architecture/PermissionPlacement.md`
   - `docs/architecture/ProvenancePlacement.md`
   - `docs/architecture/ViewContracts.md`
@@ -98,6 +100,7 @@ Read these first:
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/InteroperabilityDomain.md`
+  - `docs/architecture/EcosystemParticipantBoundaryMatrix.md`
   - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
   - `docs/architecture/Phase3TwinIntelligenceLayer.md`
   - `docs/architecture/StructuredSystemReasoningGraph.md`
