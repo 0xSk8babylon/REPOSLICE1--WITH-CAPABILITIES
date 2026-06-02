@@ -14,6 +14,13 @@ Read these first:
 4. `.codex/skills/repo-memory-map/SKILL.md` if present
 5. `.codex/skills/repo-guardrails/SKILL.md` if present
 
+## Canonical Phase Structure
+
+- Phase 1: Planner Foundation - complete.
+- Phase 2A: Twin Doctrine Foundation - complete.
+- Phase 2B: Twin Runtime Foundations - complete.
+- Phase 3: Twin Intelligence Expansion - next.
+
 ## Operational References By Task
 
 - Product or roadmap alignment:
@@ -42,6 +49,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
 - Architecture changes:
   - `docs/ARCHITECTURE.md`
   - `docs/architecture/ResidentialEnergyTwinCanonicalArchitectureHierarchy.md`
@@ -74,10 +82,16 @@ Read these first:
 - API changes:
   - `docs/API_CONTRACTS.md`
   - task-relevant routers in `apps/api/app/**`
+  - Twin Planning Context runtime foundation:
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
 - Frontend behavior changes:
   - `apps/web/src/lib/api.js`
   - task-relevant pages/components
 - Trust or provenance changes:
+  - `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/InteroperabilityDomain.md`

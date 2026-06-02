@@ -15,16 +15,24 @@
 
 ## Current Product Phase
 
-- Phase 2A persistence is complete.
-- Phase 2B editable workflows are materially in place.
-- Current work sits in the Phase 2D/2E trust, advisor, and provenance layer.
+- Phase 1: Planner Foundation is complete.
+- Phase 2A: Twin Doctrine Foundation is complete.
+- Phase 2B: Twin Runtime Foundations are complete and stabilized as an approved read-only, `home_id`-anchored planning-context runtime over existing planner records.
+- Phase 3: Twin Intelligence Expansion is next.
 - A repository-cognition formalization layer now supports model-agnostic restore and governance routing without changing runtime behavior.
-- Phase 2 Residential Energy Twin architecture is substantially complete as a documentation-only foundation.
+- Twin Doctrine Foundation architecture is substantially complete as a documentation/governance foundation.
 - The Residential Energy Twin Interoperability Domain now defines docs-only shared semantic interpretation for cross-industry consumption without approving exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, or runtime implementation.
 - The Ecosystem Participant Boundary Matrix now consolidates participant-purpose boundaries for homeowners, contractors, utilities, real estate, insurance, finance, manufacturers, and aggregators before any Exchange Domain work; it does not create a new Twin domain or approve exchange, ownership transfer, APIs, schemas, protocols, or runtime implementation.
 - The Dependency Impact Propagation milestone now defines docs-only Phase 3 architectural integrity behavior for stale outputs, dependency invalidation, recalculation, re-grounding, re-review, provenance impacts, confidence impacts, safety impacts, continuity impacts, and participant-view impacts; it is not a new Twin domain and does not approve runtime implementation, APIs, schemas, exchange, ownership transfer, or operational control.
 - The Residential Energy Twin Canonical Architecture Hierarchy now consolidates the existing doctrine stack into eight routing layers without creating new domains, new architecture, Exchange, Ownership & Transfer, Registry, Identity, APIs, schemas, protocols, or runtime concepts.
-- Phase 3 Twin Intelligence Layer architecture planning has started; current Phase 3 docs remain documentation/governance only and do not approve runtime implementation.
+- Phase 3 Twin Intelligence Expansion planning has started; Phase 3 runtime intelligence remains advisory/derived only unless separately approved.
+
+## Canonical Phase Structure
+
+- Phase 1: Planner Foundation - complete.
+- Phase 2A: Twin Doctrine Foundation - complete.
+- Phase 2B: Twin Runtime Foundations - complete.
+- Phase 3: Twin Intelligence Expansion - next.
 
 ## Current Strategic Doctrine
 
@@ -67,6 +75,9 @@
 - The Design Advisor API now also includes an additive `planning_state` snapshot envelope so recommendation, architecture, and pathway-comparison outputs are explicitly tied to a specific live design state plus any linked persistent scenario records
 - Scenario persistence now also includes additive immutable scenario revisions so saved planning states can accumulate revision lineage and advisor-linked snapshot framing without replacing the current live scenario workspace model
 - The Scenario Comparison UI now also includes a historical revision-comparison workspace that compares saved revision drift for design goal, status, recommended pathway, current-state architecture framing, and pathway-confidence posture from stored revision snapshots
+- Phase 2B Twin Runtime Foundations are now live through `TwinPlanningContextService`, an additive `/api/twin-planning-context/homes/{home_id}` endpoint, typed provenance gaps, dependency awareness labels, permission-readiness metadata, and an additive `/api/twin-planning-context/homes/{home_id}/views/ai-design-grounding` scoped AI/design grounding projection.
+- `TwinPlanningContextService` composes existing `home_id`-linked planner records only; it does not create `twin_id`, a canonical `ResidentialEnergyTwin` model/table, migrations, permission enforcement, Exchange, Ownership & Transfer, Registry, Identity, utility-control, or operational-control behavior.
+- `AIDesignGroundingView` is a minimized read-only projection for grounded AI/design recommendations; it preserves provenance summaries, typed provenance gaps, rule keys, dependency hooks, missing fields, limitations, dependency awareness labels, and permission-readiness metadata while excluding account and street-address fields.
 - The repository now includes canonical cognition-layer definitions, terminology, governance gap analysis, trust zones, provenance lineage model, topology lifecycle, scoped intelligence boundaries, orchestration readiness gaps, and roadmap sequencing docs.
 - ADR 0007 now records the decision to treat the repository as the durable project memory substrate.
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
@@ -78,9 +89,9 @@
 - `docs/architecture/SafetyDomain.md` now defines the docs-only Residential Energy Twin Safety Domain for persistent, provenance-bearing, permissioned safety context around energy sources, isolation systems, export capabilities, operational modes, verification status, and safety provenance; it does not approve runtime safety records, schemas, APIs, safety approval, field verification, inspection workflows, utility approval, exports, DERMS/dispatch, or operational control.
 - `docs/architecture/InteroperabilityDomain.md` now defines the docs-only Residential Energy Twin Interoperability Domain for common understanding, semantic consistency, consumer independence, cross-industry consumption, domain interpretation, and preservation of Twin truth; it does not approve exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, integrations, runtime implementation, utility authority, compliance approval, safety certification, DERMS/dispatch, or operational control.
 - `docs/architecture/EcosystemParticipantBoundaryMatrix.md` now defines a docs-only participant-purpose boundary matrix for homeowners, contractors, utilities, real estate, insurance, finance, manufacturers, and aggregators; it consolidates minimum necessary domains, permissions, provenance, continuity, interoperability, prohibited claims, and prohibited authority assumptions without creating a new Twin domain or approving exchange mechanisms, ownership transfer, APIs, schemas, protocols, runtime implementation, utility control, or operational control.
-- `docs/architecture/PermissionPlacement.md`, `docs/architecture/ProvenancePlacement.md`, and `docs/architecture/ViewContracts.md` now complete the remaining Phase 2 Residential Energy Twin placement/view architecture docs for permissions, provenance, and actor-specific views; they do not approve runtime enforcement, schemas, APIs, RBAC/ABAC, encryption, telemetry governance, utility APIs, DERMS/dispatch, or operational control.
-- `docs/architecture/SolarMarketProductIntelligenceGrounding.md` now bridges Phase 2 architecture to future Phase 3 Twin Intelligence grounding for solar production, market/economic reasonableness, and verified product intelligence; it does not approve provider integrations, spec-sheet ingestion, schemas, APIs, product catalogs, AI engineering automation, utility APIs, telemetry, DERMS/dispatch, or operational control.
-- `docs/architecture/Phase3TwinIntelligenceLayer.md` now defines the docs-only Phase 3 Twin Intelligence planning layer for structured reasoning graphs, scenario intelligence, infrastructure simulation, what-if analysis, dependency reasoning, advisor traceability, deterministic reasoning exports, and non-goal boundaries; it does not approve runtime implementation, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
+- `docs/architecture/PermissionPlacement.md`, `docs/architecture/ProvenancePlacement.md`, and `docs/architecture/ViewContracts.md` now complete the remaining Phase 2A Twin Doctrine Foundation placement/view architecture docs for permissions, provenance, and actor-specific views; they do not approve runtime enforcement, schemas, APIs, RBAC/ABAC, encryption, telemetry governance, utility APIs, DERMS/dispatch, or operational control.
+- `docs/architecture/SolarMarketProductIntelligenceGrounding.md` now bridges Phase 2A doctrine and Phase 2B runtime foundations to future Phase 3 Twin Intelligence Expansion grounding for solar production, market/economic reasonableness, and verified product intelligence; it does not approve provider integrations, spec-sheet ingestion, schemas, APIs, product catalogs, AI engineering automation, utility APIs, telemetry, DERMS/dispatch, or operational control.
+- `docs/architecture/Phase3TwinIntelligenceLayer.md` now defines the docs-only Phase 3 Twin Intelligence Expansion planning layer for structured reasoning graphs, scenario intelligence, infrastructure simulation, what-if analysis, dependency reasoning, advisor traceability, deterministic reasoning exports, and non-goal boundaries; it does not approve runtime implementation, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
 - `docs/architecture/StructuredSystemReasoningGraph.md` now defines the docs-only Phase 3 derived/advisory reasoning graph planning layer for future graph nodes, graph edges, scenario intelligence, what-if analysis, infrastructure simulation, dependency reasoning, impact propagation, provenance/confidence preservation, permission-filtered graph views, and missing-data markers; it does not approve runtime graph implementation, graph database adoption, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
 - `docs/architecture/ScenarioIntelligence.md` now defines the docs-only Phase 3 derived/advisory scenario comparison planning layer for scenario types, comparison dimensions, grounding requirements, scenario outputs, tradeoff language, permission-filtered scenario views, and lifecycle boundaries; it does not approve runtime scenario engines, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
 - `docs/architecture/InfrastructureSimulation.md` now defines the docs-only Phase 3 derived/advisory simulation planning layer for critical-load survivability, outage endurance, battery discharge, recharge likelihood, solar recharge, seasonal production variation, generator support, flexible-load impacts, constraint impacts, economic sensitivity, DER/ADR readiness, future-state expansion, missing-data behavior, and permission-filtered simulation views; it does not approve runtime simulation engines, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
@@ -94,9 +105,9 @@
 
 ## Current Next Product Target
 
-Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture, but no implementation work is approved by the Phase 2 or Phase 3 architecture docs. The current architecture-only next target after the Canonical Architecture Hierarchy should remain docs-only and Matt-approved before work begins.
+Phase 2B Twin Runtime Foundations should be treated as closed and stabilized before Phase 3 Twin Intelligence Expansion resumes.
 
-Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, and operational control remain unapproved. `.github/` remains out of scope for the current Residential Energy Twin architecture session.
+The next safe step is either a Matt-approved Phase 3 Twin Intelligence Expansion advisory/derived implementation plan grounded in the completed Twin Planning Context runtime, or a separately approved permission-enforcement planning milestone. Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, scoped exports, permission enforcement, and operational control remain unapproved.
 
 ## Restore Model
 
@@ -108,9 +119,11 @@ Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry,
 
 - Detailed continuity docs still exist and remain valuable, but they are too large to treat as mandatory startup context.
 - Cognition docs now reduce restore ambiguity, but future sessions must avoid duplicating state summaries across root discovery files and detailed docs.
-- Provenance coverage is still partial, so trust messaging must stay explicit.
-- Data classification and scoped API views are documentation/design boundaries only; current API responses are not RBAC-filtered views.
-- Broad AI context exposure remains compatibility-oriented and labeled with view-boundary metadata; scoped consumer/AI/contractor/utility view models are mapped but not implemented.
+- Provenance coverage is still partial and gap-reporting based, so trust messaging must stay explicit.
+- Dependency awareness labels are descriptive runtime metadata only; there is no invalidation engine, recalculation queue, background job, or persisted stale state.
+- Permission readiness is metadata only; there is no permission enforcement, grants, consent artifacts, revocation workflow, RBAC/ABAC, auth, tenant isolation, or scoped exports.
+- `AIDesignGroundingView` is implemented as an additive minimized AI/design projection, but consumer/contractor/utility scoped view models remain mapped only and are not enforced permissioned views.
+- No canonical Residential Energy Twin runtime identity exists; `home_id` remains the only runtime anchor for the Twin Planning Context.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
 - Existing local databases may need reseeding to surface the new seeded current-home-energy-architecture, backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph rule provenance records.
 - Existing local databases may also need either app restart or reseeding to create baseline rows in the new `scenario_revisions` table for older scenario records.
@@ -135,12 +148,13 @@ Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry,
 - Provenance placement: `docs/architecture/ProvenancePlacement.md`
 - View contracts: `docs/architecture/ViewContracts.md`
 - Solar, market, and product intelligence grounding: `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
-- Phase 3 Twin Intelligence Layer: `docs/architecture/Phase3TwinIntelligenceLayer.md`
+- Phase 3 Twin Intelligence Expansion layer: `docs/architecture/Phase3TwinIntelligenceLayer.md`
 - Structured System Reasoning Graph: `docs/architecture/StructuredSystemReasoningGraph.md`
 - Scenario Intelligence: `docs/architecture/ScenarioIntelligence.md`
 - Infrastructure Simulation: `docs/architecture/InfrastructureSimulation.md`
 - What-If Analysis: `docs/architecture/WhatIfAnalysis.md`
 - Dependency Impact Propagation: `docs/architecture/DependencyImpactPropagation.md`
+- Phase 2B Twin Runtime Foundation closeout handoff: `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
 - First Residential Energy Twin runtime-boundary planning note: `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
 - Residential Energy Twin provenance policy planning note: `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - Residential Energy Twin permissioned-view planning note: `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`
