@@ -88,3 +88,42 @@ class TwinPlanningContext(ORMModel):
     continuity_gaps: List[str] = Field(default_factory=list)
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
+
+
+class AIDesignGroundingRecord(ORMModel):
+    section_key: str
+    entity_type: str
+    entity_id: Optional[str] = None
+    label: str
+    classification: TwinPlanningRecordClassification
+    authority_layer: AuthorityLayer
+    data_classification: DataClassification = DataClassification.planning_private
+    data_origin: Optional[DataOrigin] = None
+    fields: Dict[str, Any] = Field(default_factory=dict)
+    provenance_summary: Optional[ProvenanceSummary] = None
+    source_document_ids: List[str] = Field(default_factory=list)
+    rule_keys: List[str] = Field(default_factory=list)
+    dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
+    missing_fields: List[str] = Field(default_factory=list)
+    provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class AIDesignGroundingView(ORMModel):
+    view_name: str = "ai_design_grounding"
+    home_id: str
+    anchor_type: str = "home_id"
+    target_design_id: Optional[str] = None
+    audience: str = "ai"
+    purpose: str = "grounded_design_recommendation"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.advisory
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    included_sections: List[str] = Field(default_factory=list)
+    excluded_sections: List[str] = Field(default_factory=list)
+    grounding_records: List[AIDesignGroundingRecord] = Field(default_factory=list)
+    provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
+    dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str

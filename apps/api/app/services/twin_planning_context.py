@@ -8,6 +8,8 @@ from app.provenance.schemas import ProvenanceSummary
 from app.services.design_advisor import design_advisor_service
 from app.services.provenance import provenance_service
 from app.twin_planning_context.schemas import (
+    AIDesignGroundingRecord,
+    AIDesignGroundingView,
     TwinPlanningContext,
     TwinPlanningContextRecord,
     TwinPlanningContextSection,
@@ -98,6 +100,140 @@ PROVENANCE_GAP_LIMITATIONS = [
     "Provenance gaps describe source visibility only; they do not prove a value is incorrect.",
     "Provenance visibility does not imply field verification, safety approval, utility approval, or engineering approval.",
 ]
+
+AI_GROUNDING_FIELD_ALLOWLIST = {
+    "home": {"id", "name", "state", "country", "utility_provider", "service_size", "data_origin"},
+    "building": {
+        "id",
+        "home_id",
+        "name",
+        "type",
+        "approximate_distance_from_main_service",
+        "data_origin",
+    },
+    "electrical_panel": {
+        "id",
+        "home_id",
+        "building_id",
+        "panel_type",
+        "amperage",
+        "busbar_rating",
+        "breaker_spaces_total",
+        "breaker_spaces_available",
+        "indoor_outdoor",
+        "data_origin",
+    },
+    "load": {
+        "id",
+        "home_id",
+        "building_id",
+        "name",
+        "category",
+        "running_watts",
+        "surge_watts",
+        "estimated_daily_hours",
+        "backup_priority",
+        "phase_type",
+        "data_origin",
+    },
+    "equipment_location": {
+        "id",
+        "home_id",
+        "building_id",
+        "name",
+        "location_type",
+        "approximate_coordinates",
+        "data_origin",
+    },
+    "equipment_product": {
+        "id",
+        "manufacturer",
+        "model",
+        "product_type",
+        "ecosystem",
+        "specs",
+        "documentation_url",
+        "data_origin",
+    },
+    "energy_system_design": {
+        "id",
+        "home_id",
+        "name",
+        "design_goal",
+        "architecture_type",
+        "status",
+        "data_origin",
+    },
+    "design_equipment": {
+        "id",
+        "design_id",
+        "product_id",
+        "quantity",
+        "location_id",
+        "role_in_system",
+        "data_origin",
+    },
+    "estimated_pathway": {
+        "id",
+        "home_id",
+        "design_id",
+        "name",
+        "lifecycle_stage",
+        "source_location",
+        "destination_location",
+        "estimated_distance_ft",
+        "route_type",
+        "route_difficulty",
+        "visibility_level",
+        "confidence_level",
+        "upfront_cost_placeholder",
+        "estimated_monthly_savings_placeholder",
+        "resilience_score",
+        "data_origin",
+    },
+    "scenario": {
+        "id",
+        "home_id",
+        "name",
+        "linked_design_id",
+        "upfront_cost_placeholder",
+        "future_expansion_score",
+        "install_complexity_score",
+        "backup_capability_score",
+        "data_origin",
+    },
+    "scenario_revision": {
+        "id",
+        "scenario_id",
+        "parent_revision_id",
+        "revision_number",
+        "revision_label",
+        "revision_status",
+        "linked_design_id",
+        "design_goal_snapshot",
+        "design_status_snapshot",
+        "recommended_profile_snapshot",
+        "planning_state_snapshot",
+        "data_origin",
+    },
+    "advisor_recommendation_summary": {
+        "design_id",
+        "recommended_profile",
+        "confidence_level",
+        "context_signals",
+        "basis",
+        "scope_note",
+        "reasoning_graph_scope",
+    },
+    "advisor_note": {"design_id", "advisor_note"},
+}
+
+AI_GROUNDING_BASE_SECTION_KEYS = {
+    "premise",
+    "structures",
+    "electrical_infrastructure",
+    "loads",
+}
 
 
 class TwinPlanningContextService:
@@ -492,6 +628,187 @@ class TwinPlanningContextService:
             )
             for dependency in graph.dependencies
         ]
+
+    def _ai_grounding_fields(self, record: TwinPlanningContextRecord) -> Dict[str, object]:
+        allowed_fields = AI_GROUNDING_FIELD_ALLOWLIST.get(record.entity_type, set())
+        return {
+            field: value
+            for field, value in record.record.items()
+            if field in allowed_fields
+        }
+
+    def _ai_grounding_related_ids(
+        self, context: TwinPlanningContext, design_id: Optional[str]
+    ) -> Dict[str, set]:
+        related_ids = {
+            "design_ids": set(),
+            "product_ids": set(),
+            "location_ids": set(),
+            "scenario_ids": set(),
+        }
+        if not design_id:
+            return related_ids
+
+        related_ids["design_ids"].add(design_id)
+        for section in context.sections:
+            for record in section.records:
+                if section.section_key == "design_equipment" and record.record.get("design_id") == design_id:
+                    if record.record.get("product_id"):
+                        related_ids["product_ids"].add(record.record["product_id"])
+                    if record.record.get("location_id"):
+                        related_ids["location_ids"].add(record.record["location_id"])
+                if section.section_key == "scenarios" and record.record.get("linked_design_id") == design_id:
+                    if record.entity_id:
+                        related_ids["scenario_ids"].add(record.entity_id)
+        return related_ids
+
+    def _include_ai_grounding_record(
+        self,
+        *,
+        section_key: str,
+        record: TwinPlanningContextRecord,
+        design_id: Optional[str],
+        related_ids: Dict[str, set],
+    ) -> bool:
+        if section_key == "unknowns":
+            return False
+        if not design_id:
+            return True
+        if section_key in AI_GROUNDING_BASE_SECTION_KEYS:
+            return True
+        if section_key == "designs":
+            return record.entity_id == design_id
+        if section_key == "design_equipment":
+            return record.record.get("design_id") == design_id
+        if section_key == "equipment_products":
+            return record.entity_id in related_ids["product_ids"]
+        if section_key == "equipment_locations":
+            return record.entity_id in related_ids["location_ids"]
+        if section_key == "pathways":
+            return record.record.get("design_id") == design_id
+        if section_key == "scenarios":
+            return record.record.get("linked_design_id") == design_id
+        if section_key == "scenario_revisions":
+            return (
+                record.record.get("linked_design_id") == design_id
+                or record.record.get("scenario_id") in related_ids["scenario_ids"]
+            )
+        if section_key == "derived_intelligence":
+            return record.record.get("design_id") == design_id
+        return False
+
+    def _ai_grounding_record(
+        self, section_key: str, record: TwinPlanningContextRecord
+    ) -> AIDesignGroundingRecord:
+        return AIDesignGroundingRecord(
+            section_key=section_key,
+            entity_type=record.entity_type,
+            entity_id=record.entity_id,
+            label=record.label,
+            classification=record.classification,
+            authority_layer=record.authority_layer,
+            data_classification=record.data_classification,
+            data_origin=record.data_origin,
+            fields=self._ai_grounding_fields(record),
+            provenance_summary=record.provenance_summary,
+            source_document_ids=record.source_document_ids,
+            rule_keys=record.rule_keys,
+            dependency_hooks=record.dependency_hooks,
+            missing_fields=record.missing_fields,
+            provenance_gaps=record.provenance_gaps,
+            limitations=record.limitations,
+        )
+
+    def build_ai_design_grounding_view(
+        self, db, home_id: str, design_id: Optional[str] = None
+    ) -> Optional[AIDesignGroundingView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+
+        if design_id:
+            design_found = any(
+                record.entity_id == design_id
+                for section in context.sections
+                if section.section_key == "designs"
+                for record in section.records
+            )
+            if not design_found:
+                return None
+
+        related_ids = self._ai_grounding_related_ids(context, design_id)
+        grounding_records: List[AIDesignGroundingRecord] = []
+        for section in context.sections:
+            for record in section.records:
+                if not self._include_ai_grounding_record(
+                    section_key=section.section_key,
+                    record=record,
+                    design_id=design_id,
+                    related_ids=related_ids,
+                ):
+                    continue
+                grounding_record = self._ai_grounding_record(section.section_key, record)
+                if grounding_record.fields or grounding_record.rule_keys or grounding_record.dependency_hooks:
+                    grounding_records.append(grounding_record)
+
+        included_sections = sorted({record.section_key for record in grounding_records})
+        all_sections = {section.section_key for section in context.sections}
+        excluded_sections = sorted(all_sections - set(included_sections))
+
+        provenance_gap_map = {}
+        for record in grounding_records:
+            for gap in record.provenance_gaps:
+                key = (
+                    gap.gap_type.value,
+                    gap.entity_type,
+                    gap.entity_id,
+                    gap.field_name,
+                    gap.reason,
+                )
+                provenance_gap_map.setdefault(key, gap)
+        provenance_gaps = sorted(
+            provenance_gap_map.values(),
+            key=lambda gap: (
+                gap.gap_type.value,
+                gap.entity_type,
+                gap.entity_id or "",
+                gap.field_name or "",
+                gap.reason,
+            ),
+        )
+
+        if design_id:
+            dependency_hooks = [
+                hook for hook in context.dependency_hooks if f"Design {design_id}:" in hook.note
+            ]
+        else:
+            dependency_hooks = context.dependency_hooks
+
+        return AIDesignGroundingView(
+            home_id=home_id,
+            target_design_id=design_id,
+            implementation_boundary=(
+                "Read-only minimized AI/design grounding projection over existing Twin Planning Context records; "
+                "not the full Twin Planning Context and not a canonical ResidentialEnergyTwin runtime model."
+            ),
+            included_sections=included_sections,
+            excluded_sections=excluded_sections,
+            grounding_records=grounding_records,
+            provenance_gaps=provenance_gaps,
+            dependency_hooks=dependency_hooks,
+            limitations=[
+                "No twin_id is created or inferred.",
+                "This AI grounding view is a minimized planning-only projection and is not complete Twin authority.",
+                "No permission enforcement, export authorization, utility authority, operational control, or field verification is implemented.",
+                "AI may use this view to ground explanations and recommendations, but it must not create canonical facts.",
+                "Advisor output remains derived or advisory planning intelligence and is not persisted as Twin truth.",
+                "This view does not imply completeness, correctness, safety approval, utility approval, or engineering approval.",
+            ],
+            compatibility_note=(
+                "Existing TwinPlanningContext payloads and current /api/* contracts remain unchanged; "
+                "this is an additive AI grounding view."
+            ),
+        )
 
     def build(self, db, home_id: str) -> Optional[TwinPlanningContext]:
         home = repository.get_home_by_id(db, home_id)
