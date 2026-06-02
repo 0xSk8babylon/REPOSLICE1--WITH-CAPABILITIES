@@ -21,6 +21,7 @@
 - `docs/architecture/TopologyLifecycleDomains.md` defines topology lifecycle domain boundaries as documentation/governance doctrine only.
 - `docs/architecture/ContinuityDomain.md` defines the Residential Energy Twin Continuity Domain for preserving lifecycle history across ownership, contractor, infrastructure, utility, safety, permission, provenance, equipment, and software/platform changes as documentation/governance doctrine only.
 - `docs/architecture/SafetyDomain.md` defines the Residential Energy Twin Safety Domain for persistent, provenance-bearing, permissioned safety context as documentation/governance doctrine only.
+- `docs/architecture/InteroperabilityDomain.md` defines the Residential Energy Twin Interoperability Domain for shared cross-industry semantic interpretation of Twin information as documentation/governance doctrine only.
 - `docs/architecture/PermissionPlacement.md` defines where homeowner-governed permission concepts attach to the twin as documentation/governance doctrine only.
 - `docs/architecture/ProvenancePlacement.md` defines where source lineage, evidence, confidence, verification, and authority metadata attach to the twin as documentation/governance doctrine only.
 - `docs/architecture/ViewContracts.md` defines actor-specific, permission-filtered, provenance-preserving view-contract expectations as documentation/governance doctrine only.
@@ -31,7 +32,7 @@
 - `docs/architecture/InfrastructureSimulation.md` defines the Phase 3 derived/advisory infrastructure simulation planning layer as documentation/governance doctrine only.
 - `docs/architecture/WhatIfAnalysis.md` defines the Phase 3 derived/advisory what-if analysis planning layer as documentation/governance doctrine only.
 - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` plans the first possible runtime boundary as docs-only design work; it recommends `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation and reserves `twin_id` for a future approved canonical aggregate.
-- None of these documents approve schema changes, migrations, API changes, runtime behavior changes, legal ownership, title ownership, contractual rights, safety approval, field verification, permission enforcement, utility authority, operational control, or a canonical `ResidentialEnergyTwin` model.
+- None of these documents approve schema changes, migrations, API changes, runtime behavior changes, exchange mechanisms, ownership transfer, protocols, standards, legal ownership, title ownership, contractual rights, safety approval, field verification, permission enforcement, utility authority, operational control, or a canonical `ResidentialEnergyTwin` model.
 
 ## Persistence Architecture
 

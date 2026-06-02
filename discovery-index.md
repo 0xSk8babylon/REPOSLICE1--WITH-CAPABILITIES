@@ -48,6 +48,7 @@ Read these first:
   - `docs/architecture/TopologyLifecycleDomains.md`
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
+  - `docs/architecture/InteroperabilityDomain.md`
   - `docs/architecture/PermissionPlacement.md`
   - `docs/architecture/ProvenancePlacement.md`
   - `docs/architecture/ViewContracts.md`
@@ -75,6 +76,7 @@ Read these first:
 - Trust or provenance changes:
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
+  - `docs/architecture/InteroperabilityDomain.md`
   - `docs/architecture/PermissionPlacement.md`
   - `docs/architecture/ProvenancePlacement.md`
   - `docs/architecture/ViewContracts.md`
@@ -95,6 +97,7 @@ Read these first:
   - `docs/architecture/TopologyLifecycleDomains.md`
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
+  - `docs/architecture/InteroperabilityDomain.md`
   - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
   - `docs/architecture/Phase3TwinIntelligenceLayer.md`
   - `docs/architecture/StructuredSystemReasoningGraph.md`

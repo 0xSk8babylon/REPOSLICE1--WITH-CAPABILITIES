@@ -20,6 +20,7 @@
 - Current work sits in the Phase 2D/2E trust, advisor, and provenance layer.
 - A repository-cognition formalization layer now supports model-agnostic restore and governance routing without changing runtime behavior.
 - Phase 2 Residential Energy Twin architecture is substantially complete as a documentation-only foundation.
+- The Residential Energy Twin Interoperability Domain now defines docs-only shared semantic interpretation for cross-industry consumption without approving exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, or runtime implementation.
 - Phase 3 Twin Intelligence Layer architecture planning has started; current Phase 3 docs remain documentation/governance only and do not approve runtime implementation.
 
 ## Current Strategic Doctrine
@@ -71,6 +72,7 @@
 - `docs/architecture/TopologyLifecycleDomains.md` now defines docs-only topology lifecycle domain boundaries for recorded current topology, sandbox planning topology, proposed pathways, scenario revisions, future reviewed/contractual/verified/utility-facing states, and future operational topology separation; it does not approve runtime topology graphs, lifecycle event logs, schema, APIs, enforcement, utility exports, DERMS/dispatch, or operational control.
 - `docs/architecture/ContinuityDomain.md` now defines the docs-only Residential Energy Twin Continuity Domain for preserving lifecycle history across ownership, contractors, infrastructure, utility context, safety context, permissions, provenance, equipment replacement, system upgrades, and software/platform changes; it does not approve runtime continuity records, schemas, APIs, legal ownership, title ownership, contractual rights, compliance approval, utility authority, safety certification, exports, DERMS/dispatch, or operational control.
 - `docs/architecture/SafetyDomain.md` now defines the docs-only Residential Energy Twin Safety Domain for persistent, provenance-bearing, permissioned safety context around energy sources, isolation systems, export capabilities, operational modes, verification status, and safety provenance; it does not approve runtime safety records, schemas, APIs, safety approval, field verification, inspection workflows, utility approval, exports, DERMS/dispatch, or operational control.
+- `docs/architecture/InteroperabilityDomain.md` now defines the docs-only Residential Energy Twin Interoperability Domain for common understanding, semantic consistency, consumer independence, cross-industry consumption, domain interpretation, and preservation of Twin truth; it does not approve exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, integrations, runtime implementation, utility authority, compliance approval, safety certification, DERMS/dispatch, or operational control.
 - `docs/architecture/PermissionPlacement.md`, `docs/architecture/ProvenancePlacement.md`, and `docs/architecture/ViewContracts.md` now complete the remaining Phase 2 Residential Energy Twin placement/view architecture docs for permissions, provenance, and actor-specific views; they do not approve runtime enforcement, schemas, APIs, RBAC/ABAC, encryption, telemetry governance, utility APIs, DERMS/dispatch, or operational control.
 - `docs/architecture/SolarMarketProductIntelligenceGrounding.md` now bridges Phase 2 architecture to future Phase 3 Twin Intelligence grounding for solar production, market/economic reasonableness, and verified product intelligence; it does not approve provider integrations, spec-sheet ingestion, schemas, APIs, product catalogs, AI engineering automation, utility APIs, telemetry, DERMS/dispatch, or operational control.
 - `docs/architecture/Phase3TwinIntelligenceLayer.md` now defines the docs-only Phase 3 Twin Intelligence planning layer for structured reasoning graphs, scenario intelligence, infrastructure simulation, what-if analysis, dependency reasoning, advisor traceability, deterministic reasoning exports, and non-goal boundaries; it does not approve runtime implementation, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
@@ -120,6 +122,7 @@ Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry,
 - Topology lifecycle domains: `docs/architecture/TopologyLifecycleDomains.md`
 - Continuity Domain: `docs/architecture/ContinuityDomain.md`
 - Safety Domain: `docs/architecture/SafetyDomain.md`
+- Interoperability Domain: `docs/architecture/InteroperabilityDomain.md`
 - Permission placement: `docs/architecture/PermissionPlacement.md`
 - Provenance placement: `docs/architecture/ProvenancePlacement.md`
 - View contracts: `docs/architecture/ViewContracts.md`

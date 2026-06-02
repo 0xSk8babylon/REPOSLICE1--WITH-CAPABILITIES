@@ -48,6 +48,7 @@ The aggregate owns the durable relationships among:
 - scenarios and revision lineage
 - permission grants, scopes, consent artifacts, and revocation state when approved
 - provenance records and source lineage
+- interoperability interpretation expectations for shared cross-industry understanding when approved
 - narrow utility relationship context when permissioned and sourced
 - scoped view contracts when approved
 
@@ -153,6 +154,7 @@ Existing planner records can map to future twin domains, but they are not by the
 | Scenarios | Planning futures, linked designs, compact revision lineage, labeled placeholders, scenario provenance | Bid, proposal authority, financial guarantee, procurement-ready estimate, full advisor replay by default | Product Orchestrator with Twin Agent |
 | Permissions | Permission grants, scopes, consent artifacts, revocation state, permissioned view linkage when approved | Account role, subscription status, generic checkbox, implied consent | Permission / Consent Agent |
 | Provenance | Source documents, data provenance, rule provenance, summaries, trust state, confidence, authority metadata | Proof of correctness by itself, access control by itself, professional review | Security / Audit / Provenance Agent |
+| Interoperability | Shared semantic interpretation of Twin domains, authority layers, lifecycle state, provenance, permissions, safety context, continuity context, and consumer-specific meaning | Exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, integrations, conformance programs, utility authority, compliance approval, safety certification, or operational control | Twin Agent with Technical Orchestrator, Permission / Consent Agent, Security / Audit / Provenance Agent, and relevant domain agents |
 | Utility Relationships | Narrow provider/service/interconnection/program context when permissioned and sourced | Utility account system, tariff authority, eligibility approval, utility submission, DERMS, dispatch | Utility / Grid Edge Agent with Permission and Provenance review |
 | Views | Audience-specific projections with authority, classification, provenance, assumptions, and limits | Canonical source facts, enforcement by themselves, broad endpoint filters relabeled as permissions | Technical Orchestrator with relevant specialists |
 
