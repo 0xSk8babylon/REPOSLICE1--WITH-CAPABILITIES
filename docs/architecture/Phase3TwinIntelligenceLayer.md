@@ -186,6 +186,8 @@ What-if analysis is planning guidance. It is not final engineering approval, con
 
 Phase 3 should reason about upstream and downstream dependencies before presenting recommendations.
 
+For the dedicated docs-only dependency impact propagation milestone, see `DependencyImpactPropagation.md`. That document defines stale-output, invalidation, recalculation, re-grounding, re-review, provenance, confidence, safety, continuity, and participant-view impact expectations without creating a new Twin domain or approving runtime implementation, APIs, schemas, exchange, ownership transfer, or operational control.
+
 Dependency categories may include:
 
 - service and panel constraints

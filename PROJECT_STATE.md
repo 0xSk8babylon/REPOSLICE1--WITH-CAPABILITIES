@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-06-01
+2026-06-02
 
 ## Repo Shape
 
@@ -22,6 +22,7 @@
 - Phase 2 Residential Energy Twin architecture is substantially complete as a documentation-only foundation.
 - The Residential Energy Twin Interoperability Domain now defines docs-only shared semantic interpretation for cross-industry consumption without approving exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, or runtime implementation.
 - The Ecosystem Participant Boundary Matrix now consolidates participant-purpose boundaries for homeowners, contractors, utilities, real estate, insurance, finance, manufacturers, and aggregators before any Exchange Domain work; it does not create a new Twin domain or approve exchange, ownership transfer, APIs, schemas, protocols, or runtime implementation.
+- The Dependency Impact Propagation milestone now defines docs-only Phase 3 architectural integrity behavior for stale outputs, dependency invalidation, recalculation, re-grounding, re-review, provenance impacts, confidence impacts, safety impacts, continuity impacts, and participant-view impacts; it is not a new Twin domain and does not approve runtime implementation, APIs, schemas, exchange, ownership transfer, or operational control.
 - Phase 3 Twin Intelligence Layer architecture planning has started; current Phase 3 docs remain documentation/governance only and do not approve runtime implementation.
 
 ## Current Strategic Doctrine
@@ -82,6 +83,7 @@
 - `docs/architecture/ScenarioIntelligence.md` now defines the docs-only Phase 3 derived/advisory scenario comparison planning layer for scenario types, comparison dimensions, grounding requirements, scenario outputs, tradeoff language, permission-filtered scenario views, and lifecycle boundaries; it does not approve runtime scenario engines, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
 - `docs/architecture/InfrastructureSimulation.md` now defines the docs-only Phase 3 derived/advisory simulation planning layer for critical-load survivability, outage endurance, battery discharge, recharge likelihood, solar recharge, seasonal production variation, generator support, flexible-load impacts, constraint impacts, economic sensitivity, DER/ADR readiness, future-state expansion, missing-data behavior, and permission-filtered simulation views; it does not approve runtime simulation engines, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
 - `docs/architecture/WhatIfAnalysis.md` now defines the docs-only Phase 3 derived/advisory what-if planning layer for modeled PV, battery, generator, EVSE, HVAC/load growth, critical-load, outage-target, backup-strategy, equipment-selection, financing/incentive, future-expansion, utility-participation, and DER/ADR readiness changes; it does not approve runtime what-if engines, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control.
+- `docs/architecture/DependencyImpactPropagation.md` now defines the docs-only Phase 3 derived/advisory integrity layer for stale outputs, dependency invalidation, recalculation, re-grounding, re-review, provenance impacts, confidence impacts, safety impacts, continuity impacts, and participant-view impacts; it does not create a new Twin domain or approve runtime invalidation logic, event logs, schemas, APIs, services, exchange mechanisms, ownership transfer, exports, utility submissions, permission enforcement, safety approval, field verification, DERMS/dispatch, or operational control.
 - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` now records the docs-only first-boundary planning recommendation: use `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation, while reserving `twin_id` for a future approved canonical aggregate.
 - `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` complete the current Residential Energy Twin governance/design milestone as documentation-only planning for provenance authority and permissioned-view boundaries; no schema, API, runtime, auth/RBAC/ABAC, permission enforcement, utility authority, operational control, or canonical `ResidentialEnergyTwin` model is approved or implemented.
 - Backend responses now include additive authority/classification/view-boundary/permission-readiness metadata on selected provenance, recommendation, AI context, scenario comparison, account, and placeholder estimate surfaces without changing recommendation behavior or enforcing access.
@@ -90,7 +92,7 @@
 
 ## Current Next Product Target
 
-Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture, but no implementation work is approved by the Phase 2 or Phase 3 architecture docs. The current architecture-only next target is `docs/architecture/DependencyImpactPropagation.md`.
+Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture, but no implementation work is approved by the Phase 2 or Phase 3 architecture docs. The current architecture-only next target after Dependency Impact Propagation should remain docs-only and Matt-approved before work begins.
 
 Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, and operational control remain unapproved. `.github/` remains out of scope for the current Residential Energy Twin architecture session.
 
@@ -135,6 +137,7 @@ Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry,
 - Scenario Intelligence: `docs/architecture/ScenarioIntelligence.md`
 - Infrastructure Simulation: `docs/architecture/InfrastructureSimulation.md`
 - What-If Analysis: `docs/architecture/WhatIfAnalysis.md`
+- Dependency Impact Propagation: `docs/architecture/DependencyImpactPropagation.md`
 - First Residential Energy Twin runtime-boundary planning note: `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
 - Residential Energy Twin provenance policy planning note: `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - Residential Energy Twin permissioned-view planning note: `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`

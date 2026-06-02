@@ -2,22 +2,22 @@
 
 ## Updated
 
-2026-06-01
+2026-06-02
 
 ## Session Summary
 
-- Session date: 2026-06-01
+- Session date: 2026-06-02
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
-- Latest committed checkpoint: `e7c545e7e1641845069cf4aa8027cf187df48771`
-- Latest commit: `docs: normalize twin-first strategic doctrine`
+- Latest committed checkpoint before this milestone: `feebe47`
+- Latest commit before this milestone: `docs: add ecosystem participant boundary matrix`
 - Current branch: `fix/github-workflow`
 - Upstream tracking branch: `origin/fix/github-workflow`
 - GitHub preservation remote: `https://github.com/0xSk8babylon/resi-twin.git`
 - GitHub preservation backup: succeeded on `fix/github-workflow`
 - Phase 2 Residential Energy Twin architecture is substantially complete as a documentation-only foundation.
-- Phase 3 Twin Intelligence Layer architecture planning has started with `docs/architecture/Phase3TwinIntelligenceLayer.md`, `docs/architecture/StructuredSystemReasoningGraph.md`, `docs/architecture/ScenarioIntelligence.md`, `docs/architecture/InfrastructureSimulation.md`, and `docs/architecture/WhatIfAnalysis.md`.
-- Next recommended Phase 3 architecture-only document: `docs/architecture/DependencyImpactPropagation.md`.
+- Phase 3 Twin Intelligence Layer architecture planning has started with `docs/architecture/Phase3TwinIntelligenceLayer.md`, `docs/architecture/StructuredSystemReasoningGraph.md`, `docs/architecture/ScenarioIntelligence.md`, `docs/architecture/InfrastructureSimulation.md`, `docs/architecture/WhatIfAnalysis.md`, and `docs/architecture/DependencyImpactPropagation.md`.
+- Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, and operational control remain unapproved.
 - `.github/` remains out of scope for this session.
 - Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
@@ -31,8 +31,15 @@
   - Residential Energy Twin provenance policy planning docs-only commit
   - Residential Energy Twin permissioned view planning docs-only commit
   - Residential Energy Twin governance/design milestone closeout docs-only commit
+  - Dependency Impact Propagation docs-only milestone commit
 
 ## What Changed Last
+
+- Added `docs/architecture/DependencyImpactPropagation.md` as a docs-only Phase 3 architecture integrity document.
+- Defined how changes to Twin facts should affect stale outputs, dependency invalidation, recalculation, re-grounding, re-review, provenance posture, confidence posture, safety context, continuity records, and participant-facing interpretations.
+- Reaffirmed that Dependency Impact Propagation is not a new Twin domain and does not define runtime implementation, APIs, schemas, exchange, ownership transfer, utility submissions, safety approval, field verification, DERMS/dispatch, or operational control.
+
+## Earlier Change
 
 - Added `docs/architecture/EcosystemParticipantBoundaryMatrix.md` as a docs-only Residential Energy Twin doctrine consolidation document.
 - Defined participant-purpose boundaries for homeowners, contractors, utilities, real estate, insurance, finance, manufacturers, and aggregators.
@@ -165,6 +172,7 @@
 ## Verification Performed
 
 - Current contract normalization pass: `git diff --check` passed.
+- Current Dependency Impact Propagation milestone: `git diff --check` passed.
 - Current milestone closeout: `git diff --check` passed.
 - Current permissioned-view planning pass: `git diff --check` passed.
 - Current provenance planning pass: `git diff --check` passed.
@@ -196,7 +204,7 @@
 
 ## Current Resume Point
 
-The repository has a successful GitHub preservation backup at `origin/fix/github-workflow` with latest commit `e7c545e7e1641845069cf4aa8027cf187df48771`. The next safe action is to keep the repo unchanged unless Matt explicitly approves new work. The next recommended architecture-only Phase 3 document remains `docs/architecture/DependencyImpactPropagation.md`. Runtime implementation can resume from the solar-readiness target only if explicitly requested and approved. Twin implementation work must not begin from the contract, first-boundary planning note, provenance policy planning note, permissioned-view planning note, or Phase 3 intelligence planning docs alone; it requires explicit Matt approval for schema, migrations, persistence contracts, canonical model changes, scoped API contracts, permission enforcement, provenance policy changes, runtime intelligence behavior, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control. If continuing Phase 3 architecture, keep the next step design-only unless Matt approves implementation. If continuing twin-boundary design first, use `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` and keep the next step design-only unless Matt approves implementation. If continuing twin provenance policy design first, use `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing permissioned-view design first, use `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing scoped view/security design first, use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` and start with additive view schemas, especially a narrower AI grounding view, before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
+Dependency Impact Propagation has been approved by Matt as a docs-only milestone. Runtime implementation can resume from the solar-readiness target only if explicitly requested and approved. Twin implementation work must not begin from the contract, first-boundary planning note, provenance policy planning note, permissioned-view planning note, Dependency Impact Propagation, or other Phase 3 intelligence planning docs alone; it requires explicit Matt approval for schema, migrations, persistence contracts, canonical model changes, scoped API contracts, permission enforcement, provenance policy changes, runtime intelligence behavior, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, or operational control. If continuing Phase 3 architecture, keep the next step design-only unless Matt approves implementation. If continuing twin-boundary design first, use `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` and keep the next step design-only unless Matt approves implementation. If continuing twin provenance policy design first, use `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing permissioned-view design first, use `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` and keep the next step design-only unless Matt approves implementation. If continuing scoped view/security design first, use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` and start with additive view schemas, especially a narrower AI grounding view, before implementing RBAC, exports, utility packets, contractor packets, or operational-control behavior.
 
 ## Lean Restore Prompt
 
@@ -216,6 +224,7 @@ Load project skills before implementation.
 - For Phase 3 Scenario Intelligence planning, load `docs/architecture/ScenarioIntelligence.md`.
 - For Phase 3 Infrastructure Simulation planning, load `docs/architecture/InfrastructureSimulation.md`.
 - For Phase 3 What-If Analysis planning, load `docs/architecture/WhatIfAnalysis.md`.
+- For Phase 3 Dependency Impact Propagation planning, load `docs/architecture/DependencyImpactPropagation.md`.
 - For the first Residential Energy Twin runtime-boundary design question, load `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`.
 - For Residential Energy Twin provenance policy planning, load `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`.
 - For Residential Energy Twin permissioned-view planning, load `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`.
@@ -224,4 +233,4 @@ Load project skills before implementation.
 
 ## Latest Detailed Handoff
 
-See `docs/architecture/ResidentialEnergyTwinContractV1.md` for the latest canonical twin contract, `docs/architecture/TopologyLifecycleDomains.md` for topology lifecycle domains, `docs/architecture/PermissionPlacement.md` for permission placement, `docs/architecture/ProvenancePlacement.md` for provenance placement, `docs/architecture/ViewContracts.md` for actor-specific view contracts, `docs/architecture/SolarMarketProductIntelligenceGrounding.md` for future Phase 3 grounding, `docs/architecture/Phase3TwinIntelligenceLayer.md` for Phase 3 Twin Intelligence planning, `docs/architecture/StructuredSystemReasoningGraph.md` for Phase 3 graph planning, `docs/architecture/ScenarioIntelligence.md` for Phase 3 scenario planning, `docs/architecture/InfrastructureSimulation.md` for Phase 3 simulation planning, `docs/architecture/WhatIfAnalysis.md` for Phase 3 what-if planning, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note, and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` for the latest permissioned-view planning note. The latest detailed historical handoff remains `docs/handoffs/2026-05-27-scoped-view-model-mapping.md`.
+See `docs/architecture/ResidentialEnergyTwinContractV1.md` for the latest canonical twin contract, `docs/architecture/TopologyLifecycleDomains.md` for topology lifecycle domains, `docs/architecture/PermissionPlacement.md` for permission placement, `docs/architecture/ProvenancePlacement.md` for provenance placement, `docs/architecture/ViewContracts.md` for actor-specific view contracts, `docs/architecture/SolarMarketProductIntelligenceGrounding.md` for future Phase 3 grounding, `docs/architecture/Phase3TwinIntelligenceLayer.md` for Phase 3 Twin Intelligence planning, `docs/architecture/StructuredSystemReasoningGraph.md` for Phase 3 graph planning, `docs/architecture/ScenarioIntelligence.md` for Phase 3 scenario planning, `docs/architecture/InfrastructureSimulation.md` for Phase 3 simulation planning, `docs/architecture/WhatIfAnalysis.md` for Phase 3 what-if planning, `docs/architecture/DependencyImpactPropagation.md` for Phase 3 dependency impact planning, `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` for the latest first-boundary planning note, `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md` for the latest twin provenance policy planning note, and `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md` for the latest permissioned-view planning note. The latest detailed historical handoff remains `docs/handoffs/2026-06-02-dependency-impact-propagation.md`.

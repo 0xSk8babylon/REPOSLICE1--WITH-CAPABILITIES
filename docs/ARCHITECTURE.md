@@ -32,6 +32,7 @@
 - `docs/architecture/ScenarioIntelligence.md` defines the Phase 3 derived/advisory scenario comparison planning layer as documentation/governance doctrine only.
 - `docs/architecture/InfrastructureSimulation.md` defines the Phase 3 derived/advisory infrastructure simulation planning layer as documentation/governance doctrine only.
 - `docs/architecture/WhatIfAnalysis.md` defines the Phase 3 derived/advisory what-if analysis planning layer as documentation/governance doctrine only.
+- `docs/architecture/DependencyImpactPropagation.md` defines the Phase 3 derived/advisory integrity layer for stale outputs, dependency invalidation, recalculation, re-grounding, re-review, provenance impacts, confidence impacts, safety impacts, continuity impacts, and participant-view impacts as documentation/governance doctrine only; it is not a new Twin domain.
 - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md` plans the first possible runtime boundary as docs-only design work; it recommends `home_id` only as a temporary premise-scoped planning-context anchor if Matt later approves implementation and reserves `twin_id` for a future approved canonical aggregate.
 - None of these documents approve schema changes, migrations, API changes, runtime behavior changes, exchange mechanisms, ownership transfer, protocols, standards, legal ownership, title ownership, contractual rights, safety approval, field verification, permission enforcement, utility authority, operational control, or a canonical `ResidentialEnergyTwin` model.
 

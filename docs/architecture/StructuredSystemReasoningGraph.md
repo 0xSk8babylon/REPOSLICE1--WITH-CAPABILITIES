@@ -47,6 +47,7 @@ Required architecture inputs:
 - `ViewContracts.md`
 - `SolarMarketProductIntelligenceGrounding.md`
 - `Phase3TwinIntelligenceLayer.md`
+- `DependencyImpactPropagation.md`
 
 Required input categories:
 
