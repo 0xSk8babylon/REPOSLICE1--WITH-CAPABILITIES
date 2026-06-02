@@ -27,6 +27,7 @@ from app.scenarios.router import router as scenarios_router
 from app.seed.runtime import initialize_and_seed
 from app.source_documents.router import router as source_documents_router
 from app.takeoffs.router import router as takeoffs_router
+from app.twin_planning_context.router import router as twin_planning_context_router
 
 app = FastAPI(title=settings.app_name, version=settings.api_version, debug=settings.debug)
 api_router = APIRouter(prefix="/api")
@@ -85,4 +86,5 @@ for router in [
     app.include_router(router)
     api_router.include_router(router)
 
+api_router.include_router(twin_planning_context_router)
 app.include_router(api_router)
