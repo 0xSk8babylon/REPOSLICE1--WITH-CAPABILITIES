@@ -65,6 +65,16 @@ class TwinPlanningDependencyAwareness(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinPlanningPermissionReadiness(ORMModel):
+    permission_required: bool
+    permission_not_enforced: bool = True
+    audience: str
+    purpose: str
+    minimum_necessary: bool
+    visibility_limitations: List[str] = Field(default_factory=list)
+    deferred_capabilities: List[str] = Field(default_factory=list)
+
+
 class TwinPlanningContextRecord(ORMModel):
     entity_type: str
     entity_id: Optional[str] = None
@@ -82,6 +92,7 @@ class TwinPlanningContextRecord(ORMModel):
     missing_fields: List[str] = Field(default_factory=list)
     provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
     dependency_awareness: List[TwinPlanningDependencyAwareness] = Field(default_factory=list)
+    permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
     limitations: List[str] = Field(default_factory=list)
 
 
@@ -90,6 +101,7 @@ class TwinPlanningContextSection(ORMModel):
     label: str
     records: List[TwinPlanningContextRecord] = Field(default_factory=list)
     dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
+    permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
     notes: List[str] = Field(default_factory=list)
 
 
@@ -109,6 +121,7 @@ class TwinPlanningContext(ORMModel):
     continuity_gaps: List[str] = Field(default_factory=list)
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
+    permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
     limitations: List[str] = Field(default_factory=list)
 
 
@@ -129,6 +142,7 @@ class AIDesignGroundingRecord(ORMModel):
     missing_fields: List[str] = Field(default_factory=list)
     provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
     dependency_awareness: List[TwinPlanningDependencyAwareness] = Field(default_factory=list)
+    permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
     limitations: List[str] = Field(default_factory=list)
 
 
@@ -149,5 +163,6 @@ class AIDesignGroundingView(ORMModel):
     provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
+    permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
     limitations: List[str] = Field(default_factory=list)
     compatibility_note: str

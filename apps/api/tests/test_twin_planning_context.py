@@ -232,6 +232,30 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("stale_unknown", advisor_note_labels)
         self.assertEqual("advisory_output", advisor_note.classification.value)
 
+    def test_context_reports_permission_readiness_without_enforcement(self):
+        context = self._context()
+        readiness = context.permission_readiness
+
+        self.assertIsNotNone(readiness)
+        self.assertFalse(readiness.permission_required)
+        self.assertTrue(readiness.permission_not_enforced)
+        self.assertEqual("homeowner_planning", readiness.audience)
+        self.assertEqual("owner_planning_context", readiness.purpose)
+        self.assertFalse(readiness.minimum_necessary)
+        self.assertIn("permission_grants", readiness.deferred_capabilities)
+        self.assertIn("rbac_abac", readiness.deferred_capabilities)
+        self.assertIn("operational_control", readiness.deferred_capabilities)
+        self.assertTrue(any("does not enforce access" in note for note in readiness.visibility_limitations))
+
+        section = next(section for section in context.sections if section.section_key == "loads")
+        self.assertTrue(section.permission_readiness.permission_required)
+        self.assertTrue(section.permission_readiness.permission_not_enforced)
+
+        load_record = next(record for record in section.records if record.entity_id == "load_001")
+        self.assertTrue(load_record.permission_readiness.permission_required)
+        self.assertTrue(load_record.permission_readiness.permission_not_enforced)
+        self.assertEqual("homeowner_planning", load_record.permission_readiness.audience)
+
     def test_api_route_is_api_prefixed_and_read_only_additive(self):
         paths = {getattr(route, "path", None) for route in app.routes}
 
@@ -353,6 +377,29 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         ]
         self.assertTrue(advisor_records)
         self.assertTrue(all(record.dependency_awareness for record in advisor_records))
+
+    def test_ai_design_grounding_view_reports_permission_readiness_without_enforcement(self):
+        view = self._ai_view("design_001")
+        readiness = view.permission_readiness
+
+        self.assertIsNotNone(readiness)
+        self.assertTrue(readiness.permission_required)
+        self.assertTrue(readiness.permission_not_enforced)
+        self.assertEqual("ai", readiness.audience)
+        self.assertEqual("grounded_design_recommendation", readiness.purpose)
+        self.assertTrue(readiness.minimum_necessary)
+        self.assertIn("consent_artifacts", readiness.deferred_capabilities)
+        self.assertIn("scoped_exports", readiness.deferred_capabilities)
+        self.assertIn("identity", readiness.deferred_capabilities)
+        self.assertTrue(any("AI access is not consent" in note for note in readiness.visibility_limitations))
+
+        advisor_record = next(
+            record for record in view.grounding_records if record.entity_type == "advisor_recommendation_summary"
+        )
+        self.assertTrue(advisor_record.permission_readiness.permission_required)
+        self.assertTrue(advisor_record.permission_readiness.permission_not_enforced)
+        self.assertEqual("ai", advisor_record.permission_readiness.audience)
+        self.assertTrue(advisor_record.permission_readiness.minimum_necessary)
 
     def test_ai_design_grounding_view_returns_none_for_design_outside_home_context(self):
         self.assertIsNone(self._ai_view("missing_design"))

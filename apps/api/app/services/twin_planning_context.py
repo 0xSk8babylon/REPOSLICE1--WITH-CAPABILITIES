@@ -16,6 +16,7 @@ from app.twin_planning_context.schemas import (
     TwinPlanningDependencyAwareness,
     TwinPlanningDependencyAwarenessLabel,
     TwinPlanningDependencyHook,
+    TwinPlanningPermissionReadiness,
     TwinPlanningProvenanceGap,
     TwinPlanningProvenanceGapType,
     TwinPlanningRecordClassification,
@@ -106,6 +107,28 @@ PROVENANCE_GAP_LIMITATIONS = [
 DEPENDENCY_AWARENESS_LIMITATIONS = [
     "Dependency awareness labels are descriptive runtime metadata only.",
     "Labels do not run recalculation, schedule work, persist stale state, verify facts, or create approval authority.",
+]
+
+DEFERRED_PERMISSION_CAPABILITIES = [
+    "permission_grants",
+    "consent_artifacts",
+    "revocation_workflow",
+    "rbac_abac",
+    "auth",
+    "tenant_isolation",
+    "scoped_exports",
+    "exchange",
+    "ownership_transfer",
+    "registry",
+    "identity",
+    "utility_control",
+    "operational_control",
+]
+
+PERMISSION_READINESS_LIMITATIONS = [
+    "Permission readiness metadata is descriptive only and does not enforce access.",
+    "Endpoint access, account scaffolding, UI visibility, or AI use is not a permission grant.",
+    "External sharing requires a future approved permission model before it can be treated as authorized.",
 ]
 
 REGROUNDING_GAP_TYPES = {
@@ -584,6 +607,113 @@ class TwinPlanningContextService:
                 record.dependency_awareness = self._dependency_awareness_for_record(section.section_key, record)
             section.dependency_awareness_summary = self._dependency_awareness_summary(section.records)
 
+    def _permission_readiness(
+        self,
+        *,
+        permission_required: bool,
+        audience: str,
+        purpose: str,
+        minimum_necessary: bool,
+        visibility_limitations: Optional[List[str]] = None,
+    ) -> TwinPlanningPermissionReadiness:
+        return TwinPlanningPermissionReadiness(
+            permission_required=permission_required,
+            permission_not_enforced=True,
+            audience=audience,
+            purpose=purpose,
+            minimum_necessary=minimum_necessary,
+            visibility_limitations=PERMISSION_READINESS_LIMITATIONS + (visibility_limitations or []),
+            deferred_capabilities=DEFERRED_PERMISSION_CAPABILITIES,
+        )
+
+    def _context_permission_readiness(self) -> TwinPlanningPermissionReadiness:
+        return self._permission_readiness(
+            permission_required=False,
+            audience="homeowner_planning",
+            purpose="owner_planning_context",
+            minimum_necessary=False,
+            visibility_limitations=[
+                "Broad owner planning context is not minimized for external participants.",
+                "External sharing would require future explicit permission, scope, purpose, duration, and revocation handling.",
+            ],
+        )
+
+    def _section_permission_readiness(self, section_key: str) -> TwinPlanningPermissionReadiness:
+        if section_key == "unknowns":
+            return self._permission_readiness(
+                permission_required=True,
+                audience="internal_governance",
+                purpose="missing_context_review",
+                minimum_necessary=True,
+                visibility_limitations=[
+                    "Unknown markers are internal governance context and should not be exposed as facts.",
+                ],
+            )
+        return self._permission_readiness(
+            permission_required=True,
+            audience="homeowner_planning",
+            purpose=f"{section_key}_planning_context",
+            minimum_necessary=False,
+            visibility_limitations=[
+                "Section data may contain homeowner planning context and requires future permission before external sharing.",
+            ],
+        )
+
+    def _record_permission_readiness(
+        self, section_key: str, record: TwinPlanningContextRecord
+    ) -> TwinPlanningPermissionReadiness:
+        audience = "internal_governance" if section_key == "unknowns" else "homeowner_planning"
+        purpose = "missing_context_review" if section_key == "unknowns" else f"{record.entity_type}_planning_context"
+        limitations = [
+            "Record visibility metadata does not authorize access or sharing.",
+            "Future permission scope may need field-level or derived-output-level limits.",
+        ]
+        if record.classification in {
+            TwinPlanningRecordClassification.derived_output,
+            TwinPlanningRecordClassification.advisory_output,
+        }:
+            limitations.append("Derived and advisory outputs require explicit future view-purpose limits before sharing.")
+        if record.source_document_ids:
+            limitations.append("Source-document visibility may be narrower than fact visibility in a future permission model.")
+        return self._permission_readiness(
+            permission_required=True,
+            audience=audience,
+            purpose=purpose,
+            minimum_necessary=False,
+            visibility_limitations=limitations,
+        )
+
+    def _attach_permission_readiness(self, sections: List[TwinPlanningContextSection]):
+        for section in sections:
+            section.permission_readiness = self._section_permission_readiness(section.section_key)
+            for record in section.records:
+                record.permission_readiness = self._record_permission_readiness(section.section_key, record)
+
+    def _ai_view_permission_readiness(self) -> TwinPlanningPermissionReadiness:
+        return self._permission_readiness(
+            permission_required=True,
+            audience="ai",
+            purpose="grounded_design_recommendation",
+            minimum_necessary=True,
+            visibility_limitations=[
+                "AI grounding view is minimized for explanation and recommendation grounding only.",
+                "AI access is not consent, export authorization, write authority, or permission enforcement.",
+                "AI may not create canonical facts, permission grants, verification claims, or approval claims.",
+            ],
+        )
+
+    def _ai_record_permission_readiness(self, record: TwinPlanningContextRecord) -> TwinPlanningPermissionReadiness:
+        return self._permission_readiness(
+            permission_required=True,
+            audience="ai",
+            purpose=f"{record.entity_type}_grounding",
+            minimum_necessary=True,
+            visibility_limitations=[
+                "Record is included only because it is part of the minimized AI grounding projection.",
+                "Visibility metadata does not authorize external sharing or persistence outside the approved runtime.",
+            ],
+        )
+
     def _classify_record(
         self,
         *,
@@ -891,6 +1021,7 @@ class TwinPlanningContextService:
             missing_fields=record.missing_fields,
             provenance_gaps=record.provenance_gaps,
             dependency_awareness=record.dependency_awareness,
+            permission_readiness=self._ai_record_permission_readiness(record),
             limitations=record.limitations,
         )
 
@@ -972,6 +1103,7 @@ class TwinPlanningContextService:
             provenance_gaps=provenance_gaps,
             dependency_hooks=dependency_hooks,
             dependency_awareness_summary=self._dependency_awareness_summary(grounding_records),
+            permission_readiness=self._ai_view_permission_readiness(),
             limitations=[
                 "No twin_id is created or inferred.",
                 "This AI grounding view is a minimized planning-only projection and is not complete Twin authority.",
@@ -1451,6 +1583,7 @@ class TwinPlanningContextService:
         )
 
         self._attach_dependency_awareness(sections)
+        self._attach_permission_readiness(sections)
 
         classification_counts = Counter(
             record.classification for section in sections for record in section.records
@@ -1502,6 +1635,7 @@ class TwinPlanningContextService:
             dependency_awareness_summary=self._dependency_awareness_summary(
                 [record for section in sections for record in section.records]
             ),
+            permission_readiness=self._context_permission_readiness(),
             limitations=[
                 "No twin_id is created or inferred.",
                 "This endpoint is not a canonical ResidentialEnergyTwin API.",
