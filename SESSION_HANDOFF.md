@@ -32,12 +32,19 @@
 
 ## What Changed Last
 
+- Added `docs/architecture/ContinuityDomain.md` as a docs-only Residential Energy Twin architecture/governance document.
+- Defined the Continuity Domain as a foundational Twin domain for preserving lifecycle history and keeping the Twin attached to the home across ownership, contractor, utility, infrastructure, safety, permission, provenance, equipment, project, and software/platform changes.
+- Documented continuity objectives, categories, lifecycle principle, historical record principle, continuity boundaries, strategic role, relationships to existing domains, and deferred continuity/history view expectations.
+- Reaffirmed that the Continuity Domain records continuity information only and does not approve runtime continuity records, schemas, APIs, legal ownership, title ownership, utility authority, regulatory authority, compliance approval, operational control, contractual rights, safety certification, exports, DERMS/dispatch, or implementation scope.
+
+## Previous Change
+
 - Added `docs/architecture/SafetyDomain.md` as a docs-only Residential Energy Twin architecture/governance document.
 - Defined the Safety Domain as a component of the Residential Energy Twin for persistent, provenance-bearing, permissioned safety context about behind-the-meter infrastructure across property lifecycle changes.
 - Documented safety record categories for energy sources, isolation systems, export capabilities, operational modes, verification status, and provenance.
 - Reaffirmed that the Safety Domain does not approve runtime safety records, schemas, APIs, safety approval, field verification, inspection workflows, utility approval, exports, DERMS/dispatch, operational control, or a separate safety product.
 
-## Previous Change
+## Earlier Change
 
 - Updated doctrine-only strategic language for Twin-first positioning across the product vision, philosophy, agent operating principles, and compact restore state.
 - Codified the Planner First Application, Twin First, Trusted Record, Safety, and Ecosystem principles without changing runtime code, schemas, APIs, permissions architecture, utility architecture, operational-control posture, or approved Phase 2/Phase 3 boundaries.

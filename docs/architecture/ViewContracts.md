@@ -234,6 +234,31 @@ Must exclude or label:
 
 Safety-scoped views are deferred until explicit permission, provenance, verification-scope, audit, and view-contract expectations exist.
 
+### Continuity / History View
+
+Purpose:
+
+Provide minimized, permissioned, source-linked lifecycle history for a defined audience and purpose after Matt-approved continuity-view design exists.
+
+May include after future approval:
+
+- current-versus-historical state markers
+- changed Twin objects, fields, and lifecycle states
+- actor or source system for a change
+- timestamps and revision identity
+- supersession, replacement, revocation, stale-state, or carry-forward labels
+- provenance, confidence, missing inputs, assumptions, and limitation metadata
+- permission scope when enforcement exists
+
+Must exclude or label:
+
+- legal title, ownership, utility authority, regulatory authority, contractual-rights, compliance, safety-certification, field-verification, or operational-control claims
+- unrelated homeowner/private context
+- broad raw history when a minimized summary is sufficient
+- stale or historical records presented as current state
+
+Continuity/history views are deferred until explicit permission, provenance, lifecycle-state, audit, and view-contract expectations exist.
+
 ### Aggregator View
 
 Purpose:
@@ -379,6 +404,7 @@ Matt approval is required before any of the following become implementation, sch
 - `docs/architecture/TopologyLifecycleDomains.md`
 - `docs/architecture/PermissionPlacement.md`
 - `docs/architecture/ProvenancePlacement.md`
+- `docs/architecture/ContinuityDomain.md`
 - `docs/architecture/SafetyDomain.md`
 - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
 - `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`

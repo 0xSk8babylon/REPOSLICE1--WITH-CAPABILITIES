@@ -43,6 +43,7 @@ The aggregate owns the durable relationships among:
 - load records and backup priorities
 - equipment product references, assignments, and locations
 - safety-relevant records about energy sources, isolation systems, export capabilities, operational modes, verification status, and provenance when approved
+- continuity records for lifecycle history, ownership continuity, contractor continuity, infrastructure continuity, utility continuity, safety continuity, permission continuity, and provenance continuity when approved
 - design intent and pathway planning records
 - scenarios and revision lineage
 - permission grants, scopes, consent artifacts, and revocation state when approved
@@ -146,6 +147,7 @@ Existing planner records can map to future twin domains, but they are not by the
 | Loads | Load records, backup priority, wattage assumptions, phase, building linkage, provenance | Verified circuit inventory, professional load study, telemetry, load-control permission | Twin Agent with NEC / Electrical Logic Agent |
 | Equipment | Product references, model/spec metadata, source documents, assignments, locations, roles | Warranty authority, procurement approval, guaranteed compatibility, live device status | Equipment Agent |
 | Safety | Safety-relevant context about energy sources, isolation systems, export capabilities, operational modes, verification status, and supporting provenance | Safety approval, code compliance, AHJ approval, utility approval, interconnection approval, field verification, operational readiness, emergency-response authority, or device-control authority | Twin Agent with NEC / Electrical Logic Agent, Permission / Consent Agent, Security / Audit / Provenance Agent, and Utility / Grid Edge Agent |
+| Continuity | Lifecycle history across ownership, contractors, infrastructure, utility context, safety context, permissions, provenance, and software/platform changes | Legal ownership, title ownership, utility authority, regulatory authority, compliance approval, operational control, contractual rights, safety certification, or proof of current state by itself | Twin Agent with Permission / Consent Agent and Security / Audit / Provenance Agent |
 | Designs | Design intent, architecture type, status, equipment composition, planning posture | Final electrical design, installation plan, permit package, contractor bid, dispatch authority | Twin Agent with Product Orchestrator |
 | Pathways | Route assumptions, source/destination context, distance, difficulty, visibility, confidence | Surveyed route, construction approval, conduit design, trenching approval | Twin Agent with Takeoff / Estimating Agent |
 | Scenarios | Planning futures, linked designs, compact revision lineage, labeled placeholders, scenario provenance | Bid, proposal authority, financial guarantee, procurement-ready estimate, full advisor replay by default | Product Orchestrator with Twin Agent |
@@ -259,6 +261,7 @@ Future approved provenance structures should exist at these levels:
 - field-level provenance for important authority-bearing fields
 - derived-output provenance for recommendations, comparisons, takeoffs, AI grounding, sizing, scoring, and rule outputs
 - safety provenance for energy-source, isolation-system, export-capability, operational-mode, verification-status, and safety-view context
+- continuity provenance for lifecycle history, changed fields, actors or source systems, timestamps, supersession, replacement, revocation, stale-state markers, and historical/current-state distinctions
 - permission provenance for grants, consent, revocation, and exports
 - utility provenance for provider, service, interconnection, tariff, program, and source-document context
 - revision provenance for historical snapshots and future replayable state
@@ -326,6 +329,7 @@ Expected future view families:
 - contractor scoping view
 - engineer review-input view
 - safety-scoped view for minimum necessary safety context when explicitly approved
+- continuity/history view for minimum necessary lifecycle history when explicitly approved
 - AI grounding view
 - supplier/manufacturer product-support view
 - future utility-safe view
@@ -466,6 +470,7 @@ Matt approval is required before any of the following become implementation, sch
 - `docs/architecture/COGNITION_LAYERS.md`
 - `docs/architecture/CANONICAL_TERMINOLOGY.md`
 - `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
+- `docs/architecture/ContinuityDomain.md`
 - `docs/architecture/SafetyDomain.md`
 - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
 - `docs/provenance/LINEAGE_MODEL.md`
