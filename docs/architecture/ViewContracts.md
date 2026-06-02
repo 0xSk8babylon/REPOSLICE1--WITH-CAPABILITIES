@@ -209,6 +209,31 @@ Must exclude or label:
 
 Utility views are deferred until explicit authority, permission, provenance, export, audit, and security expectations exist.
 
+### Safety-Scoped View
+
+Purpose:
+
+Provide minimized, permissioned, source-linked safety context for a defined audience and purpose after Matt-approved safety-view design exists.
+
+May include after future approval:
+
+- safety-relevant energy sources
+- isolation systems
+- export-capability context
+- operational-mode context
+- verification status and verification scope
+- provenance, confidence, missing inputs, assumptions, and limitation metadata
+- lifecycle state and revision identity when relevant
+
+Must exclude or label:
+
+- unrelated homeowner/private context
+- broad planning notes not needed for the safety purpose
+- unsupported code, permit, AHJ, safety, utility, interconnection, export, inspection, or operational-readiness claims
+- emergency-response authority, field-verification authority, utility approval, dispatch, DERMS, device-control, availability, telemetry authority, or credentials
+
+Safety-scoped views are deferred until explicit permission, provenance, verification-scope, audit, and view-contract expectations exist.
+
 ### Aggregator View
 
 Purpose:
@@ -354,6 +379,7 @@ Matt approval is required before any of the following become implementation, sch
 - `docs/architecture/TopologyLifecycleDomains.md`
 - `docs/architecture/PermissionPlacement.md`
 - `docs/architecture/ProvenancePlacement.md`
+- `docs/architecture/SafetyDomain.md`
 - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
 - `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`
 - `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`

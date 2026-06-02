@@ -32,12 +32,19 @@
 
 ## What Changed Last
 
+- Added `docs/architecture/SafetyDomain.md` as a docs-only Residential Energy Twin architecture/governance document.
+- Defined the Safety Domain as a component of the Residential Energy Twin for persistent, provenance-bearing, permissioned safety context about behind-the-meter infrastructure across property lifecycle changes.
+- Documented safety record categories for energy sources, isolation systems, export capabilities, operational modes, verification status, and provenance.
+- Reaffirmed that the Safety Domain does not approve runtime safety records, schemas, APIs, safety approval, field verification, inspection workflows, utility approval, exports, DERMS/dispatch, operational control, or a separate safety product.
+
+## Previous Change
+
 - Updated doctrine-only strategic language for Twin-first positioning across the product vision, philosophy, agent operating principles, and compact restore state.
 - Codified the Planner First Application, Twin First, Trusted Record, Safety, and Ecosystem principles without changing runtime code, schemas, APIs, permissions architecture, utility architecture, operational-control posture, or approved Phase 2/Phase 3 boundaries.
 - Clarified that protocols and standards are artifacts of successful ecosystem adoption and that the repository should optimize for Twin adoption, trust, continuity, and ecosystem participation rather than protocol ownership.
 - Reaffirmed that Residential Infrastructure Registry, Residential Infrastructure Network, and future trusted safety-record concepts are long-term doctrine only and not implemented runtime capabilities.
 
-## Previous Change
+## Earlier Change
 
 - Added `docs/architecture/WhatIfAnalysis.md` as a docs-only Phase 3 architecture planning document.
 - Defined What-If Analysis as a future derived/advisory layer for evaluating modeled changes to the Residential Energy Twin across topology, lifecycle, loads, production, storage/backup, survivability, recharge likelihood, economics, product compatibility, utility readiness, permissions, provenance, confidence, and missing data.

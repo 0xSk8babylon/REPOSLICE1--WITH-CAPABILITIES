@@ -46,6 +46,7 @@ Read these first:
   - `docs/ARCHITECTURE.md`
   - `docs/architecture/ResidentialEnergyTwinContractV1.md`
   - `docs/architecture/TopologyLifecycleDomains.md`
+  - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/PermissionPlacement.md`
   - `docs/architecture/ProvenancePlacement.md`
   - `docs/architecture/ViewContracts.md`
@@ -71,6 +72,7 @@ Read these first:
   - `apps/web/src/lib/api.js`
   - task-relevant pages/components
 - Trust or provenance changes:
+  - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/PermissionPlacement.md`
   - `docs/architecture/ProvenancePlacement.md`
   - `docs/architecture/ViewContracts.md`
@@ -89,6 +91,7 @@ Read these first:
   - `docs/governance/AI_AUTHORITY_LIMITS.md`
 - Topology or orchestration planning:
   - `docs/architecture/TopologyLifecycleDomains.md`
+  - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/SolarMarketProductIntelligenceGrounding.md`
   - `docs/architecture/Phase3TwinIntelligenceLayer.md`
   - `docs/architecture/StructuredSystemReasoningGraph.md`
