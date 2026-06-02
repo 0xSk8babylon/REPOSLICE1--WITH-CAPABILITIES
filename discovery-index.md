@@ -44,10 +44,12 @@ Read these first:
   - latest file in `docs/handoffs/`
 - Architecture changes:
   - `docs/ARCHITECTURE.md`
+  - `docs/architecture/ResidentialEnergyTwinCanonicalArchitectureHierarchy.md`
   - `docs/architecture/ResidentialEnergyTwinContractV1.md`
   - `docs/architecture/TopologyLifecycleDomains.md`
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
+  - `docs/architecture/ResidentialEnergyTwinCanonicalArchitectureHierarchy.md`
   - `docs/architecture/InteroperabilityDomain.md`
   - `docs/architecture/EcosystemParticipantBoundaryMatrix.md`
   - `docs/architecture/PermissionPlacement.md`
@@ -99,6 +101,7 @@ Read these first:
   - `docs/governance/AI_AUTHORITY_LIMITS.md`
 - Topology or orchestration planning:
   - `docs/architecture/TopologyLifecycleDomains.md`
+  - `docs/architecture/ResidentialEnergyTwinCanonicalArchitectureHierarchy.md`
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/InteroperabilityDomain.md`

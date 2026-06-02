@@ -18,6 +18,7 @@
 ## Residential Energy Twin Governance
 
 - `docs/architecture/ResidentialEnergyTwinContractV1.md` defines the Residential Energy Twin aggregate contract as documentation/governance doctrine only. `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` is retained as a compatibility pointer.
+- `docs/architecture/ResidentialEnergyTwinCanonicalArchitectureHierarchy.md` defines the single authoritative hierarchy and doctrine map for routing current Residential Energy Twin architecture layers as documentation/governance doctrine only; it creates no new domains or architecture.
 - `docs/architecture/TopologyLifecycleDomains.md` defines topology lifecycle domain boundaries as documentation/governance doctrine only.
 - `docs/architecture/ContinuityDomain.md` defines the Residential Energy Twin Continuity Domain for preserving lifecycle history across ownership, contractor, infrastructure, utility, safety, permission, provenance, equipment, and software/platform changes as documentation/governance doctrine only.
 - `docs/architecture/SafetyDomain.md` defines the Residential Energy Twin Safety Domain for persistent, provenance-bearing, permissioned safety context as documentation/governance doctrine only.

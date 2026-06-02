@@ -23,6 +23,7 @@
 - The Residential Energy Twin Interoperability Domain now defines docs-only shared semantic interpretation for cross-industry consumption without approving exchange mechanisms, ownership transfer, APIs, schemas, protocols, standards, exports, or runtime implementation.
 - The Ecosystem Participant Boundary Matrix now consolidates participant-purpose boundaries for homeowners, contractors, utilities, real estate, insurance, finance, manufacturers, and aggregators before any Exchange Domain work; it does not create a new Twin domain or approve exchange, ownership transfer, APIs, schemas, protocols, or runtime implementation.
 - The Dependency Impact Propagation milestone now defines docs-only Phase 3 architectural integrity behavior for stale outputs, dependency invalidation, recalculation, re-grounding, re-review, provenance impacts, confidence impacts, safety impacts, continuity impacts, and participant-view impacts; it is not a new Twin domain and does not approve runtime implementation, APIs, schemas, exchange, ownership transfer, or operational control.
+- The Residential Energy Twin Canonical Architecture Hierarchy now consolidates the existing doctrine stack into eight routing layers without creating new domains, new architecture, Exchange, Ownership & Transfer, Registry, Identity, APIs, schemas, protocols, or runtime concepts.
 - Phase 3 Twin Intelligence Layer architecture planning has started; current Phase 3 docs remain documentation/governance only and do not approve runtime implementation.
 
 ## Current Strategic Doctrine
@@ -71,6 +72,7 @@
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
 - Canonical authority, trust-zone, provenance, data-classification, API-view, and RBAC-boundary language is now normalized across the source-of-truth docs without implementing auth, access control, telemetry, DER/ADR control, or migrations.
 - `docs/architecture/ResidentialEnergyTwinContractV1.md` now defines the Residential Energy Twin aggregate contract as documentation/governance only; it does not approve schema changes, migrations, runtime behavior, auth/permission enforcement, API contract changes, utility semantics, DERMS/dispatch semantics, or a new canonical runtime model. `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` remains only a compatibility pointer.
+- `docs/architecture/ResidentialEnergyTwinCanonicalArchitectureHierarchy.md` now defines the docs-only canonical architecture hierarchy and doctrine map for Strategic Doctrine, Residential Energy Twin Contract, Foundational Domains, Trust-Bearing Domains, Interpretation & Projection, Participant Boundaries, Phase 3 Intelligence, and Future Gated Layers; it does not create new domains, new architecture, Exchange, Ownership & Transfer, Registry, Identity, APIs, schemas, protocols, or runtime concepts.
 - `docs/architecture/TopologyLifecycleDomains.md` now defines docs-only topology lifecycle domain boundaries for recorded current topology, sandbox planning topology, proposed pathways, scenario revisions, future reviewed/contractual/verified/utility-facing states, and future operational topology separation; it does not approve runtime topology graphs, lifecycle event logs, schema, APIs, enforcement, utility exports, DERMS/dispatch, or operational control.
 - `docs/architecture/ContinuityDomain.md` now defines the docs-only Residential Energy Twin Continuity Domain for preserving lifecycle history across ownership, contractors, infrastructure, utility context, safety context, permissions, provenance, equipment replacement, system upgrades, and software/platform changes; it does not approve runtime continuity records, schemas, APIs, legal ownership, title ownership, contractual rights, compliance approval, utility authority, safety certification, exports, DERMS/dispatch, or operational control.
 - `docs/architecture/SafetyDomain.md` now defines the docs-only Residential Energy Twin Safety Domain for persistent, provenance-bearing, permissioned safety context around energy sources, isolation systems, export capabilities, operational modes, verification status, and safety provenance; it does not approve runtime safety records, schemas, APIs, safety approval, field verification, inspection workflows, utility approval, exports, DERMS/dispatch, or operational control.
@@ -92,7 +94,7 @@
 
 ## Current Next Product Target
 
-Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture, but no implementation work is approved by the Phase 2 or Phase 3 architecture docs. The current architecture-only next target after Dependency Impact Propagation should remain docs-only and Matt-approved before work begins.
+Near-term implementation still points toward deepening the solar-readiness and roof-capacity realism slice behind the current profile architecture, but no implementation work is approved by the Phase 2 or Phase 3 architecture docs. The current architecture-only next target after the Canonical Architecture Hierarchy should remain docs-only and Matt-approved before work begins.
 
 Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, and operational control remain unapproved. `.github/` remains out of scope for the current Residential Energy Twin architecture session.
 
@@ -122,6 +124,7 @@ Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry,
 - Repository cognition structure: `docs/architecture/REPOSITORY_COGNITION_STRUCTURE.md`
 - Cognition layers: `docs/architecture/COGNITION_LAYERS.md`
 - Canonical terminology: `docs/architecture/CANONICAL_TERMINOLOGY.md`
+- Residential Energy Twin Canonical Architecture Hierarchy: `docs/architecture/ResidentialEnergyTwinCanonicalArchitectureHierarchy.md`
 - Residential Energy Twin Contract v1: `docs/architecture/ResidentialEnergyTwinContractV1.md`
 - Topology lifecycle domains: `docs/architecture/TopologyLifecycleDomains.md`
 - Continuity Domain: `docs/architecture/ContinuityDomain.md`
