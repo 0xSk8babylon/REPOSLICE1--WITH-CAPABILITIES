@@ -50,11 +50,17 @@ Agents may not:
 
 ## Operating Principles
 
-- The Residential Energy Twin is the durable asset.
-- The planner is the first application.
-- The Customer-Permissioned Home Energy Graph is the category.
-- Customer-Permissioned Truth Layer is market positioning language.
-- The protocol is the moat: the standardized representation and exchange model for Residential Energy Twin data.
+- The Residential Energy Twin is the durable asset and core asset.
+- The Residential Energy Planner is the first application built on top of the Residential Energy Twin.
+- The planner is a distribution mechanism for Residential Energy Twin creation, maintenance, and adoption.
+- Trusted Residential Energy Record is current positioning language.
+- Residential Infrastructure Registry is the long-term end state.
+- Residential Infrastructure Network is the long-term vision.
+- The planner is not the long-term moat.
+- The long-term moat is Residential Energy Twin adoption, trusted records, permissions, provenance, continuity, interoperability, ecosystem participation, and network effects.
+- Protocols and standards are artifacts of successful ecosystem adoption; do not optimize for protocol ownership as an end in itself.
+- Features that strengthen persistence, provenance, permissions, safety, interoperability, and lifecycle continuity take precedence over features that exist only within a single project workflow.
+- Safety is a first-class Residential Energy Twin concern.
 - Truth beats inference.
 - Homeowner permission is central.
 - Engineer approval remains final for stamped electrical decisions.

@@ -22,6 +22,20 @@
 - Phase 2 Residential Energy Twin architecture is substantially complete as a documentation-only foundation.
 - Phase 3 Twin Intelligence Layer architecture planning has started; current Phase 3 docs remain documentation/governance only and do not approve runtime implementation.
 
+## Current Strategic Doctrine
+
+- Current application: Residential Energy Planner.
+- Core asset: Residential Energy Twin.
+- Current positioning: Trusted Residential Energy Record.
+- Long-term end state: Residential Infrastructure Registry.
+- Long-term vision: Residential Infrastructure Network.
+- The Residential Energy Planner is the first application built on top of the Residential Energy Twin and serves as the distribution mechanism for Twin creation, maintenance, and adoption.
+- The planner exists to create, maintain, and enrich the Twin. Features that strengthen persistence, provenance, permissions, safety, interoperability, and lifecycle continuity take precedence over features that exist only within one project workflow.
+- The Residential Energy Twin is the trusted record of residential infrastructure, energy capabilities, permissions, provenance, interoperability, and safety conditions behind the meter.
+- Safety is a first-class Twin concern. Any future trusted safety-record posture for residential DER, backup systems, or grid-edge infrastructure remains gated by approved verification, provenance, permission, audit, and authority layers.
+- The planner is not the long-term moat. Twin adoption, trusted records, permissioned provenance, continuity, interoperability, ecosystem participation, and network effects form the long-term moat.
+- Protocols and standards are artifacts of successful ecosystem adoption. The repository should optimize for Twin adoption, trust, continuity, and ecosystem participation rather than protocol ownership.
+
 ## What Is Live
 
 - Core POST/PATCH planning flows from the frontend

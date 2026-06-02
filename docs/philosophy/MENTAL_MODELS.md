@@ -4,6 +4,24 @@
 
 The core domain is the house over time, not a one-time quote. The system should accumulate facts, design options, and infrastructure consequences as the property evolves.
 
+## Twin As Core Asset
+
+The Residential Energy Twin is the durable asset. The Residential Energy Planner is the first application and distribution mechanism for Twin creation, maintenance, and adoption.
+
+The planner should strengthen the Twin whenever possible. Features that improve persistence, provenance, permissions, safety, interoperability, and lifecycle continuity are more strategically important than features that only improve one project workflow.
+
+## Trusted Residential Energy Record
+
+The Twin should function as the Trusted Residential Energy Record: a homeowner-governed record of residential infrastructure, energy capabilities, permissions, provenance, interoperability, and safety conditions behind the meter.
+
+This record can support current planning and future ecosystem coordination, but it does not by itself create compliance, utility approval, operational control, financial guarantees, or professional engineering authority.
+
+## Registry And Network Path
+
+The long-term end state is a Residential Infrastructure Registry: durable, source-linked records of residential infrastructure that can survive projects, ownership changes, upgrades, and lifecycle transitions.
+
+The long-term vision is a Residential Infrastructure Network: an ecosystem of trusted, permissioned, interoperable Twin records that can support homeowners, contractors, engineers, utilities, suppliers, manufacturers, aggregators, and future applications through scoped views.
+
 ## Guided Infrastructure Literacy
 
 The platform should help users understand how panels, loads, products, siting, and pathways interact. It should teach enough to improve decisions without pretending to replace engineering practice.
@@ -35,6 +53,10 @@ Scenario comparison should help users inspect tradeoffs, not just rank options. 
 ## Site Verification Boundary
 
 Some planning facts remain uncertain until field validation. The system should preserve a clear boundary between planning logic and site-confirmed truth.
+
+## Safety Record Boundary
+
+Safety is a first-class Twin concern. The Twin may eventually function as a trusted safety record for residential distributed energy resources, backup systems, and grid-edge infrastructure, but current planning state is not safety approval, field verification, utility approval, or operational readiness.
 
 ## Product Ecosystems As Infrastructure Philosophies
 

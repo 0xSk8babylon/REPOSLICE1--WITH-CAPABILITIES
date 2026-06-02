@@ -5,12 +5,14 @@
 - Presents and edits structured state.
 - Surfaces trust posture, planning guidance, and relationship context.
 - Must not become the owner of domain truth.
+- Must present the planner as an application over the Residential Energy Twin, not as the durable asset itself.
 
 ## Backend
 
 - Owns persistence, rules, advisor logic, provenance summaries, and AI grounding context.
 - Should preserve inspectable deterministic behavior for planning calculations and explanation inputs.
 - Should keep GET contracts stable unless coordinated changes are intentional.
+- Should strengthen the Residential Energy Twin as the trusted record without implying that current planner records are a canonical runtime Twin implementation.
 
 ## AI Context
 
@@ -30,7 +32,11 @@
 
 ## Boundary Discipline
 
+- The Residential Energy Twin is the core asset.
+- The Residential Energy Planner is the first application.
 - Structured facts decide.
 - Deterministic rules interpret.
 - AI explains.
 - UI reveals state and tradeoffs.
+- Safety, permissions, provenance, interoperability, and lifecycle continuity remain first-class boundaries.
+- Registry and network concepts are long-term doctrine, not current runtime capability.

@@ -16,6 +16,8 @@
 - Next recommended Phase 3 architecture-only document: `docs/architecture/DependencyImpactPropagation.md`.
 - Runtime code, schemas, APIs, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, and operational control remain unapproved.
 - `.github/` remains out of scope for this session.
+- Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
+- The normalized doctrine states that the planner is not the long-term moat; Twin adoption, trusted records, permissions, provenance, continuity, interoperability, ecosystem participation, and network effects are the strategic moat.
 - Repo commits created this session:
   - Residential Energy Twin Contract v1 docs-only governance commit
   - Residential Energy Twin first runtime-boundary planning docs-only commit
@@ -26,12 +28,19 @@
 
 ## What Changed Last
 
+- Updated doctrine-only strategic language for Twin-first positioning across the product vision, philosophy, agent operating principles, and compact restore state.
+- Codified the Planner First Application, Twin First, Trusted Record, Safety, and Ecosystem principles without changing runtime code, schemas, APIs, permissions architecture, utility architecture, operational-control posture, or approved Phase 2/Phase 3 boundaries.
+- Clarified that protocols and standards are artifacts of successful ecosystem adoption and that the repository should optimize for Twin adoption, trust, continuity, and ecosystem participation rather than protocol ownership.
+- Reaffirmed that Residential Infrastructure Registry, Residential Infrastructure Network, and future trusted safety-record concepts are long-term doctrine only and not implemented runtime capabilities.
+
+## Previous Change
+
 - Added `docs/architecture/WhatIfAnalysis.md` as a docs-only Phase 3 architecture planning document.
 - Defined What-If Analysis as a future derived/advisory layer for evaluating modeled changes to the Residential Energy Twin across topology, lifecycle, loads, production, storage/backup, survivability, recharge likelihood, economics, product compatibility, utility readiness, permissions, provenance, confidence, and missing data.
 - Documented future what-if categories, evaluation dimensions, output types, grounding requirements, permission-filtered views, missing-data behavior, lifecycle/scenario boundaries, non-goals, and Matt approval gates.
 - Reaffirmed that this document does not approve runtime what-if engines, schemas, APIs, services, calculations, AI agents, provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, operational control, financial authority, final engineering design, or authority-of-record replacement.
 
-## Previous Change
+## Earlier Change
 
 - Added `docs/architecture/InfrastructureSimulation.md` as a docs-only Phase 3 architecture planning document.
 - Defined Infrastructure Simulation as a future derived/advisory layer for estimating modeled Residential Energy Twin behavior across resilience, production, storage, loads, topology constraints, economic sensitivity, DER/ADR readiness, and future-state planning.

@@ -17,10 +17,20 @@ Read these first:
 ## Operational References By Task
 
 - Product or roadmap alignment:
+  - `docs/product-vision.md`
+  - `docs/philosophy/CORE_PHILOSOPHY.md`
   - `docs/CURRENT_STATE.md`
   - `docs/NEXT_STEPS.md`
   - `docs/ACTIVE_TASKS.md`
 - Cognition, doctrine, or portability refactor:
+  - `docs/product-vision.md`
+  - `docs/philosophy/CORE_PHILOSOPHY.md`
+  - `docs/philosophy/MENTAL_MODELS.md`
+  - `docs/philosophy/SYSTEM_BOUNDARIES.md`
+  - `docs/philosophy/TRUST_AND_PROVENANCE_PHILOSOPHY.md`
+  - `docs/philosophy/AI_PHILOSOPHY.md`
+  - `docs/philosophy/UX_PRINCIPLES.md`
+  - `docs/philosophy/NON_GOALS.md`
   - `docs/architecture/REPOSITORY_COGNITION_STRUCTURE.md`
   - `docs/architecture/COGNITION_LAYERS.md`
   - `docs/architecture/CANONICAL_TERMINOLOGY.md`
