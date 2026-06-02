@@ -25,6 +25,15 @@ class TwinPlanningProvenanceGapType(str, Enum):
     unknown_origin = "unknown_origin"
 
 
+class TwinPlanningDependencyAwarenessLabel(str, Enum):
+    current = "current"
+    snapshot_bound = "snapshot_bound"
+    needs_recalculation = "needs_recalculation"
+    needs_regrounding = "needs_regrounding"
+    needs_review = "needs_review"
+    stale_unknown = "stale_unknown"
+
+
 class TwinPlanningDependencyHook(ORMModel):
     source_entity_type: str
     source_entity_id: Optional[str] = None
@@ -46,6 +55,16 @@ class TwinPlanningProvenanceGap(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinPlanningDependencyAwareness(ORMModel):
+    label: TwinPlanningDependencyAwarenessLabel
+    entity_type: str
+    entity_id: Optional[str] = None
+    reason: str
+    rule_keys: List[str] = Field(default_factory=list)
+    source_gap_types: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
 class TwinPlanningContextRecord(ORMModel):
     entity_type: str
     entity_id: Optional[str] = None
@@ -62,6 +81,7 @@ class TwinPlanningContextRecord(ORMModel):
     classification_reasons: List[str] = Field(default_factory=list)
     missing_fields: List[str] = Field(default_factory=list)
     provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
+    dependency_awareness: List[TwinPlanningDependencyAwareness] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
 
 
@@ -69,6 +89,7 @@ class TwinPlanningContextSection(ORMModel):
     section_key: str
     label: str
     records: List[TwinPlanningContextRecord] = Field(default_factory=list)
+    dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
     notes: List[str] = Field(default_factory=list)
 
 
@@ -87,6 +108,7 @@ class TwinPlanningContext(ORMModel):
     typed_provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
     continuity_gaps: List[str] = Field(default_factory=list)
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
+    dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
     limitations: List[str] = Field(default_factory=list)
 
 
@@ -106,6 +128,7 @@ class AIDesignGroundingRecord(ORMModel):
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     missing_fields: List[str] = Field(default_factory=list)
     provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
+    dependency_awareness: List[TwinPlanningDependencyAwareness] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
 
 
@@ -125,5 +148,6 @@ class AIDesignGroundingView(ORMModel):
     grounding_records: List[AIDesignGroundingRecord] = Field(default_factory=list)
     provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
+    dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
     limitations: List[str] = Field(default_factory=list)
     compatibility_note: str

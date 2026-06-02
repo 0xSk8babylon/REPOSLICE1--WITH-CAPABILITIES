@@ -182,6 +182,56 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual("derived_output", advisor_records[0].classification.value)
         self.assertEqual("advisory_output", advisory_notes[0].classification.value)
 
+    def test_context_reports_descriptive_dependency_awareness_labels(self):
+        context = self._context()
+        summary = context.dependency_awareness_summary
+
+        for label in [
+            "current",
+            "snapshot_bound",
+            "needs_recalculation",
+            "needs_regrounding",
+            "needs_review",
+            "stale_unknown",
+        ]:
+            self.assertIn(label, summary)
+            self.assertGreater(summary[label], 0)
+
+        revision_section = next(section for section in context.sections if section.section_key == "scenario_revisions")
+        self.assertGreater(revision_section.dependency_awareness_summary["snapshot_bound"], 0)
+        self.assertGreater(revision_section.dependency_awareness_summary["needs_recalculation"], 0)
+
+        revision_record = revision_section.records[0]
+        revision_labels = {item.label.value for item in revision_record.dependency_awareness}
+        self.assertIn("snapshot_bound", revision_labels)
+        self.assertIn("needs_recalculation", revision_labels)
+
+    def test_dependency_awareness_interacts_with_provenance_and_advisor_outputs(self):
+        context = self._context()
+        records = [
+            record
+            for section in context.sections
+            for record in section.records
+        ]
+
+        load_record = next(record for record in records if record.entity_type == "load" and record.entity_id == "load_001")
+        load_labels = {item.label.value for item in load_record.dependency_awareness}
+        self.assertIn("needs_regrounding", load_labels)
+        self.assertTrue(
+            any("partial_source" in item.source_gap_types for item in load_record.dependency_awareness)
+        )
+
+        advisor_summary = next(record for record in records if record.entity_type == "advisor_recommendation_summary")
+        advisor_summary_labels = {item.label.value for item in advisor_summary.dependency_awareness}
+        self.assertIn("current", advisor_summary_labels)
+        self.assertEqual("derived_output", advisor_summary.classification.value)
+
+        advisor_note = next(record for record in records if record.entity_type == "advisor_note")
+        advisor_note_labels = {item.label.value for item in advisor_note.dependency_awareness}
+        self.assertIn("needs_review", advisor_note_labels)
+        self.assertIn("stale_unknown", advisor_note_labels)
+        self.assertEqual("advisory_output", advisor_note.classification.value)
+
     def test_api_route_is_api_prefixed_and_read_only_additive(self):
         paths = {getattr(route, "path", None) for route in app.routes}
 
@@ -279,6 +329,30 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         advisor_note = next(record for record in records if record.entity_type == "advisor_note")
         self.assertEqual("advisory_output", advisor_note.classification.value)
         self.assertIn("Advisory text cannot create canonical facts", advisor_note.limitations[0])
+
+    def test_ai_design_grounding_view_carries_filtered_dependency_awareness_summary(self):
+        view = self._ai_view("design_001")
+
+        self.assertTrue(view.dependency_awareness_summary)
+        self.assertGreater(view.dependency_awareness_summary["current"], 0)
+        self.assertGreater(view.dependency_awareness_summary["needs_regrounding"], 0)
+        self.assertGreater(view.dependency_awareness_summary["snapshot_bound"], 0)
+
+        design_ids = {
+            record.fields.get("design_id")
+            for record in view.grounding_records
+            if "design_id" in record.fields
+        }
+        self.assertIn("design_001", design_ids)
+        self.assertNotIn("design_002", design_ids)
+
+        advisor_records = [
+            record
+            for record in view.grounding_records
+            if record.entity_type in {"advisor_recommendation_summary", "advisor_note"}
+        ]
+        self.assertTrue(advisor_records)
+        self.assertTrue(all(record.dependency_awareness for record in advisor_records))
 
     def test_ai_design_grounding_view_returns_none_for_design_outside_home_context(self):
         self.assertIsNone(self._ai_view("missing_design"))

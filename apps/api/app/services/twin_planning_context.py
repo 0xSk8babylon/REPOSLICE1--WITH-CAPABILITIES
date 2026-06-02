@@ -13,6 +13,8 @@ from app.twin_planning_context.schemas import (
     TwinPlanningContext,
     TwinPlanningContextRecord,
     TwinPlanningContextSection,
+    TwinPlanningDependencyAwareness,
+    TwinPlanningDependencyAwarenessLabel,
     TwinPlanningDependencyHook,
     TwinPlanningProvenanceGap,
     TwinPlanningProvenanceGapType,
@@ -100,6 +102,29 @@ PROVENANCE_GAP_LIMITATIONS = [
     "Provenance gaps describe source visibility only; they do not prove a value is incorrect.",
     "Provenance visibility does not imply field verification, safety approval, utility approval, or engineering approval.",
 ]
+
+DEPENDENCY_AWARENESS_LIMITATIONS = [
+    "Dependency awareness labels are descriptive runtime metadata only.",
+    "Labels do not run recalculation, schedule work, persist stale state, verify facts, or create approval authority.",
+]
+
+REGROUNDING_GAP_TYPES = {
+    TwinPlanningProvenanceGapType.missing_source.value,
+    TwinPlanningProvenanceGapType.partial_source.value,
+    TwinPlanningProvenanceGapType.placeholder_without_source.value,
+    TwinPlanningProvenanceGapType.unknown_origin.value,
+}
+
+REVIEW_LIMITATION_MARKERS = (
+    "not NEC compliance",
+    "not field-verified",
+    "not final electrical design",
+    "not surveyed",
+    "not full advisor replay",
+    "not verified",
+    "planning only",
+    "planning context",
+)
 
 AI_GROUNDING_FIELD_ALLOWLIST = {
     "home": {"id", "name", "state", "country", "utility_provider", "service_size", "data_origin"},
@@ -410,6 +435,155 @@ class TwinPlanningContextService:
 
         return gaps
 
+    def _dependency_awareness(
+        self,
+        *,
+        label: TwinPlanningDependencyAwarenessLabel,
+        record: TwinPlanningContextRecord,
+        reason: str,
+        source_gap_types: Optional[List[str]] = None,
+    ) -> TwinPlanningDependencyAwareness:
+        return TwinPlanningDependencyAwareness(
+            label=label,
+            entity_type=record.entity_type,
+            entity_id=record.entity_id,
+            reason=reason,
+            rule_keys=record.rule_keys,
+            source_gap_types=source_gap_types or [],
+            limitations=DEPENDENCY_AWARENESS_LIMITATIONS,
+        )
+
+    def _dependency_awareness_for_record(
+        self, section_key: str, record: TwinPlanningContextRecord
+    ) -> List[TwinPlanningDependencyAwareness]:
+        items: List[TwinPlanningDependencyAwareness] = []
+        source_gap_types = sorted({gap.gap_type.value for gap in record.provenance_gaps})
+        regrounding_gap_types = sorted(set(source_gap_types).intersection(REGROUNDING_GAP_TYPES))
+        limitation_text = " ".join(record.limitations).lower()
+
+        if section_key == "scenario_revisions":
+            items.append(
+                self._dependency_awareness(
+                    label=TwinPlanningDependencyAwarenessLabel.snapshot_bound,
+                    record=record,
+                    reason="Scenario revisions are saved historical planning snapshots, not live current-state outputs.",
+                )
+            )
+            items.append(
+                self._dependency_awareness(
+                    label=TwinPlanningDependencyAwarenessLabel.needs_recalculation,
+                    record=record,
+                    reason=(
+                        "Snapshot-bound revision data would need recalculation before reuse as current planning intelligence."
+                    ),
+                )
+            )
+
+        if regrounding_gap_types:
+            items.append(
+                self._dependency_awareness(
+                    label=TwinPlanningDependencyAwarenessLabel.needs_regrounding,
+                    record=record,
+                    reason=(
+                        "Source or provenance posture is missing, partial, placeholder-backed, or unknown."
+                    ),
+                    source_gap_types=regrounding_gap_types,
+                )
+            )
+
+        if record.classification in {
+            TwinPlanningRecordClassification.derived_output,
+            TwinPlanningRecordClassification.advisory_output,
+        }:
+            derived_gap_types = [
+                gap_type for gap_type in source_gap_types if gap_type == TwinPlanningProvenanceGapType.derived_without_lineage.value
+            ]
+            if derived_gap_types:
+                items.append(
+                    self._dependency_awareness(
+                        label=TwinPlanningDependencyAwarenessLabel.stale_unknown,
+                        record=record,
+                        reason=(
+                            "Runtime cannot determine freshness because full derived-output lineage is not available."
+                        ),
+                        source_gap_types=derived_gap_types,
+                    )
+                )
+            if record.dependency_hooks or record.rule_keys:
+                items.append(
+                    self._dependency_awareness(
+                        label=TwinPlanningDependencyAwarenessLabel.current,
+                        record=record,
+                        reason=(
+                            "Derived or advisory output was regenerated during this request from current planner records."
+                        ),
+                    )
+                )
+
+        if record.classification == TwinPlanningRecordClassification.unknown:
+            items.append(
+                self._dependency_awareness(
+                    label=TwinPlanningDependencyAwarenessLabel.stale_unknown,
+                    record=record,
+                    reason="Unknown marker has no independent dependency basis or freshness signal.",
+                    source_gap_types=source_gap_types,
+                )
+            )
+
+        if record.entity_type == "advisor_note":
+            items.append(
+                self._dependency_awareness(
+                    label=TwinPlanningDependencyAwarenessLabel.needs_review,
+                    record=record,
+                    reason="Advisory text should be reviewed against structured facts before reuse.",
+                )
+            )
+
+        if any(marker in limitation_text for marker in REVIEW_LIMITATION_MARKERS):
+            items.append(
+                self._dependency_awareness(
+                    label=TwinPlanningDependencyAwarenessLabel.needs_review,
+                    record=record,
+                    reason=(
+                        "Planning-only limitations indicate this record needs review before stronger claims are made."
+                    ),
+                )
+            )
+
+        if not items:
+            items.append(
+                self._dependency_awareness(
+                    label=TwinPlanningDependencyAwarenessLabel.current,
+                    record=record,
+                    reason=(
+                        "Record is included in the current read-only planning context; this does not imply verification."
+                    ),
+                )
+            )
+
+        deduped = {}
+        for item in items:
+            key = (item.label.value, item.reason, tuple(item.source_gap_types))
+            deduped.setdefault(key, item)
+        return list(deduped.values())
+
+    def _dependency_awareness_summary(self, records: List[object]) -> Dict[str, int]:
+        counts = Counter(
+            item.label.value
+            for record in records
+            for item in getattr(record, "dependency_awareness", [])
+        )
+        return {
+            label.value: counts.get(label.value, 0)
+            for label in TwinPlanningDependencyAwarenessLabel
+        }
+
+    def _attach_dependency_awareness(self, sections: List[TwinPlanningContextSection]):
+        for section in sections:
+            for record in section.records:
+                record.dependency_awareness = self._dependency_awareness_for_record(section.section_key, record)
+            section.dependency_awareness_summary = self._dependency_awareness_summary(section.records)
+
     def _classify_record(
         self,
         *,
@@ -716,6 +890,7 @@ class TwinPlanningContextService:
             dependency_hooks=record.dependency_hooks,
             missing_fields=record.missing_fields,
             provenance_gaps=record.provenance_gaps,
+            dependency_awareness=record.dependency_awareness,
             limitations=record.limitations,
         )
 
@@ -796,6 +971,7 @@ class TwinPlanningContextService:
             grounding_records=grounding_records,
             provenance_gaps=provenance_gaps,
             dependency_hooks=dependency_hooks,
+            dependency_awareness_summary=self._dependency_awareness_summary(grounding_records),
             limitations=[
                 "No twin_id is created or inferred.",
                 "This AI grounding view is a minimized planning-only projection and is not complete Twin authority.",
@@ -1274,6 +1450,8 @@ class TwinPlanningContextService:
             )
         )
 
+        self._attach_dependency_awareness(sections)
+
         classification_counts = Counter(
             record.classification for section in sections for record in section.records
         )
@@ -1321,6 +1499,9 @@ class TwinPlanningContextService:
                 "No general lifecycle event log, stale-state marker, supersession model, or permission continuity model exists yet.",
             ],
             dependency_hooks=dependency_hooks,
+            dependency_awareness_summary=self._dependency_awareness_summary(
+                [record for section in sections for record in section.records]
+            ),
             limitations=[
                 "No twin_id is created or inferred.",
                 "This endpoint is not a canonical ResidentialEnergyTwin API.",
