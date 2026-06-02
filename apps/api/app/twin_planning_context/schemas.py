@@ -17,6 +17,14 @@ class TwinPlanningRecordClassification(str, Enum):
     unknown = "unknown"
 
 
+class TwinPlanningProvenanceGapType(str, Enum):
+    missing_source = "missing_source"
+    partial_source = "partial_source"
+    derived_without_lineage = "derived_without_lineage"
+    placeholder_without_source = "placeholder_without_source"
+    unknown_origin = "unknown_origin"
+
+
 class TwinPlanningDependencyHook(ORMModel):
     source_entity_type: str
     source_entity_id: Optional[str] = None
@@ -26,6 +34,16 @@ class TwinPlanningDependencyHook(ORMModel):
     rule_keys: List[str] = Field(default_factory=list)
     confidence_level: Optional[str] = None
     note: str
+
+
+class TwinPlanningProvenanceGap(ORMModel):
+    gap_type: TwinPlanningProvenanceGapType
+    entity_type: str
+    entity_id: Optional[str] = None
+    field_name: Optional[str] = None
+    severity: str = "warning"
+    reason: str
+    limitations: List[str] = Field(default_factory=list)
 
 
 class TwinPlanningContextRecord(ORMModel):
@@ -43,6 +61,7 @@ class TwinPlanningContextRecord(ORMModel):
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     classification_reasons: List[str] = Field(default_factory=list)
     missing_fields: List[str] = Field(default_factory=list)
+    provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
 
 
@@ -65,6 +84,7 @@ class TwinPlanningContext(ORMModel):
     sections: List[TwinPlanningContextSection] = Field(default_factory=list)
     classification_summary: Dict[str, int] = Field(default_factory=dict)
     provenance_gaps: List[str] = Field(default_factory=list)
+    typed_provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
     continuity_gaps: List[str] = Field(default_factory=list)
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)

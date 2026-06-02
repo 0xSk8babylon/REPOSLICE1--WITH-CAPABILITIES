@@ -83,6 +83,77 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual("placeholder", scenario_records["scenario_001"].classification.value)
         self.assertIn("upfront_cost_placeholder", scenario_records["scenario_001"].missing_fields)
 
+    def test_context_reports_typed_provenance_gaps_without_replacing_compatibility_gaps(self):
+        context = self._context()
+
+        self.assertTrue(context.provenance_gaps)
+        self.assertTrue(context.typed_provenance_gaps)
+
+        gap_types = {gap.gap_type.value for gap in context.typed_provenance_gaps}
+        for gap_type in [
+            "missing_source",
+            "partial_source",
+            "derived_without_lineage",
+            "placeholder_without_source",
+            "unknown_origin",
+        ]:
+            self.assertIn(gap_type, gap_types)
+
+    def test_record_level_typed_provenance_gaps_distinguish_partial_and_placeholder_sources(self):
+        context = self._context()
+        records = {
+            (record.entity_type, record.entity_id): record
+            for section in context.sections
+            for record in section.records
+        }
+
+        load_gap_types = {gap.gap_type.value for gap in records[("load", "load_001")].provenance_gaps}
+        self.assertIn("partial_source", load_gap_types)
+        self.assertNotIn("missing_source", load_gap_types)
+
+        scenario_section = next(section for section in context.sections if section.section_key == "scenarios")
+        scenario_record = next(record for record in scenario_section.records if record.entity_id == "scenario_001")
+        scenario_gaps = scenario_record.provenance_gaps
+        placeholder_fields = {
+            gap.field_name for gap in scenario_gaps if gap.gap_type.value == "placeholder_without_source"
+        }
+        self.assertIn("upfront_cost_placeholder", placeholder_fields)
+
+        premise_section = next(section for section in context.sections if section.section_key == "premise")
+        home_record = next(record for record in premise_section.records if record.entity_id == "home_001")
+        home_gap_types = {gap.gap_type.value for gap in home_record.provenance_gaps}
+        self.assertIn("missing_source", home_gap_types)
+        self.assertIn("unknown_origin", home_gap_types)
+
+    def test_derived_outputs_report_lineage_gaps_without_becoming_twin_truth(self):
+        context = self._context()
+        records = [
+            record
+            for section in context.sections
+            for record in section.records
+        ]
+
+        revision_records = [record for record in records if record.entity_type == "scenario_revision"]
+        self.assertTrue(
+            any(
+                gap.gap_type.value == "derived_without_lineage"
+                for record in revision_records
+                for gap in record.provenance_gaps
+            )
+        )
+
+        advisor_notes = [record for record in records if record.entity_type == "advisor_note"]
+        self.assertTrue(
+            any(
+                gap.gap_type.value == "derived_without_lineage"
+                for record in advisor_notes
+                for gap in record.provenance_gaps
+            )
+        )
+        self.assertTrue(
+            all("Advisory text cannot create canonical facts" in record.limitations[0] for record in advisor_notes)
+        )
+
     def test_context_includes_advisor_dependency_hooks_as_derived_planning_intelligence(self):
         context = self._context()
         derived_records = [
@@ -115,6 +186,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         payload = context.dict()
         self.assertEqual("home_001", payload["home_id"])
         self.assertNotIn("twin_id", payload)
+        self.assertIn("typed_provenance_gaps", payload)
         self.assertIn("No twin_id is created or inferred.", payload["limitations"])
 
 

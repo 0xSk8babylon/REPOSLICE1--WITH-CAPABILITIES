@@ -12,6 +12,8 @@ from app.twin_planning_context.schemas import (
     TwinPlanningContextRecord,
     TwinPlanningContextSection,
     TwinPlanningDependencyHook,
+    TwinPlanningProvenanceGap,
+    TwinPlanningProvenanceGapType,
     TwinPlanningRecordClassification,
 )
 
@@ -27,15 +29,93 @@ PLACEHOLDER_FIELDS = {
     "total_cost_placeholder",
 }
 
+IMPORTANT_PROVENANCE_FIELDS = {
+    "home": {
+        "name",
+        "address_line_1",
+        "city",
+        "state",
+        "postal_code",
+        "utility_provider",
+        "service_size",
+    },
+    "building": {"name", "type", "approximate_distance_from_main_service"},
+    "electrical_panel": {
+        "panel_type",
+        "amperage",
+        "busbar_rating",
+        "breaker_spaces_total",
+        "breaker_spaces_available",
+        "indoor_outdoor",
+    },
+    "load": {
+        "name",
+        "category",
+        "running_watts",
+        "surge_watts",
+        "estimated_daily_hours",
+        "backup_priority",
+        "phase_type",
+    },
+    "equipment_location": {"name", "location_type", "approximate_coordinates"},
+    "equipment_product": {"manufacturer", "model", "product_type", "ecosystem", "specs", "documentation_url"},
+    "energy_system_design": {"name", "design_goal", "architecture_type", "status"},
+    "design_equipment": {"product_id", "quantity", "location_id", "role_in_system"},
+    "estimated_pathway": {
+        "name",
+        "source_location",
+        "destination_location",
+        "estimated_distance_ft",
+        "route_type",
+        "route_difficulty",
+        "visibility_level",
+        "confidence_level",
+        "upfront_cost_placeholder",
+        "estimated_monthly_savings_placeholder",
+        "resilience_score",
+    },
+    "scenario": {
+        "name",
+        "description",
+        "linked_design_id",
+        "upfront_cost_placeholder",
+        "future_expansion_score",
+        "install_complexity_score",
+        "backup_capability_score",
+    },
+    "scenario_revision": {
+        "revision_status",
+        "linked_design_id",
+        "design_goal_snapshot",
+        "design_status_snapshot",
+        "recommended_profile_snapshot",
+        "planning_summary",
+        "planning_state_snapshot",
+    },
+}
+
+PROVENANCE_GAP_LIMITATIONS = [
+    "Provenance gaps describe source visibility only; they do not prove a value is incorrect.",
+    "Provenance visibility does not imply field verification, safety approval, utility approval, or engineering approval.",
+]
+
 
 class TwinPlanningContextService:
     def _record_snapshot(self, record, fields: Iterable[str]) -> Dict[str, object]:
         return {field: getattr(record, field, None) for field in fields}
 
+    def _origin_value(self, data_origin: Optional[str]) -> Optional[str]:
+        return data_origin.value if hasattr(data_origin, "value") else data_origin
+
     def _entity_summary(self, db, entity_type: str, entity_id: Optional[str]) -> Optional[ProvenanceSummary]:
         if not entity_id:
             return None
         return provenance_service.summarize_entity(db, entity_type, entity_id)
+
+    def _data_provenance_records(self, db, entity_type: str, entity_id: Optional[str]) -> List[object]:
+        if not entity_id:
+            return []
+        return repository.list_data_provenance(db, entity_type=entity_type, entity_id=entity_id)
 
     def _has_provenance(self, summary: Optional[ProvenanceSummary]) -> bool:
         if summary is None:
@@ -48,6 +128,151 @@ class TwinPlanningContextService:
             for field, value in record_snapshot.items()
             if field in PLACEHOLDER_FIELDS and value is not None
         )
+
+    def _gap(
+        self,
+        *,
+        gap_type: TwinPlanningProvenanceGapType,
+        entity_type: str,
+        entity_id: Optional[str],
+        reason: str,
+        field_name: Optional[str] = None,
+        severity: str = "warning",
+    ) -> TwinPlanningProvenanceGap:
+        return TwinPlanningProvenanceGap(
+            gap_type=gap_type,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            field_name=field_name,
+            severity=severity,
+            reason=reason,
+            limitations=PROVENANCE_GAP_LIMITATIONS,
+        )
+
+    def _sourced_fields(self, provenance_records: List[object]) -> set:
+        return {
+            record.field_name
+            for record in provenance_records
+            if getattr(record, "field_name", None)
+        }
+
+    def _important_fields(self, entity_type: str, record_snapshot: Dict[str, object]) -> List[str]:
+        configured_fields = IMPORTANT_PROVENANCE_FIELDS.get(entity_type, set())
+        return sorted(
+            field
+            for field in configured_fields
+            if field in record_snapshot and record_snapshot.get(field) is not None
+        )
+
+    def _derived_output_gaps(
+        self,
+        *,
+        entity_type: str,
+        entity_id: Optional[str],
+        rule_keys: Optional[List[str]],
+        dependency_hooks: Optional[List[TwinPlanningDependencyHook]],
+        source_document_ids: Optional[List[str]],
+    ) -> List[TwinPlanningProvenanceGap]:
+        if rule_keys or dependency_hooks or source_document_ids:
+            return []
+        return [
+            self._gap(
+                gap_type=TwinPlanningProvenanceGapType.derived_without_lineage,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                reason=(
+                    "Derived or advisory output has no persisted rule key, source document, "
+                    "or dependency hook lineage in this context."
+                ),
+            )
+        ]
+
+    def _provenance_gaps_for_record(
+        self,
+        *,
+        entity_type: str,
+        entity_id: Optional[str],
+        record_snapshot: Dict[str, object],
+        data_origin: Optional[str],
+        classification: TwinPlanningRecordClassification,
+        provenance_records: List[object],
+        source_document_ids: List[str],
+        rule_keys: Optional[List[str]] = None,
+        dependency_hooks: Optional[List[TwinPlanningDependencyHook]] = None,
+    ) -> List[TwinPlanningProvenanceGap]:
+        gaps: List[TwinPlanningProvenanceGap] = []
+        sourced_fields = self._sourced_fields(provenance_records)
+        important_fields = self._important_fields(entity_type, record_snapshot)
+        unsourced_important_fields = [field for field in important_fields if field not in sourced_fields]
+        placeholder_fields = self._placeholder_fields(record_snapshot)
+        origin_value = self._origin_value(data_origin)
+
+        if not sourced_fields and important_fields:
+            gaps.append(
+                self._gap(
+                    gap_type=TwinPlanningProvenanceGapType.missing_source,
+                    entity_type=entity_type,
+                    entity_id=entity_id,
+                    reason=(
+                        "No field-level source record is linked for important planning fields: "
+                        f"{', '.join(important_fields)}."
+                    ),
+                )
+            )
+        elif sourced_fields and unsourced_important_fields:
+            gaps.append(
+                self._gap(
+                    gap_type=TwinPlanningProvenanceGapType.partial_source,
+                    entity_type=entity_type,
+                    entity_id=entity_id,
+                    reason=(
+                        "Some field-level provenance exists, but important planning fields remain unsourced: "
+                        f"{', '.join(unsourced_important_fields)}."
+                    ),
+                )
+            )
+
+        for field in placeholder_fields:
+            if field not in sourced_fields:
+                gaps.append(
+                    self._gap(
+                        gap_type=TwinPlanningProvenanceGapType.placeholder_without_source,
+                        entity_type=entity_type,
+                        entity_id=entity_id,
+                        field_name=field,
+                        reason=f"Placeholder-bearing field '{field}' has no field-level source record.",
+                    )
+                )
+
+        if not sourced_fields and not source_document_ids:
+            gaps.append(
+                self._gap(
+                    gap_type=TwinPlanningProvenanceGapType.unknown_origin,
+                    entity_type=entity_type,
+                    entity_id=entity_id,
+                    severity="info",
+                    reason=(
+                        f"Persisted data_origin is '{origin_value or 'unknown'}', but no source record identifies "
+                        "the document, entry, import, or rule basis for this entity."
+                    ),
+                )
+            )
+
+        if classification in {
+            TwinPlanningRecordClassification.derived_output,
+            TwinPlanningRecordClassification.advisory_output,
+        }:
+            gaps.extend(
+                self._derived_output_gaps(
+                    entity_type=entity_type,
+                    entity_id=entity_id,
+                    rule_keys=rule_keys,
+                    dependency_hooks=dependency_hooks,
+                    source_document_ids=source_document_ids,
+                )
+            )
+
+        return gaps
 
     def _classify_record(
         self,
@@ -105,7 +330,9 @@ class TwinPlanningContextService:
         extra_reasons: Optional[List[str]] = None,
         limitations: Optional[List[str]] = None,
     ) -> TwinPlanningContextRecord:
-        summary = self._entity_summary(db, provenance_entity_type or entity_type, entity_id)
+        provenance_type = provenance_entity_type or entity_type
+        summary = self._entity_summary(db, provenance_type, entity_id)
+        provenance_records = self._data_provenance_records(db, provenance_type, entity_id)
         placeholder_fields = self._placeholder_fields(record_snapshot)
         classification = self._classify_record(
             record_snapshot=record_snapshot,
@@ -113,6 +340,9 @@ class TwinPlanningContextService:
             provenance_summary=summary,
             default_classification=default_classification,
         )
+        source_document_ids = summary.source_document_ids if summary else []
+        record_rule_keys = rule_keys or []
+        record_dependency_hooks = dependency_hooks or []
         return TwinPlanningContextRecord(
             entity_type=entity_type,
             entity_id=entity_id,
@@ -122,9 +352,9 @@ class TwinPlanningContextService:
             data_origin=data_origin,
             record=record_snapshot,
             provenance_summary=summary,
-            source_document_ids=summary.source_document_ids if summary else [],
-            rule_keys=rule_keys or [],
-            dependency_hooks=dependency_hooks or [],
+            source_document_ids=source_document_ids,
+            rule_keys=record_rule_keys,
+            dependency_hooks=record_dependency_hooks,
             classification_reasons=self._classification_reasons(
                 classification=classification,
                 data_origin=data_origin,
@@ -133,6 +363,17 @@ class TwinPlanningContextService:
                 extra_reasons=extra_reasons,
             ),
             missing_fields=placeholder_fields + (summary.unverified_fields if summary else []),
+            provenance_gaps=self._provenance_gaps_for_record(
+                entity_type=entity_type,
+                entity_id=entity_id,
+                record_snapshot=record_snapshot,
+                data_origin=data_origin,
+                classification=classification,
+                provenance_records=provenance_records,
+                source_document_ids=source_document_ids,
+                rule_keys=record_rule_keys,
+                dependency_hooks=record_dependency_hooks,
+            ),
             limitations=limitations or [],
         )
 
@@ -146,6 +387,15 @@ class TwinPlanningContextService:
             data_classification=DataClassification.internal_governance,
             record={},
             classification_reasons=[reason],
+            provenance_gaps=[
+                self._gap(
+                    gap_type=TwinPlanningProvenanceGapType.unknown_origin,
+                    entity_type=entity_type,
+                    entity_id=entity_id,
+                    severity="info",
+                    reason="This unknown marker has no independent source; it reflects a missing planning-context gap.",
+                )
+            ],
             limitations=[
                 "Unknown markers identify missing planning context; they are not inferred facts.",
             ],
@@ -186,6 +436,13 @@ class TwinPlanningContextService:
                 "Advisor recommendation summary is derived from deterministic rules over recorded planning records.",
             ],
             missing_fields=[],
+            provenance_gaps=self._derived_output_gaps(
+                entity_type="advisor_recommendation_summary",
+                entity_id=f"advisor-summary-{design_id}",
+                rule_keys=rule_keys,
+                dependency_hooks=dependency_hooks,
+                source_document_ids=[],
+            ),
             limitations=[
                 "Advisor outputs are planning intelligence only and do not create canonical Twin facts.",
                 "Advisor outputs are regenerated from current records; they are not a persisted full replay snapshot.",
@@ -204,6 +461,13 @@ class TwinPlanningContextService:
             classification_reasons=[
                 "Advisor note is explanatory text over structured records and deterministic outputs.",
             ],
+            provenance_gaps=self._derived_output_gaps(
+                entity_type="advisor_note",
+                entity_id=f"advisor-note-{design_id}",
+                rule_keys=[],
+                dependency_hooks=[],
+                source_document_ids=[],
+            ),
             limitations=[
                 "Advisory text cannot create canonical facts, permission grants, engineering approval, or utility authority.",
             ],
@@ -700,6 +964,28 @@ class TwinPlanningContextService:
             classification.value: classification_counts.get(classification, 0)
             for classification in TwinPlanningRecordClassification
         }
+        typed_provenance_gap_map = {}
+        for section in sections:
+            for record in section.records:
+                for gap in record.provenance_gaps:
+                    key = (
+                        gap.gap_type.value,
+                        gap.entity_type,
+                        gap.entity_id,
+                        gap.field_name,
+                        gap.reason,
+                    )
+                    typed_provenance_gap_map.setdefault(key, gap)
+        typed_provenance_gaps = sorted(
+            typed_provenance_gap_map.values(),
+            key=lambda gap: (
+                gap.gap_type.value,
+                gap.entity_type,
+                gap.entity_id or "",
+                gap.field_name or "",
+                gap.reason,
+            ),
+        )
 
         return TwinPlanningContext(
             context_id=f"home-planning-context-{home_id}",
@@ -712,6 +998,7 @@ class TwinPlanningContextService:
             sections=sections,
             classification_summary=classification_summary,
             provenance_gaps=sorted(set(provenance_gaps)),
+            typed_provenance_gaps=typed_provenance_gaps,
             continuity_gaps=[
                 "Scenario revisions preserve compact planning-state snapshots, not full historical advisor replay.",
                 "No general lifecycle event log, stale-state marker, supersession model, or permission continuity model exists yet.",
