@@ -39,8 +39,12 @@ from app.twin_planning_context.schemas import (
     TwinRuntimeProjectionView,
     TwinRuntimeViewContext,
     TwinRuntimeVisibilityScope,
+    TwinTopologyDeferredLifecycleDomain,
     TwinTopologyEdge,
+    TwinTopologyLifecycleReadinessHint,
+    TwinTopologyLifecycleReadinessSummary,
     TwinTopologyLifecycleDomain,
+    TwinTopologyMissingReadinessIndicator,
     TwinTopologyNode,
     TwinTopologySnapshot,
     TwinViewPermissionAlignmentMetadata,
@@ -147,6 +151,72 @@ TOPOLOGY_SNAPSHOT_LIMITATIONS = [
     "Topology snapshot is descriptive runtime metadata derived from the current Twin Planning Context only.",
     "No topology graph is persisted, promoted, field-verified, recalculated, invalidated, simulated, exported, or approved.",
     "Lifecycle labels are planning context only and do not create installation, engineering, utility, safety, or operational authority.",
+]
+
+TOPOLOGY_READINESS_LIMITATIONS = [
+    "Lifecycle readiness metadata is descriptive and read-only.",
+    "Readiness hints do not create lifecycle workflows, topology promotion, event logs, simulation, or Phase 3 intelligence.",
+]
+
+DEFERRED_TOPOLOGY_LIFECYCLE_DOMAINS = [
+    (
+        "contractor_reviewed_topology",
+        "Contractor-reviewed topology remains deferred because no approved contractor review workflow or authority boundary exists.",
+        ["contractor view contract", "source-linked review artifact", "future approved lifecycle transition"],
+    ),
+    (
+        "contractual_topology",
+        "Contractual topology remains deferred because no approved proposal, contract, or commitment state is modeled.",
+        ["contract authority boundary", "source-linked contract artifact", "future approved lifecycle transition"],
+    ),
+    (
+        "field_verified_topology",
+        "Field-verified topology remains deferred because no inspection, photo, commissioning, or professional verification workflow exists.",
+        ["field verification source", "verification authority boundary", "future approved lifecycle transition"],
+    ),
+    (
+        "utility_reviewed_topology",
+        "Utility-reviewed topology remains deferred because no utility-safe view, export, interconnection authority, or utility approval workflow exists.",
+        ["permissioned utility-safe view", "utility source evidence", "future approved lifecycle transition"],
+    ),
+    (
+        "operational_topology",
+        "Operational topology remains deferred because no telemetry, device identity, command authority, dispatch, DERMS, or control boundary exists.",
+        ["telemetry governance", "device identity", "operational-control isolation"],
+    ),
+    (
+        "future_expansion_or_replacement_topology",
+        "Expansion and replacement topology remains deferred beyond saved planning scenarios because no decommissioning, replacement, or upgrade lifecycle model exists.",
+        ["lifecycle history model", "source-linked replacement artifact", "future approved lifecycle transition"],
+    ),
+]
+
+TOPOLOGY_MISSING_READINESS_INDICATORS = [
+    (
+        "field_verification_readiness",
+        "field-verified",
+        "Topology snapshot limitations explicitly state that topology is not field-verified.",
+    ),
+    (
+        "promotion_workflow_readiness",
+        "promoted",
+        "Topology snapshot limitations explicitly state that topology is not promoted.",
+    ),
+    (
+        "lifecycle_event_log_readiness",
+        "lifecycle event log",
+        "Snapshot implementation boundary and limitations state that no lifecycle event log exists.",
+    ),
+    (
+        "simulation_readiness",
+        "simulated",
+        "Topology snapshot limitations explicitly state that topology is not simulated.",
+    ),
+    (
+        "operational_topology_readiness",
+        "operational",
+        "Topology snapshot limitations state that lifecycle labels do not create operational authority.",
+    ),
 ]
 
 DEFERRED_PERMISSION_CAPABILITIES = [
@@ -2000,6 +2070,211 @@ class TwinPlanningContextService:
             )
         return sorted(references, key=lambda item: item.get("revision_id") or "")
 
+    def _topology_readiness_status(
+        self,
+        nodes: List[TwinTopologyNode],
+        provenance_gap_types: List[str],
+        dependency_awareness_labels: List[str],
+        planning_dependency_warning_types: List[str],
+        source_document_count: int,
+    ) -> str:
+        if not nodes:
+            return "not_represented_in_snapshot"
+        dependency_limited_labels = {
+            TwinPlanningDependencyAwarenessLabel.needs_recalculation.value,
+            TwinPlanningDependencyAwarenessLabel.needs_regrounding.value,
+            TwinPlanningDependencyAwarenessLabel.needs_review.value,
+            TwinPlanningDependencyAwarenessLabel.stale_unknown.value,
+        }
+        has_dependency_limit = bool(planning_dependency_warning_types) or bool(
+            dependency_limited_labels.intersection(dependency_awareness_labels)
+        )
+        if provenance_gap_types and has_dependency_limit:
+            return "provenance_and_dependency_limited"
+        if provenance_gap_types:
+            return "provenance_limited"
+        if has_dependency_limit:
+            return "dependency_limited"
+        if source_document_count == 0:
+            return "source_limited"
+        return "descriptive_planning_metadata_present"
+
+    def _topology_lifecycle_readiness_hints(
+        self,
+        section_records: List[tuple],
+        nodes: List[TwinTopologyNode],
+        edges: List[TwinTopologyEdge],
+    ) -> List[TwinTopologyLifecycleReadinessHint]:
+        records_by_domain: Dict[TwinTopologyLifecycleDomain, List[TwinPlanningContextRecord]] = {
+            domain: [] for domain in TwinTopologyLifecycleDomain
+        }
+        for section_key, record in section_records:
+            records_by_domain[self._topology_lifecycle_domain(section_key, record)].append(record)
+
+        nodes_by_domain: Dict[TwinTopologyLifecycleDomain, List[TwinTopologyNode]] = {
+            domain: [] for domain in TwinTopologyLifecycleDomain
+        }
+        for node in nodes:
+            nodes_by_domain[node.lifecycle_domain].append(node)
+
+        edges_by_domain = Counter(edge.lifecycle_domain for edge in edges)
+        readiness_hints = []
+        for domain in TwinTopologyLifecycleDomain:
+            domain_nodes = nodes_by_domain[domain]
+            domain_records = records_by_domain[domain]
+            provenance_gap_types = sorted(
+                {
+                    gap_type
+                    for node in domain_nodes
+                    for gap_type in node.provenance_gap_types
+                }
+            )
+            dependency_awareness_labels = sorted(
+                {
+                    label
+                    for node in domain_nodes
+                    for label in node.dependency_awareness_labels
+                }
+            )
+            warning_types = sorted(
+                {
+                    warning.warning_type
+                    for record in domain_records
+                    for warning in record.planning_dependency_warnings
+                }
+            )
+            source_document_ids = {
+                source_document_id
+                for node in domain_nodes
+                for source_document_id in node.source_document_ids
+            }
+            derived_from = ["topology_nodes", "topology_edges", "topology_snapshot_limitations"]
+            if provenance_gap_types:
+                derived_from.append("provenance_gap_types")
+            if dependency_awareness_labels:
+                derived_from.append("dependency_awareness_labels")
+            if warning_types:
+                derived_from.append("planning_dependency_warnings")
+            if source_document_ids:
+                derived_from.append("source_document_ids")
+
+            hints = [
+                (
+                    f"{len(domain_nodes)} topology nodes and {edges_by_domain.get(domain, 0)} topology edges "
+                    f"are represented for {domain.value}."
+                ),
+                "No lifecycle workflow, promotion workflow, event log, simulation, or operational authority is present.",
+            ]
+            if provenance_gap_types:
+                hints.append(
+                    "Readiness is limited by provenance gap types: "
+                    + ", ".join(provenance_gap_types)
+                    + "."
+                )
+            if warning_types:
+                hints.append(
+                    "Readiness is limited by planning dependency warnings: "
+                    + ", ".join(warning_types)
+                    + "."
+                )
+            if source_document_ids:
+                hints.append(
+                    f"{len(source_document_ids)} source document references are attached to nodes in this lifecycle domain."
+                )
+            elif domain_nodes:
+                hints.append("No source document IDs are attached to nodes in this lifecycle domain.")
+
+            readiness_hints.append(
+                TwinTopologyLifecycleReadinessHint(
+                    lifecycle_domain=domain,
+                    readiness_status=self._topology_readiness_status(
+                        domain_nodes,
+                        provenance_gap_types,
+                        dependency_awareness_labels,
+                        warning_types,
+                        len(source_document_ids),
+                    ),
+                    node_count=len(domain_nodes),
+                    edge_count=edges_by_domain.get(domain, 0),
+                    source_document_count=len(source_document_ids),
+                    provenance_gap_types=provenance_gap_types,
+                    dependency_awareness_labels=dependency_awareness_labels,
+                    planning_dependency_warning_types=warning_types,
+                    derived_from=derived_from,
+                    hints=hints,
+                    limitations=TOPOLOGY_READINESS_LIMITATIONS + TOPOLOGY_SNAPSHOT_LIMITATIONS,
+                )
+            )
+        return readiness_hints
+
+    def _topology_deferred_lifecycle_domains(self) -> List[TwinTopologyDeferredLifecycleDomain]:
+        return [
+            TwinTopologyDeferredLifecycleDomain(
+                lifecycle_domain=lifecycle_domain,
+                deferred_reason=deferred_reason,
+                required_future_foundations=required_future_foundations,
+                limitations=TOPOLOGY_READINESS_LIMITATIONS + TOPOLOGY_SNAPSHOT_LIMITATIONS,
+            )
+            for lifecycle_domain, deferred_reason, required_future_foundations in DEFERRED_TOPOLOGY_LIFECYCLE_DOMAINS
+        ]
+
+    def _topology_missing_readiness_indicators(
+        self, snapshot_limitations: List[str]
+    ) -> List[TwinTopologyMissingReadinessIndicator]:
+        limitation_text = " ".join(snapshot_limitations).lower()
+        indicators = []
+        for indicator, marker, reason in TOPOLOGY_MISSING_READINESS_INDICATORS:
+            source_marker_found = marker.lower() in limitation_text
+            indicators.append(
+                TwinTopologyMissingReadinessIndicator(
+                    indicator=indicator,
+                    present=False,
+                    source_marker_found=source_marker_found,
+                    reason=reason,
+                    derived_from=["topology_snapshot_limitations"],
+                    limitations=TOPOLOGY_READINESS_LIMITATIONS + TOPOLOGY_SNAPSHOT_LIMITATIONS,
+                )
+            )
+        return indicators
+
+    def _topology_lifecycle_readiness_summary(
+        self,
+        nodes: List[TwinTopologyNode],
+        edges: List[TwinTopologyEdge],
+        records: List[TwinPlanningContextRecord],
+        deferred_lifecycle_domains: List[TwinTopologyDeferredLifecycleDomain],
+        missing_readiness_indicators: List[TwinTopologyMissingReadinessIndicator],
+    ) -> TwinTopologyLifecycleReadinessSummary:
+        domains_present = sorted(
+            {
+                node.lifecycle_domain.value
+                for node in nodes
+            }
+        )
+        provenance_gap_count = sum(len(node.provenance_gap_types) for node in nodes)
+        dependency_labels = sorted(
+            {
+                label
+                for node in nodes
+                for label in node.dependency_awareness_labels
+            }
+        )
+        planning_dependency_warning_count = sum(
+            len(record.planning_dependency_warnings)
+            for record in records
+        )
+        return TwinTopologyLifecycleReadinessSummary(
+            node_count=len(nodes),
+            edge_count=len(edges),
+            domains_present=domains_present,
+            domains_deferred=[domain.lifecycle_domain for domain in deferred_lifecycle_domains],
+            provenance_gap_count=provenance_gap_count,
+            planning_dependency_warning_count=planning_dependency_warning_count,
+            dependency_awareness_labels=dependency_labels,
+            missing_readiness_indicator_count=len(missing_readiness_indicators),
+            limitations=TOPOLOGY_READINESS_LIMITATIONS + TOPOLOGY_SNAPSHOT_LIMITATIONS,
+        )
+
     def build_topology_snapshot_view(self, db, home_id: str) -> Optional[TwinTopologySnapshot]:
         context = self.build(db, home_id)
         if context is None:
@@ -2027,6 +2302,25 @@ class TwinPlanningContextService:
             domain.value: lifecycle_counts.get(domain.value, 0)
             for domain in TwinTopologyLifecycleDomain
         }
+        snapshot_limitations = [
+            "No twin_id is created or inferred.",
+            "No topology graph, graph database, canonical topology table, migration, or persisted topology state is created.",
+            "No topology promotion workflow, lifecycle event log, recalculation engine, invalidation engine, simulation, or Phase 3 intelligence is implemented.",
+            "No auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, or operational control is implemented.",
+        ]
+        readiness_hints = self._topology_lifecycle_readiness_hints(section_records, nodes, edges)
+        deferred_lifecycle_domains = self._topology_deferred_lifecycle_domains()
+        missing_readiness_indicators = self._topology_missing_readiness_indicators(
+            snapshot_limitations
+            + TOPOLOGY_SNAPSHOT_LIMITATIONS
+        )
+        readiness_summary = self._topology_lifecycle_readiness_summary(
+            nodes,
+            edges,
+            records,
+            deferred_lifecycle_domains,
+            missing_readiness_indicators,
+        )
 
         return TwinTopologySnapshot(
             home_id=home_id,
@@ -2039,12 +2333,11 @@ class TwinPlanningContextService:
             scenario_branch_references=self._topology_scenario_branch_references(records, node_map),
             revision_lineage_references=self._topology_revision_lineage_references(records, node_map),
             lifecycle_domain_summary=lifecycle_domain_summary,
-            limitations=[
-                "No twin_id is created or inferred.",
-                "No topology graph, graph database, canonical topology table, migration, or persisted topology state is created.",
-                "No topology promotion workflow, lifecycle event log, recalculation engine, invalidation engine, simulation, or Phase 3 intelligence is implemented.",
-                "No auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, or operational control is implemented.",
-            ],
+            lifecycle_readiness_summary=readiness_summary,
+            lifecycle_readiness_hints=readiness_hints,
+            deferred_lifecycle_domains=deferred_lifecycle_domains,
+            missing_readiness_indicators=missing_readiness_indicators,
+            limitations=snapshot_limitations,
             compatibility_note=(
                 "Existing TwinPlanningContext, AI grounding, runtime projection, and current /api/* contracts remain unchanged; "
                 "this is an additive topology snapshot view."

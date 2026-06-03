@@ -910,6 +910,75 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual("scenario_revision:scenario_001_rev_001", revision_ref["revision_node_id"])
         self.assertEqual("scenario:scenario_001", revision_ref["scenario_node_id"])
 
+    def test_topology_snapshot_reports_descriptive_lifecycle_readiness(self):
+        snapshot = self._topology_snapshot()
+        readiness = snapshot.lifecycle_readiness_summary
+        hints_by_domain = {
+            hint.lifecycle_domain.value: hint
+            for hint in snapshot.lifecycle_readiness_hints
+        }
+        missing_by_indicator = {
+            item.indicator: item
+            for item in snapshot.missing_readiness_indicators
+        }
+        deferred_domains = {
+            item.lifecycle_domain
+            for item in snapshot.deferred_lifecycle_domains
+        }
+
+        self.assertEqual("topology_snapshot_metadata_only", readiness.readiness_scope)
+        self.assertTrue(readiness.descriptive_only)
+        self.assertTrue(readiness.read_only)
+        self.assertTrue(readiness.topology_derived)
+        self.assertTrue(readiness.provenance_aware)
+        self.assertFalse(readiness.lifecycle_workflows_present)
+        self.assertFalse(readiness.promotion_engine_present)
+        self.assertFalse(readiness.event_log_present)
+        self.assertFalse(readiness.simulation_present)
+        self.assertFalse(readiness.phase_3_intelligence_present)
+        self.assertEqual(len(snapshot.nodes), readiness.node_count)
+        self.assertEqual(len(snapshot.edges), readiness.edge_count)
+
+        for domain in [
+            "recorded_current_topology",
+            "sandbox_proposed_planning_topology",
+            "saved_scenario_revision_topology",
+            "derived_advisory_topology",
+        ]:
+            self.assertIn(domain, hints_by_domain)
+            self.assertIn(domain, readiness.domains_present)
+            self.assertGreaterEqual(hints_by_domain[domain].node_count, 1)
+            self.assertIn("topology_nodes", hints_by_domain[domain].derived_from)
+            self.assertIn("topology_snapshot_limitations", hints_by_domain[domain].derived_from)
+            self.assertIn("No lifecycle workflow", " ".join(hints_by_domain[domain].hints))
+
+        self.assertGreater(readiness.provenance_gap_count, 0)
+        self.assertGreater(readiness.planning_dependency_warning_count, 0)
+        self.assertTrue(readiness.dependency_awareness_labels)
+
+        for domain in [
+            "contractor_reviewed_topology",
+            "contractual_topology",
+            "field_verified_topology",
+            "utility_reviewed_topology",
+            "operational_topology",
+            "future_expansion_or_replacement_topology",
+        ]:
+            self.assertIn(domain, deferred_domains)
+            self.assertIn(domain, readiness.domains_deferred)
+
+        for indicator in [
+            "field_verification_readiness",
+            "promotion_workflow_readiness",
+            "lifecycle_event_log_readiness",
+            "simulation_readiness",
+            "operational_topology_readiness",
+        ]:
+            self.assertIn(indicator, missing_by_indicator)
+            self.assertFalse(missing_by_indicator[indicator].present)
+            self.assertTrue(missing_by_indicator[indicator].source_marker_found)
+            self.assertIn("topology_snapshot_limitations", missing_by_indicator[indicator].derived_from)
+
     def test_topology_snapshot_preserves_deferred_boundaries(self):
         snapshot = self._topology_snapshot()
         limitation_text = " ".join(snapshot.limitations)

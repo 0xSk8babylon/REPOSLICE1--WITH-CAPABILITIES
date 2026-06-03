@@ -293,6 +293,59 @@ class TwinTopologyEdge(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinTopologyLifecycleReadinessHint(ORMModel):
+    lifecycle_domain: TwinTopologyLifecycleDomain
+    readiness_status: str
+    node_count: int = 0
+    edge_count: int = 0
+    source_document_count: int = 0
+    provenance_gap_types: List[str] = Field(default_factory=list)
+    dependency_awareness_labels: List[str] = Field(default_factory=list)
+    planning_dependency_warning_types: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    hints: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyDeferredLifecycleDomain(ORMModel):
+    lifecycle_domain: str
+    current_runtime_status: str = "deferred_not_implemented"
+    deferred_reason: str
+    required_future_foundations: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyMissingReadinessIndicator(ORMModel):
+    indicator: str
+    present: bool = False
+    source_marker_found: bool = False
+    reason: str
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyLifecycleReadinessSummary(ORMModel):
+    readiness_scope: str = "topology_snapshot_metadata_only"
+    descriptive_only: bool = True
+    read_only: bool = True
+    topology_derived: bool = True
+    provenance_aware: bool = True
+    lifecycle_workflows_present: bool = False
+    promotion_engine_present: bool = False
+    event_log_present: bool = False
+    simulation_present: bool = False
+    phase_3_intelligence_present: bool = False
+    node_count: int = 0
+    edge_count: int = 0
+    domains_present: List[str] = Field(default_factory=list)
+    domains_deferred: List[str] = Field(default_factory=list)
+    provenance_gap_count: int = 0
+    planning_dependency_warning_count: int = 0
+    dependency_awareness_labels: List[str] = Field(default_factory=list)
+    missing_readiness_indicator_count: int = 0
+    limitations: List[str] = Field(default_factory=list)
+
+
 class TwinPlanningContextRecord(ORMModel):
     entity_type: str
     entity_id: Optional[str] = None
@@ -401,6 +454,10 @@ class TwinTopologySnapshot(ORMModel):
     scenario_branch_references: List[Dict[str, Any]] = Field(default_factory=list)
     revision_lineage_references: List[Dict[str, Any]] = Field(default_factory=list)
     lifecycle_domain_summary: Dict[str, int] = Field(default_factory=dict)
+    lifecycle_readiness_summary: TwinTopologyLifecycleReadinessSummary
+    lifecycle_readiness_hints: List[TwinTopologyLifecycleReadinessHint] = Field(default_factory=list)
+    deferred_lifecycle_domains: List[TwinTopologyDeferredLifecycleDomain] = Field(default_factory=list)
+    missing_readiness_indicators: List[TwinTopologyMissingReadinessIndicator] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     compatibility_note: str
 
