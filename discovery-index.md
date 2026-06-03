@@ -26,8 +26,10 @@ Read these first:
   - Current boundary: descriptive, read-only topology snapshot metadata and safe relationship hooks derived from existing `TwinPlanningContext` records, dependency hooks, provenance gaps, dependency warnings, and limitation text.
   - Relationship coverage: structure-to-premise, panel/load/location-to-building, design-to-pathway, and resolvable pathway source/destination relationships are represented only when both ends resolve to concrete context nodes; unresolved or ambiguous labels remain missing relationship indicators.
   - Deferred: canonical topology graph, persistence, migrations, canonical topology table, `twin_id`, graph database, graph engine, lifecycle workflows, topology promotion workflows, lifecycle event logs, field verification workflows, recalculation engines, invalidation engines, simulation, what-if analysis, Phase 3 intelligence, contractor-reviewed topology, contractual topology, utility-reviewed topology, operational topology, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and operational control.
-- Phase 3: Twin Intelligence Expansion - not started; deferred until Matt approves a future implementation boundary.
-  - Readiness themes: Structured System Reasoning Graph, Dependency Reasoning, Impact Propagation, Scenario Intelligence, What-if Analysis, and Advisory Intelligence.
+- Phase 3A: Derived Dependency Impact Readiness - complete for the approved first runtime boundary in `97b57fb`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/dependency-impact-readiness` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored derived intelligence envelope over existing `TwinPlanningContext` and topology snapshot outputs. It reports source basis, lifecycle scope, dependency impact posture, missing inputs, provenance gaps, confidence posture, limitations, and deferred capabilities. Every derived statement carries traceable basis metadata, and backend tests verify deterministic same-input/same-output behavior.
+  - Deferred: broader Phase 3 implementation, scenario intelligence, impact propagation engine, recalculation engine, invalidation engine, optimization, ranking, economic reasoning, utility readiness reasoning, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, `twin_id`, graph database, graph engine, scenario engine, simulation, what-if analysis, permission enforcement, recommendation actions, and operational behavior.
 
 ## Operational References By Task
 
@@ -57,6 +59,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
   - `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
   - `docs/handoffs/2026-06-03-phase-2c-lifecycle-readiness-foundation.md`
   - `docs/handoffs/2026-06-03-phase-2c-topology-relationship-coverage-foundation.md`
@@ -98,11 +101,18 @@ Read these first:
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
     - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3A Derived Dependency Impact Readiness:
+    - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
 - Frontend behavior changes:
   - `apps/web/src/lib/api.js`
   - task-relevant pages/components
 - Trust or provenance changes:
   - `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
+  - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
   - `docs/architecture/ContinuityDomain.md`
   - `docs/architecture/SafetyDomain.md`
   - `docs/architecture/InteroperabilityDomain.md`
