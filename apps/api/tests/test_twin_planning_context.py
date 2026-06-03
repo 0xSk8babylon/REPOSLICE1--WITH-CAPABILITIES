@@ -813,6 +813,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             "design_equipment:design_001_equipment_1",
             "equipment_product:product_generic_panel",
             "equipment_location:location_roof_south",
+            "estimated_pathway:pathway_001",
             "scenario:scenario_001",
             "scenario_revision:scenario_001_rev_001",
         ]:
@@ -866,6 +867,98 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             ),
             edge_pairs,
         )
+
+    def test_topology_snapshot_reports_relationship_coverage_without_graph_engine(self):
+        snapshot = self._topology_snapshot()
+        edge_pairs = {
+            (edge.source_node_id, edge.target_node_id, edge.relationship)
+            for edge in snapshot.edges
+        }
+        coverage = snapshot.relationship_coverage_summary
+        missing_by_indicator = {
+            (indicator.indicator, indicator.entity_id): indicator
+            for indicator in snapshot.missing_relationship_indicators
+        }
+
+        for edge_pair in [
+            (
+                "building:building_main",
+                "home:home_001",
+                "structure_belongs_to_premise_planning_context",
+            ),
+            (
+                "electrical_panel:panel_main",
+                "building:building_main",
+                "panel_assigned_to_building_planning_context",
+            ),
+            (
+                "load:load_001",
+                "building:building_main",
+                "load_assigned_to_building_planning_context",
+            ),
+            (
+                "equipment_location:location_roof_south",
+                "building:building_main",
+                "location_assigned_to_building_planning_context",
+            ),
+            (
+                "energy_system_design:design_001",
+                "estimated_pathway:pathway_001",
+                "design_includes_pathway_planning_context",
+            ),
+            (
+                "estimated_pathway:pathway_001",
+                "equipment_location:location_roof_south",
+                "pathway_source_location_planning_context",
+            ),
+            (
+                "estimated_pathway:pathway_001",
+                "equipment_location:location_garage_battery",
+                "pathway_destination_location_planning_context",
+            ),
+            (
+                "estimated_pathway:pathway_002",
+                "equipment_location:location_shop_pad",
+                "pathway_destination_location_planning_context",
+            ),
+        ]:
+            self.assertIn(edge_pair, edge_pairs)
+
+        self.assertEqual("topology_snapshot_relationship_metadata_only", coverage.coverage_scope)
+        self.assertTrue(coverage.descriptive_only)
+        self.assertTrue(coverage.read_only)
+        self.assertTrue(coverage.topology_derived)
+        self.assertFalse(coverage.graph_engine_present)
+        self.assertFalse(coverage.lifecycle_workflows_present)
+        self.assertFalse(coverage.promotion_engine_present)
+        self.assertFalse(coverage.event_log_present)
+        self.assertFalse(coverage.recalculation_engine_present)
+        self.assertFalse(coverage.invalidation_engine_present)
+        self.assertFalse(coverage.simulation_present)
+        self.assertFalse(coverage.what_if_analysis_present)
+        self.assertFalse(coverage.phase_3_intelligence_present)
+        self.assertGreater(coverage.relationship_edge_count, 0)
+        self.assertGreater(coverage.dependency_hook_edge_count, 0)
+
+        for family in [
+            "structure_premise_placement",
+            "panel_building_placement",
+            "load_building_placement",
+            "location_building_placement",
+            "design_pathway_reference",
+            "pathway_endpoint_reference",
+        ]:
+            self.assertIn(family, coverage.coverage_by_relationship_family)
+            self.assertGreater(coverage.coverage_by_relationship_family[family], 0)
+
+        unresolved_source = missing_by_indicator[
+            ("pathway_source_location_relationship_unresolved", "pathway_002")
+        ]
+        self.assertEqual("source_location", unresolved_source.field_name)
+        self.assertEqual("Main House MSP", unresolved_source.attempted_value)
+        self.assertEqual("pathway_endpoint_reference", unresolved_source.relationship_family)
+        self.assertIn("does not resolve", unresolved_source.reason)
+        self.assertGreaterEqual(coverage.unresolved_pathway_endpoint_count, 1)
 
     def test_topology_snapshot_reports_lifecycle_and_lineage_without_engines(self):
         snapshot = self._topology_snapshot()
@@ -982,6 +1075,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
     def test_topology_snapshot_preserves_deferred_boundaries(self):
         snapshot = self._topology_snapshot()
         limitation_text = " ".join(snapshot.limitations)
+        relationship_limitation_text = " ".join(snapshot.relationship_coverage_summary.limitations)
         payload = snapshot.dict()
 
         for boundary in [
@@ -1008,6 +1102,23 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             "operational control",
         ]:
             self.assertIn(boundary, limitation_text)
+
+        for boundary in [
+            "graph engine",
+            "lifecycle workflow",
+            "promotion engine",
+            "event log",
+            "recalculation",
+            "invalidation",
+            "simulation",
+            "what-if analysis",
+            "Phase 3 intelligence",
+            "field-verified",
+            "utility-reviewed",
+            "contractual",
+            "operational topology",
+        ]:
+            self.assertIn(boundary, relationship_limitation_text)
 
         self.assertNotIn("twin_id", payload)
         self.assertTrue(all(node.permission_not_enforced for node in snapshot.nodes))

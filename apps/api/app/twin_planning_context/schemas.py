@@ -346,6 +346,40 @@ class TwinTopologyLifecycleReadinessSummary(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinTopologyMissingRelationshipIndicator(ORMModel):
+    indicator: str
+    entity_type: str
+    entity_id: Optional[str] = None
+    field_name: Optional[str] = None
+    attempted_value: Optional[str] = None
+    relationship_family: str
+    reason: str
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyRelationshipCoverageSummary(ORMModel):
+    coverage_scope: str = "topology_snapshot_relationship_metadata_only"
+    descriptive_only: bool = True
+    read_only: bool = True
+    topology_derived: bool = True
+    graph_engine_present: bool = False
+    lifecycle_workflows_present: bool = False
+    promotion_engine_present: bool = False
+    event_log_present: bool = False
+    recalculation_engine_present: bool = False
+    invalidation_engine_present: bool = False
+    simulation_present: bool = False
+    what_if_analysis_present: bool = False
+    phase_3_intelligence_present: bool = False
+    relationship_edge_count: int = 0
+    dependency_hook_edge_count: int = 0
+    coverage_by_relationship_family: Dict[str, int] = Field(default_factory=dict)
+    missing_relationship_indicator_count: int = 0
+    unresolved_pathway_endpoint_count: int = 0
+    limitations: List[str] = Field(default_factory=list)
+
+
 class TwinPlanningContextRecord(ORMModel):
     entity_type: str
     entity_id: Optional[str] = None
@@ -458,6 +492,8 @@ class TwinTopologySnapshot(ORMModel):
     lifecycle_readiness_hints: List[TwinTopologyLifecycleReadinessHint] = Field(default_factory=list)
     deferred_lifecycle_domains: List[TwinTopologyDeferredLifecycleDomain] = Field(default_factory=list)
     missing_readiness_indicators: List[TwinTopologyMissingReadinessIndicator] = Field(default_factory=list)
+    relationship_coverage_summary: TwinTopologyRelationshipCoverageSummary
+    missing_relationship_indicators: List[TwinTopologyMissingRelationshipIndicator] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     compatibility_note: str
 

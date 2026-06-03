@@ -41,11 +41,13 @@ from app.twin_planning_context.schemas import (
     TwinRuntimeVisibilityScope,
     TwinTopologyDeferredLifecycleDomain,
     TwinTopologyEdge,
+    TwinTopologyMissingRelationshipIndicator,
     TwinTopologyLifecycleReadinessHint,
     TwinTopologyLifecycleReadinessSummary,
     TwinTopologyLifecycleDomain,
     TwinTopologyMissingReadinessIndicator,
     TwinTopologyNode,
+    TwinTopologyRelationshipCoverageSummary,
     TwinTopologySnapshot,
     TwinViewPermissionAlignmentMetadata,
 )
@@ -157,6 +159,24 @@ TOPOLOGY_READINESS_LIMITATIONS = [
     "Lifecycle readiness metadata is descriptive and read-only.",
     "Readiness hints do not create lifecycle workflows, topology promotion, event logs, simulation, or Phase 3 intelligence.",
 ]
+
+TOPOLOGY_RELATIONSHIP_COVERAGE_LIMITATIONS = [
+    "Topology relationship coverage is descriptive and read-only.",
+    "Relationship coverage does not create a graph engine, lifecycle workflow, promotion engine, event log, recalculation, invalidation, simulation, what-if analysis, or Phase 3 intelligence.",
+    "Relationship coverage uses existing planning-context records only and does not infer installed, verified, utility-reviewed, contractual, or operational topology.",
+]
+
+TOPOLOGY_RELATIONSHIP_COVERAGE_RULE_KEY = "twin_topology.relationship_coverage_v1"
+
+TOPOLOGY_RELATIONSHIP_FAMILY_BY_RELATIONSHIP = {
+    "structure_belongs_to_premise_planning_context": "structure_premise_placement",
+    "panel_assigned_to_building_planning_context": "panel_building_placement",
+    "load_assigned_to_building_planning_context": "load_building_placement",
+    "location_assigned_to_building_planning_context": "location_building_placement",
+    "design_includes_pathway_planning_context": "design_pathway_reference",
+    "pathway_source_location_planning_context": "pathway_endpoint_reference",
+    "pathway_destination_location_planning_context": "pathway_endpoint_reference",
+}
 
 DEFERRED_TOPOLOGY_LIFECYCLE_DOMAINS = [
     (
@@ -1960,6 +1980,56 @@ class TwinPlanningContextService:
             return TwinTopologyLifecycleDomain.derived_advisory_topology
         return TwinTopologyLifecycleDomain.recorded_current_topology
 
+    def _topology_edge_from_nodes(
+        self,
+        *,
+        source_node: TwinTopologyNode,
+        target_node: TwinTopologyNode,
+        relationship: str,
+        note: str,
+        rule_keys: Optional[List[str]] = None,
+        confidence_level: Optional[str] = "medium",
+        limitations: Optional[List[str]] = None,
+    ) -> TwinTopologyEdge:
+        return TwinTopologyEdge(
+            edge_id=(
+                f"topology-edge:{source_node.node_id}->{target_node.node_id}:"
+                f"{relationship}"
+            ),
+            source_node_id=source_node.node_id,
+            target_node_id=target_node.node_id,
+            source_entity_type=source_node.entity_type,
+            source_entity_id=source_node.entity_id,
+            target_entity_type=target_node.entity_type,
+            target_entity_id=target_node.entity_id,
+            relationship=relationship,
+            lifecycle_domain=self._topology_edge_lifecycle_domain(source_node, target_node),
+            rule_keys=rule_keys or [TOPOLOGY_RELATIONSHIP_COVERAGE_RULE_KEY],
+            confidence_level=confidence_level,
+            note=note,
+            limitations=limitations or (
+                TOPOLOGY_RELATIONSHIP_COVERAGE_LIMITATIONS + TOPOLOGY_SNAPSHOT_LIMITATIONS
+            ),
+        )
+
+    def _topology_edge_key(self, edge: TwinTopologyEdge) -> tuple:
+        return (
+            edge.source_node_id,
+            edge.target_node_id,
+            edge.relationship,
+            tuple(edge.rule_keys),
+        )
+
+    def _sorted_topology_edges(self, edges: Dict[tuple, TwinTopologyEdge]) -> List[TwinTopologyEdge]:
+        return sorted(
+            edges.values(),
+            key=lambda edge: (
+                edge.source_node_id,
+                edge.target_node_id,
+                edge.relationship,
+            ),
+        )
+
     def _topology_edges(
         self,
         records: List[TwinPlanningContextRecord],
@@ -1982,32 +2052,258 @@ class TwinPlanningContextService:
                 )
                 edges.setdefault(
                     edge_key,
-                    TwinTopologyEdge(
-                        edge_id=(
-                            f"topology-edge:{source_node.node_id}->{target_node.node_id}:"
-                            f"{hook.relationship}"
-                        ),
-                        source_node_id=source_node.node_id,
-                        target_node_id=target_node.node_id,
-                        source_entity_type=hook.source_entity_type,
-                        source_entity_id=hook.source_entity_id,
-                        target_entity_type=hook.target_entity_type,
-                        target_entity_id=hook.target_entity_id,
+                    self._topology_edge_from_nodes(
+                        source_node=source_node,
+                        target_node=target_node,
                         relationship=hook.relationship,
-                        lifecycle_domain=self._topology_edge_lifecycle_domain(source_node, target_node),
                         rule_keys=hook.rule_keys,
                         confidence_level=hook.confidence_level,
                         note=hook.note,
                         limitations=TOPOLOGY_SNAPSHOT_LIMITATIONS,
                     ),
                 )
-        return sorted(
-            edges.values(),
-            key=lambda edge: (
-                edge.source_node_id,
-                edge.target_node_id,
+        return self._sorted_topology_edges(edges)
+
+    def _topology_deduped_edges(self, edge_sets: List[List[TwinTopologyEdge]]) -> List[TwinTopologyEdge]:
+        edges = {}
+        for edge_set in edge_sets:
+            for edge in edge_set:
+                edges.setdefault(self._topology_edge_key(edge), edge)
+        return self._sorted_topology_edges(edges)
+
+    def _topology_record_map(
+        self, section_records: List[tuple]
+    ) -> Dict[tuple, TwinPlanningContextRecord]:
+        return {
+            (record.entity_type, record.entity_id): record
+            for _, record in section_records
+        }
+
+    def _topology_resolution_key(self, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = str(value).strip().lower()
+        return normalized or None
+
+    def _topology_resolution_index(
+        self,
+        nodes: List[TwinTopologyNode],
+        records_by_key: Dict[tuple, TwinPlanningContextRecord],
+    ) -> Dict[str, Optional[TwinTopologyNode]]:
+        candidates: Dict[str, Dict[str, TwinTopologyNode]] = {}
+
+        def add_candidate(value: Optional[str], node: TwinTopologyNode):
+            key = self._topology_resolution_key(value)
+            if key is None:
+                return
+            candidates.setdefault(key, {})[node.node_id] = node
+
+        for node in nodes:
+            record = records_by_key.get((node.entity_type, node.entity_id))
+            add_candidate(node.node_id, node)
+            add_candidate(node.entity_id, node)
+            add_candidate(node.label, node)
+            if record is not None:
+                add_candidate(record.record.get("name"), node)
+
+        return {
+            key: next(iter(value.values())) if len(value) == 1 else None
+            for key, value in candidates.items()
+        }
+
+    def _resolve_topology_node(
+        self,
+        value: Optional[str],
+        resolution_index: Dict[str, Optional[TwinTopologyNode]],
+    ) -> Optional[TwinTopologyNode]:
+        key = self._topology_resolution_key(value)
+        if key is None:
+            return None
+        return resolution_index.get(key)
+
+    def _missing_relationship_indicator(
+        self,
+        *,
+        indicator: str,
+        record: TwinPlanningContextRecord,
+        field_name: Optional[str],
+        attempted_value: Optional[str],
+        relationship_family: str,
+        reason: str,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinTopologyMissingRelationshipIndicator:
+        return TwinTopologyMissingRelationshipIndicator(
+            indicator=indicator,
+            entity_type=record.entity_type,
+            entity_id=record.entity_id,
+            field_name=field_name,
+            attempted_value=attempted_value,
+            relationship_family=relationship_family,
+            reason=reason,
+            derived_from=derived_from or ["topology_record_fields", "topology_node_resolution_index"],
+            limitations=TOPOLOGY_RELATIONSHIP_COVERAGE_LIMITATIONS + TOPOLOGY_SNAPSHOT_LIMITATIONS,
+        )
+
+    def _topology_relationship_coverage_edges(
+        self,
+        section_records: List[tuple],
+        node_map: Dict[tuple, TwinTopologyNode],
+    ) -> tuple:
+        records_by_key = self._topology_record_map(section_records)
+        resolution_index = self._topology_resolution_index(list(node_map.values()), records_by_key)
+        relationship_edges: List[TwinTopologyEdge] = []
+        missing_indicators: List[TwinTopologyMissingRelationshipIndicator] = []
+
+        def append_edge(source_node, target_node, relationship, note):
+            relationship_edges.append(
+                self._topology_edge_from_nodes(
+                    source_node=source_node,
+                    target_node=target_node,
+                    relationship=relationship,
+                    note=note,
+                )
+            )
+
+        for _, record in section_records:
+            source_node = node_map.get((record.entity_type, record.entity_id))
+            if source_node is None:
+                continue
+
+            if record.entity_type == "building":
+                target_node = node_map.get(("home", record.record.get("home_id")))
+                if target_node:
+                    append_edge(
+                        source_node,
+                        target_node,
+                        "structure_belongs_to_premise_planning_context",
+                        "Structure-to-premise placement is derived from existing building.home_id planning data.",
+                    )
+                else:
+                    missing_indicators.append(
+                        self._missing_relationship_indicator(
+                            indicator="structure_premise_relationship_unresolved",
+                            record=record,
+                            field_name="home_id",
+                            attempted_value=record.record.get("home_id"),
+                            relationship_family="structure_premise_placement",
+                            reason="Building home_id did not resolve to a concrete home topology node.",
+                        )
+                    )
+
+            if record.entity_type in {"electrical_panel", "load", "equipment_location"}:
+                target_node = node_map.get(("building", record.record.get("building_id")))
+                relationship_by_type = {
+                    "electrical_panel": (
+                        "panel_assigned_to_building_planning_context",
+                        "panel_building_placement",
+                        "Panel-to-building placement is derived from existing electrical_panel.building_id planning data.",
+                    ),
+                    "load": (
+                        "load_assigned_to_building_planning_context",
+                        "load_building_placement",
+                        "Load-to-building placement is derived from existing load.building_id planning data.",
+                    ),
+                    "equipment_location": (
+                        "location_assigned_to_building_planning_context",
+                        "location_building_placement",
+                        "Equipment-location-to-building placement is derived from existing equipment_location.building_id planning data.",
+                    ),
+                }
+                relationship, family, note = relationship_by_type[record.entity_type]
+                if target_node:
+                    append_edge(source_node, target_node, relationship, note)
+                else:
+                    missing_indicators.append(
+                        self._missing_relationship_indicator(
+                            indicator=f"{family}_unresolved",
+                            record=record,
+                            field_name="building_id",
+                            attempted_value=record.record.get("building_id"),
+                            relationship_family=family,
+                            reason=f"{record.entity_type}.building_id did not resolve to a concrete building topology node.",
+                        )
+                    )
+
+            if record.entity_type == "estimated_pathway":
+                pathway_node = source_node
+                design_node = node_map.get(("energy_system_design", record.record.get("design_id")))
+                if design_node:
+                    append_edge(
+                        design_node,
+                        pathway_node,
+                        "design_includes_pathway_planning_context",
+                        "Design-to-pathway relationship is derived from existing estimated_pathway.design_id planning data.",
+                    )
+                else:
+                    missing_indicators.append(
+                        self._missing_relationship_indicator(
+                            indicator="design_pathway_relationship_unresolved",
+                            record=record,
+                            field_name="design_id",
+                            attempted_value=record.record.get("design_id"),
+                            relationship_family="design_pathway_reference",
+                            reason="Pathway design_id did not resolve to a concrete design topology node.",
+                        )
+                    )
+
+                for field_name, relationship in [
+                    ("source_location", "pathway_source_location_planning_context"),
+                    ("destination_location", "pathway_destination_location_planning_context"),
+                ]:
+                    attempted_value = record.record.get(field_name)
+                    target_node = self._resolve_topology_node(attempted_value, resolution_index)
+                    if target_node:
+                        append_edge(
+                            pathway_node,
+                            target_node,
+                            relationship,
+                            (
+                                f"Pathway {field_name} relationship is derived from an existing "
+                                "estimated_pathway field that resolves to a concrete topology node."
+                            ),
+                        )
+                    else:
+                        missing_indicators.append(
+                            self._missing_relationship_indicator(
+                                indicator=f"pathway_{field_name}_relationship_unresolved",
+                                record=record,
+                                field_name=field_name,
+                                attempted_value=attempted_value,
+                                relationship_family="pathway_endpoint_reference",
+                                reason=(
+                                    "Pathway endpoint value is absent, ambiguous, or a string label that does "
+                                    "not resolve to a concrete topology node."
+                                ),
+                            )
+                        )
+
+        return self._topology_deduped_edges([relationship_edges]), missing_indicators
+
+    def _topology_relationship_coverage_summary(
+        self,
+        dependency_edges: List[TwinTopologyEdge],
+        relationship_edges: List[TwinTopologyEdge],
+        missing_relationship_indicators: List[TwinTopologyMissingRelationshipIndicator],
+    ) -> TwinTopologyRelationshipCoverageSummary:
+        coverage_by_family = Counter()
+        for edge in relationship_edges:
+            family = TOPOLOGY_RELATIONSHIP_FAMILY_BY_RELATIONSHIP.get(
                 edge.relationship,
-            ),
+                "other_relationship_coverage",
+            )
+            coverage_by_family[family] += 1
+        unresolved_pathway_endpoint_count = sum(
+            1
+            for indicator in missing_relationship_indicators
+            if indicator.relationship_family == "pathway_endpoint_reference"
+        )
+        return TwinTopologyRelationshipCoverageSummary(
+            relationship_edge_count=len(relationship_edges),
+            dependency_hook_edge_count=len(dependency_edges),
+            coverage_by_relationship_family=dict(sorted(coverage_by_family.items())),
+            missing_relationship_indicator_count=len(missing_relationship_indicators),
+            unresolved_pathway_endpoint_count=unresolved_pathway_endpoint_count,
+            limitations=TOPOLOGY_RELATIONSHIP_COVERAGE_LIMITATIONS + TOPOLOGY_SNAPSHOT_LIMITATIONS,
         )
 
     def _topology_scenario_branch_references(
@@ -2296,7 +2592,17 @@ class TwinPlanningContextService:
             for node in nodes
         }
         records = [record for _, record in section_records]
-        edges = self._topology_edges(records, node_map)
+        dependency_edges = self._topology_edges(records, node_map)
+        relationship_edges, missing_relationship_indicators = self._topology_relationship_coverage_edges(
+            section_records,
+            node_map,
+        )
+        edges = self._topology_deduped_edges([dependency_edges, relationship_edges])
+        relationship_coverage_summary = self._topology_relationship_coverage_summary(
+            dependency_edges,
+            relationship_edges,
+            missing_relationship_indicators,
+        )
         lifecycle_counts = Counter(node.lifecycle_domain.value for node in nodes)
         lifecycle_domain_summary = {
             domain.value: lifecycle_counts.get(domain.value, 0)
@@ -2337,6 +2643,8 @@ class TwinPlanningContextService:
             lifecycle_readiness_hints=readiness_hints,
             deferred_lifecycle_domains=deferred_lifecycle_domains,
             missing_readiness_indicators=missing_readiness_indicators,
+            relationship_coverage_summary=relationship_coverage_summary,
+            missing_relationship_indicators=missing_relationship_indicators,
             limitations=snapshot_limitations,
             compatibility_note=(
                 "Existing TwinPlanningContext, AI grounding, runtime projection, and current /api/* contracts remain unchanged; "
