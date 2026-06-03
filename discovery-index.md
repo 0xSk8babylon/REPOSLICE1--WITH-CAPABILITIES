@@ -37,6 +37,10 @@ Read these first:
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/planning-intelligence-readiness` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored derived readiness inventory over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, and Phase 3B dependency reasoning outputs. It reports ready for read-only explanation areas, blocked/deferred areas, missing prerequisites, available evidence, unsafe assumptions, provenance/permission-readiness basis, limitations, and deferred reasoning boundaries.
   - Deferred: scenario intelligence, impact propagation, stale-state persistence, recalculation, invalidation, simulation, what-if analysis, optimization, ranking, recommendations, economic reasoning, utility readiness, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, twin_id, graph database/engine, migrations, and canonical Twin runtime model.
+- Phase 3D: Advisory Context Assembly - complete for the approved fourth runtime boundary in `1120998`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/advisory-context-assembly` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored advisory input context assembly over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, Phase 3B dependency reasoning, and Phase 3C planning intelligence readiness outputs. It assembles trusted advisory input context only and does not generate advice, recommendations, homeowner guidance, contractor sales logic, proposals, ranking, optimization, simulation, what-if analysis, exports, permission enforcement, or operational behavior.
+  - Deferred: advice generation, recommendations, ranking, optimization, scenario simulation, what-if analysis, proposal generation, contractor sales logic, homeowner guidance outputs, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph engine, exports, and operational behavior.
 
 ## Operational References By Task
 
@@ -66,6 +70,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`
   - `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md`
   - `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md`
   - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
@@ -124,6 +129,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3C Planning Intelligence Readiness:
     - `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3D Advisory Context Assembly:
+    - `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`

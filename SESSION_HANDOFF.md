@@ -9,8 +9,8 @@
 - Session date: 2026-06-03
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
-- Latest committed checkpoint before this continuity alignment: `a22042d`
-- Latest commit before this continuity alignment: `feat: add planning intelligence readiness view`
+- Latest committed checkpoint before this continuity alignment: `1120998`
+- Latest commit before this continuity alignment: `feat: add advisory context assembly view`
 - Current branch: `fix/github-workflow`
 - Upstream tracking branch: `origin/fix/github-workflow`
 - GitHub preservation remote: `https://github.com/0xSk8babylon/resi-twin.git`
@@ -21,12 +21,14 @@
 - Phase 3A Derived Dependency Impact Readiness is complete in `97b57fb`.
 - Phase 3B Derived Dependency Reasoning complete in `d56f52e`.
 - Phase 3C Planning Intelligence Readiness complete in `a22042d`.
+- Phase 3D Advisory Context Assembly complete in `1120998`.
 - Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Phase 2B Twin Runtime Expression is complete and stabilized for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
 - Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`.
 - Phase 3A Derived Dependency Impact Readiness is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored derived intelligence envelope over existing `TwinPlanningContext` and topology snapshot outputs.
 - Phase 3B Derived Dependency Reasoning is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored explanation view over existing `TwinPlanningContext`, topology snapshot, and Phase 3A dependency impact readiness outputs.
 - Phase 3C Planning Intelligence Readiness is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored readiness inventory over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, and Phase 3B dependency reasoning outputs.
+- Phase 3D Advisory Context Assembly is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored advisory input context assembly view over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, Phase 3B dependency reasoning, and Phase 3C planning intelligence readiness outputs.
 - Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, permission enforcement, scoped exports, and operational control remain unapproved.
 - `.github/` remains out of scope for this session.
 - Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
@@ -63,8 +65,10 @@
   - `d56f52e` `feat: add dependency reasoning view`
   - `f397e17` `docs: record phase 3b dependency reasoning closeout`
   - `a22042d` `feat: add planning intelligence readiness view`
+  - `2f537bf` `docs: record phase 3c planning intelligence readiness closeout`
+  - `1120998` `feat: add advisory context assembly view`
 - Current closeout checkpoint:
-  - Aligning project memory for Phase 3C planning intelligence readiness closeout only. No runtime feature work is in scope.
+  - Aligning project memory for Phase 3D advisory context assembly closeout only. No runtime feature work is in scope.
 
 ## Canonical Phase Structure
 
@@ -74,15 +78,16 @@
 - Phase 2C: Topology + Lifecycle Intelligence - complete for the approved foundation scope: Topology Snapshot Foundation, Lifecycle Readiness Foundation, and Topology Relationship Coverage Foundation.
 - Phase 3A: Derived Dependency Impact Readiness - complete for the approved first runtime boundary in `97b57fb`.
 - Phase 3B: Derived Dependency Reasoning - complete for the approved second runtime boundary in `d56f52e`.
-- Phase 3C: Planning Intelligence Readiness - complete for the approved third runtime boundary in `a22042d`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
+- Phase 3C: Planning Intelligence Readiness - complete for the approved third runtime boundary in `a22042d`.
+- Phase 3D: Advisory Context Assembly - complete for the approved fourth runtime boundary in `1120998`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
 
 ## What Changed Last
 
-- Phase 3C Planning Intelligence Readiness complete in `a22042d`.
-- Added the Planning Intelligence Readiness endpoint: `/api/twin-planning-context/homes/{home_id}/views/planning-intelligence-readiness`.
-- Added a read-only, request-time, `home_id`-anchored readiness inventory over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, and Phase 3B dependency reasoning outputs.
-- The view reports ready for read-only explanation areas, blocked/deferred areas, missing prerequisites, available evidence, unsafe assumptions, provenance/permission-readiness basis, limitations, and deferred reasoning boundaries.
-- Every readiness item carries a traceable `basis`, and backend tests verify deterministic same-input/same-output behavior.
+- Phase 3D Advisory Context Assembly complete in `1120998`.
+- Added the Advisory Context Assembly endpoint: `/api/twin-planning-context/homes/{home_id}/views/advisory-context-assembly`.
+- Added a read-only, request-time, `home_id`-anchored advisory input context assembly view over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, Phase 3B dependency reasoning, and Phase 3C planning intelligence readiness outputs.
+- The view assembles existing homeowner goals, topology facts, equipment/site facts, provenance basis, permission-readiness metadata, missing data, unsafe assumptions, advisory-input readiness, and deferred advisory output boundaries.
+- Every assembly item carries a traceable `basis`, and backend tests verify deterministic same-input/same-output behavior.
 - Current closeout is documentation and continuity alignment only; no app code, runtime feature work, broader Phase 3 implementation, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, or operational control is in scope.
 - Scenario intelligence, impact propagation, stale-state persistence, recalculation, invalidation, simulation, what-if analysis, optimization, ranking, recommendations, economic reasoning, utility readiness, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, twin_id, graph database/engine, migrations, and canonical Twin runtime model remain deferred.
 
@@ -333,6 +338,7 @@
 - Phase 3A Derived Dependency Impact Readiness is explainable derived intelligence only. It is read-only, request-time, `home_id`-anchored, derived from existing `TwinPlanningContext` and topology snapshot outputs, deterministic for the same Twin inputs, and traceable through statement `basis` metadata.
 - Phase 3B Derived Dependency Reasoning is explainable derived intelligence only. It is read-only, request-time, `home_id`-anchored, derived from existing `TwinPlanningContext`, topology snapshot, and Phase 3A dependency impact readiness outputs, deterministic for the same Twin inputs, and traceable through reasoning item `basis` metadata.
 - Phase 3C Planning Intelligence Readiness is explainable derived intelligence only. It is read-only, request-time, `home_id`-anchored, derived from existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, and Phase 3B dependency reasoning outputs, deterministic for the same Twin inputs, and traceable through readiness item `basis` metadata.
+- Phase 3D Advisory Context Assembly is explainable derived intelligence only. It is read-only, request-time, `home_id`-anchored, derived from existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, Phase 3B dependency reasoning, and Phase 3C planning intelligence readiness outputs, deterministic for the same Twin inputs, and traceable through assembly item `basis` metadata. It assembles advisory input context only and does not generate advice.
 - Unresolved pathway labels remain missing coverage indicators rather than topology edges.
 - Advisory pseudo-node edges remain deferred.
 - Contractor projection is minimized and excludes full address fields, account scaffolding, scenario revisions, internal unknown markers, and advisory notes.
@@ -351,7 +357,7 @@
 - Dependency Awareness Foundations are descriptive only; there is no Phase 2C topology graph, invalidation engine, recalculation queue, background job, or persisted stale state.
 - Permission Foundations and runtime projection scopes are metadata only; there are no grants, active consent, authorization checks, persisted permission state, revocation workflow, RBAC/ABAC, auth, tenant isolation, scoped exports, portals, utility sharing, ownership transfer, registry, marketplace, telemetry governance, operational control, or Phase 2D implementation.
 - Phase 2C Topology Snapshot, Lifecycle Readiness, and Relationship Coverage Foundations are descriptive/read-only only; remaining topology/lifecycle work is deferred, including canonical topology graph, persistence, topology promotion workflows, lifecycle event logs, field verification workflows, contractor-reviewed topology, contractual topology, utility-reviewed topology, operational topology, graph database, graph engine, recalculation engines, invalidation engines, simulation, what-if analysis, Phase 3 intelligence, or advisory pseudo-node edge materialization.
-- Phase 3A, Phase 3B, and Phase 3C do not implement broader Phase 3 capability. Scenario intelligence, impact propagation, stale-state persistence, recalculation, invalidation, simulation, what-if analysis, optimization, ranking, recommendations, economic reasoning, utility readiness, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, twin_id, graph database/engine, migrations, and canonical Twin runtime model remain deferred.
+- Phase 3A, Phase 3B, Phase 3C, and Phase 3D do not implement broader Phase 3 capability. Scenario intelligence, impact propagation, stale-state persistence, recalculation, invalidation, simulation, what-if analysis, optimization, ranking, recommendations, economic reasoning, utility readiness, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, twin_id, graph database/engine, migrations, and canonical Twin runtime model remain deferred.
 - Canonical Residential Energy Twin runtime identity remains deferred; `home_id` remains the only Twin Planning Context runtime anchor.
 - Runtime projection foundations now exist for homeowner, contractor, and internal/system contexts, but utility, export, partner, pilot, marketplace, registry, ownership transfer, and permission-enforced scoped view models remain unimplemented.
 - Existing account, role, and subscription fields remain scaffolding only.
@@ -364,7 +370,7 @@
 
 ## Current Resume Point
 
-Phase 2B Twin Runtime Expression is complete and stabilized for the current approved scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations. Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`. Phase 3A Derived Dependency Impact Readiness is complete in `97b57fb` at `/api/twin-planning-context/homes/{home_id}/views/dependency-impact-readiness`. Phase 3B Derived Dependency Reasoning is complete in `d56f52e` at `/api/twin-planning-context/homes/{home_id}/views/dependency-reasoning`. Phase 3C Planning Intelligence Readiness is complete in `a22042d` at `/api/twin-planning-context/homes/{home_id}/views/planning-intelligence-readiness`. Scenario intelligence, impact propagation, stale-state persistence, recalculation, invalidation, simulation, what-if analysis, optimization, ranking, recommendations, economic reasoning, utility readiness, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, twin_id, graph database/engine, migrations, and canonical Twin runtime model remain deferred.
+Phase 2B Twin Runtime Expression is complete and stabilized for the current approved scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations. Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`. Phase 3A Derived Dependency Impact Readiness is complete in `97b57fb` at `/api/twin-planning-context/homes/{home_id}/views/dependency-impact-readiness`. Phase 3B Derived Dependency Reasoning is complete in `d56f52e` at `/api/twin-planning-context/homes/{home_id}/views/dependency-reasoning`. Phase 3C Planning Intelligence Readiness is complete in `a22042d` at `/api/twin-planning-context/homes/{home_id}/views/planning-intelligence-readiness`. Phase 3D Advisory Context Assembly is complete in `1120998` at `/api/twin-planning-context/homes/{home_id}/views/advisory-context-assembly`. Scenario intelligence, impact propagation, stale-state persistence, recalculation, invalidation, simulation, what-if analysis, optimization, ranking, recommendations, economic reasoning, utility readiness, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, twin_id, graph database/engine, migrations, and canonical Twin runtime model remain deferred.
 
 ## Lean Restore Prompt
 
@@ -386,6 +392,7 @@ Load project skills before implementation.
 - For future Phase 3 Infrastructure Simulation readiness only, load `docs/architecture/InfrastructureSimulation.md`.
 - For future Phase 3 What-If Analysis readiness only, load `docs/architecture/WhatIfAnalysis.md`.
 - For future Phase 3 Dependency Impact Propagation readiness only, load `docs/architecture/DependencyImpactPropagation.md`.
+- For Phase 3D Advisory Context Assembly state, load `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`, `apps/api/app/services/twin_planning_context.py`, `apps/api/app/twin_planning_context/schemas.py`, `apps/api/app/twin_planning_context/router.py`, and `apps/api/tests/test_twin_planning_context.py`.
 - For Phase 3C Planning Intelligence Readiness state, load `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md`, `apps/api/app/services/twin_planning_context.py`, `apps/api/app/twin_planning_context/schemas.py`, `apps/api/app/twin_planning_context/router.py`, and `apps/api/tests/test_twin_planning_context.py`.
 - For Phase 3B Derived Dependency Reasoning state, load `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md`, `apps/api/app/services/twin_planning_context.py`, `apps/api/app/twin_planning_context/schemas.py`, `apps/api/app/twin_planning_context/router.py`, and `apps/api/tests/test_twin_planning_context.py`.
 - For Phase 3A Derived Dependency Impact Readiness state, load `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`, `apps/api/app/services/twin_planning_context.py`, `apps/api/app/twin_planning_context/schemas.py`, `apps/api/app/twin_planning_context/router.py`, and `apps/api/tests/test_twin_planning_context.py`.
@@ -400,4 +407,4 @@ Load project skills before implementation.
 
 ## Latest Detailed Handoff
 
-See `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md` for the latest Phase 3C Planning Intelligence Readiness handoff, `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md` for the Phase 3B Derived Dependency Reasoning handoff, and `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md` for the Phase 3A Derived Dependency Impact Readiness handoff. The latest detailed historical handoff is `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md`.
+See `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md` for the latest Phase 3D Advisory Context Assembly handoff, `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md` for the Phase 3C Planning Intelligence Readiness handoff, `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md` for the Phase 3B Derived Dependency Reasoning handoff, and `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md` for the Phase 3A Derived Dependency Impact Readiness handoff. The latest detailed historical handoff is `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`.
