@@ -18,7 +18,7 @@
 - Phase 1: Planner Foundation is complete.
 - Phase 2A: Twin Doctrine Foundation is complete.
 - Phase 2B: Twin Runtime Expression is complete for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations. The runtime remains an approved read-only, `home_id`-anchored planning-context layer over existing planner records. Provenance Expansion runtime foundation scope is sufficiently complete; remaining provenance maturity work is deferred.
-- Phase 2C: Topology + Lifecycle Intelligence has opened with Topology Snapshot Foundation complete in `0c5bf23`. The topology snapshot remains read-only and derived from existing `TwinPlanningContext` records and dependency hooks.
+- Phase 2C: Topology + Lifecycle Intelligence has opened with Topology Snapshot Foundation complete in `0c5bf23` and Lifecycle Readiness Foundation complete in `0d62693`. The topology snapshot remains read-only and derived from existing `TwinPlanningContext` records and dependency hooks, with descriptive lifecycle readiness metadata only.
 - Phase 3: Twin Intelligence Expansion remains deferred until Matt approves a new implementation boundary.
 - A repository-cognition formalization layer now supports model-agnostic restore and governance routing without changing runtime behavior.
 - Twin Doctrine Foundation architecture is substantially complete as a documentation/governance foundation.
@@ -33,7 +33,7 @@
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime scope.
-- Phase 2C: Topology + Lifecycle Intelligence - Topology Snapshot Foundation complete; further lifecycle or topology work requires a new Matt-approved boundary.
+- Phase 2C: Topology + Lifecycle Intelligence - Topology Snapshot Foundation and Lifecycle Readiness Foundation complete; further lifecycle or topology work requires a new Matt-approved boundary.
 - Phase 3: Twin Intelligence Expansion - deferred until Matt approves a new implementation boundary.
 
 ## Current Strategic Doctrine
@@ -84,7 +84,8 @@
 - Dependency Awareness Foundations are live as additive planning-context metadata through relationship-level dependency hooks, load-to-panel relationships via shared `building_id` labeled as planning context only, equipment-to-system/design/product/location references, scenario dependency references, descriptive change-impact hints, and descriptive planning dependency warnings. They do not implement a topology graph, recalculation engine, invalidation engine, background queue, or persisted stale-state system.
 - Permission Foundations are live as explicit placeholder/readiness metadata through audience, purpose, duration, revocation-state, consent-artifact placeholder, homeowner-authority-preservation, view-permission-alignment, and permission-readiness fields carried through context, section, record, AI grounding, homeowner projection, contractor projection, and internal/system projection paths. They are not active grants, active consent, authorization checks, persisted permission state, security, auth, RBAC/ABAC, portals, exports, or enforcement.
 - Phase 2C Topology Snapshot Foundation is live through `TwinTopologyNode`, `TwinTopologyEdge`, `TwinTopologySnapshot`, and the additive `/api/twin-planning-context/homes/{home_id}/views/topology-snapshot` endpoint. The snapshot includes `home_id`, scenario branch references, revision lineage references, lifecycle-domain summaries, and limitations, and is derived only from existing `TwinPlanningContext` records and dependency hooks.
-- The topology snapshot is descriptive/advisory planning context only. It does not create persistence, migrations, a canonical topology table, `twin_id`, graph database, topology promotion workflow, lifecycle event log, recalculation engine, invalidation engine, simulation, Phase 3 intelligence, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, or operational control.
+- Phase 2C Lifecycle Readiness Foundation is live as additive metadata on the topology snapshot endpoint through `lifecycle_readiness_summary`, `lifecycle_readiness_hints`, `deferred_lifecycle_domains`, `missing_readiness_indicators`, and `source_marker_found` traceability. Readiness remains descriptive, read-only, topology-derived, and provenance-aware.
+- The topology snapshot and lifecycle readiness metadata are descriptive/advisory planning context only. They do not create persistence, migrations, a canonical topology table, `twin_id`, graph database, lifecycle workflows, topology promotion engine, lifecycle event log, recalculation engine, invalidation engine, simulation, Phase 3 intelligence, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, or operational control.
 - The repository now includes canonical cognition-layer definitions, terminology, governance gap analysis, trust zones, provenance lineage model, topology lifecycle, scoped intelligence boundaries, orchestration readiness gaps, and roadmap sequencing docs.
 - ADR 0007 now records the decision to treat the repository as the durable project memory substrate.
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
@@ -112,9 +113,9 @@
 
 ## Current Next Product Target
 
-Phase 2B Twin Runtime Expression is complete. Phase 2C Topology Snapshot Foundation is complete and synchronized as the current topology/lifecycle foundation milestone.
+Phase 2B Twin Runtime Expression is complete. Phase 2C Topology Snapshot Foundation and Lifecycle Readiness Foundation are complete and synchronized as the current topology/lifecycle foundation milestones.
 
-The next safe step is a Matt-approved new Phase 2C boundary proposal before additional topology or lifecycle implementation. Phase 2D, Phase 3+, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and operational control remain deferred. Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, scoped exports, permission enforcement, and operational control remain unapproved.
+The next safe step is a Matt-approved new Phase 2C boundary proposal before additional topology or lifecycle implementation. Phase 2D, Phase 3+, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and operational control remain deferred. Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, scoped exports, permission enforcement, lifecycle workflows, topology promotion, lifecycle event logs, simulation, and operational control remain unapproved.
 
 ## Restore Model
 
@@ -129,7 +130,7 @@ The next safe step is a Matt-approved new Phase 2C boundary proposal before addi
 - Provenance Expansion remains partial and gap-reporting based, so trust messaging must stay explicit.
 - Dependency Awareness Foundations are descriptive planning-context metadata only; there is no Phase 2C topology graph, invalidation engine, recalculation queue, background job, or persisted stale-state system.
 - Permission Foundations are placeholder/readiness metadata only; there is no permission enforcement, grant ID, active consent, authorization check, persisted permission state, RBAC/ABAC, auth, tenant isolation, portal, export, utility sharing, ownership transfer, registry, marketplace, telemetry governance, or operational control.
-- Phase 2C Topology Snapshot Foundation is read-only and derived from existing planning-context records; there is no persisted topology state, canonical topology table, graph database, lifecycle event log, topology promotion workflow, recalculation engine, invalidation engine, simulation, Phase 3 intelligence, or advisory pseudo-node edge materialization.
+- Phase 2C Topology Snapshot and Lifecycle Readiness Foundations are read-only and derived from existing planning-context records; there is no persisted topology state, canonical topology table, graph database, lifecycle workflow, topology promotion engine, lifecycle event log, recalculation engine, invalidation engine, simulation, Phase 3 intelligence, or advisory pseudo-node edge materialization.
 - `TwinRuntimeProjectionView` now provides additive homeowner, contractor, and internal/system projection foundations, but these are not enforced permissioned views and do not create portals, exports, grants, consent artifacts, RBAC/ABAC, tenant isolation, utility views, or partner APIs.
 - No canonical Residential Energy Twin runtime identity exists; `home_id` remains the only runtime anchor for the Twin Planning Context.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
@@ -166,6 +167,7 @@ The next safe step is a Matt-approved new Phase 2C boundary proposal before addi
 - Phase 2B runtime view foundations handoff: `docs/handoffs/2026-06-03-phase-2b-runtime-view-foundations.md`
 - Phase 2B dependency and permission foundations handoff: `docs/handoffs/2026-06-03-phase-2b-dependency-permission-foundations.md`
 - Phase 2C topology snapshot foundation handoff: `docs/handoffs/2026-06-03-phase-2c-topology-snapshot-foundation.md`
+- Phase 2C lifecycle readiness foundation handoff: `docs/handoffs/2026-06-03-phase-2c-lifecycle-readiness-foundation.md`
 - First Residential Energy Twin runtime-boundary planning note: `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
 - Residential Energy Twin provenance policy planning note: `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - Residential Energy Twin permissioned-view planning note: `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`

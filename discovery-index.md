@@ -21,7 +21,10 @@ Read these first:
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
   - Completed: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
   - Provenance Expansion: runtime foundation scope is sufficiently complete; remaining provenance maturity work is deferred.
-- Phase 2C: next candidate phase.
+- Phase 2C: Topology + Lifecycle Intelligence - opened for foundations only.
+  - Completed: Topology Snapshot Foundation and Lifecycle Readiness Foundation.
+  - Current boundary: descriptive, read-only topology snapshot metadata derived from existing `TwinPlanningContext` records, dependency hooks, provenance gaps, dependency warnings, and limitation text.
+  - Deferred: persistence, migrations, canonical topology table, `twin_id`, graph database, lifecycle workflows, topology promotion engine, lifecycle event log, simulation, Phase 3 intelligence, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and operational control.
 - Phase 3: Twin Intelligence Expansion - deferred until Matt approves a future implementation boundary.
 
 ## Operational References By Task
@@ -53,6 +56,7 @@ Read these first:
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
   - `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
+  - `docs/handoffs/2026-06-03-phase-2c-lifecycle-readiness-foundation.md`
 - Architecture changes:
   - `docs/ARCHITECTURE.md`
   - `docs/architecture/ResidentialEnergyTwinCanonicalArchitectureHierarchy.md`
