@@ -10,12 +10,14 @@ from app.services.provenance import provenance_service
 from app.twin_planning_context.schemas import (
     AIDesignGroundingRecord,
     AIDesignGroundingView,
+    TwinPlanningChangeImpactHint,
     TwinPlanningContext,
     TwinPlanningContextRecord,
     TwinPlanningContextSection,
     TwinPlanningDependencyAwareness,
     TwinPlanningDependencyAwarenessLabel,
     TwinPlanningDependencyHook,
+    TwinPlanningDependencyWarning,
     TwinPlanningPermissionReadiness,
     TwinPlanningProvenanceGap,
     TwinPlanningProvenanceGapType,
@@ -116,6 +118,16 @@ DEPENDENCY_AWARENESS_LIMITATIONS = [
     "Labels do not run recalculation, schedule work, persist stale state, verify facts, or create approval authority.",
 ]
 
+CHANGE_IMPACT_HINT_LIMITATIONS = [
+    "Change-impact hints are descriptive planning metadata only.",
+    "Hints do not run recalculation, invalidate records, persist stale state, verify facts, or create approval authority.",
+]
+
+PLANNING_DEPENDENCY_WARNING_LIMITATIONS = [
+    "Planning dependency warnings describe relationship uncertainty only.",
+    "Warnings do not prove a dependency is wrong, complete, field-verified, approved, or operational.",
+]
+
 DEFERRED_PERMISSION_CAPABILITIES = [
     "permission_grants",
     "consent_artifacts",
@@ -144,6 +156,10 @@ REGROUNDING_GAP_TYPES = {
     TwinPlanningProvenanceGapType.placeholder_without_source.value,
     TwinPlanningProvenanceGapType.unknown_origin.value,
 }
+
+LOAD_PANEL_DEPENDENCY_RULE_KEY = "twin_dependency.load_panel_shared_building_v1"
+EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY = "twin_dependency.equipment_system_reference_v1"
+SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY = "twin_dependency.scenario_reference_v1"
 
 REVIEW_LIMITATION_MARKERS = (
     "not NEC compliance",
@@ -496,6 +512,75 @@ class TwinPlanningContextService:
             limitations=PROVENANCE_GAP_LIMITATIONS,
         )
 
+    def _dependency_hook(
+        self,
+        *,
+        source_entity_type: str,
+        source_entity_id: Optional[str],
+        target_entity_type: str,
+        target_entity_id: Optional[str],
+        relationship: str,
+        rule_key: str,
+        note: str,
+        confidence_level: str = "planning_context",
+    ) -> TwinPlanningDependencyHook:
+        return TwinPlanningDependencyHook(
+            source_entity_type=source_entity_type,
+            source_entity_id=source_entity_id,
+            target_entity_type=target_entity_type,
+            target_entity_id=target_entity_id,
+            relationship=relationship,
+            rule_keys=[rule_key],
+            confidence_level=confidence_level,
+            note=note,
+        )
+
+    def _change_impact_hint(
+        self,
+        *,
+        source_entity_type: str,
+        source_entity_id: Optional[str],
+        impacted_entity_type: str,
+        impacted_entity_id: Optional[str],
+        relationship: str,
+        rule_key: str,
+        reason: str,
+    ) -> TwinPlanningChangeImpactHint:
+        return TwinPlanningChangeImpactHint(
+            source_entity_type=source_entity_type,
+            source_entity_id=source_entity_id,
+            impacted_entity_type=impacted_entity_type,
+            impacted_entity_id=impacted_entity_id,
+            relationship=relationship,
+            rule_keys=[rule_key],
+            reason=reason,
+            limitations=CHANGE_IMPACT_HINT_LIMITATIONS,
+        )
+
+    def _planning_dependency_warning(
+        self,
+        *,
+        warning_type: str,
+        entity_type: str,
+        entity_id: Optional[str],
+        reason: str,
+        related_entity_type: Optional[str] = None,
+        related_entity_id: Optional[str] = None,
+        rule_key: Optional[str] = None,
+        severity: str = "info",
+    ) -> TwinPlanningDependencyWarning:
+        return TwinPlanningDependencyWarning(
+            warning_type=warning_type,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            related_entity_type=related_entity_type,
+            related_entity_id=related_entity_id,
+            severity=severity,
+            reason=reason,
+            rule_keys=[rule_key] if rule_key else [],
+            limitations=PLANNING_DEPENDENCY_WARNING_LIMITATIONS,
+        )
+
     def _sourced_fields(self, provenance_records: List[object]) -> set:
         return {
             record.field_name
@@ -520,7 +605,7 @@ class TwinPlanningContextService:
         dependency_hooks: Optional[List[TwinPlanningDependencyHook]],
         source_document_ids: Optional[List[str]],
     ) -> List[TwinPlanningProvenanceGap]:
-        if rule_keys or dependency_hooks or source_document_ids:
+        if rule_keys or source_document_ids:
             return []
         return [
             self._gap(
@@ -528,8 +613,7 @@ class TwinPlanningContextService:
                 entity_type=entity_type,
                 entity_id=entity_id,
                 reason=(
-                    "Derived or advisory output has no persisted rule key, source document, "
-                    "or dependency hook lineage in this context."
+                    "Derived or advisory output has no persisted rule key or source document lineage in this context."
                 ),
             )
         ]
@@ -930,6 +1014,8 @@ class TwinPlanningContextService:
         provenance_entity_type: Optional[str] = None,
         rule_keys: Optional[List[str]] = None,
         dependency_hooks: Optional[List[TwinPlanningDependencyHook]] = None,
+        change_impact_hints: Optional[List[TwinPlanningChangeImpactHint]] = None,
+        planning_dependency_warnings: Optional[List[TwinPlanningDependencyWarning]] = None,
         extra_reasons: Optional[List[str]] = None,
         limitations: Optional[List[str]] = None,
     ) -> TwinPlanningContextRecord:
@@ -946,6 +1032,8 @@ class TwinPlanningContextService:
         source_document_ids = summary.source_document_ids if summary else []
         record_rule_keys = rule_keys or []
         record_dependency_hooks = dependency_hooks or []
+        record_change_impact_hints = change_impact_hints or []
+        record_planning_dependency_warnings = planning_dependency_warnings or []
         return TwinPlanningContextRecord(
             entity_type=entity_type,
             entity_id=entity_id,
@@ -977,6 +1065,8 @@ class TwinPlanningContextService:
                 rule_keys=record_rule_keys,
                 dependency_hooks=record_dependency_hooks,
             ),
+            change_impact_hints=record_change_impact_hints,
+            planning_dependency_warnings=record_planning_dependency_warnings,
             limitations=limitations or [],
         )
 
@@ -1096,6 +1186,416 @@ class TwinPlanningContextService:
             for dependency in graph.dependencies
         ]
 
+    def _load_panel_dependency_metadata(
+        self, load, panels_by_building: Dict[str, List[object]]
+    ):
+        related_panels = panels_by_building.get(load.building_id, [])
+        hooks = [
+            self._dependency_hook(
+                source_entity_type="load",
+                source_entity_id=load.id,
+                target_entity_type="electrical_panel",
+                target_entity_id=panel.id,
+                relationship="shared_building_id_planning_context",
+                rule_key=LOAD_PANEL_DEPENDENCY_RULE_KEY,
+                confidence_level="planning_context_only",
+                note=(
+                    f"Load {load.id} and panel {panel.id} share building_id {load.building_id}; "
+                    "this is planning context only and does not identify circuit membership."
+                ),
+            )
+            for panel in related_panels
+        ]
+        hints = [
+            self._change_impact_hint(
+                source_entity_type="electrical_panel",
+                source_entity_id=panel.id,
+                impacted_entity_type="load",
+                impacted_entity_id=load.id,
+                relationship="shared_building_id_planning_context",
+                rule_key=LOAD_PANEL_DEPENDENCY_RULE_KEY,
+                reason=(
+                    "Panel or service-capacity changes for the same building may affect how this load is interpreted "
+                    "in planning outputs."
+                ),
+            )
+            for panel in related_panels
+        ]
+        warnings = []
+        if related_panels:
+            warnings.append(
+                self._planning_dependency_warning(
+                    warning_type="load_panel_relationship_is_building_level_only",
+                    entity_type="load",
+                    entity_id=load.id,
+                    related_entity_type="electrical_panel",
+                    related_entity_id=related_panels[0].id,
+                    rule_key=LOAD_PANEL_DEPENDENCY_RULE_KEY,
+                    reason=(
+                        "The load-to-panel relationship is inferred only from shared building_id planning context; "
+                        "it is not a verified circuit, breaker, or panelboard assignment."
+                    ),
+                )
+            )
+        else:
+            warnings.append(
+                self._planning_dependency_warning(
+                    warning_type="load_has_no_same_building_panel",
+                    entity_type="load",
+                    entity_id=load.id,
+                    rule_key=LOAD_PANEL_DEPENDENCY_RULE_KEY,
+                    severity="warning",
+                    reason=(
+                        "No electrical panel record shares this load's building_id, so panel/service impact context "
+                        "for this load is incomplete."
+                    ),
+                )
+            )
+        return hooks, hints, warnings
+
+    def _panel_load_dependency_metadata(
+        self, panel, loads_by_building: Dict[str, List[object]]
+    ):
+        related_loads = loads_by_building.get(panel.building_id, [])
+        hints = [
+            self._change_impact_hint(
+                source_entity_type="load",
+                source_entity_id=load.id,
+                impacted_entity_type="electrical_panel",
+                impacted_entity_id=panel.id,
+                relationship="shared_building_id_planning_context",
+                rule_key=LOAD_PANEL_DEPENDENCY_RULE_KEY,
+                reason=(
+                    "Recorded load changes for the same building may affect panel/service planning interpretation."
+                ),
+            )
+            for load in related_loads
+        ]
+        warnings = []
+        if related_loads:
+            warnings.append(
+                self._planning_dependency_warning(
+                    warning_type="panel_load_relationship_is_building_level_only",
+                    entity_type="electrical_panel",
+                    entity_id=panel.id,
+                    related_entity_type="load",
+                    related_entity_id=related_loads[0].id,
+                    rule_key=LOAD_PANEL_DEPENDENCY_RULE_KEY,
+                    reason=(
+                        "Panel-to-load impact is based on shared building_id only; it does not identify a verified "
+                        "served-load, circuit, breaker, or subpanel relationship."
+                    ),
+                )
+            )
+        return [], hints, warnings
+
+    def _design_equipment_dependency_metadata(
+        self,
+        equipment,
+        designs_by_id: Dict[str, object],
+        products_by_id: Dict[str, object],
+        locations_by_id: Dict[str, object],
+    ):
+        hooks = []
+        hints = []
+        warnings = []
+
+        if equipment.design_id in designs_by_id:
+            hooks.append(
+                self._dependency_hook(
+                    source_entity_type="design_equipment",
+                    source_entity_id=equipment.id,
+                    target_entity_type="energy_system_design",
+                    target_entity_id=equipment.design_id,
+                    relationship="assigned_to_design_planning_context",
+                    rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                    note=(
+                        f"Design equipment {equipment.id} is part of design {equipment.design_id} in the "
+                        "current planning composition."
+                    ),
+                )
+            )
+            hints.append(
+                self._change_impact_hint(
+                    source_entity_type="energy_system_design",
+                    source_entity_id=equipment.design_id,
+                    impacted_entity_type="design_equipment",
+                    impacted_entity_id=equipment.id,
+                    relationship="assigned_to_design_planning_context",
+                    rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                    reason="Design goal or status changes may affect how this equipment assignment is interpreted.",
+                )
+            )
+        else:
+            warnings.append(
+                self._planning_dependency_warning(
+                    warning_type="design_equipment_missing_design_reference",
+                    entity_type="design_equipment",
+                    entity_id=equipment.id,
+                    related_entity_type="energy_system_design",
+                    related_entity_id=equipment.design_id,
+                    rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                    severity="warning",
+                    reason="This equipment assignment references a design that is not present in the home planning context.",
+                )
+            )
+
+        if equipment.product_id in products_by_id:
+            hooks.append(
+                self._dependency_hook(
+                    source_entity_type="design_equipment",
+                    source_entity_id=equipment.id,
+                    target_entity_type="equipment_product",
+                    target_entity_id=equipment.product_id,
+                    relationship="uses_product_reference",
+                    rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                    note=(
+                        f"Design equipment {equipment.id} references product {equipment.product_id}; product data "
+                        "is planning reference data, not a procurement or compatibility guarantee."
+                    ),
+                )
+            )
+            hints.append(
+                self._change_impact_hint(
+                    source_entity_type="equipment_product",
+                    source_entity_id=equipment.product_id,
+                    impacted_entity_type="design_equipment",
+                    impacted_entity_id=equipment.id,
+                    relationship="uses_product_reference",
+                    rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                    reason="Product data changes may affect equipment composition, compatibility, and planning notes.",
+                )
+            )
+        else:
+            warnings.append(
+                self._planning_dependency_warning(
+                    warning_type="design_equipment_missing_product_reference",
+                    entity_type="design_equipment",
+                    entity_id=equipment.id,
+                    related_entity_type="equipment_product",
+                    related_entity_id=equipment.product_id,
+                    rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                    severity="warning",
+                    reason="This equipment assignment references product data that is not present in the runtime context.",
+                )
+            )
+
+        if equipment.location_id:
+            if equipment.location_id in locations_by_id:
+                hooks.append(
+                    self._dependency_hook(
+                        source_entity_type="design_equipment",
+                        source_entity_id=equipment.id,
+                        target_entity_type="equipment_location",
+                        target_entity_id=equipment.location_id,
+                        relationship="assigned_location_planning_context",
+                        rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                        note=(
+                            f"Design equipment {equipment.id} references location {equipment.location_id}; "
+                            "location is planning/siting context only."
+                        ),
+                    )
+                )
+                hints.append(
+                    self._change_impact_hint(
+                        source_entity_type="equipment_location",
+                        source_entity_id=equipment.location_id,
+                        impacted_entity_type="design_equipment",
+                        impacted_entity_id=equipment.id,
+                        relationship="assigned_location_planning_context",
+                        rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                        reason="Location changes may affect siting, pathway, and design-equipment planning interpretation.",
+                    )
+                )
+                warnings.append(
+                    self._planning_dependency_warning(
+                        warning_type="equipment_location_is_planning_only",
+                        entity_type="design_equipment",
+                        entity_id=equipment.id,
+                        related_entity_type="equipment_location",
+                        related_entity_id=equipment.location_id,
+                        rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                        reason="Equipment location references are planning/siting context and are not field-verified placement.",
+                    )
+                )
+            else:
+                warnings.append(
+                    self._planning_dependency_warning(
+                        warning_type="design_equipment_missing_location_reference",
+                        entity_type="design_equipment",
+                        entity_id=equipment.id,
+                        related_entity_type="equipment_location",
+                        related_entity_id=equipment.location_id,
+                        rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                        severity="warning",
+                        reason="This equipment assignment references a location that is not present in the home planning context.",
+                    )
+                )
+        else:
+            warnings.append(
+                self._planning_dependency_warning(
+                    warning_type="design_equipment_location_unassigned",
+                    entity_type="design_equipment",
+                    entity_id=equipment.id,
+                    rule_key=EQUIPMENT_SYSTEM_DEPENDENCY_RULE_KEY,
+                    reason="No equipment location is assigned, so siting and pathway dependency context is incomplete.",
+                )
+            )
+
+        return hooks, hints, warnings
+
+    def _scenario_dependency_metadata(self, scenario, designs_by_id: Dict[str, object]):
+        hooks = []
+        hints = []
+        warnings = [
+            self._planning_dependency_warning(
+                warning_type="scenario_reference_is_not_live_invalidation",
+                entity_type="scenario",
+                entity_id=scenario.id,
+                related_entity_type="energy_system_design",
+                related_entity_id=scenario.linked_design_id,
+                rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                reason=(
+                    "Scenario-to-design references are planning dependencies only; design changes do not create "
+                    "automatic invalidation, recalculation, or approval state."
+                ),
+            )
+        ]
+        if scenario.linked_design_id in designs_by_id:
+            hooks.append(
+                self._dependency_hook(
+                    source_entity_type="scenario",
+                    source_entity_id=scenario.id,
+                    target_entity_type="energy_system_design",
+                    target_entity_id=scenario.linked_design_id,
+                    relationship="linked_design_planning_context",
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    note=f"Scenario {scenario.id} references design {scenario.linked_design_id}.",
+                )
+            )
+            hints.append(
+                self._change_impact_hint(
+                    source_entity_type="energy_system_design",
+                    source_entity_id=scenario.linked_design_id,
+                    impacted_entity_type="scenario",
+                    impacted_entity_id=scenario.id,
+                    relationship="linked_design_planning_context",
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    reason="Linked design changes may affect scenario comparison and planning interpretation.",
+                )
+            )
+        else:
+            warnings.append(
+                self._planning_dependency_warning(
+                    warning_type="scenario_missing_design_reference",
+                    entity_type="scenario",
+                    entity_id=scenario.id,
+                    related_entity_type="energy_system_design",
+                    related_entity_id=scenario.linked_design_id,
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    severity="warning",
+                    reason="This scenario references a design that is not present in the home planning context.",
+                )
+            )
+        return hooks, hints, warnings
+
+    def _scenario_revision_dependency_metadata(
+        self,
+        revision,
+        scenarios_by_id: Dict[str, object],
+        designs_by_id: Dict[str, object],
+    ):
+        hooks = []
+        hints = []
+        warnings = [
+            self._planning_dependency_warning(
+                warning_type="revision_snapshot_is_not_live_replay",
+                entity_type="scenario_revision",
+                entity_id=revision.id,
+                related_entity_type="scenario",
+                related_entity_id=revision.scenario_id,
+                rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                reason=(
+                    "Scenario revisions are compact snapshots; current design or scenario changes do not automatically "
+                    "replay, recalculate, invalidate, or approve this revision."
+                ),
+            )
+        ]
+
+        if revision.scenario_id in scenarios_by_id:
+            hooks.append(
+                self._dependency_hook(
+                    source_entity_type="scenario_revision",
+                    source_entity_id=revision.id,
+                    target_entity_type="scenario",
+                    target_entity_id=revision.scenario_id,
+                    relationship="snapshot_of_scenario",
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    note=f"Scenario revision {revision.id} snapshots scenario {revision.scenario_id}.",
+                )
+            )
+            hints.append(
+                self._change_impact_hint(
+                    source_entity_type="scenario",
+                    source_entity_id=revision.scenario_id,
+                    impacted_entity_type="scenario_revision",
+                    impacted_entity_id=revision.id,
+                    relationship="snapshot_of_scenario",
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    reason="Scenario changes may affect how this saved revision should be interpreted.",
+                )
+            )
+
+        if revision.linked_design_id in designs_by_id:
+            hooks.append(
+                self._dependency_hook(
+                    source_entity_type="scenario_revision",
+                    source_entity_id=revision.id,
+                    target_entity_type="energy_system_design",
+                    target_entity_id=revision.linked_design_id,
+                    relationship="snapshot_linked_design",
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    note=f"Scenario revision {revision.id} preserves linked design {revision.linked_design_id}.",
+                )
+            )
+            hints.append(
+                self._change_impact_hint(
+                    source_entity_type="energy_system_design",
+                    source_entity_id=revision.linked_design_id,
+                    impacted_entity_type="scenario_revision",
+                    impacted_entity_id=revision.id,
+                    relationship="snapshot_linked_design",
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    reason="Linked design changes may affect whether this saved revision still matches current planning intent.",
+                )
+            )
+
+        if revision.parent_revision_id:
+            hooks.append(
+                self._dependency_hook(
+                    source_entity_type="scenario_revision",
+                    source_entity_id=revision.id,
+                    target_entity_type="scenario_revision",
+                    target_entity_id=revision.parent_revision_id,
+                    relationship="parent_revision_lineage",
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    note=f"Scenario revision {revision.id} references parent revision {revision.parent_revision_id}.",
+                )
+            )
+            hints.append(
+                self._change_impact_hint(
+                    source_entity_type="scenario_revision",
+                    source_entity_id=revision.parent_revision_id,
+                    impacted_entity_type="scenario_revision",
+                    impacted_entity_id=revision.id,
+                    relationship="parent_revision_lineage",
+                    rule_key=SCENARIO_REFERENCE_DEPENDENCY_RULE_KEY,
+                    reason="Parent revision lineage affects interpretation of saved revision drift.",
+                )
+            )
+
+        return hooks, hints, warnings
+
     def _ai_grounding_fields(self, record: TwinPlanningContextRecord) -> Dict[str, object]:
         allowed_fields = AI_GROUNDING_FIELD_ALLOWLIST.get(record.entity_type, set())
         return {
@@ -1184,6 +1684,8 @@ class TwinPlanningContextService:
             missing_fields=record.missing_fields,
             provenance_gaps=record.provenance_gaps,
             dependency_awareness=record.dependency_awareness,
+            change_impact_hints=record.change_impact_hints,
+            planning_dependency_warnings=record.planning_dependency_warnings,
             permission_readiness=self._ai_record_permission_readiness(record),
             limitations=record.limitations,
         )
@@ -1354,6 +1856,8 @@ class TwinPlanningContextService:
             missing_fields=record.missing_fields,
             provenance_gaps=record.provenance_gaps,
             dependency_awareness=record.dependency_awareness,
+            change_impact_hints=record.change_impact_hints,
+            planning_dependency_warnings=record.planning_dependency_warnings,
             permission_readiness=self._runtime_record_permission_readiness(role, record),
             limitations=record.limitations,
         )
@@ -1514,12 +2018,11 @@ class TwinPlanningContextService:
             ),
         )
 
-        if design_id:
-            dependency_hooks = [
-                hook for hook in context.dependency_hooks if f"Design {design_id}:" in hook.note
-            ]
-        else:
-            dependency_hooks = context.dependency_hooks
+        dependency_hooks = [
+            hook
+            for record in grounding_records
+            for hook in record.dependency_hooks
+        ]
 
         return AIDesignGroundingView(
             home_id=home_id,
@@ -1568,12 +2071,20 @@ class TwinPlanningContextService:
             for equipment in design_equipment
             if equipment.product is not None
         }
+        designs_by_id = {design.id: design for design in designs}
+        locations_by_id = {location.id: location for location in locations}
+        scenarios_by_id = {scenario.id: scenario for scenario in scenarios}
+        panels_by_building: Dict[str, List[object]] = {}
+        loads_by_building: Dict[str, List[object]] = {}
+        for panel in panels:
+            panels_by_building.setdefault(panel.building_id, []).append(panel)
+        for load in loads:
+            loads_by_building.setdefault(load.building_id, []).append(load)
         scenario_revisions = [revision for scenario in scenarios for revision in scenario.revisions]
 
         sections: List[TwinPlanningContextSection] = []
         unknown_records: List[TwinPlanningContextRecord] = []
         provenance_gaps: List[str] = []
-        dependency_hooks: List[TwinPlanningDependencyHook] = []
 
         def add_unknown_if_needed(record: TwinPlanningContextRecord):
             if self._has_provenance(record.provenance_summary):
@@ -1656,37 +2167,42 @@ class TwinPlanningContextService:
             TwinPlanningContextSection(section_key="structures", label="Structures", records=structure_records)
         )
 
-        panel_records = [
-            self._record(
-                db=db,
-                entity_type="electrical_panel",
-                entity_id=panel.id,
-                label=f"{panel.panel_type} {panel.amperage}A",
-                data_origin=panel.data_origin,
-                record_snapshot=self._record_snapshot(
-                    panel,
-                    [
-                        "id",
-                        "home_id",
-                        "building_id",
-                        "panel_type",
-                        "amperage",
-                        "busbar_rating",
-                        "breaker_spaces_total",
-                        "breaker_spaces_available",
-                        "indoor_outdoor",
-                        "notes",
-                        "data_origin",
-                        "created_at",
-                        "updated_at",
+        panel_records = []
+        for panel in panels:
+            panel_hooks, panel_hints, panel_warnings = self._panel_load_dependency_metadata(panel, loads_by_building)
+            panel_records.append(
+                self._record(
+                    db=db,
+                    entity_type="electrical_panel",
+                    entity_id=panel.id,
+                    label=f"{panel.panel_type} {panel.amperage}A",
+                    data_origin=panel.data_origin,
+                    record_snapshot=self._record_snapshot(
+                        panel,
+                        [
+                            "id",
+                            "home_id",
+                            "building_id",
+                            "panel_type",
+                            "amperage",
+                            "busbar_rating",
+                            "breaker_spaces_total",
+                            "breaker_spaces_available",
+                            "indoor_outdoor",
+                            "notes",
+                            "data_origin",
+                            "created_at",
+                            "updated_at",
+                        ],
+                    ),
+                    dependency_hooks=panel_hooks,
+                    change_impact_hints=panel_hints,
+                    planning_dependency_warnings=panel_warnings,
+                    limitations=[
+                        "Panel records are electrical planning context, not NEC compliance, AHJ approval, or engineering approval.",
                     ],
-                ),
-                limitations=[
-                    "Panel records are electrical planning context, not NEC compliance, AHJ approval, or engineering approval.",
-                ],
+                )
             )
-            for panel in panels
-        ]
         for record in panel_records:
             add_unknown_if_needed(record)
         sections.append(
@@ -1697,38 +2213,43 @@ class TwinPlanningContextService:
             )
         )
 
-        load_records = [
-            self._record(
-                db=db,
-                entity_type="load",
-                entity_id=load.id,
-                label=load.name,
-                data_origin=load.data_origin,
-                record_snapshot=self._record_snapshot(
-                    load,
-                    [
-                        "id",
-                        "home_id",
-                        "building_id",
-                        "name",
-                        "category",
-                        "running_watts",
-                        "surge_watts",
-                        "estimated_daily_hours",
-                        "backup_priority",
-                        "phase_type",
-                        "notes",
-                        "data_origin",
-                        "created_at",
-                        "updated_at",
+        load_records = []
+        for load in loads:
+            load_hooks, load_hints, load_warnings = self._load_panel_dependency_metadata(load, panels_by_building)
+            load_records.append(
+                self._record(
+                    db=db,
+                    entity_type="load",
+                    entity_id=load.id,
+                    label=load.name,
+                    data_origin=load.data_origin,
+                    record_snapshot=self._record_snapshot(
+                        load,
+                        [
+                            "id",
+                            "home_id",
+                            "building_id",
+                            "name",
+                            "category",
+                            "running_watts",
+                            "surge_watts",
+                            "estimated_daily_hours",
+                            "backup_priority",
+                            "phase_type",
+                            "notes",
+                            "data_origin",
+                            "created_at",
+                            "updated_at",
+                        ],
+                    ),
+                    dependency_hooks=load_hooks,
+                    change_impact_hints=load_hints,
+                    planning_dependency_warnings=load_warnings,
+                    limitations=[
+                        "Load records are modeled planning loads, not verified circuit inventory, load study, or telemetry.",
                     ],
-                ),
-                limitations=[
-                    "Load records are modeled planning loads, not verified circuit inventory, load study, or telemetry.",
-                ],
+                )
             )
-            for load in loads
-        ]
         for record in load_records:
             add_unknown_if_needed(record)
         sections.append(TwinPlanningContextSection(section_key="loads", label="Loads", records=load_records))
@@ -1832,32 +2353,44 @@ class TwinPlanningContextService:
             add_unknown_if_needed(record)
         sections.append(TwinPlanningContextSection(section_key="designs", label="Designs", records=design_records))
 
-        design_equipment_records = [
-            self._record(
-                db=db,
-                entity_type="design_equipment",
-                entity_id=equipment.id,
-                label=equipment.role_in_system,
-                data_origin=equipment.data_origin,
-                record_snapshot=self._record_snapshot(
-                    equipment,
-                    [
-                        "id",
-                        "design_id",
-                        "product_id",
-                        "quantity",
-                        "location_id",
-                        "role_in_system",
-                        "notes",
-                        "data_origin",
-                        "created_at",
-                        "updated_at",
-                    ],
-                ),
-                limitations=["Design equipment assignments are design composition, not procurement or installed equipment status."],
+        design_equipment_records = []
+        for equipment in design_equipment:
+            equipment_hooks, equipment_hints, equipment_warnings = self._design_equipment_dependency_metadata(
+                equipment,
+                designs_by_id,
+                products_by_id,
+                locations_by_id,
             )
-            for equipment in design_equipment
-        ]
+            design_equipment_records.append(
+                self._record(
+                    db=db,
+                    entity_type="design_equipment",
+                    entity_id=equipment.id,
+                    label=equipment.role_in_system,
+                    data_origin=equipment.data_origin,
+                    record_snapshot=self._record_snapshot(
+                        equipment,
+                        [
+                            "id",
+                            "design_id",
+                            "product_id",
+                            "quantity",
+                            "location_id",
+                            "role_in_system",
+                            "notes",
+                            "data_origin",
+                            "created_at",
+                            "updated_at",
+                        ],
+                    ),
+                    dependency_hooks=equipment_hooks,
+                    change_impact_hints=equipment_hints,
+                    planning_dependency_warnings=equipment_warnings,
+                    limitations=[
+                        "Design equipment assignments are design composition, not procurement or installed equipment status."
+                    ],
+                )
+            )
         for record in design_equipment_records:
             add_unknown_if_needed(record)
         sections.append(
@@ -1904,77 +2437,94 @@ class TwinPlanningContextService:
             add_unknown_if_needed(record)
         sections.append(TwinPlanningContextSection(section_key="pathways", label="Pathways", records=pathway_records))
 
-        scenario_records = [
-            self._record(
-                db=db,
-                entity_type="scenario",
-                entity_id=scenario.id,
-                label=scenario.name,
-                data_origin=scenario.data_origin,
-                record_snapshot=self._record_snapshot(
-                    scenario,
-                    [
-                        "id",
-                        "home_id",
-                        "name",
-                        "description",
-                        "linked_design_id",
-                        "upfront_cost_placeholder",
-                        "future_expansion_score",
-                        "install_complexity_score",
-                        "backup_capability_score",
-                        "notes",
-                        "data_origin",
-                        "created_at",
-                        "updated_at",
-                    ],
-                ),
-                limitations=[
-                    "Scenario records are planning futures; placeholder scores and costs are not bids, quotes, or financial guarantees.",
-                ],
+        scenario_records = []
+        for scenario in scenarios:
+            scenario_hooks, scenario_hints, scenario_warnings = self._scenario_dependency_metadata(
+                scenario,
+                designs_by_id,
             )
-            for scenario in scenarios
-        ]
+            scenario_records.append(
+                self._record(
+                    db=db,
+                    entity_type="scenario",
+                    entity_id=scenario.id,
+                    label=scenario.name,
+                    data_origin=scenario.data_origin,
+                    record_snapshot=self._record_snapshot(
+                        scenario,
+                        [
+                            "id",
+                            "home_id",
+                            "name",
+                            "description",
+                            "linked_design_id",
+                            "upfront_cost_placeholder",
+                            "future_expansion_score",
+                            "install_complexity_score",
+                            "backup_capability_score",
+                            "notes",
+                            "data_origin",
+                            "created_at",
+                            "updated_at",
+                        ],
+                    ),
+                    dependency_hooks=scenario_hooks,
+                    change_impact_hints=scenario_hints,
+                    planning_dependency_warnings=scenario_warnings,
+                    limitations=[
+                        "Scenario records are planning futures; placeholder scores and costs are not bids, quotes, or financial guarantees.",
+                    ],
+                )
+            )
         for record in scenario_records:
             add_unknown_if_needed(record)
         sections.append(TwinPlanningContextSection(section_key="scenarios", label="Scenarios", records=scenario_records))
 
-        revision_records = [
-            self._record(
-                db=db,
-                entity_type="scenario_revision",
-                entity_id=revision.id,
-                label=revision.revision_label,
-                data_origin=revision.data_origin,
-                authority_layer=AuthorityLayer.historical,
-                default_classification=TwinPlanningRecordClassification.derived_output,
-                record_snapshot=self._record_snapshot(
-                    revision,
-                    [
-                        "id",
-                        "scenario_id",
-                        "parent_revision_id",
-                        "revision_number",
-                        "revision_label",
-                        "revision_status",
-                        "linked_design_id",
-                        "design_goal_snapshot",
-                        "design_status_snapshot",
-                        "recommended_profile_snapshot",
-                        "planning_summary",
-                        "planning_state_snapshot",
-                        "data_origin",
-                        "created_at",
-                        "updated_at",
-                    ],
-                ),
-                extra_reasons=["Scenario revisions are compact historical planning snapshots."],
-                limitations=[
-                    "Scenario revisions preserve compact planning-state framing, not full advisor replay.",
-                ],
+        revision_records = []
+        for revision in scenario_revisions:
+            revision_hooks, revision_hints, revision_warnings = self._scenario_revision_dependency_metadata(
+                revision,
+                scenarios_by_id,
+                designs_by_id,
             )
-            for revision in scenario_revisions
-        ]
+            revision_records.append(
+                self._record(
+                    db=db,
+                    entity_type="scenario_revision",
+                    entity_id=revision.id,
+                    label=revision.revision_label,
+                    data_origin=revision.data_origin,
+                    authority_layer=AuthorityLayer.historical,
+                    default_classification=TwinPlanningRecordClassification.derived_output,
+                    record_snapshot=self._record_snapshot(
+                        revision,
+                        [
+                            "id",
+                            "scenario_id",
+                            "parent_revision_id",
+                            "revision_number",
+                            "revision_label",
+                            "revision_status",
+                            "linked_design_id",
+                            "design_goal_snapshot",
+                            "design_status_snapshot",
+                            "recommended_profile_snapshot",
+                            "planning_summary",
+                            "planning_state_snapshot",
+                            "data_origin",
+                            "created_at",
+                            "updated_at",
+                        ],
+                    ),
+                    dependency_hooks=revision_hooks,
+                    change_impact_hints=revision_hints,
+                    planning_dependency_warnings=revision_warnings,
+                    extra_reasons=["Scenario revisions are compact historical planning snapshots."],
+                    limitations=[
+                        "Scenario revisions preserve compact planning-state framing, not full advisor replay.",
+                    ],
+                )
+            )
         sections.append(
             TwinPlanningContextSection(
                 section_key="scenario_revisions", label="Scenario Revisions", records=revision_records
@@ -1986,7 +2536,6 @@ class TwinPlanningContextService:
             advisor = design_advisor_service.explain(db, design.id)
             recommendation = advisor["recommendation_profiles"]
             hooks = self._dependency_hooks_from_recommendation(design.id, recommendation)
-            dependency_hooks.extend(hooks)
             advisor_records.append(
                 self._advisor_record(design_id=design.id, recommendation=recommendation, dependency_hooks=hooks)
             )
@@ -2016,8 +2565,15 @@ class TwinPlanningContextService:
         self._attach_dependency_awareness(sections)
         self._attach_permission_readiness(sections)
 
+        all_records = [record for section in sections for record in section.records]
+        context_dependency_hooks = [
+            hook
+            for record in all_records
+            for hook in record.dependency_hooks
+        ]
+
         classification_counts = Counter(
-            record.classification for section in sections for record in section.records
+            record.classification for record in all_records
         )
         classification_summary = {
             classification.value: classification_counts.get(classification, 0)
@@ -2062,9 +2618,9 @@ class TwinPlanningContextService:
                 "Scenario revisions preserve compact planning-state snapshots, not full historical advisor replay.",
                 "No general lifecycle event log, stale-state marker, supersession model, or permission continuity model exists yet.",
             ],
-            dependency_hooks=dependency_hooks,
+            dependency_hooks=context_dependency_hooks,
             dependency_awareness_summary=self._dependency_awareness_summary(
-                [record for section in sections for record in section.records]
+                all_records
             ),
             permission_readiness=self._context_permission_readiness(),
             limitations=[

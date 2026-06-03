@@ -236,6 +236,84 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("stale_unknown", advisor_note_labels)
         self.assertEqual("advisory_output", advisor_note.classification.value)
 
+    def test_context_surfaces_phase_2b_relationship_dependency_foundations(self):
+        context = self._context()
+        section_map = {section.section_key: section for section in context.sections}
+
+        def section_record(section_key, entity_type, entity_id):
+            return next(
+                record
+                for record in section_map[section_key].records
+                if record.entity_type == entity_type and record.entity_id == entity_id
+            )
+
+        load = section_record("loads", "load", "load_001")
+        load_hook = next(
+            hook
+            for hook in load.dependency_hooks
+            if hook.target_entity_type == "electrical_panel" and hook.target_entity_id == "panel_main"
+        )
+        self.assertEqual("shared_building_id_planning_context", load_hook.relationship)
+        self.assertIn("twin_dependency.load_panel_shared_building_v1", load_hook.rule_keys)
+        self.assertIn("planning context only", load_hook.note)
+        self.assertTrue(load.change_impact_hints)
+        self.assertIn(
+            "load_panel_relationship_is_building_level_only",
+            {warning.warning_type for warning in load.planning_dependency_warnings},
+        )
+
+        detached_load = section_record("loads", "load", "load_003")
+        self.assertIn(
+            "load_has_no_same_building_panel",
+            {warning.warning_type for warning in detached_load.planning_dependency_warnings},
+        )
+
+        design_equipment = section_record("design_equipment", "design_equipment", "design_001_equipment_1")
+        equipment_targets = {
+            (hook.target_entity_type, hook.target_entity_id)
+            for hook in design_equipment.dependency_hooks
+        }
+        self.assertIn(("energy_system_design", "design_001"), equipment_targets)
+        self.assertIn(("equipment_product", "product_generic_panel"), equipment_targets)
+        self.assertIn(("equipment_location", "location_roof_south"), equipment_targets)
+        self.assertTrue(design_equipment.change_impact_hints)
+        self.assertIn(
+            "equipment_location_is_planning_only",
+            {warning.warning_type for warning in design_equipment.planning_dependency_warnings},
+        )
+
+        scenario = section_record("scenarios", "scenario", "scenario_001")
+        scenario_targets = {
+            (hook.target_entity_type, hook.target_entity_id)
+            for hook in scenario.dependency_hooks
+        }
+        self.assertIn(("energy_system_design", "design_001"), scenario_targets)
+        self.assertIn(
+            "scenario_reference_is_not_live_invalidation",
+            {warning.warning_type for warning in scenario.planning_dependency_warnings},
+        )
+
+        revision = section_record("scenario_revisions", "scenario_revision", "scenario_001_rev_001")
+        revision_targets = {
+            (hook.target_entity_type, hook.target_entity_id)
+            for hook in revision.dependency_hooks
+        }
+        self.assertIn(("scenario", "scenario_001"), revision_targets)
+        self.assertIn(("energy_system_design", "design_001"), revision_targets)
+        self.assertIn(
+            "revision_snapshot_is_not_live_replay",
+            {warning.warning_type for warning in revision.planning_dependency_warnings},
+        )
+
+        context_rule_keys = {
+            rule_key
+            for hook in context.dependency_hooks
+            for rule_key in hook.rule_keys
+        }
+        self.assertIn("twin_dependency.load_panel_shared_building_v1", context_rule_keys)
+        self.assertIn("twin_dependency.equipment_system_reference_v1", context_rule_keys)
+        self.assertIn("twin_dependency.scenario_reference_v1", context_rule_keys)
+
     def test_context_reports_permission_readiness_without_enforcement(self):
         context = self._context()
         readiness = context.permission_readiness
@@ -511,6 +589,65 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             advisor_record.contributor_identity.contributor_type,
         )
         self.assertTrue(advisor_record.dependency_hooks)
+
+    def test_dependency_foundations_survive_runtime_and_ai_projections(self):
+        contractor = self._runtime_view("contractor")
+        internal = self._runtime_view("internal_system")
+        ai_view = self._ai_view("design_001")
+
+        contractor_load = next(
+            record
+            for record in contractor.projection_records
+            if record.entity_type == "load" and record.entity_id == "load_001"
+        )
+        self.assertTrue(contractor_load.change_impact_hints)
+        self.assertIn(
+            "load_panel_relationship_is_building_level_only",
+            {warning.warning_type for warning in contractor_load.planning_dependency_warnings},
+        )
+        self.assertTrue(
+            any(
+                hook.target_entity_type == "electrical_panel" and hook.target_entity_id == "panel_main"
+                for hook in contractor_load.dependency_hooks
+            )
+        )
+
+        contractor_equipment = next(
+            record
+            for record in contractor.projection_records
+            if record.entity_type == "design_equipment" and record.entity_id == "design_001_equipment_1"
+        )
+        self.assertTrue(contractor_equipment.change_impact_hints)
+        self.assertIn(
+            "equipment_location_is_planning_only",
+            {warning.warning_type for warning in contractor_equipment.planning_dependency_warnings},
+        )
+
+        internal_revision = next(
+            record
+            for record in internal.projection_records
+            if record.entity_type == "scenario_revision" and record.entity_id == "scenario_001_rev_001"
+        )
+        self.assertIn(
+            "revision_snapshot_is_not_live_replay",
+            {warning.warning_type for warning in internal_revision.planning_dependency_warnings},
+        )
+
+        ai_equipment = next(
+            record
+            for record in ai_view.grounding_records
+            if record.entity_type == "design_equipment" and record.entity_id == "design_001_equipment_1"
+        )
+        self.assertTrue(ai_equipment.change_impact_hints)
+        self.assertTrue(ai_equipment.planning_dependency_warnings)
+
+        ai_rule_keys = {
+            rule_key
+            for hook in ai_view.dependency_hooks
+            for rule_key in hook.rule_keys
+        }
+        self.assertIn("twin_dependency.load_panel_shared_building_v1", ai_rule_keys)
+        self.assertIn("twin_dependency.equipment_system_reference_v1", ai_rule_keys)
 
 
 if __name__ == "__main__":
