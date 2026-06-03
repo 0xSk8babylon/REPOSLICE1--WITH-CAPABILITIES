@@ -18,8 +18,11 @@ Read these first:
 
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
-- Phase 2B: Twin Runtime Foundations - complete.
-- Phase 3: Twin Intelligence Expansion - next.
+- Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
+  - Completed: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
+  - Provenance Expansion: runtime foundation scope is sufficiently complete; remaining provenance maturity work is deferred.
+- Phase 2C: next candidate phase.
+- Phase 3: Twin Intelligence Expansion - deferred until Matt approves a future implementation boundary.
 
 ## Operational References By Task
 
