@@ -67,6 +67,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_scenario_comparison_readiness_view(db, "home_001")
 
+    def _pre_recommendation_advisory_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_pre_recommendation_advisory_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -2198,6 +2202,180 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("not_enforced", view.permission_enforcement)
         self.assertFalse(view.readiness_scope.permission_enforcement_present)
         self.assertFalse(view.readiness_scope.export_present)
+
+    def test_pre_recommendation_advisory_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/pre-recommendation-advisory",
+            paths,
+        )
+
+        view = self._pre_recommendation_advisory_view()
+        payload = view.dict()
+        scope = view.advisory_scope
+
+        self.assertEqual("pre_recommendation_advisory", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.pre_recommendation_advisory_only)
+        self.assertTrue(scope.explanatory_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_planning_intelligence_readiness)
+        self.assertTrue(scope.derived_from_advisory_context_assembly)
+        self.assertTrue(scope.derived_from_constraint_risk_reasoning)
+        self.assertTrue(scope.derived_from_scenario_comparison_readiness)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("pre-recommendation advisory view", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_pre_recommendation_advisory_has_no_forbidden_capabilities(self):
+        scope = self._pre_recommendation_advisory_view().advisory_scope
+
+        self.assertFalse(scope.recommendations_generated)
+        self.assertFalse(scope.recommendation_ranking_present)
+        self.assertFalse(scope.best_option_selection_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.simulation_present)
+        self.assertFalse(scope.scenario_comparison_present)
+        self.assertFalse(scope.calculated_changes_present)
+        self.assertFalse(scope.final_design_guidance_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.economic_reasoning_present)
+        self.assertFalse(scope.utility_readiness_logic_present)
+        self.assertFalse(scope.contractor_directives_present)
+        self.assertFalse(scope.homeowner_directives_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_pre_recommendation_advisory_reports_expected_sections(self):
+        view = self._pre_recommendation_advisory_view()
+
+        self.assertTrue(view.advisory_items)
+        self.assertTrue(view.advice_eligible_areas)
+        self.assertTrue(view.advice_blocked_areas)
+        self.assertTrue(view.missing_data_before_advice)
+        self.assertTrue(view.unsafe_assumptions)
+        self.assertTrue(view.professional_verification_boundaries)
+        self.assertTrue(view.provenance_basis)
+        self.assertTrue(view.permission_readiness_basis)
+        self.assertTrue(view.advisory_limitations)
+        self.assertTrue(view.deferred_recommendation_boundaries)
+
+        areas = {item.advisory_area.value for item in view.advisory_items}
+        for area in [
+            "advice_eligible_areas",
+            "advice_blocked_areas",
+            "missing_data_before_advice",
+            "unsafe_assumptions",
+            "professional_verification_boundaries",
+            "provenance_basis",
+            "permission_readiness_basis",
+            "advisory_limitations",
+            "deferred_recommendation_boundaries",
+        ]:
+            self.assertIn(area, areas)
+
+    def test_pre_recommendation_advisory_items_are_traceable(self):
+        view = self._pre_recommendation_advisory_view()
+
+        for source_view in [
+            "twin_planning_context",
+            "topology_snapshot",
+            "planning_intelligence_readiness",
+            "advisory_context_assembly",
+            "constraint_risk_reasoning",
+            "scenario_comparison_readiness",
+        ]:
+            self.assertIn(source_view, view.source_basis.source_views)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.advisory_area_refs)
+        self.assertTrue(view.source_basis.constraint_refs)
+        self.assertTrue(view.source_basis.scenario_readiness_refs)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in view.advisory_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.posture)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+            self.assertTrue(item.available_basis or item.missing_data or item.blocked_deferred)
+            self.assertIn("twin_planning_context", item.basis.source_views)
+
+    def test_pre_recommendation_advisory_preserves_deferred_boundaries(self):
+        view = self._pre_recommendation_advisory_view()
+        deferred = set(view.deferred_recommendation_boundaries)
+
+        for boundary in [
+            "recommendation_generation",
+            "recommendation_ranking",
+            "best_option_selection",
+            "optimization",
+            "simulation",
+            "scenario_comparison",
+            "calculated_change_analysis",
+            "final_design_guidance",
+            "proposal_generation",
+            "economic_reasoning",
+            "utility_readiness_logic",
+            "contractor_directives",
+            "homeowner_directives",
+            "permission_enforcement",
+            "auth",
+            "rbac_abac",
+            "persistence",
+            "migrations",
+            "twin_id",
+            "graph_engine",
+            "exports",
+            "operational_behavior",
+        ]:
+            self.assertIn(boundary, deferred)
+
+        limitation_text = " ".join(view.advisory_limitations)
+        self.assertIn("does not generate recommendations", limitation_text)
+        self.assertIn("pre-recommendation advisory explanation only", limitation_text)
+
+    def test_pre_recommendation_advisory_is_deterministic_for_same_inputs(self):
+        first = self._pre_recommendation_advisory_view().dict()
+        second = self._pre_recommendation_advisory_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_recommendation_boundaries"]),
+            first["deferred_recommendation_boundaries"],
+        )
+        self.assertEqual(
+            sorted(item["advisory_area"] for item in first["advisory_items"]),
+            [item["advisory_area"] for item in first["advisory_items"]],
+        )
+
+    def test_pre_recommendation_advisory_keeps_trust_boundaries_visible(self):
+        view = self._pre_recommendation_advisory_view()
+        provenance_item = view.provenance_basis[0]
+        permission_item = view.permission_readiness_basis[0]
+        professional_item = view.professional_verification_boundaries[0]
+
+        self.assertIn("not verification", provenance_item.statement)
+        self.assertIn("permission_enforcement_layer", permission_item.missing_data)
+        self.assertIn("Professional verification", professional_item.statement)
+        self.assertIn("Engineer review remains deferred.", professional_item.professional_boundaries)
+        self.assertFalse(view.advisory_scope.recommendations_generated)
+        self.assertFalse(view.advisory_scope.permission_enforcement_present)
 
 
 if __name__ == "__main__":

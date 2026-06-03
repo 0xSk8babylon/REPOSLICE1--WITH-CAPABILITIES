@@ -13,6 +13,7 @@ from app.twin_planning_context.schemas import (
     TwinDependencyReasoningView,
     TwinPlanningIntelligenceReadinessView,
     TwinPlanningContext,
+    TwinPreRecommendationAdvisoryView,
     TwinRuntimeParticipantRole,
     TwinRuntimeProjectionView,
     TwinScenarioComparisonReadinessView,
@@ -111,6 +112,17 @@ def get_constraint_risk_reasoning_view(home_id: str, db: Session = Depends(get_d
 )
 def get_scenario_comparison_readiness_view(home_id: str, db: Session = Depends(get_db)):
     view = twin_planning_context_service.build_scenario_comparison_readiness_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
+    return view
+
+
+@router.get(
+    "/homes/{home_id}/views/pre-recommendation-advisory",
+    response_model=TwinPreRecommendationAdvisoryView,
+)
+def get_pre_recommendation_advisory_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_pre_recommendation_advisory_view(db, home_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home not found")
     return view

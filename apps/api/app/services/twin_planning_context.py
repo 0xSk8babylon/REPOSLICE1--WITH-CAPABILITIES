@@ -31,6 +31,11 @@ from app.twin_planning_context.schemas import (
     TwinPlanningIntelligenceReadinessItem,
     TwinPlanningIntelligenceReadinessScope,
     TwinPlanningIntelligenceReadinessView,
+    TwinPreRecommendationAdvisoryArea,
+    TwinPreRecommendationAdvisoryBasis,
+    TwinPreRecommendationAdvisoryItem,
+    TwinPreRecommendationAdvisoryScope,
+    TwinPreRecommendationAdvisoryView,
     TwinPlanningChangeImpactHint,
     TwinPlanningContext,
     TwinPlanningContextRecord,
@@ -380,6 +385,38 @@ SCENARIO_COMPARISON_DEFERRED_BOUNDARIES = [
     "recalculation",
     "invalidation",
     "proposal_generation",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "exports",
+    "operational_behavior",
+]
+
+PRE_RECOMMENDATION_ADVISORY_LIMITATIONS = [
+    "Phase 3G pre-recommendation advisory explains what can and cannot be advised safely before recommendations are allowed.",
+    "This view does not generate recommendations, rank recommendations, choose a best option, optimize, simulate, compare scenarios, calculate scenario changes, produce final design guidance, generate proposals, perform economic reasoning, perform utility readiness logic, create contractor directives, create homeowner directives, enforce permissions, export data, persist state, or operate devices.",
+    "Advice-eligible areas are eligible for pre-recommendation advisory explanation only, not recommendations or directives.",
+    "Provenance presence is not verification, permission readiness is not permission enforcement, and professional review remains deferred.",
+]
+
+PRE_RECOMMENDATION_DEFERRED_BOUNDARIES = [
+    "recommendation_generation",
+    "recommendation_ranking",
+    "best_option_selection",
+    "optimization",
+    "simulation",
+    "scenario_comparison",
+    "calculated_change_analysis",
+    "final_design_guidance",
+    "proposal_generation",
+    "economic_reasoning",
+    "utility_readiness_logic",
+    "contractor_directives",
+    "homeowner_directives",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
     "persistence",
     "migrations",
     "twin_id",
@@ -6072,6 +6109,415 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3E views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3F readiness view."
+            ),
+        )
+
+    def _pre_recommendation_advisory_basis(
+        self,
+        *,
+        source_views: Optional[List[str]] = None,
+        source_section_keys: Optional[List[str]] = None,
+        advisory_area_refs: Optional[List[str]] = None,
+        readiness_refs: Optional[List[str]] = None,
+        constraint_refs: Optional[List[str]] = None,
+        scenario_readiness_refs: Optional[List[str]] = None,
+        provenance_refs: Optional[List[str]] = None,
+        permission_refs: Optional[List[str]] = None,
+        missing_data_refs: Optional[List[str]] = None,
+        professional_boundary_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinPreRecommendationAdvisoryBasis:
+        return TwinPreRecommendationAdvisoryBasis(
+            source_views=self._sorted_unique(
+                source_views
+                or [
+                    "twin_planning_context",
+                    "topology_snapshot",
+                    "planning_intelligence_readiness",
+                    "advisory_context_assembly",
+                    "constraint_risk_reasoning",
+                    "scenario_comparison_readiness",
+                ]
+            ),
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            advisory_area_refs=self._sorted_unique(advisory_area_refs or []),
+            readiness_refs=self._sorted_unique(readiness_refs or []),
+            constraint_refs=self._sorted_unique(constraint_refs or []),
+            scenario_readiness_refs=self._sorted_unique(scenario_readiness_refs or []),
+            provenance_refs=self._sorted_unique(provenance_refs or []),
+            permission_refs=self._sorted_unique(permission_refs or []),
+            missing_data_refs=self._sorted_unique(missing_data_refs or []),
+            professional_boundary_refs=self._sorted_unique(professional_boundary_refs or []),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=PRE_RECOMMENDATION_ADVISORY_LIMITATIONS,
+        )
+
+    def _pre_recommendation_advisory_item(
+        self,
+        *,
+        advisory_area: TwinPreRecommendationAdvisoryArea,
+        posture: str,
+        statement: str,
+        available_basis: Optional[List[str]] = None,
+        missing_data: Optional[List[str]] = None,
+        blocked_deferred: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        professional_boundaries: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinPreRecommendationAdvisoryBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinPreRecommendationAdvisoryItem:
+        return TwinPreRecommendationAdvisoryItem(
+            advisory_area=advisory_area,
+            posture=posture,
+            statement=statement,
+            available_basis=self._sorted_unique(available_basis or []),
+            missing_data=self._sorted_unique(missing_data or []),
+            blocked_deferred=self._sorted_unique(blocked_deferred or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            professional_boundaries=self._sorted_unique(professional_boundaries or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or PRE_RECOMMENDATION_ADVISORY_LIMITATIONS,
+        )
+
+    def _pre_recommendation_advisory_item_sort_key(
+        self, item: TwinPreRecommendationAdvisoryItem
+    ) -> str:
+        return item.advisory_area.value
+
+    def build_pre_recommendation_advisory_view(
+        self, db, home_id: str
+    ) -> Optional[TwinPreRecommendationAdvisoryView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        if readiness_view is None:
+            return None
+        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        if advisory_view is None:
+            return None
+        risk_view = self.build_constraint_risk_reasoning_view(db, home_id)
+        if risk_view is None:
+            return None
+        scenario_view = self.build_scenario_comparison_readiness_view(db, home_id)
+        if scenario_view is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        provenance_refs = self._sorted_unique(
+            self._provenance_gap_ref(gap)
+            for _section_key, record in section_records
+            for gap in record.provenance_gaps
+        )
+        permission_refs = self._sorted_unique(
+            [
+                f"context_permission:{context.permission_readiness.view_permission_alignment.permission_enforcement}"
+                if context.permission_readiness and context.permission_readiness.view_permission_alignment
+                else "context_permission:missing",
+                f"advisory_permission_items:{len(advisory_view.permission_readiness_metadata)}",
+                f"scenario_permission_items:{len(scenario_view.permission_readiness_metadata)}",
+            ]
+        )
+        eligible_refs = [
+            "homeowner_goal_explanation",
+            "topology_context_explanation",
+            "equipment_site_context_explanation",
+            "provenance_gap_explanation",
+            "permission_readiness_metadata_explanation",
+            "constraint_risk_context_explanation",
+            "future_comparison_readiness_explanation",
+        ]
+        missing_data_refs = self._sorted_unique(
+            item
+            for assembly_item in advisory_view.missing_data
+            for item in assembly_item.missing_inputs
+        )
+        missing_data_refs.extend(
+            item
+            for risk_item in risk_view.constraint_risk_items
+            for item in risk_item.missing_inputs
+        )
+        missing_data_refs.extend(scenario_view.missing_prerequisites)
+        missing_data_refs = self._sorted_unique(missing_data_refs)
+        unsafe_assumptions = self._sorted_unique(
+            list(scenario_view.unsafe_assumptions)
+            + [
+                item
+                for assembly_item in advisory_view.unsafe_assumptions
+                for item in assembly_item.unsafe_assumptions
+            ]
+            + [
+                item
+                for risk_item in risk_view.constraint_risk_items
+                for item in risk_item.unsafe_assumptions
+            ]
+        )
+        professional_boundaries = self._sorted_unique(
+            boundary
+            for risk_item in risk_view.constraint_risk_items
+            for boundary in risk_item.professional_review_boundaries
+        )
+        source_basis = self._pre_recommendation_advisory_basis(
+            source_section_keys=[section.section_key for section in context.sections],
+            advisory_area_refs=eligible_refs,
+            readiness_refs=[item.intelligence_area.value for item in readiness_view.ready_areas],
+            constraint_refs=[item.risk_area.value for item in risk_view.constraint_risk_items],
+            scenario_readiness_refs=[item.readiness_area.value for item in scenario_view.readiness_items],
+            provenance_refs=provenance_refs,
+            permission_refs=permission_refs,
+            missing_data_refs=missing_data_refs,
+            professional_boundary_refs=professional_boundaries,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinPlanningIntelligenceReadinessView",
+                "TwinAdvisoryContextAssemblyView",
+                "TwinConstraintRiskReasoningView",
+                "TwinScenarioComparisonReadinessView",
+            ],
+        )
+        eligible_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.advice_eligible_areas,
+            posture="eligible_for_pre_recommendation_advisory_explanation",
+            statement=(
+                "These areas are eligible for pre-recommendation advisory explanation only; no recommendations are generated."
+            ),
+            available_basis=eligible_refs,
+            missing_data=missing_data_refs,
+            blocked_deferred=PRE_RECOMMENDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating eligible advisory explanation areas as recommendations would be unsafe.",
+            ],
+            professional_boundaries=professional_boundaries,
+            confidence_posture="eligible_for_explanation_not_recommendation",
+            basis=source_basis,
+        )
+        blocked_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.advice_blocked_areas,
+            posture="blocked/deferred",
+            statement=(
+                "Recommendation, directive, comparison, proposal, economic, utility-readiness, and operational advisory behavior remains blocked/deferred."
+            ),
+            blocked_deferred=PRE_RECOMMENDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating blocked/deferred advisory behavior as available would be unsafe.",
+            ],
+            confidence_posture="blocked_deferred_boundaries_preserved",
+            basis=source_basis,
+        )
+        missing_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.missing_data_before_advice,
+            posture="missing" if missing_data_refs else "available",
+            statement=(
+                "Missing data before advice is surfaced so pre-recommendation explanation does not become unsupported guidance."
+            ),
+            missing_data=missing_data_refs,
+            blocked_deferred=["recommendation_generation", "final_design_guidance"],
+            unsafe_assumptions=[
+                "Treating missing data as resolved advisory basis would be unsafe.",
+            ],
+            professional_boundaries=professional_boundaries,
+            confidence_posture="missing_data_visible_before_recommendations",
+            basis=self._pre_recommendation_advisory_basis(
+                source_section_keys=source_basis.source_section_keys,
+                missing_data_refs=missing_data_refs,
+                professional_boundary_refs=professional_boundaries,
+                derived_from=[
+                    "TwinAdvisoryContextAssemblyView.missing_data",
+                    "TwinConstraintRiskReasoningView.constraint_risk_items",
+                    "TwinScenarioComparisonReadinessView.missing_prerequisites",
+                ],
+            ),
+        )
+        unsafe_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.unsafe_assumptions,
+            posture="unsafe_assumption",
+            statement=(
+                "Unsafe assumptions are surfaced before recommendations are allowed."
+            ),
+            available_basis=unsafe_assumptions,
+            blocked_deferred=PRE_RECOMMENDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=unsafe_assumptions,
+            confidence_posture="unsafe_assumptions_visible",
+            basis=self._pre_recommendation_advisory_basis(
+                source_section_keys=source_basis.source_section_keys,
+                derived_from=[
+                    "TwinAdvisoryContextAssemblyView.unsafe_assumptions",
+                    "TwinConstraintRiskReasoningView.constraint_risk_items",
+                    "TwinScenarioComparisonReadinessView.unsafe_assumptions",
+                ],
+            ),
+        )
+        professional_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.professional_verification_boundaries,
+            posture="blocked/deferred",
+            statement=(
+                "Professional verification boundaries remain visible before any recommendation capability is allowed."
+            ),
+            missing_data=[
+                "contractor_reviewed_scope",
+                "engineer_review_artifact",
+                "field_verification_artifact",
+                "utility_review_artifact",
+            ],
+            blocked_deferred=["final_design_guidance", "contractor_directives", "homeowner_directives"],
+            unsafe_assumptions=[
+                "Treating pre-recommendation advisory explanation as professional verification would be unsafe.",
+            ],
+            professional_boundaries=professional_boundaries,
+            confidence_posture="professional_verification_not_present",
+            basis=self._pre_recommendation_advisory_basis(
+                source_section_keys=source_basis.source_section_keys,
+                professional_boundary_refs=professional_boundaries,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.professional_review_boundaries",
+                    "TwinTopologySnapshot.deferred_lifecycle_domains",
+                ],
+            ),
+        )
+        provenance_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.provenance_basis,
+            posture="available" if provenance_refs else "missing",
+            statement=(
+                "Provenance basis is available as source visibility only and is not verification."
+            ),
+            available_basis=provenance_refs,
+            missing_data=["complete_field_level_provenance", "verification_workflow"],
+            unsafe_assumptions=[
+                "Treating provenance presence as verification would be unsafe.",
+            ],
+            confidence_posture="provenance_visible_not_verified",
+            basis=self._pre_recommendation_advisory_basis(
+                source_section_keys=source_basis.source_section_keys,
+                provenance_refs=provenance_refs,
+                derived_from=[
+                    "TwinPlanningContextRecord.provenance_gaps",
+                    "TwinScenarioComparisonReadinessView.provenance_basis",
+                ],
+            ),
+            limitations=PRE_RECOMMENDATION_ADVISORY_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+        permission_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.permission_readiness_basis,
+            posture="available",
+            statement=(
+                "Permission-readiness basis is metadata only and does not authorize advisory sharing."
+            ),
+            available_basis=permission_refs,
+            missing_data=[
+                "active_permission_grants",
+                "active_consent_artifacts",
+                "permission_enforcement_layer",
+            ],
+            blocked_deferred=["permission_enforcement", "exports"],
+            unsafe_assumptions=[
+                "Treating permission-readiness basis as permission enforcement would be unsafe.",
+            ],
+            confidence_posture="permission_metadata_only_not_enforcement",
+            basis=self._pre_recommendation_advisory_basis(
+                source_section_keys=source_basis.source_section_keys,
+                permission_refs=permission_refs,
+                derived_from=[
+                    "TwinPlanningContext.permission_readiness",
+                    "TwinAdvisoryContextAssemblyView.permission_readiness_metadata",
+                    "TwinScenarioComparisonReadinessView.permission_readiness_metadata",
+                ],
+            ),
+            limitations=PRE_RECOMMENDATION_ADVISORY_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+        )
+        limitations_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.advisory_limitations,
+            posture="blocked/deferred",
+            statement=(
+                "Advisory limitations preserve the pre-recommendation boundary."
+            ),
+            available_basis=PRE_RECOMMENDATION_ADVISORY_LIMITATIONS,
+            blocked_deferred=PRE_RECOMMENDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating advisory limitations as advice output would be unsafe.",
+            ],
+            confidence_posture="limitations_visible",
+            basis=source_basis,
+        )
+        deferred_item = self._pre_recommendation_advisory_item(
+            advisory_area=TwinPreRecommendationAdvisoryArea.deferred_recommendation_boundaries,
+            posture="blocked/deferred",
+            statement=(
+                "Recommendation boundaries remain blocked/deferred and are not implemented by this view."
+            ),
+            blocked_deferred=PRE_RECOMMENDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating deferred recommendation boundaries as available runtime behavior would be unsafe.",
+            ],
+            confidence_posture="deferred_recommendation_boundaries_preserved",
+            basis=source_basis,
+        )
+        items = sorted(
+            [
+                eligible_item,
+                blocked_item,
+                missing_item,
+                unsafe_item,
+                professional_item,
+                provenance_item,
+                permission_item,
+                limitations_item,
+                deferred_item,
+            ],
+            key=self._pre_recommendation_advisory_item_sort_key,
+        )
+        return TwinPreRecommendationAdvisoryView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3G pre-recommendation advisory view built request-time from existing TwinPlanningContext, "
+                "topology snapshot, and approved Phase 3 readiness/context views; explains what can and cannot be advised "
+                "before recommendations are allowed, but does not generate recommendations, rank recommendations, choose a best option, "
+                "optimize, simulate, compare scenarios, calculate scenario changes, produce final design guidance, generate proposals, "
+                "perform economic reasoning, perform utility readiness logic, create directives, enforce permissions, export data, persist state, "
+                "create graph behavior, or operate devices."
+            ),
+            source_basis=source_basis,
+            advisory_scope=TwinPreRecommendationAdvisoryScope(
+                limitations=PRE_RECOMMENDATION_ADVISORY_LIMITATIONS,
+            ),
+            advisory_items=items,
+            advice_eligible_areas=[
+                item for item in items if item.advisory_area == TwinPreRecommendationAdvisoryArea.advice_eligible_areas
+            ],
+            advice_blocked_areas=[
+                item for item in items if item.advisory_area == TwinPreRecommendationAdvisoryArea.advice_blocked_areas
+            ],
+            missing_data_before_advice=[
+                item
+                for item in items
+                if item.advisory_area == TwinPreRecommendationAdvisoryArea.missing_data_before_advice
+            ],
+            unsafe_assumptions=[
+                item for item in items if item.advisory_area == TwinPreRecommendationAdvisoryArea.unsafe_assumptions
+            ],
+            professional_verification_boundaries=[
+                item
+                for item in items
+                if item.advisory_area == TwinPreRecommendationAdvisoryArea.professional_verification_boundaries
+            ],
+            provenance_basis=[
+                item for item in items if item.advisory_area == TwinPreRecommendationAdvisoryArea.provenance_basis
+            ],
+            permission_readiness_basis=[
+                item
+                for item in items
+                if item.advisory_area == TwinPreRecommendationAdvisoryArea.permission_readiness_basis
+            ],
+            advisory_limitations=PRE_RECOMMENDATION_ADVISORY_LIMITATIONS,
+            deferred_recommendation_boundaries=sorted(PRE_RECOMMENDATION_DEFERRED_BOUNDARIES),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3F views, AI grounding, "
+                "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3G advisory boundary view."
             ),
         )
 

@@ -985,6 +985,109 @@ class TwinScenarioComparisonReadinessView(ORMModel):
     compatibility_note: str
 
 
+class TwinPreRecommendationAdvisoryArea(str, Enum):
+    advice_eligible_areas = "advice_eligible_areas"
+    advice_blocked_areas = "advice_blocked_areas"
+    missing_data_before_advice = "missing_data_before_advice"
+    unsafe_assumptions = "unsafe_assumptions"
+    professional_verification_boundaries = "professional_verification_boundaries"
+    provenance_basis = "provenance_basis"
+    permission_readiness_basis = "permission_readiness_basis"
+    advisory_limitations = "advisory_limitations"
+    deferred_recommendation_boundaries = "deferred_recommendation_boundaries"
+
+
+class TwinPreRecommendationAdvisoryScope(ORMModel):
+    advisory_scope: str = "phase_3g_pre_recommendation_advisory"
+    pre_recommendation_advisory_only: bool = True
+    explanatory_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_planning_intelligence_readiness: bool = True
+    derived_from_advisory_context_assembly: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    derived_from_scenario_comparison_readiness: bool = True
+    deterministic_for_same_inputs: bool = True
+    recommendations_generated: bool = False
+    recommendation_ranking_present: bool = False
+    best_option_selection_present: bool = False
+    optimization_present: bool = False
+    simulation_present: bool = False
+    scenario_comparison_present: bool = False
+    calculated_changes_present: bool = False
+    final_design_guidance_present: bool = False
+    proposal_generation_present: bool = False
+    economic_reasoning_present: bool = False
+    utility_readiness_logic_present: bool = False
+    contractor_directives_present: bool = False
+    homeowner_directives_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinPreRecommendationAdvisoryBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    advisory_area_refs: List[str] = Field(default_factory=list)
+    readiness_refs: List[str] = Field(default_factory=list)
+    constraint_refs: List[str] = Field(default_factory=list)
+    scenario_readiness_refs: List[str] = Field(default_factory=list)
+    provenance_refs: List[str] = Field(default_factory=list)
+    permission_refs: List[str] = Field(default_factory=list)
+    missing_data_refs: List[str] = Field(default_factory=list)
+    professional_boundary_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinPreRecommendationAdvisoryItem(ORMModel):
+    advisory_area: TwinPreRecommendationAdvisoryArea
+    posture: str
+    statement: str
+    available_basis: List[str] = Field(default_factory=list)
+    missing_data: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    professional_boundaries: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinPreRecommendationAdvisoryBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinPreRecommendationAdvisoryView(ORMModel):
+    view_name: str = "pre_recommendation_advisory"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinPreRecommendationAdvisoryBasis
+    advisory_scope: TwinPreRecommendationAdvisoryScope
+    advisory_items: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
+    advice_eligible_areas: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
+    advice_blocked_areas: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
+    missing_data_before_advice: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
+    unsafe_assumptions: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
+    professional_verification_boundaries: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
+    provenance_basis: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
+    permission_readiness_basis: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
+    advisory_limitations: List[str] = Field(default_factory=list)
+    deferred_recommendation_boundaries: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True
