@@ -60,6 +60,11 @@ from app.twin_planning_context.schemas import (
     TwinRuntimeProjectionView,
     TwinRuntimeViewContext,
     TwinRuntimeVisibilityScope,
+    TwinScenarioComparisonReadinessArea,
+    TwinScenarioComparisonReadinessBasis,
+    TwinScenarioComparisonReadinessItem,
+    TwinScenarioComparisonReadinessScope,
+    TwinScenarioComparisonReadinessView,
     TwinTopologyDeferredLifecycleDomain,
     TwinTopologyEdge,
     TwinTopologyMissingRelationshipIndicator,
@@ -346,6 +351,35 @@ CONSTRAINT_RISK_DEFERRED_CAPABILITIES = [
     "permission_enforcement",
     "auth",
     "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "exports",
+    "operational_behavior",
+]
+
+SCENARIO_COMPARISON_READINESS_LIMITATIONS = [
+    "Phase 3F scenario comparison readiness inventories readiness for future comparison only.",
+    "This view does not compare scenario records, calculate changes, simulate results, run what-if analysis, order options, optimize designs, recommend actions, propagate changes, persist stale state, generate proposals, or operate devices.",
+    "Scenario records and revision lineage are available evidence only and must not be treated as future comparison output.",
+    "Provenance presence is not verification, and permission readiness is not permission enforcement.",
+]
+
+SCENARIO_COMPARISON_DEFERRED_BOUNDARIES = [
+    "scenario_comparison",
+    "scenario_intelligence",
+    "scenario_simulation",
+    "what_if_analysis",
+    "calculated_change_analysis",
+    "option_ordering",
+    "optimization",
+    "recommendations",
+    "change_propagation",
+    "stale_state_persistence",
+    "recalculation",
+    "invalidation",
+    "proposal_generation",
     "persistence",
     "migrations",
     "twin_id",
@@ -5529,6 +5563,515 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A, Phase 3B, Phase 3C, Phase 3D, AI grounding, "
                 "runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3E constraint/risk explanation view."
+            ),
+        )
+
+    def _scenario_comparison_readiness_basis(
+        self,
+        *,
+        source_views: Optional[List[str]] = None,
+        source_section_keys: Optional[List[str]] = None,
+        scenario_record_refs: Optional[List[str]] = None,
+        revision_record_refs: Optional[List[str]] = None,
+        linked_design_refs: Optional[List[str]] = None,
+        topology_node_refs: Optional[List[str]] = None,
+        topology_edge_refs: Optional[List[str]] = None,
+        topology_branch_refs: Optional[List[str]] = None,
+        provenance_gap_refs: Optional[List[str]] = None,
+        permission_basis_refs: Optional[List[str]] = None,
+        missing_prerequisite_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinScenarioComparisonReadinessBasis:
+        return TwinScenarioComparisonReadinessBasis(
+            source_views=self._sorted_unique(
+                source_views
+                or [
+                    "twin_planning_context",
+                    "topology_snapshot",
+                    "planning_intelligence_readiness",
+                    "advisory_context_assembly",
+                    "constraint_risk_reasoning",
+                ]
+            ),
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            scenario_record_refs=self._sorted_unique(scenario_record_refs or []),
+            revision_record_refs=self._sorted_unique(revision_record_refs or []),
+            linked_design_refs=self._sorted_unique(linked_design_refs or []),
+            topology_node_refs=self._sorted_unique(topology_node_refs or []),
+            topology_edge_refs=self._sorted_unique(topology_edge_refs or []),
+            topology_branch_refs=self._sorted_unique(topology_branch_refs or []),
+            provenance_gap_refs=self._sorted_unique(provenance_gap_refs or []),
+            permission_basis_refs=self._sorted_unique(permission_basis_refs or []),
+            missing_prerequisite_refs=self._sorted_unique(missing_prerequisite_refs or []),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=SCENARIO_COMPARISON_READINESS_LIMITATIONS,
+        )
+
+    def _scenario_comparison_readiness_item(
+        self,
+        *,
+        readiness_area: TwinScenarioComparisonReadinessArea,
+        posture: str,
+        statement: str,
+        available: Optional[List[str]] = None,
+        missing: Optional[List[str]] = None,
+        blocked_deferred: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinScenarioComparisonReadinessBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinScenarioComparisonReadinessItem:
+        return TwinScenarioComparisonReadinessItem(
+            readiness_area=readiness_area,
+            posture=posture,
+            statement=statement,
+            available=self._sorted_unique(available or []),
+            missing=self._sorted_unique(missing or []),
+            blocked_deferred=self._sorted_unique(blocked_deferred or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or SCENARIO_COMPARISON_READINESS_LIMITATIONS,
+        )
+
+    def _scenario_comparison_readiness_item_sort_key(
+        self, item: TwinScenarioComparisonReadinessItem
+    ) -> str:
+        return item.readiness_area.value
+
+    def _scenario_branch_ref(self, branch_ref: Dict[str, object]) -> str:
+        scenario_id = branch_ref.get("scenario_id") or "unknown"
+        design_id = branch_ref.get("linked_design_id") or "unknown"
+        return f"scenario_branch:{scenario_id}:linked_design:{design_id}"
+
+    def _scenario_revision_ref(self, revision_ref: Dict[str, object]) -> str:
+        revision_id = revision_ref.get("revision_id") or "unknown"
+        scenario_id = revision_ref.get("scenario_id") or "unknown"
+        return f"scenario_revision_lineage:{revision_id}:scenario:{scenario_id}"
+
+    def _scenario_comparison_provenance_ref(self, gap: TwinPlanningProvenanceGap) -> str:
+        field_name = gap.field_name or "record"
+        blocked_tokens = {
+            "better",
+            "worse",
+            "delta",
+            "score",
+            "rank",
+            "selected",
+            "recommended",
+            "impact",
+            "outcome",
+            "projection",
+        }
+        if any(token in field_name for token in blocked_tokens):
+            field_name = "field_label_not_exposed"
+        return f"{gap.gap_type.value}:{gap.entity_type}:{gap.entity_id or 'unknown'}:{field_name}"
+
+    def build_scenario_comparison_readiness_view(
+        self, db, home_id: str
+    ) -> Optional[TwinScenarioComparisonReadinessView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        if readiness_view is None:
+            return None
+        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        if advisory_view is None:
+            return None
+        risk_view = self.build_constraint_risk_reasoning_view(db, home_id)
+        if risk_view is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        scenario_records = [
+            (section_key, record)
+            for section_key, record in section_records
+            if section_key == "scenarios" and record.entity_type == "scenario"
+        ]
+        revision_records = [
+            (section_key, record)
+            for section_key, record in section_records
+            if section_key == "scenario_revisions" and record.entity_type == "scenario_revision"
+        ]
+        design_records = [
+            (section_key, record)
+            for section_key, record in section_records
+            if record.entity_type == "energy_system_design"
+        ]
+        design_ids = {record.entity_id for _section_key, record in design_records}
+        scenario_refs = [self._advisory_record_ref(record) for _section_key, record in scenario_records]
+        revision_refs = [self._advisory_record_ref(record) for _section_key, record in revision_records]
+        def linked_design_id(record: TwinPlanningContextRecord) -> Optional[str]:
+            return record.record.get("linked_design_id") or record.record.get("design_id")
+
+        linked_design_refs = self._sorted_unique(
+            f"{self._advisory_record_ref(record)}:linked_design:{linked_design_id(record) or 'missing'}"
+            for _section_key, record in scenario_records + revision_records
+        )
+        available_link_refs = [
+            ref
+            for ref in linked_design_refs
+            if not ref.endswith(":missing")
+        ]
+        missing_link_refs = [
+            ref
+            for ref in linked_design_refs
+            if ref.endswith(":missing")
+        ] + [
+            f"{self._advisory_record_ref(record)}:linked_design_not_in_context:{linked_design_id(record)}"
+            for _section_key, record in scenario_records + revision_records
+            if linked_design_id(record) and linked_design_id(record) not in design_ids
+        ]
+        branch_refs = [
+            self._scenario_branch_ref(branch_ref)
+            for branch_ref in snapshot.scenario_branch_references
+        ]
+        lineage_refs = [
+            self._scenario_revision_ref(revision_ref)
+            for revision_ref in snapshot.revision_lineage_references
+        ]
+        scenario_node_ids = [
+            node.node_id
+            for node in snapshot.nodes
+            if node.entity_type in {"scenario", "scenario_revision", "energy_system_design"}
+        ]
+        scenario_edge_ids = [
+            edge.edge_id
+            for edge in snapshot.edges
+            if edge.source_node_id in scenario_node_ids or edge.target_node_id in scenario_node_ids
+        ]
+        provenance_refs = self._sorted_unique(
+            self._scenario_comparison_provenance_ref(gap)
+            for _section_key, record in scenario_records + revision_records
+            for gap in record.provenance_gaps
+        )
+        permission_refs = self._sorted_unique(
+            [
+                f"context_permission:{context.permission_readiness.view_permission_alignment.permission_enforcement}"
+                if context.permission_readiness
+                else "context_permission:missing",
+                f"advisory_permission_items:{len(advisory_view.permission_readiness_metadata)}",
+            ]
+        )
+        missing_prerequisites = []
+        if len(scenario_records) < 2:
+            missing_prerequisites.append("at_least_two_scenario_records")
+        if not revision_records:
+            missing_prerequisites.append("scenario_revision_lineage")
+        if missing_link_refs:
+            missing_prerequisites.extend(missing_link_refs)
+        if not branch_refs:
+            missing_prerequisites.append("topology_scenario_branch_references")
+        source_basis = self._scenario_comparison_readiness_basis(
+            source_section_keys=[section.section_key for section in context.sections],
+            scenario_record_refs=scenario_refs,
+            revision_record_refs=revision_refs,
+            linked_design_refs=linked_design_refs,
+            topology_node_refs=scenario_node_ids,
+            topology_edge_refs=scenario_edge_ids,
+            topology_branch_refs=branch_refs + lineage_refs,
+            provenance_gap_refs=provenance_refs,
+            permission_basis_refs=permission_refs,
+            missing_prerequisite_refs=missing_prerequisites,
+            derived_from=[
+                "TwinPlanningContext.sections.scenarios",
+                "TwinPlanningContext.sections.scenario_revisions",
+                "TwinTopologySnapshot.scenario_branch_references",
+                "TwinTopologySnapshot.revision_lineage_references",
+                "TwinPlanningIntelligenceReadinessView",
+                "TwinAdvisoryContextAssemblyView",
+                "TwinConstraintRiskReasoningView",
+            ],
+        )
+
+        scenario_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.scenario_records_available,
+            posture="available" if scenario_refs else "missing",
+            statement=(
+                "Scenario records are inventoried as available evidence for future comparison readiness only."
+            ),
+            available=scenario_refs,
+            missing=[] if scenario_refs else ["scenario_records"],
+            blocked_deferred=SCENARIO_COMPARISON_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating available scenario records as a completed future comparison would be unsafe.",
+            ],
+            confidence_posture="scenario_records_available_no_comparison_performed",
+            basis=self._scenario_comparison_readiness_basis(
+                source_section_keys=[section_key for section_key, _record in scenario_records],
+                scenario_record_refs=scenario_refs,
+                derived_from=["TwinPlanningContext.sections.scenarios"],
+            ),
+        )
+        revision_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.revision_lineage_available,
+            posture="available" if revision_refs else "missing",
+            statement=(
+                "Scenario revision lineage is inventoried as saved planning history for future comparison readiness only."
+            ),
+            available=revision_refs + lineage_refs,
+            missing=[] if revision_refs else ["scenario_revision_lineage"],
+            blocked_deferred=["scenario_replay", "recalculation", "invalidation"],
+            unsafe_assumptions=[
+                "Treating revision lineage as replayed or recalculated scenario state would be unsafe.",
+            ],
+            confidence_posture="revision_lineage_available_no_replay_performed",
+            basis=self._scenario_comparison_readiness_basis(
+                source_section_keys=[section_key for section_key, _record in revision_records],
+                revision_record_refs=revision_refs,
+                topology_branch_refs=lineage_refs,
+                derived_from=[
+                    "TwinPlanningContext.sections.scenario_revisions",
+                    "TwinTopologySnapshot.revision_lineage_references",
+                ],
+            ),
+        )
+        linked_design_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.linked_design_reference_readiness,
+            posture="available" if available_link_refs and not missing_link_refs else "missing",
+            statement=(
+                "Linked design references are inventoried only to show whether future comparison prerequisites are present."
+            ),
+            available=available_link_refs,
+            missing=missing_link_refs,
+            blocked_deferred=["scenario_comparison", "change_calculation"],
+            unsafe_assumptions=[
+                "Treating linked design references as a comparison result would be unsafe.",
+            ],
+            confidence_posture="linked_design_references_checked_no_comparison_performed",
+            basis=self._scenario_comparison_readiness_basis(
+                source_section_keys=["scenarios", "scenario_revisions", "designs"],
+                scenario_record_refs=scenario_refs,
+                revision_record_refs=revision_refs,
+                linked_design_refs=linked_design_refs,
+                derived_from=[
+                    "TwinPlanningContextRecord.record.linked_design_id",
+                    "TwinPlanningContext.sections.designs",
+                ],
+            ),
+        )
+        topology_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.topology_branch_reference_readiness,
+            posture="available" if branch_refs or lineage_refs else "missing",
+            statement=(
+                "Topology branch and lineage references are inventoried as readiness evidence for future comparison only."
+            ),
+            available=branch_refs + lineage_refs,
+            missing=[] if branch_refs or lineage_refs else ["topology_branch_reference_metadata"],
+            blocked_deferred=["graph_engine", "scenario_intelligence"],
+            unsafe_assumptions=[
+                "Treating topology branch references as graph execution or scenario intelligence would be unsafe.",
+            ],
+            confidence_posture="topology_references_available_no_graph_behavior",
+            basis=self._scenario_comparison_readiness_basis(
+                topology_node_refs=scenario_node_ids,
+                topology_edge_refs=scenario_edge_ids,
+                topology_branch_refs=branch_refs + lineage_refs,
+                derived_from=[
+                    "TwinTopologySnapshot.scenario_branch_references",
+                    "TwinTopologySnapshot.revision_lineage_references",
+                ],
+            ),
+        )
+        provenance_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.provenance_basis,
+            posture="available" if provenance_refs else "missing",
+            statement=(
+                "Provenance basis is inventoried as source visibility for future comparison readiness, not verification."
+            ),
+            available=provenance_refs,
+            missing=["complete_scenario_source_basis"] if provenance_refs else ["scenario_provenance_basis"],
+            blocked_deferred=["verification_workflow"],
+            unsafe_assumptions=[
+                "Treating provenance presence as verification would be unsafe.",
+            ],
+            confidence_posture="provenance_visible_not_verified",
+            basis=self._scenario_comparison_readiness_basis(
+                source_section_keys=["scenarios", "scenario_revisions"],
+                scenario_record_refs=scenario_refs,
+                revision_record_refs=revision_refs,
+                provenance_gap_refs=provenance_refs,
+                derived_from=[
+                    "TwinPlanningContextRecord.provenance_gaps",
+                    "TwinPlanningContextRecord.source_document_ids",
+                ],
+            ),
+            limitations=SCENARIO_COMPARISON_READINESS_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+        permission_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.permission_readiness_metadata,
+            posture="available",
+            statement=(
+                "Permission-readiness metadata is available as metadata only and does not authorize future comparison sharing."
+            ),
+            available=permission_refs,
+            missing=[
+                "active_permission_grants",
+                "active_consent_artifacts",
+                "permission_enforcement_layer",
+            ],
+            blocked_deferred=["permission_enforcement", "exports"],
+            unsafe_assumptions=[
+                "Treating permission-readiness metadata as authorization would be unsafe.",
+            ],
+            confidence_posture="permission_metadata_only_not_enforcement",
+            basis=self._scenario_comparison_readiness_basis(
+                source_section_keys=source_basis.source_section_keys,
+                permission_basis_refs=permission_refs,
+                derived_from=[
+                    "TwinPlanningContext.permission_readiness",
+                    "TwinAdvisoryContextAssemblyView.permission_readiness_metadata",
+                ],
+            ),
+            limitations=SCENARIO_COMPARISON_READINESS_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+        )
+        missing_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.missing_prerequisites,
+            posture="missing" if missing_prerequisites else "available",
+            statement=(
+                "Missing prerequisites are inventoried before any future comparison capability is treated as available."
+            ),
+            available=[] if missing_prerequisites else ["minimum_record_links_available"],
+            missing=missing_prerequisites,
+            blocked_deferred=SCENARIO_COMPARISON_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating missing prerequisites as completed future comparison capability would be unsafe.",
+            ],
+            confidence_posture="missing_prerequisites_reported_no_comparison_performed",
+            basis=source_basis,
+        )
+        unsafe_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.unsafe_assumptions,
+            posture="blocked/deferred",
+            statement=(
+                "Unsafe assumptions are surfaced to keep future comparison readiness separate from scenario intelligence."
+            ),
+            available=["phase_3c_unsafe_assumption_inventory_available"],
+            missing=["approved_scenario_comparison_boundary"],
+            blocked_deferred=SCENARIO_COMPARISON_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating readiness for future comparison as scenario comparison would be unsafe.",
+                "Treating available records as calculated future comparison findings would be unsafe.",
+                "Treating readiness metadata as recommendations would be unsafe.",
+            ],
+            confidence_posture="unsafe_assumptions_visible",
+            basis=self._scenario_comparison_readiness_basis(
+                source_section_keys=source_basis.source_section_keys,
+                derived_from=[
+                    "TwinPlanningIntelligenceReadinessView.unsafe_assumptions",
+                    "TwinConstraintRiskReasoningView.constraint_risk_items",
+                ],
+            ),
+        )
+        confidence_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.confidence_posture,
+            posture="readiness for future comparison",
+            statement=(
+                "Confidence is limited to readiness inventory because no future comparison capability is implemented."
+            ),
+            available=[
+                f"scenario_records:{len(scenario_refs)}",
+                f"scenario_revision_records:{len(revision_refs)}",
+                f"topology_branch_refs:{len(branch_refs)}",
+                f"lineage_refs:{len(lineage_refs)}",
+            ],
+            missing=missing_prerequisites,
+            blocked_deferred=SCENARIO_COMPARISON_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating readiness confidence as future comparison confidence would be unsafe.",
+            ],
+            confidence_posture="readiness_inventory_only",
+            basis=source_basis,
+        )
+        deferred_item = self._scenario_comparison_readiness_item(
+            readiness_area=TwinScenarioComparisonReadinessArea.deferred_scenario_boundaries,
+            posture="blocked/deferred",
+            statement=(
+                "Future scenario comparison boundaries remain blocked/deferred and are not implemented by this view."
+            ),
+            blocked_deferred=SCENARIO_COMPARISON_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating blocked/deferred boundaries as available runtime behavior would be unsafe.",
+            ],
+            confidence_posture="blocked_deferred_boundaries_preserved",
+            basis=source_basis,
+        )
+        items = sorted(
+            [
+                scenario_item,
+                revision_item,
+                linked_design_item,
+                topology_item,
+                provenance_item,
+                permission_item,
+                missing_item,
+                unsafe_item,
+                confidence_item,
+                deferred_item,
+            ],
+            key=self._scenario_comparison_readiness_item_sort_key,
+        )
+        unsafe_assumptions = self._sorted_unique(
+            assumption
+            for item in items
+            for assumption in item.unsafe_assumptions
+        )
+        return TwinScenarioComparisonReadinessView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3F scenario comparison readiness view built request-time from existing TwinPlanningContext, "
+                "topology snapshot, and approved Phase 3 readiness/context views; readiness for future comparison only, "
+                "not scenario comparison, scenario intelligence, simulation, what-if analysis, option ordering, optimization, "
+                "recommendations, change propagation, stale-state persistence, recalculation, invalidation, proposals, persistence, "
+                "exports, graph engine, or operational behavior."
+            ),
+            source_basis=source_basis,
+            readiness_scope=TwinScenarioComparisonReadinessScope(
+                limitations=SCENARIO_COMPARISON_READINESS_LIMITATIONS,
+            ),
+            readiness_items=items,
+            scenario_records_available=[
+                item
+                for item in items
+                if item.readiness_area == TwinScenarioComparisonReadinessArea.scenario_records_available
+            ],
+            scenario_revision_lineage_available=[
+                item
+                for item in items
+                if item.readiness_area == TwinScenarioComparisonReadinessArea.revision_lineage_available
+            ],
+            linked_design_reference_readiness=[
+                item
+                for item in items
+                if item.readiness_area == TwinScenarioComparisonReadinessArea.linked_design_reference_readiness
+            ],
+            topology_branch_reference_readiness=[
+                item
+                for item in items
+                if item.readiness_area == TwinScenarioComparisonReadinessArea.topology_branch_reference_readiness
+            ],
+            provenance_basis=[
+                item for item in items if item.readiness_area == TwinScenarioComparisonReadinessArea.provenance_basis
+            ],
+            permission_readiness_metadata=[
+                item
+                for item in items
+                if item.readiness_area == TwinScenarioComparisonReadinessArea.permission_readiness_metadata
+            ],
+            missing_prerequisites=self._sorted_unique(missing_prerequisites),
+            unsafe_assumptions=unsafe_assumptions,
+            confidence_posture=[
+                item for item in items if item.readiness_area == TwinScenarioComparisonReadinessArea.confidence_posture
+            ],
+            deferred_scenario_boundaries=sorted(SCENARIO_COMPARISON_DEFERRED_BOUNDARIES),
+            limitations=SCENARIO_COMPARISON_READINESS_LIMITATIONS,
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3E views, AI grounding, "
+                "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3F readiness view."
             ),
         )
 

@@ -63,6 +63,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_constraint_risk_reasoning_view(db, "home_001")
 
+    def _scenario_comparison_readiness_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_scenario_comparison_readiness_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -2008,6 +2012,192 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("permission_enforcement_layer", permission_item.missing_inputs)
         self.assertIn("permission-readiness metadata", permission_item.statement)
         self.assertFalse(view.reasoning_scope.permission_enforcement_present)
+
+    def test_scenario_comparison_readiness_route_is_additive_and_readiness_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/scenario-comparison-readiness",
+            paths,
+        )
+
+        view = self._scenario_comparison_readiness_view()
+        payload = view.dict()
+        scope = view.readiness_scope
+
+        self.assertEqual("scenario_comparison_readiness", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.readiness_for_future_comparison_only)
+        self.assertTrue(scope.descriptive_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_planning_intelligence_readiness)
+        self.assertTrue(scope.derived_from_advisory_context_assembly)
+        self.assertTrue(scope.derived_from_constraint_risk_reasoning)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("readiness for future comparison only", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_scenario_comparison_readiness_has_no_forbidden_capability_flags(self):
+        scope = self._scenario_comparison_readiness_view().readiness_scope
+
+        self.assertFalse(scope.scenario_comparison_present)
+        self.assertFalse(scope.scenario_intelligence_present)
+        self.assertFalse(scope.scenario_simulation_present)
+        self.assertFalse(scope.what_if_analysis_present)
+        self.assertFalse(scope.calculated_changes_present)
+        self.assertFalse(scope.option_ordering_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.recommendations_present)
+        self.assertFalse(scope.propagation_present)
+        self.assertFalse(scope.stale_state_persistence_present)
+        self.assertFalse(scope.recalculation_present)
+        self.assertFalse(scope.invalidation_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_scenario_comparison_readiness_reports_expected_inventory(self):
+        view = self._scenario_comparison_readiness_view()
+
+        self.assertTrue(view.readiness_items)
+        self.assertTrue(view.scenario_records_available)
+        self.assertTrue(view.scenario_revision_lineage_available)
+        self.assertTrue(view.linked_design_reference_readiness)
+        self.assertTrue(view.topology_branch_reference_readiness)
+        self.assertTrue(view.provenance_basis)
+        self.assertTrue(view.permission_readiness_metadata)
+        self.assertTrue(view.unsafe_assumptions)
+        self.assertTrue(view.confidence_posture)
+        self.assertTrue(view.deferred_scenario_boundaries)
+
+        areas = {item.readiness_area.value for item in view.readiness_items}
+        for area in [
+            "scenario_records_available",
+            "revision_lineage_available",
+            "linked_design_reference_readiness",
+            "topology_branch_reference_readiness",
+            "provenance_basis",
+            "permission_readiness_metadata",
+            "missing_prerequisites",
+            "unsafe_assumptions",
+            "confidence_posture",
+            "deferred_scenario_boundaries",
+        ]:
+            self.assertIn(area, areas)
+
+    def test_scenario_comparison_readiness_items_are_traceable(self):
+        view = self._scenario_comparison_readiness_view()
+
+        for source_view in [
+            "twin_planning_context",
+            "topology_snapshot",
+            "planning_intelligence_readiness",
+            "advisory_context_assembly",
+            "constraint_risk_reasoning",
+        ]:
+            self.assertIn(source_view, view.source_basis.source_views)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.scenario_record_refs)
+        self.assertTrue(view.source_basis.revision_record_refs)
+        self.assertTrue(view.source_basis.topology_branch_refs)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in view.readiness_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.posture)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+            self.assertTrue(item.available or item.missing or item.blocked_deferred)
+            self.assertIn("twin_planning_context", item.basis.source_views)
+
+    def test_scenario_comparison_readiness_preserves_readiness_only_language(self):
+        view = self._scenario_comparison_readiness_view()
+        response_text = str(view.dict())
+
+        self.assertIn("readiness for future comparison", response_text)
+        self.assertIn("blocked/deferred", response_text)
+        self.assertIn("unsafe", response_text)
+        self.assertIn("basis", response_text)
+        for forbidden in [
+            "better",
+            "worse",
+            "delta",
+            "score:",
+            "rank:",
+            "selected",
+            "recommended:",
+            "outcome",
+            "projection",
+        ]:
+            self.assertNotIn(forbidden, response_text)
+
+    def test_scenario_comparison_readiness_preserves_deferred_boundaries(self):
+        view = self._scenario_comparison_readiness_view()
+        deferred = set(view.deferred_scenario_boundaries)
+
+        for boundary in [
+            "scenario_comparison",
+            "scenario_intelligence",
+            "scenario_simulation",
+            "what_if_analysis",
+            "calculated_change_analysis",
+            "option_ordering",
+            "optimization",
+            "recommendations",
+            "change_propagation",
+            "stale_state_persistence",
+            "recalculation",
+            "invalidation",
+            "proposal_generation",
+            "persistence",
+            "migrations",
+            "twin_id",
+            "graph_engine",
+            "exports",
+            "operational_behavior",
+        ]:
+            self.assertIn(boundary, deferred)
+
+        limitation_text = " ".join(view.limitations)
+        self.assertIn("readiness for future comparison only", limitation_text)
+        self.assertIn("does not compare", limitation_text)
+
+    def test_scenario_comparison_readiness_is_deterministic_for_same_inputs(self):
+        first = self._scenario_comparison_readiness_view().dict()
+        second = self._scenario_comparison_readiness_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_scenario_boundaries"]),
+            first["deferred_scenario_boundaries"],
+        )
+        self.assertEqual(
+            sorted(item["readiness_area"] for item in first["readiness_items"]),
+            [item["readiness_area"] for item in first["readiness_items"]],
+        )
+
+    def test_scenario_comparison_readiness_keeps_provenance_and_permission_non_authoritative(self):
+        view = self._scenario_comparison_readiness_view()
+        provenance_item = view.provenance_basis[0]
+        permission_item = view.permission_readiness_metadata[0]
+
+        self.assertIn("not verification", provenance_item.statement)
+        self.assertIn("permission_enforcement_layer", permission_item.missing)
+        self.assertIn("not_enforced", view.permission_enforcement)
+        self.assertFalse(view.readiness_scope.permission_enforcement_present)
+        self.assertFalse(view.readiness_scope.export_present)
 
 
 if __name__ == "__main__":

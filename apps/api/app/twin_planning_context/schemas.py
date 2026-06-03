@@ -882,6 +882,109 @@ class TwinConstraintRiskReasoningView(ORMModel):
     compatibility_note: str
 
 
+class TwinScenarioComparisonReadinessArea(str, Enum):
+    scenario_records_available = "scenario_records_available"
+    revision_lineage_available = "revision_lineage_available"
+    linked_design_reference_readiness = "linked_design_reference_readiness"
+    topology_branch_reference_readiness = "topology_branch_reference_readiness"
+    provenance_basis = "provenance_basis"
+    permission_readiness_metadata = "permission_readiness_metadata"
+    missing_prerequisites = "missing_prerequisites"
+    unsafe_assumptions = "unsafe_assumptions"
+    confidence_posture = "confidence_posture"
+    deferred_scenario_boundaries = "deferred_scenario_boundaries"
+
+
+class TwinScenarioComparisonReadinessScope(ORMModel):
+    readiness_scope: str = "phase_3f_scenario_comparison_readiness"
+    readiness_for_future_comparison_only: bool = True
+    descriptive_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_planning_intelligence_readiness: bool = True
+    derived_from_advisory_context_assembly: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    deterministic_for_same_inputs: bool = True
+    scenario_comparison_present: bool = False
+    scenario_intelligence_present: bool = False
+    scenario_simulation_present: bool = False
+    what_if_analysis_present: bool = False
+    calculated_changes_present: bool = False
+    option_ordering_present: bool = False
+    optimization_present: bool = False
+    recommendations_present: bool = False
+    propagation_present: bool = False
+    stale_state_persistence_present: bool = False
+    recalculation_present: bool = False
+    invalidation_present: bool = False
+    proposal_generation_present: bool = False
+    permission_enforcement_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinScenarioComparisonReadinessBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    scenario_record_refs: List[str] = Field(default_factory=list)
+    revision_record_refs: List[str] = Field(default_factory=list)
+    linked_design_refs: List[str] = Field(default_factory=list)
+    topology_node_refs: List[str] = Field(default_factory=list)
+    topology_edge_refs: List[str] = Field(default_factory=list)
+    topology_branch_refs: List[str] = Field(default_factory=list)
+    provenance_gap_refs: List[str] = Field(default_factory=list)
+    permission_basis_refs: List[str] = Field(default_factory=list)
+    missing_prerequisite_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinScenarioComparisonReadinessItem(ORMModel):
+    readiness_area: TwinScenarioComparisonReadinessArea
+    posture: str
+    statement: str
+    available: List[str] = Field(default_factory=list)
+    missing: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinScenarioComparisonReadinessBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinScenarioComparisonReadinessView(ORMModel):
+    view_name: str = "scenario_comparison_readiness"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinScenarioComparisonReadinessBasis
+    readiness_scope: TwinScenarioComparisonReadinessScope
+    readiness_items: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
+    scenario_records_available: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
+    scenario_revision_lineage_available: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
+    linked_design_reference_readiness: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
+    topology_branch_reference_readiness: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
+    provenance_basis: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
+    permission_readiness_metadata: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
+    missing_prerequisites: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
+    deferred_scenario_boundaries: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True
