@@ -39,6 +39,10 @@ from app.twin_planning_context.schemas import (
     TwinRuntimeProjectionView,
     TwinRuntimeViewContext,
     TwinRuntimeVisibilityScope,
+    TwinTopologyEdge,
+    TwinTopologyLifecycleDomain,
+    TwinTopologyNode,
+    TwinTopologySnapshot,
     TwinViewPermissionAlignmentMetadata,
 )
 
@@ -137,6 +141,12 @@ CHANGE_IMPACT_HINT_LIMITATIONS = [
 PLANNING_DEPENDENCY_WARNING_LIMITATIONS = [
     "Planning dependency warnings describe relationship uncertainty only.",
     "Warnings do not prove a dependency is wrong, complete, field-verified, approved, or operational.",
+]
+
+TOPOLOGY_SNAPSHOT_LIMITATIONS = [
+    "Topology snapshot is descriptive runtime metadata derived from the current Twin Planning Context only.",
+    "No topology graph is persisted, promoted, field-verified, recalculated, invalidated, simulated, exported, or approved.",
+    "Lifecycle labels are planning context only and do not create installation, engineering, utility, safety, or operational authority.",
 ]
 
 DEFERRED_PERMISSION_CAPABILITIES = [
@@ -370,6 +380,21 @@ RUNTIME_VIEW_SCOPE = {
     TwinRuntimeParticipantRole.homeowner: TwinRuntimeVisibilityScope.owner_private,
     TwinRuntimeParticipantRole.contractor: TwinRuntimeVisibilityScope.contractor_scoped,
     TwinRuntimeParticipantRole.internal_system: TwinRuntimeVisibilityScope.internal_governance,
+}
+
+TOPOLOGY_SNAPSHOT_SECTION_ALLOWLIST = {
+    "premise",
+    "structures",
+    "electrical_infrastructure",
+    "loads",
+    "equipment_locations",
+    "equipment_products",
+    "designs",
+    "design_equipment",
+    "pathways",
+    "scenarios",
+    "scenario_revisions",
+    "derived_intelligence",
 }
 
 RUNTIME_VIEW_PURPOSE = {
@@ -1805,6 +1830,225 @@ class TwinPlanningContextService:
             planning_dependency_warnings=record.planning_dependency_warnings,
             permission_readiness=self._ai_record_permission_readiness(record),
             limitations=record.limitations,
+        )
+
+    def _topology_node_id(self, entity_type: str, entity_id: Optional[str]) -> str:
+        return f"{entity_type}:{entity_id or 'unknown'}"
+
+    def _topology_lifecycle_domain(
+        self, section_key: str, record: TwinPlanningContextRecord
+    ) -> TwinTopologyLifecycleDomain:
+        if section_key == "scenario_revisions":
+            return TwinTopologyLifecycleDomain.saved_scenario_revision_topology
+        if section_key in {"designs", "design_equipment", "pathways", "scenarios"}:
+            return TwinTopologyLifecycleDomain.sandbox_proposed_planning_topology
+        if (
+            section_key == "derived_intelligence"
+            or record.classification
+            in {
+                TwinPlanningRecordClassification.derived_output,
+                TwinPlanningRecordClassification.advisory_output,
+            }
+        ):
+            return TwinTopologyLifecycleDomain.derived_advisory_topology
+        return TwinTopologyLifecycleDomain.recorded_current_topology
+
+    def _topology_node(
+        self, section_key: str, record: TwinPlanningContextRecord
+    ) -> TwinTopologyNode:
+        permission_not_enforced = True
+        if record.permission_readiness is not None:
+            permission_not_enforced = record.permission_readiness.permission_not_enforced
+        return TwinTopologyNode(
+            node_id=self._topology_node_id(record.entity_type, record.entity_id),
+            section_key=section_key,
+            entity_type=record.entity_type,
+            entity_id=record.entity_id,
+            label=record.label,
+            lifecycle_domain=self._topology_lifecycle_domain(section_key, record),
+            classification=record.classification,
+            authority_layer=record.authority_layer,
+            data_classification=record.data_classification,
+            data_origin=record.data_origin,
+            source_document_ids=record.source_document_ids,
+            rule_keys=record.rule_keys,
+            provenance_gap_types=sorted({gap.gap_type.value for gap in record.provenance_gaps}),
+            dependency_awareness_labels=sorted({item.label.value for item in record.dependency_awareness}),
+            permission_not_enforced=permission_not_enforced,
+            limitations=record.limitations + TOPOLOGY_SNAPSHOT_LIMITATIONS,
+        )
+
+    def _topology_edge_lifecycle_domain(
+        self, source_node: TwinTopologyNode, target_node: TwinTopologyNode
+    ) -> TwinTopologyLifecycleDomain:
+        domains = {source_node.lifecycle_domain, target_node.lifecycle_domain}
+        if TwinTopologyLifecycleDomain.saved_scenario_revision_topology in domains:
+            return TwinTopologyLifecycleDomain.saved_scenario_revision_topology
+        if TwinTopologyLifecycleDomain.sandbox_proposed_planning_topology in domains:
+            return TwinTopologyLifecycleDomain.sandbox_proposed_planning_topology
+        if TwinTopologyLifecycleDomain.derived_advisory_topology in domains:
+            return TwinTopologyLifecycleDomain.derived_advisory_topology
+        return TwinTopologyLifecycleDomain.recorded_current_topology
+
+    def _topology_edges(
+        self,
+        records: List[TwinPlanningContextRecord],
+        node_map: Dict[tuple, TwinTopologyNode],
+    ) -> List[TwinTopologyEdge]:
+        edges = {}
+        for record in records:
+            for hook in record.dependency_hooks:
+                source_key = (hook.source_entity_type, hook.source_entity_id)
+                target_key = (hook.target_entity_type, hook.target_entity_id)
+                source_node = node_map.get(source_key)
+                target_node = node_map.get(target_key)
+                if source_node is None or target_node is None:
+                    continue
+                edge_key = (
+                    source_node.node_id,
+                    target_node.node_id,
+                    hook.relationship,
+                    tuple(hook.rule_keys),
+                )
+                edges.setdefault(
+                    edge_key,
+                    TwinTopologyEdge(
+                        edge_id=(
+                            f"topology-edge:{source_node.node_id}->{target_node.node_id}:"
+                            f"{hook.relationship}"
+                        ),
+                        source_node_id=source_node.node_id,
+                        target_node_id=target_node.node_id,
+                        source_entity_type=hook.source_entity_type,
+                        source_entity_id=hook.source_entity_id,
+                        target_entity_type=hook.target_entity_type,
+                        target_entity_id=hook.target_entity_id,
+                        relationship=hook.relationship,
+                        lifecycle_domain=self._topology_edge_lifecycle_domain(source_node, target_node),
+                        rule_keys=hook.rule_keys,
+                        confidence_level=hook.confidence_level,
+                        note=hook.note,
+                        limitations=TOPOLOGY_SNAPSHOT_LIMITATIONS,
+                    ),
+                )
+        return sorted(
+            edges.values(),
+            key=lambda edge: (
+                edge.source_node_id,
+                edge.target_node_id,
+                edge.relationship,
+            ),
+        )
+
+    def _topology_scenario_branch_references(
+        self,
+        records: List[TwinPlanningContextRecord],
+        node_map: Dict[tuple, TwinTopologyNode],
+    ) -> List[Dict[str, object]]:
+        references = []
+        for record in records:
+            if record.entity_type != "scenario":
+                continue
+            linked_design_id = record.record.get("linked_design_id")
+            scenario_node = node_map.get(("scenario", record.entity_id))
+            design_node = node_map.get(("energy_system_design", linked_design_id))
+            references.append(
+                {
+                    "scenario_id": record.entity_id,
+                    "linked_design_id": linked_design_id,
+                    "scenario_node_id": scenario_node.node_id if scenario_node else None,
+                    "linked_design_node_id": design_node.node_id if design_node else None,
+                    "lifecycle_domain": TwinTopologyLifecycleDomain.sandbox_proposed_planning_topology.value,
+                    "limitations": TOPOLOGY_SNAPSHOT_LIMITATIONS,
+                }
+            )
+        return sorted(references, key=lambda item: item.get("scenario_id") or "")
+
+    def _topology_revision_lineage_references(
+        self,
+        records: List[TwinPlanningContextRecord],
+        node_map: Dict[tuple, TwinTopologyNode],
+    ) -> List[Dict[str, object]]:
+        references = []
+        for record in records:
+            if record.entity_type != "scenario_revision":
+                continue
+            scenario_id = record.record.get("scenario_id")
+            linked_design_id = record.record.get("linked_design_id")
+            parent_revision_id = record.record.get("parent_revision_id")
+            revision_node = node_map.get(("scenario_revision", record.entity_id))
+            scenario_node = node_map.get(("scenario", scenario_id))
+            design_node = node_map.get(("energy_system_design", linked_design_id))
+            parent_node = (
+                node_map.get(("scenario_revision", parent_revision_id))
+                if parent_revision_id
+                else None
+            )
+            references.append(
+                {
+                    "revision_id": record.entity_id,
+                    "scenario_id": scenario_id,
+                    "linked_design_id": linked_design_id,
+                    "parent_revision_id": parent_revision_id,
+                    "revision_node_id": revision_node.node_id if revision_node else None,
+                    "scenario_node_id": scenario_node.node_id if scenario_node else None,
+                    "linked_design_node_id": design_node.node_id if design_node else None,
+                    "parent_revision_node_id": parent_node.node_id if parent_node else None,
+                    "lifecycle_domain": TwinTopologyLifecycleDomain.saved_scenario_revision_topology.value,
+                    "limitations": TOPOLOGY_SNAPSHOT_LIMITATIONS,
+                }
+            )
+        return sorted(references, key=lambda item: item.get("revision_id") or "")
+
+    def build_topology_snapshot_view(self, db, home_id: str) -> Optional[TwinTopologySnapshot]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+
+        section_records = [
+            (section.section_key, record)
+            for section in context.sections
+            if section.section_key in TOPOLOGY_SNAPSHOT_SECTION_ALLOWLIST
+            for record in section.records
+            if record.entity_id is not None
+        ]
+        nodes = [
+            self._topology_node(section_key, record)
+            for section_key, record in section_records
+        ]
+        node_map = {
+            (node.entity_type, node.entity_id): node
+            for node in nodes
+        }
+        records = [record for _, record in section_records]
+        edges = self._topology_edges(records, node_map)
+        lifecycle_counts = Counter(node.lifecycle_domain.value for node in nodes)
+        lifecycle_domain_summary = {
+            domain.value: lifecycle_counts.get(domain.value, 0)
+            for domain in TwinTopologyLifecycleDomain
+        }
+
+        return TwinTopologySnapshot(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only topology snapshot derived from the existing home_id-anchored Twin Planning Context; "
+                "not a persisted graph, canonical topology table, lifecycle event log, export, or operational model."
+            ),
+            nodes=nodes,
+            edges=edges,
+            scenario_branch_references=self._topology_scenario_branch_references(records, node_map),
+            revision_lineage_references=self._topology_revision_lineage_references(records, node_map),
+            lifecycle_domain_summary=lifecycle_domain_summary,
+            limitations=[
+                "No twin_id is created or inferred.",
+                "No topology graph, graph database, canonical topology table, migration, or persisted topology state is created.",
+                "No topology promotion workflow, lifecycle event log, recalculation engine, invalidation engine, simulation, or Phase 3 intelligence is implemented.",
+                "No auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, or operational control is implemented.",
+            ],
+            compatibility_note=(
+                "Existing TwinPlanningContext, AI grounding, runtime projection, and current /api/* contracts remain unchanged; "
+                "this is an additive topology snapshot view."
+            ),
         )
 
     def _runtime_role(self, role: TwinRuntimeParticipantRole) -> Optional[TwinRuntimeParticipantRole]:

@@ -10,6 +10,7 @@ from app.twin_planning_context.schemas import (
     TwinPlanningContext,
     TwinRuntimeParticipantRole,
     TwinRuntimeProjectionView,
+    TwinTopologySnapshot,
 )
 
 router = APIRouter(prefix="/twin-planning-context", tags=["twin_planning_context"])
@@ -32,6 +33,14 @@ def get_ai_design_grounding_view(
     view = twin_planning_context_service.build_ai_design_grounding_view(db, home_id, design_id=design_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home or design not found")
+    return view
+
+
+@router.get("/homes/{home_id}/views/topology-snapshot", response_model=TwinTopologySnapshot)
+def get_topology_snapshot_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_topology_snapshot_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
     return view
 
 

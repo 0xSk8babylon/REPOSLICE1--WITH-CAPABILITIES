@@ -39,6 +39,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_runtime_projection_view(db, "home_001", role=role)
 
+    def _topology_snapshot(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_topology_snapshot_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -773,6 +777,174 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         }
         self.assertIn("twin_dependency.load_panel_shared_building_v1", ai_rule_keys)
         self.assertIn("twin_dependency.equipment_system_reference_v1", ai_rule_keys)
+
+    def test_topology_snapshot_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn("/api/twin-planning-context/homes/{home_id}/views/topology-snapshot", paths)
+
+        snapshot = self._topology_snapshot()
+        payload = snapshot.dict()
+
+        self.assertEqual("topology_snapshot", snapshot.view_name)
+        self.assertEqual("home_001", snapshot.home_id)
+        self.assertEqual("home_id", snapshot.anchor_type)
+        self.assertEqual("not_enforced", snapshot.permission_enforcement)
+        self.assertNotIn("twin_id", payload)
+        self.assertIn("not a persisted graph", snapshot.implementation_boundary)
+        self.assertTrue(snapshot.nodes)
+        self.assertTrue(snapshot.edges)
+        self.assertTrue(snapshot.scenario_branch_references)
+        self.assertTrue(snapshot.revision_lineage_references)
+
+    def test_topology_snapshot_derives_nodes_and_edges_from_existing_context(self):
+        snapshot = self._topology_snapshot()
+        node_map = {node.node_id: node for node in snapshot.nodes}
+        edge_pairs = {
+            (edge.source_node_id, edge.target_node_id, edge.relationship)
+            for edge in snapshot.edges
+        }
+
+        for node_id in [
+            "home:home_001",
+            "building:building_main",
+            "electrical_panel:panel_main",
+            "load:load_001",
+            "energy_system_design:design_001",
+            "design_equipment:design_001_equipment_1",
+            "equipment_product:product_generic_panel",
+            "equipment_location:location_roof_south",
+            "scenario:scenario_001",
+            "scenario_revision:scenario_001_rev_001",
+        ]:
+            self.assertIn(node_id, node_map)
+
+        self.assertIn(
+            (
+                "load:load_001",
+                "electrical_panel:panel_main",
+                "shared_building_id_planning_context",
+            ),
+            edge_pairs,
+        )
+        self.assertIn(
+            (
+                "design_equipment:design_001_equipment_1",
+                "energy_system_design:design_001",
+                "assigned_to_design_planning_context",
+            ),
+            edge_pairs,
+        )
+        self.assertIn(
+            (
+                "design_equipment:design_001_equipment_1",
+                "equipment_product:product_generic_panel",
+                "uses_product_reference",
+            ),
+            edge_pairs,
+        )
+        self.assertIn(
+            (
+                "design_equipment:design_001_equipment_1",
+                "equipment_location:location_roof_south",
+                "assigned_location_planning_context",
+            ),
+            edge_pairs,
+        )
+        self.assertIn(
+            (
+                "scenario:scenario_001",
+                "energy_system_design:design_001",
+                "linked_design_planning_context",
+            ),
+            edge_pairs,
+        )
+        self.assertIn(
+            (
+                "scenario_revision:scenario_001_rev_001",
+                "scenario:scenario_001",
+                "snapshot_of_scenario",
+            ),
+            edge_pairs,
+        )
+
+    def test_topology_snapshot_reports_lifecycle_and_lineage_without_engines(self):
+        snapshot = self._topology_snapshot()
+        node_map = {node.node_id: node for node in snapshot.nodes}
+
+        self.assertEqual(
+            "recorded_current_topology",
+            node_map["load:load_001"].lifecycle_domain.value,
+        )
+        self.assertEqual(
+            "sandbox_proposed_planning_topology",
+            node_map["design_equipment:design_001_equipment_1"].lifecycle_domain.value,
+        )
+        self.assertEqual(
+            "saved_scenario_revision_topology",
+            node_map["scenario_revision:scenario_001_rev_001"].lifecycle_domain.value,
+        )
+        advisor_node = next(node for node in snapshot.nodes if node.entity_type == "advisor_recommendation_summary")
+        self.assertEqual("derived_advisory_topology", advisor_node.lifecycle_domain.value)
+
+        for domain in [
+            "recorded_current_topology",
+            "sandbox_proposed_planning_topology",
+            "saved_scenario_revision_topology",
+            "derived_advisory_topology",
+        ]:
+            self.assertIn(domain, snapshot.lifecycle_domain_summary)
+            self.assertGreater(snapshot.lifecycle_domain_summary[domain], 0)
+
+        scenario_ref = next(
+            item for item in snapshot.scenario_branch_references if item["scenario_id"] == "scenario_001"
+        )
+        self.assertEqual("design_001", scenario_ref["linked_design_id"])
+        self.assertEqual("scenario:scenario_001", scenario_ref["scenario_node_id"])
+        self.assertEqual("energy_system_design:design_001", scenario_ref["linked_design_node_id"])
+
+        revision_ref = next(
+            item for item in snapshot.revision_lineage_references if item["revision_id"] == "scenario_001_rev_001"
+        )
+        self.assertEqual("scenario_001", revision_ref["scenario_id"])
+        self.assertEqual("design_001", revision_ref["linked_design_id"])
+        self.assertEqual("scenario_revision:scenario_001_rev_001", revision_ref["revision_node_id"])
+        self.assertEqual("scenario:scenario_001", revision_ref["scenario_node_id"])
+
+    def test_topology_snapshot_preserves_deferred_boundaries(self):
+        snapshot = self._topology_snapshot()
+        limitation_text = " ".join(snapshot.limitations)
+        payload = snapshot.dict()
+
+        for boundary in [
+            "No topology graph",
+            "graph database",
+            "canonical topology table",
+            "migration",
+            "persisted topology state",
+            "topology promotion workflow",
+            "lifecycle event log",
+            "recalculation engine",
+            "invalidation engine",
+            "simulation",
+            "Phase 3 intelligence",
+            "auth",
+            "RBAC/ABAC",
+            "permission enforcement",
+            "exports",
+            "utility sharing",
+            "telemetry governance",
+            "ownership transfer",
+            "registry",
+            "marketplace",
+            "operational control",
+        ]:
+            self.assertIn(boundary, limitation_text)
+
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(all(node.permission_not_enforced for node in snapshot.nodes))
+        self.assertTrue(
+            all("not create installation" in " ".join(node.limitations) for node in snapshot.nodes)
+        )
 
 
 if __name__ == "__main__":

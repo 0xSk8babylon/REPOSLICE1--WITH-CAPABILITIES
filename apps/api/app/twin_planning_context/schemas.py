@@ -52,6 +52,13 @@ class TwinRuntimeVisibilityScope(str, Enum):
     ai_grounding = "ai_grounding"
 
 
+class TwinTopologyLifecycleDomain(str, Enum):
+    recorded_current_topology = "recorded_current_topology"
+    sandbox_proposed_planning_topology = "sandbox_proposed_planning_topology"
+    saved_scenario_revision_topology = "saved_scenario_revision_topology"
+    derived_advisory_topology = "derived_advisory_topology"
+
+
 class TwinPermissionReadinessAudience(str, Enum):
     homeowner = "homeowner"
     homeowner_authorized_household = "homeowner_authorized_household"
@@ -251,6 +258,41 @@ class TwinRuntimeContributionIdentity(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinTopologyNode(ORMModel):
+    node_id: str
+    section_key: str
+    entity_type: str
+    entity_id: Optional[str] = None
+    label: str
+    lifecycle_domain: TwinTopologyLifecycleDomain
+    classification: TwinPlanningRecordClassification
+    authority_layer: AuthorityLayer
+    data_classification: DataClassification = DataClassification.planning_private
+    data_origin: Optional[DataOrigin] = None
+    source_document_ids: List[str] = Field(default_factory=list)
+    rule_keys: List[str] = Field(default_factory=list)
+    provenance_gap_types: List[str] = Field(default_factory=list)
+    dependency_awareness_labels: List[str] = Field(default_factory=list)
+    permission_not_enforced: bool = True
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyEdge(ORMModel):
+    edge_id: str
+    source_node_id: str
+    target_node_id: str
+    source_entity_type: str
+    source_entity_id: Optional[str] = None
+    target_entity_type: str
+    target_entity_id: Optional[str] = None
+    relationship: str
+    lifecycle_domain: TwinTopologyLifecycleDomain
+    rule_keys: List[str] = Field(default_factory=list)
+    confidence_level: Optional[str] = None
+    note: str
+    limitations: List[str] = Field(default_factory=list)
+
+
 class TwinPlanningContextRecord(ORMModel):
     entity_type: str
     entity_id: Optional[str] = None
@@ -344,6 +386,21 @@ class TwinRuntimeProjectionView(ORMModel):
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
     permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
+class TwinTopologySnapshot(ORMModel):
+    view_name: str = "topology_snapshot"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    implementation_boundary: str
+    nodes: List[TwinTopologyNode] = Field(default_factory=list)
+    edges: List[TwinTopologyEdge] = Field(default_factory=list)
+    scenario_branch_references: List[Dict[str, Any]] = Field(default_factory=list)
+    revision_lineage_references: List[Dict[str, Any]] = Field(default_factory=list)
+    lifecycle_domain_summary: Dict[str, int] = Field(default_factory=dict)
     limitations: List[str] = Field(default_factory=list)
     compatibility_note: str
 
