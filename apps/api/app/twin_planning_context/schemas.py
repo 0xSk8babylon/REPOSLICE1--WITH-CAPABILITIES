@@ -52,6 +52,42 @@ class TwinRuntimeVisibilityScope(str, Enum):
     ai_grounding = "ai_grounding"
 
 
+class TwinPermissionReadinessAudience(str, Enum):
+    homeowner = "homeowner"
+    homeowner_authorized_household = "homeowner_authorized_household"
+    contractor = "contractor"
+    ai = "ai"
+    internal_system = "internal_system"
+    future_engineer = "future_engineer"
+    future_utility = "future_utility"
+
+
+class TwinPermissionReadinessPurpose(str, Enum):
+    owner_planning_context = "owner_planning_context"
+    contractor_scoping_context = "contractor_scoping_context"
+    ai_grounding = "ai_grounding"
+    runtime_governance_review = "runtime_governance_review"
+    missing_context_review = "missing_context_review"
+    future_engineering_review_input = "future_engineering_review_input"
+    future_utility_safe_context = "future_utility_safe_context"
+
+
+class TwinPermissionReadinessDuration(str, Enum):
+    not_active_placeholder = "not_active_placeholder"
+    one_time_future = "one_time_future"
+    session_bound_future = "session_bound_future"
+    project_bound_future = "project_bound_future"
+    time_bound_future = "time_bound_future"
+    until_revoked_future = "until_revoked_future"
+
+
+class TwinPermissionReadinessRevocationState(str, Enum):
+    not_applicable_no_active_permission = "not_applicable_no_active_permission"
+    future_revocable = "future_revocable"
+    future_expirable = "future_expirable"
+    future_supersedable = "future_supersedable"
+
+
 class TwinPlanningDependencyHook(ORMModel):
     source_entity_type: str
     source_entity_id: Optional[str] = None
@@ -106,12 +142,85 @@ class TwinPlanningDependencyWarning(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinPermissionReadinessAudienceConcept(ORMModel):
+    audience: TwinPermissionReadinessAudience
+    readiness_only: bool = True
+    active_permission_grant_present: bool = False
+    reason: str
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinPermissionReadinessPurposeConcept(ORMModel):
+    purpose: TwinPermissionReadinessPurpose
+    readiness_only: bool = True
+    active_permission_grant_present: bool = False
+    reason: str
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinPermissionReadinessDurationConcept(ORMModel):
+    duration: TwinPermissionReadinessDuration = TwinPermissionReadinessDuration.not_active_placeholder
+    readiness_only: bool = True
+    active_permission_grant_present: bool = False
+    starts_at: Optional[str] = None
+    expires_at: Optional[str] = None
+    reason: str
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinPermissionReadinessRevocationConcept(ORMModel):
+    revocation_state: TwinPermissionReadinessRevocationState = (
+        TwinPermissionReadinessRevocationState.not_applicable_no_active_permission
+    )
+    readiness_only: bool = True
+    active_permission_grant_present: bool = False
+    revoked_at: Optional[str] = None
+    reason: str
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinPermissionConsentArtifactPlaceholder(ORMModel):
+    consent_artifact_placeholder_only: bool = True
+    active_consent_present: bool = False
+    consent_artifact_id: Optional[str] = None
+    consent_text_version: Optional[str] = None
+    reason: str
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinPermissionHomeownerAuthorityMetadata(ORMModel):
+    homeowner_authority_preserved: bool = True
+    permission_grant_required_for_external_sharing: bool = True
+    active_permission_grant_present: bool = False
+    authority_note: str
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinViewPermissionAlignmentMetadata(ORMModel):
+    view_name: str
+    audience: TwinPermissionReadinessAudience
+    purpose: TwinPermissionReadinessPurpose
+    visibility_scope: Optional[TwinRuntimeVisibilityScope] = None
+    alignment_status: str = "readiness_metadata_only"
+    permission_enforcement: str = "not_enforced"
+    active_permission_grant_present: bool = False
+    active_consent_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
 class TwinPlanningPermissionReadiness(ORMModel):
     permission_required: bool
     permission_not_enforced: bool = True
     audience: str
     purpose: str
     minimum_necessary: bool
+    audience_readiness: Optional[TwinPermissionReadinessAudienceConcept] = None
+    purpose_readiness: Optional[TwinPermissionReadinessPurposeConcept] = None
+    duration_readiness: Optional[TwinPermissionReadinessDurationConcept] = None
+    revocation_state_readiness: Optional[TwinPermissionReadinessRevocationConcept] = None
+    consent_artifact_placeholder: Optional[TwinPermissionConsentArtifactPlaceholder] = None
+    homeowner_authority: Optional[TwinPermissionHomeownerAuthorityMetadata] = None
+    view_permission_alignment: Optional[TwinViewPermissionAlignmentMetadata] = None
     visibility_limitations: List[str] = Field(default_factory=list)
     deferred_capabilities: List[str] = Field(default_factory=list)
 

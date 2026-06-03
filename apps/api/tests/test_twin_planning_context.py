@@ -338,6 +338,69 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertTrue(load_record.permission_readiness.permission_not_enforced)
         self.assertEqual("homeowner_planning", load_record.permission_readiness.audience)
 
+    def test_permission_foundations_are_placeholders_without_enforcement(self):
+        context = self._context()
+        section = next(section for section in context.sections if section.section_key == "loads")
+        record = next(record for record in section.records if record.entity_id == "load_001")
+
+        readiness_items = [
+            context.permission_readiness,
+            section.permission_readiness,
+            record.permission_readiness,
+        ]
+        for readiness in readiness_items:
+            self.assertIsNotNone(readiness)
+            self.assertTrue(readiness.permission_not_enforced)
+            self.assertIsNotNone(readiness.audience_readiness)
+            self.assertIsNotNone(readiness.purpose_readiness)
+            self.assertIsNotNone(readiness.duration_readiness)
+            self.assertIsNotNone(readiness.revocation_state_readiness)
+            self.assertIsNotNone(readiness.consent_artifact_placeholder)
+            self.assertIsNotNone(readiness.homeowner_authority)
+            self.assertIsNotNone(readiness.view_permission_alignment)
+            self.assertTrue(readiness.audience_readiness.readiness_only)
+            self.assertTrue(readiness.purpose_readiness.readiness_only)
+            self.assertTrue(readiness.duration_readiness.readiness_only)
+            self.assertTrue(readiness.revocation_state_readiness.readiness_only)
+            self.assertTrue(readiness.consent_artifact_placeholder.consent_artifact_placeholder_only)
+            self.assertFalse(readiness.audience_readiness.active_permission_grant_present)
+            self.assertFalse(readiness.purpose_readiness.active_permission_grant_present)
+            self.assertFalse(readiness.duration_readiness.active_permission_grant_present)
+            self.assertFalse(readiness.revocation_state_readiness.active_permission_grant_present)
+            self.assertFalse(readiness.consent_artifact_placeholder.active_consent_present)
+            self.assertFalse(readiness.homeowner_authority.active_permission_grant_present)
+            self.assertFalse(readiness.view_permission_alignment.active_permission_grant_present)
+            self.assertFalse(readiness.view_permission_alignment.active_consent_present)
+            self.assertIsNone(readiness.consent_artifact_placeholder.consent_artifact_id)
+            self.assertEqual("not_enforced", readiness.view_permission_alignment.permission_enforcement)
+            self.assertIn("permission_grants", readiness.deferred_capabilities)
+            self.assertIn("auth", readiness.deferred_capabilities)
+            self.assertIn("rbac_abac", readiness.deferred_capabilities)
+            self.assertIn("scoped_exports", readiness.deferred_capabilities)
+            self.assertIn("operational_control", readiness.deferred_capabilities)
+            self.assertNotIn("permission_grant_id", readiness.dict())
+            self.assertTrue(
+                any("readiness metadata only" in note for note in readiness.audience_readiness.limitations)
+            )
+
+        self.assertEqual("homeowner", context.permission_readiness.audience_readiness.audience.value)
+        self.assertEqual(
+            "owner_planning_context",
+            context.permission_readiness.purpose_readiness.purpose.value,
+        )
+        self.assertEqual(
+            "not_active_placeholder",
+            context.permission_readiness.duration_readiness.duration.value,
+        )
+        self.assertEqual(
+            "not_applicable_no_active_permission",
+            context.permission_readiness.revocation_state_readiness.revocation_state.value,
+        )
+        self.assertTrue(context.permission_readiness.homeowner_authority.homeowner_authority_preserved)
+        self.assertTrue(
+            context.permission_readiness.homeowner_authority.permission_grant_required_for_external_sharing
+        )
+
     def test_api_route_is_api_prefixed_and_read_only_additive(self):
         paths = {getattr(route, "path", None) for route in app.routes}
 
@@ -483,6 +546,28 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual("ai", advisor_record.permission_readiness.audience)
         self.assertTrue(advisor_record.permission_readiness.minimum_necessary)
 
+    def test_ai_permission_foundations_are_readiness_only(self):
+        view = self._ai_view("design_001")
+        readiness = view.permission_readiness
+        advisor_record = next(
+            record for record in view.grounding_records if record.entity_type == "advisor_recommendation_summary"
+        )
+
+        self.assertEqual("ai", readiness.audience_readiness.audience.value)
+        self.assertEqual("ai_grounding", readiness.purpose_readiness.purpose.value)
+        self.assertEqual("ai_design_grounding", readiness.view_permission_alignment.view_name)
+        self.assertEqual("ai_grounding", readiness.view_permission_alignment.visibility_scope.value)
+        self.assertTrue(readiness.permission_not_enforced)
+        self.assertFalse(readiness.consent_artifact_placeholder.active_consent_present)
+        self.assertIsNone(readiness.consent_artifact_placeholder.consent_artifact_id)
+        self.assertFalse(readiness.view_permission_alignment.active_permission_grant_present)
+
+        record_readiness = advisor_record.permission_readiness
+        self.assertEqual("ai", record_readiness.audience_readiness.audience.value)
+        self.assertEqual("ai_grounding", record_readiness.purpose_readiness.purpose.value)
+        self.assertTrue(record_readiness.permission_not_enforced)
+        self.assertEqual("not_enforced", record_readiness.view_permission_alignment.permission_enforcement)
+
     def test_ai_design_grounding_view_returns_none_for_design_outside_home_context(self):
         self.assertIsNone(self._ai_view("missing_design"))
 
@@ -561,6 +646,46 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertTrue(internal.permission_readiness.permission_not_enforced)
         self.assertEqual("internal_system", internal.permission_readiness.audience)
         self.assertIn("auth", internal.permission_readiness.deferred_capabilities)
+
+    def test_runtime_projection_permission_foundations_align_to_view_roles(self):
+        homeowner = self._runtime_view("homeowner")
+        contractor = self._runtime_view("contractor")
+        internal = self._runtime_view("internal_system")
+
+        expectations = [
+            (homeowner, "homeowner", "owner_planning_context", "owner_private", False),
+            (contractor, "contractor", "contractor_scoping_context", "contractor_scoped", True),
+            (internal, "internal_system", "runtime_governance_review", "internal_governance", True),
+        ]
+        for view, audience, purpose, visibility_scope, permission_required in expectations:
+            readiness = view.permission_readiness
+            self.assertEqual(permission_required, readiness.permission_required)
+            self.assertTrue(readiness.permission_not_enforced)
+            self.assertEqual(audience, readiness.audience_readiness.audience.value)
+            self.assertEqual(purpose, readiness.purpose_readiness.purpose.value)
+            self.assertEqual(visibility_scope, readiness.view_permission_alignment.visibility_scope.value)
+            self.assertEqual(f"{audience}_runtime_projection", readiness.view_permission_alignment.view_name)
+            self.assertEqual("not_enforced", readiness.view_permission_alignment.permission_enforcement)
+            self.assertFalse(readiness.view_permission_alignment.active_permission_grant_present)
+            self.assertFalse(readiness.consent_artifact_placeholder.active_consent_present)
+            self.assertTrue(readiness.homeowner_authority.homeowner_authority_preserved)
+            self.assertIn("permission_grants", readiness.deferred_capabilities)
+            self.assertIn("scoped_exports", readiness.deferred_capabilities)
+            self.assertIn("operational_control", readiness.deferred_capabilities)
+
+        contractor_load = next(
+            record
+            for record in contractor.projection_records
+            if record.entity_type == "load" and record.entity_id == "load_001"
+        )
+        contractor_record_readiness = contractor_load.permission_readiness
+        self.assertEqual("contractor", contractor_record_readiness.audience_readiness.audience.value)
+        self.assertEqual(
+            "contractor_scoping_context",
+            contractor_record_readiness.purpose_readiness.purpose.value,
+        )
+        self.assertTrue(contractor_record_readiness.permission_not_enforced)
+        self.assertFalse(contractor_record_readiness.consent_artifact_placeholder.active_consent_present)
 
     def test_runtime_projection_preserves_provenance_and_contributor_identity(self):
         contractor = self._runtime_view("contractor")

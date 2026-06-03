@@ -22,6 +22,16 @@ from app.twin_planning_context.schemas import (
     TwinPlanningProvenanceGap,
     TwinPlanningProvenanceGapType,
     TwinPlanningRecordClassification,
+    TwinPermissionConsentArtifactPlaceholder,
+    TwinPermissionHomeownerAuthorityMetadata,
+    TwinPermissionReadinessAudience,
+    TwinPermissionReadinessAudienceConcept,
+    TwinPermissionReadinessDuration,
+    TwinPermissionReadinessDurationConcept,
+    TwinPermissionReadinessPurpose,
+    TwinPermissionReadinessPurposeConcept,
+    TwinPermissionReadinessRevocationConcept,
+    TwinPermissionReadinessRevocationState,
     TwinRuntimeContributionIdentity,
     TwinRuntimeParticipant,
     TwinRuntimeParticipantRole,
@@ -29,6 +39,7 @@ from app.twin_planning_context.schemas import (
     TwinRuntimeProjectionView,
     TwinRuntimeViewContext,
     TwinRuntimeVisibilityScope,
+    TwinViewPermissionAlignmentMetadata,
 )
 
 
@@ -148,6 +159,11 @@ PERMISSION_READINESS_LIMITATIONS = [
     "Permission readiness metadata is descriptive only and does not enforce access.",
     "Endpoint access, account scaffolding, UI visibility, or AI use is not a permission grant.",
     "External sharing requires a future approved permission model before it can be treated as authorized.",
+]
+
+PERMISSION_FOUNDATION_LIMITATIONS = [
+    "Permission foundation fields are readiness metadata only.",
+    "No active permission grant, active consent, authorization check, export authorization, or enforcement behavior exists.",
 ]
 
 REGROUNDING_GAP_TYPES = {
@@ -360,6 +376,23 @@ RUNTIME_VIEW_PURPOSE = {
     TwinRuntimeParticipantRole.homeowner: "owner_planning_context",
     TwinRuntimeParticipantRole.contractor: "contractor_scoping_context",
     TwinRuntimeParticipantRole.internal_system: "runtime_governance_review",
+}
+
+PERMISSION_AUDIENCE_READINESS_MAP = {
+    "homeowner_planning": TwinPermissionReadinessAudience.homeowner,
+    "homeowner": TwinPermissionReadinessAudience.homeowner,
+    "contractor": TwinPermissionReadinessAudience.contractor,
+    "ai": TwinPermissionReadinessAudience.ai,
+    "internal_governance": TwinPermissionReadinessAudience.internal_system,
+    "internal_system": TwinPermissionReadinessAudience.internal_system,
+}
+
+PERMISSION_PURPOSE_READINESS_MAP = {
+    "owner_planning_context": TwinPermissionReadinessPurpose.owner_planning_context,
+    "contractor_scoping_context": TwinPermissionReadinessPurpose.contractor_scoping_context,
+    "grounded_design_recommendation": TwinPermissionReadinessPurpose.ai_grounding,
+    "runtime_governance_review": TwinPermissionReadinessPurpose.runtime_governance_review,
+    "missing_context_review": TwinPermissionReadinessPurpose.missing_context_review,
 }
 
 RUNTIME_FIELD_ALLOWLIST = {
@@ -862,13 +895,81 @@ class TwinPlanningContextService:
         purpose: str,
         minimum_necessary: bool,
         visibility_limitations: Optional[List[str]] = None,
+        view_name: str = "twin_planning_context",
+        visibility_scope: Optional[TwinRuntimeVisibilityScope] = None,
     ) -> TwinPlanningPermissionReadiness:
+        audience_readiness = PERMISSION_AUDIENCE_READINESS_MAP.get(
+            audience,
+            TwinPermissionReadinessAudience.homeowner,
+        )
+        fallback_purpose = TwinPermissionReadinessPurpose.owner_planning_context
+        if audience_readiness == TwinPermissionReadinessAudience.contractor:
+            fallback_purpose = TwinPermissionReadinessPurpose.contractor_scoping_context
+        elif audience_readiness == TwinPermissionReadinessAudience.ai:
+            fallback_purpose = TwinPermissionReadinessPurpose.ai_grounding
+        elif audience_readiness == TwinPermissionReadinessAudience.internal_system:
+            fallback_purpose = TwinPermissionReadinessPurpose.runtime_governance_review
+        purpose_readiness = PERMISSION_PURPOSE_READINESS_MAP.get(purpose, fallback_purpose)
+        foundation_limitations = PERMISSION_FOUNDATION_LIMITATIONS + [
+            "No permission grant id, consent artifact id, revocation event, auth principal, role mapping, or export package is created.",
+        ]
         return TwinPlanningPermissionReadiness(
             permission_required=permission_required,
             permission_not_enforced=True,
             audience=audience,
             purpose=purpose,
             minimum_necessary=minimum_necessary,
+            audience_readiness=TwinPermissionReadinessAudienceConcept(
+                audience=audience_readiness,
+                reason=(
+                    "Audience is labeled for future permission-scoping readiness only; it is not an authenticated "
+                    "principal, account role, grant recipient, or authorization subject."
+                ),
+                limitations=foundation_limitations,
+            ),
+            purpose_readiness=TwinPermissionReadinessPurposeConcept(
+                purpose=purpose_readiness,
+                reason=(
+                    "Purpose is labeled for future permission-scoping readiness only; it does not authorize access, "
+                    "sharing, export, or operational behavior."
+                ),
+                limitations=foundation_limitations,
+            ),
+            duration_readiness=TwinPermissionReadinessDurationConcept(
+                duration=TwinPermissionReadinessDuration.not_active_placeholder,
+                reason=(
+                    "No active permission duration exists because no permission grant or consent artifact has been created."
+                ),
+                limitations=foundation_limitations,
+            ),
+            revocation_state_readiness=TwinPermissionReadinessRevocationConcept(
+                revocation_state=TwinPermissionReadinessRevocationState.not_applicable_no_active_permission,
+                reason=(
+                    "No revocation state exists because there is no active grant, consent artifact, or enforced access."
+                ),
+                limitations=foundation_limitations,
+            ),
+            consent_artifact_placeholder=TwinPermissionConsentArtifactPlaceholder(
+                reason=(
+                    "Consent artifact is a placeholder concept only; no active consent text, consent version, or consent "
+                    "record is captured by this runtime foundation."
+                ),
+                limitations=foundation_limitations,
+            ),
+            homeowner_authority=TwinPermissionHomeownerAuthorityMetadata(
+                authority_note=(
+                    "Homeowner authority over future external sharing is preserved; this metadata does not delegate, "
+                    "transfer, or enforce that authority."
+                ),
+                limitations=foundation_limitations,
+            ),
+            view_permission_alignment=TwinViewPermissionAlignmentMetadata(
+                view_name=view_name,
+                audience=audience_readiness,
+                purpose=purpose_readiness,
+                visibility_scope=visibility_scope,
+                limitations=foundation_limitations,
+            ),
             visibility_limitations=PERMISSION_READINESS_LIMITATIONS + (visibility_limitations or []),
             deferred_capabilities=DEFERRED_PERMISSION_CAPABILITIES,
         )
@@ -879,6 +980,8 @@ class TwinPlanningContextService:
             audience="homeowner_planning",
             purpose="owner_planning_context",
             minimum_necessary=False,
+            view_name="twin_planning_context",
+            visibility_scope=TwinRuntimeVisibilityScope.owner_private,
             visibility_limitations=[
                 "Broad owner planning context is not minimized for external participants.",
                 "External sharing would require future explicit permission, scope, purpose, duration, and revocation handling.",
@@ -892,6 +995,8 @@ class TwinPlanningContextService:
                 audience="internal_governance",
                 purpose="missing_context_review",
                 minimum_necessary=True,
+                view_name=f"section:{section_key}",
+                visibility_scope=TwinRuntimeVisibilityScope.internal_governance,
                 visibility_limitations=[
                     "Unknown markers are internal governance context and should not be exposed as facts.",
                 ],
@@ -901,6 +1006,8 @@ class TwinPlanningContextService:
             audience="homeowner_planning",
             purpose=f"{section_key}_planning_context",
             minimum_necessary=False,
+            view_name=f"section:{section_key}",
+            visibility_scope=TwinRuntimeVisibilityScope.owner_private,
             visibility_limitations=[
                 "Section data may contain homeowner planning context and requires future permission before external sharing.",
             ],
@@ -927,6 +1034,12 @@ class TwinPlanningContextService:
             audience=audience,
             purpose=purpose,
             minimum_necessary=False,
+            view_name=f"record:{record.entity_type}",
+            visibility_scope=(
+                TwinRuntimeVisibilityScope.internal_governance
+                if section_key == "unknowns"
+                else TwinRuntimeVisibilityScope.owner_private
+            ),
             visibility_limitations=limitations,
         )
 
@@ -942,6 +1055,8 @@ class TwinPlanningContextService:
             audience="ai",
             purpose="grounded_design_recommendation",
             minimum_necessary=True,
+            view_name="ai_design_grounding",
+            visibility_scope=TwinRuntimeVisibilityScope.ai_grounding,
             visibility_limitations=[
                 "AI grounding view is minimized for explanation and recommendation grounding only.",
                 "AI access is not consent, export authorization, write authority, or permission enforcement.",
@@ -955,6 +1070,8 @@ class TwinPlanningContextService:
             audience="ai",
             purpose=f"{record.entity_type}_grounding",
             minimum_necessary=True,
+            view_name=f"ai_design_grounding:{record.entity_type}",
+            visibility_scope=TwinRuntimeVisibilityScope.ai_grounding,
             visibility_limitations=[
                 "Record is included only because it is part of the minimized AI grounding projection.",
                 "Visibility metadata does not authorize external sharing or persistence outside the approved runtime.",
@@ -1714,6 +1831,8 @@ class TwinPlanningContextService:
                 audience=role.value,
                 purpose=RUNTIME_VIEW_PURPOSE[role],
                 minimum_necessary=False,
+                view_name=f"{role.value}_runtime_projection",
+                visibility_scope=RUNTIME_VIEW_SCOPE[role],
                 visibility_limitations=[
                     "Homeowner projection is owner-facing planning context, not a permission grant or export package.",
                     "It may include private planning fields that are excluded from external scoped projections.",
@@ -1725,6 +1844,8 @@ class TwinPlanningContextService:
                 audience=role.value,
                 purpose=RUNTIME_VIEW_PURPOSE[role],
                 minimum_necessary=True,
+                view_name=f"{role.value}_runtime_projection",
+                visibility_scope=RUNTIME_VIEW_SCOPE[role],
                 visibility_limitations=[
                     "Contractor projection is a minimized planning/scoping view only.",
                     "It is not a contractor portal, authorization grant, bid packet, stamped design, or export package.",
@@ -1736,6 +1857,8 @@ class TwinPlanningContextService:
             audience=role.value,
             purpose=RUNTIME_VIEW_PURPOSE[role],
             minimum_necessary=False,
+            view_name=f"{role.value}_runtime_projection",
+            visibility_scope=RUNTIME_VIEW_SCOPE[role],
             visibility_limitations=[
                 "Internal/system projection supports runtime governance inspection only.",
                 "Internal visibility metadata does not create tenant isolation, audit policy, or authorization enforcement.",
@@ -1761,6 +1884,8 @@ class TwinPlanningContextService:
             audience=role.value,
             purpose=f"{record.entity_type}_{RUNTIME_VIEW_PURPOSE[role]}",
             minimum_necessary=role == TwinRuntimeParticipantRole.contractor,
+            view_name=f"{role.value}_runtime_projection:{record.entity_type}",
+            visibility_scope=RUNTIME_VIEW_SCOPE[role],
             visibility_limitations=limitations,
         )
 
