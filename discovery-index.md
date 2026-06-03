@@ -41,6 +41,10 @@ Read these first:
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/advisory-context-assembly` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored advisory input context assembly over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, Phase 3B dependency reasoning, and Phase 3C planning intelligence readiness outputs. It assembles trusted advisory input context only and does not generate advice, recommendations, homeowner guidance, contractor sales logic, proposals, ranking, optimization, simulation, what-if analysis, exports, permission enforcement, or operational behavior.
   - Deferred: advice generation, recommendations, ranking, optimization, scenario simulation, what-if analysis, proposal generation, contractor sales logic, homeowner guidance outputs, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph engine, exports, and operational behavior.
+- Phase 3E: Constraint and Risk Reasoning - complete for the approved fifth runtime boundary in `ee3b102`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/constraint-risk-reasoning` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored derived constraint/risk explanation over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, Phase 3B dependency reasoning, Phase 3C planning intelligence readiness, and Phase 3D advisory context assembly outputs. It reports constraint/risk context for missing equipment specs, incomplete topology, low-trust assumptions, unsupported load data, permission-limited visibility, lifecycle conflicts, provenance gaps, contractor/install complexity risks, field-verification needs, and professional-review boundaries.
+  - Deferred: recommendations, priority ranking, optimization, scenario simulation, what-if analysis, proposal generation, final design guidance, contractor directives, homeowner directives, economic reasoning, utility readiness logic, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, scenario intelligence, impact propagation, stale-state persistence, recalculation, invalidation, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -71,6 +75,7 @@ Read these first:
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
   - `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`
+  - `docs/handoffs/2026-06-03-phase-3e-constraint-risk-reasoning.md`
   - `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md`
   - `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md`
   - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
@@ -135,6 +140,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3D Advisory Context Assembly:
     - `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3E Constraint and Risk Reasoning:
+    - `docs/handoffs/2026-06-03-phase-3e-constraint-risk-reasoning.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
