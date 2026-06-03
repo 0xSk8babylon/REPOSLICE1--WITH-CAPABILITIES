@@ -711,6 +711,87 @@ class TwinPlanningIntelligenceReadinessView(ORMModel):
     compatibility_note: str
 
 
+class TwinAdvisoryContextAssemblyArea(str, Enum):
+    homeowner_goals = "homeowner_goals"
+    topology_facts = "topology_facts"
+    equipment_site_facts = "equipment_site_facts"
+    provenance_basis = "provenance_basis"
+    permission_readiness_metadata = "permission_readiness_metadata"
+    missing_data = "missing_data"
+    unsafe_assumptions = "unsafe_assumptions"
+    advisory_input_readiness = "advisory_input_readiness"
+    deferred_advisory_output_boundaries = "deferred_advisory_output_boundaries"
+
+
+class TwinAdvisoryContextAssemblyScope(ORMModel):
+    assembly_scope: str = "phase_3d_advisory_context_assembly"
+    advisory_input_context_only: bool = True
+    descriptive_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_dependency_impact_readiness: bool = True
+    derived_from_dependency_reasoning: bool = True
+    derived_from_planning_intelligence_readiness: bool = True
+    deterministic_for_same_inputs: bool = True
+    advice_generated: bool = False
+    recommendations_present: bool = False
+    ranking_present: bool = False
+    optimization_present: bool = False
+    scenario_simulation_present: bool = False
+    what_if_analysis_present: bool = False
+    proposal_generation_present: bool = False
+    contractor_sales_logic_present: bool = False
+    homeowner_guidance_outputs_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinAdvisoryContextAssemblyItem(ORMModel):
+    context_area: TwinAdvisoryContextAssemblyArea
+    posture: str
+    statement: str
+    assembled_inputs: List[str] = Field(default_factory=list)
+    missing_inputs: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinDependencyImpactStatementBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinAdvisoryContextAssemblyView(ORMModel):
+    view_name: str = "advisory_context_assembly"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinDependencyImpactStatementBasis
+    assembly_scope: TwinAdvisoryContextAssemblyScope
+    homeowner_goals: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
+    topology_facts: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
+    equipment_site_facts: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
+    provenance_basis: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
+    permission_readiness_metadata: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
+    missing_data: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
+    unsafe_assumptions: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
+    advisory_input_readiness: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
+    deferred_advisory_output_boundaries: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

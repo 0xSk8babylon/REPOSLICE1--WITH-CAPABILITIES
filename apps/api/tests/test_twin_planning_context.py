@@ -55,6 +55,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_planning_intelligence_readiness_view(db, "home_001")
 
+    def _advisory_context_assembly_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_advisory_context_assembly_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -1663,6 +1667,150 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
         self.assertTrue(
             all(not item.permission_readiness_is_enforcement for item in view.provenance_permission_basis)
+        )
+
+    def test_advisory_context_assembly_route_is_additive_and_input_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/advisory-context-assembly",
+            paths,
+        )
+
+        view = self._advisory_context_assembly_view()
+        payload = view.dict()
+        scope = view.assembly_scope
+
+        self.assertEqual("advisory_context_assembly", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.advisory_input_context_only)
+        self.assertTrue(scope.descriptive_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_dependency_impact_readiness)
+        self.assertTrue(scope.derived_from_dependency_reasoning)
+        self.assertTrue(scope.derived_from_planning_intelligence_readiness)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("not advice generation", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_advisory_context_assembly_has_no_forbidden_capabilities(self):
+        scope = self._advisory_context_assembly_view().assembly_scope
+
+        self.assertFalse(scope.advice_generated)
+        self.assertFalse(scope.recommendations_present)
+        self.assertFalse(scope.ranking_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.scenario_simulation_present)
+        self.assertFalse(scope.what_if_analysis_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.contractor_sales_logic_present)
+        self.assertFalse(scope.homeowner_guidance_outputs_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_advisory_context_assembly_reports_expected_context_areas(self):
+        view = self._advisory_context_assembly_view()
+
+        self.assertTrue(view.homeowner_goals)
+        self.assertTrue(view.topology_facts)
+        self.assertTrue(view.equipment_site_facts)
+        self.assertTrue(view.provenance_basis)
+        self.assertTrue(view.permission_readiness_metadata)
+        self.assertTrue(view.missing_data)
+        self.assertTrue(view.unsafe_assumptions)
+        self.assertTrue(view.advisory_input_readiness)
+        self.assertTrue(view.deferred_advisory_output_boundaries)
+
+        goal_item = view.homeowner_goals[0]
+        self.assertIn("design_goal", " ".join(goal_item.assembled_inputs))
+        readiness_item = view.advisory_input_readiness[0]
+        self.assertIn("no_advice_generated", readiness_item.confidence_posture)
+
+    def test_advisory_context_assembly_items_are_traceable(self):
+        view = self._advisory_context_assembly_view()
+        all_items = (
+            view.homeowner_goals
+            + view.topology_facts
+            + view.equipment_site_facts
+            + view.provenance_basis
+            + view.permission_readiness_metadata
+            + view.missing_data
+            + view.unsafe_assumptions
+            + view.advisory_input_readiness
+        )
+
+        for source_view_name in [
+            "twin_planning_context",
+            "topology_snapshot",
+            "dependency_impact_readiness",
+            "dependency_reasoning",
+            "planning_intelligence_readiness",
+        ]:
+            self.assertIn(source_view_name, view.source_basis.source_view_names)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.topology_node_ids)
+        self.assertTrue(view.source_basis.topology_edge_ids)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in all_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.basis.source_view_names)
+            self.assertIn("planning_intelligence_readiness", item.basis.source_view_names)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+
+    def test_advisory_context_assembly_preserves_deferred_output_boundaries(self):
+        view = self._advisory_context_assembly_view()
+        deferred = set(view.deferred_advisory_output_boundaries)
+
+        for boundary in [
+            "advice_generation",
+            "recommendations",
+            "ranking",
+            "optimization",
+            "scenario_simulation",
+            "what_if_analysis",
+            "proposal_generation",
+            "contractor_sales_logic",
+            "homeowner_guidance_outputs",
+            "permission_enforcement",
+            "auth",
+            "rbac_abac",
+            "persistence",
+            "migrations",
+            "twin_id",
+            "graph_engine",
+            "exports",
+            "operational_behavior",
+        ]:
+            self.assertIn(boundary, deferred)
+
+        limitation_text = " ".join(view.limitations)
+        self.assertIn("advisory input context only", limitation_text)
+        self.assertIn("does not generate advice", limitation_text)
+
+    def test_advisory_context_assembly_is_deterministic_for_same_inputs(self):
+        first = self._advisory_context_assembly_view().dict()
+        second = self._advisory_context_assembly_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_advisory_output_boundaries"]),
+            first["deferred_advisory_output_boundaries"],
         )
 
 

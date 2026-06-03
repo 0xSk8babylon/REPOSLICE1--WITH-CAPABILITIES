@@ -10,6 +10,10 @@ from app.services.provenance import provenance_service
 from app.twin_planning_context.schemas import (
     AIDesignGroundingRecord,
     AIDesignGroundingView,
+    TwinAdvisoryContextAssemblyArea,
+    TwinAdvisoryContextAssemblyItem,
+    TwinAdvisoryContextAssemblyScope,
+    TwinAdvisoryContextAssemblyView,
     TwinDependencyImpactPostureItem,
     TwinDependencyImpactReadinessSummary,
     TwinDependencyImpactReadinessView,
@@ -286,6 +290,34 @@ PLANNING_INTELLIGENCE_READINESS_DEFERRED_BOUNDARIES = [
     "graph_engine",
     "migrations",
     "canonical_twin_runtime_model",
+]
+
+ADVISORY_CONTEXT_ASSEMBLY_LIMITATIONS = [
+    "Phase 3D advisory context assembly is advisory input context only.",
+    "This view assembles existing trusted context but does not generate advice, recommendations, guidance, proposals, rankings, optimization, simulations, what-if analysis, exports, permission enforcement, or operational behavior.",
+    "Homeowner goals, topology facts, equipment/site facts, provenance basis, and permission-readiness metadata are included only when already represented in existing Twin Planning Context or derived Phase 3 views.",
+    "Provenance presence is not verification, and permission readiness is not permission enforcement.",
+]
+
+ADVISORY_CONTEXT_DEFERRED_BOUNDARIES = [
+    "advice_generation",
+    "recommendations",
+    "ranking",
+    "optimization",
+    "scenario_simulation",
+    "what_if_analysis",
+    "proposal_generation",
+    "contractor_sales_logic",
+    "homeowner_guidance_outputs",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "exports",
+    "operational_behavior",
 ]
 
 TOPOLOGY_RELATIONSHIP_COVERAGE_RULE_KEY = "twin_topology.relationship_coverage_v1"
@@ -4469,6 +4501,461 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, dependency impact readiness, dependency reasoning, "
                 "AI grounding, runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3C readiness inventory."
+            ),
+        )
+
+    def _advisory_context_basis(
+        self,
+        *,
+        source_section_keys: Optional[List[str]] = None,
+        topology_node_ids: Optional[List[str]] = None,
+        topology_edge_ids: Optional[List[str]] = None,
+        lifecycle_readiness_signals_used: Optional[List[str]] = None,
+        dependency_warning_refs: Optional[List[str]] = None,
+        provenance_gap_refs: Optional[List[str]] = None,
+        missing_readiness_indicator_refs: Optional[List[str]] = None,
+        missing_relationship_indicator_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinDependencyImpactStatementBasis:
+        return self._dependency_impact_basis(
+            source_view_names=[
+                "twin_planning_context",
+                "topology_snapshot",
+                "dependency_impact_readiness",
+                "dependency_reasoning",
+                "planning_intelligence_readiness",
+            ],
+            source_section_keys=source_section_keys,
+            topology_node_ids=topology_node_ids,
+            topology_edge_ids=topology_edge_ids,
+            lifecycle_readiness_signals_used=lifecycle_readiness_signals_used,
+            dependency_warning_refs=dependency_warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_indicator_refs,
+            missing_relationship_indicator_refs=missing_relationship_indicator_refs,
+            derived_from=derived_from,
+            limitations=ADVISORY_CONTEXT_ASSEMBLY_LIMITATIONS,
+        )
+
+    def _advisory_context_item(
+        self,
+        *,
+        context_area: TwinAdvisoryContextAssemblyArea,
+        posture: str,
+        statement: str,
+        assembled_inputs: Optional[List[str]] = None,
+        missing_inputs: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinDependencyImpactStatementBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinAdvisoryContextAssemblyItem:
+        return TwinAdvisoryContextAssemblyItem(
+            context_area=context_area,
+            posture=posture,
+            statement=statement,
+            assembled_inputs=self._sorted_unique(assembled_inputs or []),
+            missing_inputs=self._sorted_unique(missing_inputs or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or ADVISORY_CONTEXT_ASSEMBLY_LIMITATIONS,
+        )
+
+    def _advisory_context_item_sort_key(self, item: TwinAdvisoryContextAssemblyItem) -> str:
+        return item.context_area.value
+
+    def _advisory_record_ref(self, record: TwinPlanningContextRecord) -> str:
+        return f"{record.entity_type}:{record.entity_id or 'unknown'}"
+
+    def _advisory_homeowner_goal_items(
+        self,
+        section_records: List[tuple],
+        node_by_entity: Dict[tuple, TwinTopologyNode],
+    ) -> List[TwinAdvisoryContextAssemblyItem]:
+        goal_inputs = []
+        source_sections = []
+        node_ids = []
+        provenance_refs = []
+        for section_key, record in sorted(
+            section_records,
+            key=lambda item: (item[0], item[1].entity_type, item[1].entity_id or ""),
+        ):
+            if record.entity_type != "energy_system_design":
+                continue
+            design_goal = record.record.get("design_goal")
+            if not design_goal:
+                continue
+            goal_inputs.append(f"{self._advisory_record_ref(record)}:design_goal:{design_goal}")
+            source_sections.append(section_key)
+            node = node_by_entity.get((record.entity_type, record.entity_id))
+            if node is not None:
+                node_ids.append(node.node_id)
+            provenance_refs.extend(self._provenance_gap_ref(gap) for gap in record.provenance_gaps)
+
+        if goal_inputs:
+            return [
+                self._advisory_context_item(
+                    context_area=TwinAdvisoryContextAssemblyArea.homeowner_goals,
+                    posture="assembled_as_advisory_input_context_only",
+                    statement=(
+                        "Homeowner goal context is assembled only from existing recorded design goal fields."
+                    ),
+                    assembled_inputs=goal_inputs,
+                    missing_inputs=["field_verified_homeowner_goal_confirmation"],
+                    unsafe_assumptions=[
+                        "Treating recorded planning goals as final homeowner guidance would be unsafe.",
+                    ],
+                    confidence_posture="recorded_goal_context_present_planning_only",
+                    basis=self._advisory_context_basis(
+                        source_section_keys=source_sections,
+                        topology_node_ids=node_ids,
+                        provenance_gap_refs=provenance_refs,
+                        derived_from=["TwinPlanningContextRecord.record.design_goal"],
+                    ),
+                )
+            ]
+        return [
+            self._advisory_context_item(
+                context_area=TwinAdvisoryContextAssemblyArea.homeowner_goals,
+                posture="missing_input_context_only",
+                statement=(
+                    "No homeowner goal context is assembled because no existing recorded design goal field was found."
+                ),
+                missing_inputs=["recorded_design_goal"],
+                unsafe_assumptions=[
+                    "Inventing homeowner goals would be unsafe.",
+                ],
+                confidence_posture="missing_goal_context",
+                basis=self._advisory_context_basis(
+                    derived_from=["TwinPlanningContext.sections"],
+                ),
+            )
+        ]
+
+    def _advisory_equipment_site_item(
+        self,
+        *,
+        section_records: List[tuple],
+        node_by_entity: Dict[tuple, TwinTopologyNode],
+    ) -> TwinAdvisoryContextAssemblyItem:
+        allowed_sections = {
+            "premise",
+            "structures",
+            "electrical_infrastructure",
+            "loads",
+            "equipment_locations",
+            "equipment_products",
+            "design_equipment",
+            "pathways",
+        }
+        assembled_inputs = []
+        source_sections = []
+        node_ids = []
+        provenance_refs = []
+        for section_key, record in sorted(
+            section_records,
+            key=lambda item: (item[0], item[1].entity_type, item[1].entity_id or ""),
+        ):
+            if section_key not in allowed_sections:
+                continue
+            assembled_inputs.append(f"{section_key}:{self._advisory_record_ref(record)}")
+            source_sections.append(section_key)
+            node = node_by_entity.get((record.entity_type, record.entity_id))
+            if node is not None:
+                node_ids.append(node.node_id)
+            provenance_refs.extend(self._provenance_gap_ref(gap) for gap in record.provenance_gaps)
+
+        return self._advisory_context_item(
+            context_area=TwinAdvisoryContextAssemblyArea.equipment_site_facts,
+            posture="assembled_as_advisory_input_context_only",
+            statement=(
+                "Equipment and site fact context is assembled from existing premise, structure, electrical, load, equipment, location, and pathway records."
+            ),
+            assembled_inputs=assembled_inputs,
+            missing_inputs=[
+                "field_verified_site_survey",
+                "complete_equipment_spec_verification",
+            ],
+            unsafe_assumptions=[
+                "Treating planning equipment/site facts as field-verified or compatibility-approved would be unsafe.",
+            ],
+            confidence_posture="equipment_site_context_present_planning_only",
+            basis=self._advisory_context_basis(
+                source_section_keys=source_sections,
+                topology_node_ids=node_ids,
+                provenance_gap_refs=provenance_refs,
+                derived_from=["TwinPlanningContext.sections"],
+            ),
+        )
+
+    def build_advisory_context_assembly_view(
+        self, db, home_id: str
+    ) -> Optional[TwinAdvisoryContextAssemblyView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = self.build_dependency_impact_readiness_view(db, home_id)
+        if impact_view is None:
+            return None
+        reasoning_view = self.build_dependency_reasoning_view(db, home_id)
+        if reasoning_view is None:
+            return None
+        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        if readiness_view is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        node_by_entity = {
+            (node.entity_type, node.entity_id): node
+            for node in snapshot.nodes
+        }
+        warning_refs, provenance_gap_refs, _sections_by_entity = self._dependency_impact_record_refs(
+            section_records
+        )
+        missing_readiness_refs = [
+            self._missing_readiness_ref(indicator)
+            for indicator in snapshot.missing_readiness_indicators
+            if not indicator.present
+        ]
+        missing_relationship_refs = [
+            self._missing_relationship_ref(indicator)
+            for indicator in snapshot.missing_relationship_indicators
+        ]
+        lifecycle_signals = self._dependency_impact_lifecycle_signals(snapshot)
+        source_basis = self._advisory_context_basis(
+            source_section_keys=[section.section_key for section in context.sections],
+            topology_node_ids=[node.node_id for node in snapshot.nodes],
+            topology_edge_ids=[edge.edge_id for edge in snapshot.edges],
+            lifecycle_readiness_signals_used=lifecycle_signals,
+            dependency_warning_refs=warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_refs,
+            missing_relationship_indicator_refs=missing_relationship_refs,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinDependencyImpactReadinessView",
+                "TwinDependencyReasoningView",
+                "TwinPlanningIntelligenceReadinessView",
+            ],
+        )
+
+        homeowner_goal_items = self._advisory_homeowner_goal_items(
+            section_records,
+            node_by_entity,
+        )
+        topology_item = self._advisory_context_item(
+            context_area=TwinAdvisoryContextAssemblyArea.topology_facts,
+            posture="assembled_as_advisory_input_context_only",
+            statement=(
+                "Topology fact context is assembled from existing topology snapshot nodes, edges, lifecycle hints, and relationship coverage metadata."
+            ),
+            assembled_inputs=[
+                f"topology_nodes:{len(snapshot.nodes)}",
+                f"topology_edges:{len(snapshot.edges)}",
+                f"lifecycle_hints:{len(snapshot.lifecycle_readiness_hints)}",
+                f"missing_relationship_indicators:{len(snapshot.missing_relationship_indicators)}",
+            ],
+            missing_inputs=[
+                "field_verified_topology",
+                "canonical_topology_graph",
+            ],
+            unsafe_assumptions=[
+                "Treating planning topology as field-verified topology would be unsafe.",
+            ],
+            confidence_posture="topology_context_present_planning_only",
+            basis=self._advisory_context_basis(
+                topology_node_ids=[node.node_id for node in snapshot.nodes],
+                topology_edge_ids=[edge.edge_id for edge in snapshot.edges],
+                lifecycle_readiness_signals_used=lifecycle_signals,
+                missing_relationship_indicator_refs=missing_relationship_refs,
+                derived_from=[
+                    "TwinTopologySnapshot.nodes",
+                    "TwinTopologySnapshot.edges",
+                    "TwinTopologySnapshot.lifecycle_readiness_hints",
+                    "TwinTopologySnapshot.relationship_coverage_summary",
+                ],
+            ),
+            limitations=ADVISORY_CONTEXT_ASSEMBLY_LIMITATIONS
+            + TOPOLOGY_SNAPSHOT_LIMITATIONS,
+        )
+        equipment_site_item = self._advisory_equipment_site_item(
+            section_records=section_records,
+            node_by_entity=node_by_entity,
+        )
+        provenance_item = self._advisory_context_item(
+            context_area=TwinAdvisoryContextAssemblyArea.provenance_basis,
+            posture="assembled_as_advisory_input_context_only",
+            statement=(
+                "Provenance basis context is assembled from existing provenance gap and source-document metadata; provenance presence is not verification."
+            ),
+            assembled_inputs=[
+                f"provenance_gap_refs:{len(set(provenance_gap_refs))}",
+                f"source_sections:{len(context.sections)}",
+                f"phase_3c_ready_areas:{len(readiness_view.ready_areas)}",
+            ],
+            missing_inputs=[
+                "field_level_provenance_completion",
+                "verification_workflow",
+            ],
+            unsafe_assumptions=[
+                "Treating provenance presence as verification would be unsafe.",
+            ],
+            confidence_posture="provenance_context_present_not_verification",
+            basis=self._advisory_context_basis(
+                source_section_keys=[section.section_key for section in context.sections],
+                provenance_gap_refs=provenance_gap_refs,
+                derived_from=[
+                    "TwinPlanningContextRecord.provenance_gaps",
+                    "TwinPlanningContextRecord.source_document_ids",
+                    "TwinPlanningIntelligenceReadinessView.provenance_permission_basis",
+                ],
+            ),
+            limitations=ADVISORY_CONTEXT_ASSEMBLY_LIMITATIONS
+            + PROVENANCE_GAP_LIMITATIONS,
+        )
+        permission_record_count = sum(
+            1
+            for _section_key, record in section_records
+            if record.permission_readiness is not None
+        )
+        permission_item = self._advisory_context_item(
+            context_area=TwinAdvisoryContextAssemblyArea.permission_readiness_metadata,
+            posture="assembled_as_advisory_input_context_only",
+            statement=(
+                "Permission-readiness metadata is assembled as advisory input context only; permission enforcement remains not implemented."
+            ),
+            assembled_inputs=[
+                f"records_with_permission_readiness:{permission_record_count}",
+                "TwinPlanningContext.permission_readiness",
+            ],
+            missing_inputs=[
+                "active_permission_grants",
+                "active_consent_artifacts",
+                "permission_enforcement_layer",
+            ],
+            unsafe_assumptions=[
+                "Treating permission readiness metadata as permission enforcement would be unsafe.",
+            ],
+            confidence_posture="permission_context_present_metadata_only",
+            basis=self._advisory_context_basis(
+                source_section_keys=[section.section_key for section in context.sections],
+                derived_from=[
+                    "TwinPlanningContext.permission_readiness",
+                    "TwinPlanningContextRecord.permission_readiness",
+                    "TwinPlanningIntelligenceReadinessView.provenance_permission_basis",
+                ],
+            ),
+            limitations=ADVISORY_CONTEXT_ASSEMBLY_LIMITATIONS
+            + PERMISSION_READINESS_LIMITATIONS,
+        )
+        missing_inputs = self._sorted_unique(
+            list(readiness_view.missing_prerequisites)
+            + [item.missing_input for item in impact_view.missing_inputs]
+        )
+        missing_item = self._advisory_context_item(
+            context_area=TwinAdvisoryContextAssemblyArea.missing_data,
+            posture="assembled_as_advisory_input_context_only",
+            statement=(
+                "Missing data context is assembled from Phase 3A missing inputs and Phase 3C missing prerequisites."
+            ),
+            assembled_inputs=[
+                f"phase_3a_missing_inputs:{len(impact_view.missing_inputs)}",
+                f"phase_3c_missing_prerequisites:{len(readiness_view.missing_prerequisites)}",
+            ],
+            missing_inputs=missing_inputs,
+            unsafe_assumptions=[
+                "Filling missing data with invented advisory assumptions would be unsafe.",
+            ],
+            confidence_posture="missing_data_context_present",
+            basis=self._advisory_context_basis(
+                source_section_keys=source_basis.source_section_keys,
+                topology_node_ids=source_basis.topology_node_ids,
+                topology_edge_ids=source_basis.topology_edge_ids,
+                provenance_gap_refs=source_basis.provenance_gap_refs,
+                missing_readiness_indicator_refs=source_basis.missing_readiness_indicator_refs,
+                missing_relationship_indicator_refs=source_basis.missing_relationship_indicator_refs,
+                derived_from=[
+                    "TwinDependencyImpactReadinessView.missing_inputs",
+                    "TwinPlanningIntelligenceReadinessView.missing_prerequisites",
+                ],
+            ),
+        )
+        unsafe_inputs = self._sorted_unique(
+            readiness_view.unsafe_assumptions
+            + [
+                "Treating assembled advisory input context as advice would be unsafe.",
+                "Treating assembled advisory input context as homeowner guidance would be unsafe.",
+            ]
+        )
+        unsafe_item = self._advisory_context_item(
+            context_area=TwinAdvisoryContextAssemblyArea.unsafe_assumptions,
+            posture="assembled_as_advisory_input_context_only",
+            statement=(
+                "Unsafe assumption context is assembled so future advisory outputs do not overstate available authority."
+            ),
+            assembled_inputs=unsafe_inputs,
+            unsafe_assumptions=unsafe_inputs,
+            confidence_posture="unsafe_assumption_context_present",
+            basis=self._advisory_context_basis(
+                source_section_keys=source_basis.source_section_keys,
+                derived_from=[
+                    "TwinPlanningIntelligenceReadinessView.unsafe_assumptions",
+                    "Phase3D.advisory_context_assembly_limitations",
+                ],
+            ),
+        )
+        readiness_item = self._advisory_context_item(
+            context_area=TwinAdvisoryContextAssemblyArea.advisory_input_readiness,
+            posture="assembled_as_advisory_input_context_only",
+            statement=(
+                "Advisory input readiness is assembled for future read-only advisory grounding only; this view does not generate advice."
+            ),
+            assembled_inputs=[
+                f"homeowner_goal_items:{len(homeowner_goal_items)}",
+                "topology_facts",
+                "equipment_site_facts",
+                "provenance_basis",
+                "permission_readiness_metadata",
+                f"deferred_boundaries:{len(ADVISORY_CONTEXT_DEFERRED_BOUNDARIES)}",
+            ],
+            missing_inputs=missing_inputs,
+            unsafe_assumptions=[
+                "Treating advisory input readiness as advice generation readiness would be unsafe.",
+            ],
+            confidence_posture="advisory_input_context_assembled_no_advice_generated",
+            basis=source_basis,
+        )
+
+        return TwinAdvisoryContextAssemblyView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3D advisory context assembly view built request-time from TwinPlanningContext, "
+                "topology snapshot, dependency impact readiness, dependency reasoning, and planning intelligence readiness; "
+                "not advice generation, recommendations, ranking, optimization, scenario simulation, what-if analysis, "
+                "proposal generation, permission enforcement, export, graph engine, persistence, or operational behavior."
+            ),
+            source_basis=source_basis,
+            assembly_scope=TwinAdvisoryContextAssemblyScope(
+                limitations=ADVISORY_CONTEXT_ASSEMBLY_LIMITATIONS,
+            ),
+            homeowner_goals=homeowner_goal_items,
+            topology_facts=[topology_item],
+            equipment_site_facts=[equipment_site_item],
+            provenance_basis=[provenance_item],
+            permission_readiness_metadata=[permission_item],
+            missing_data=[missing_item],
+            unsafe_assumptions=[unsafe_item],
+            advisory_input_readiness=[readiness_item],
+            deferred_advisory_output_boundaries=sorted(ADVISORY_CONTEXT_DEFERRED_BOUNDARIES),
+            limitations=ADVISORY_CONTEXT_ASSEMBLY_LIMITATIONS,
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A, Phase 3B, Phase 3C, AI grounding, "
+                "runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3D advisory input assembly view."
             ),
         )
 

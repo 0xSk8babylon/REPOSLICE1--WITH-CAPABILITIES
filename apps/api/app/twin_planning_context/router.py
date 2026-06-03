@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.services.twin_planning_context import twin_planning_context_service
 from app.twin_planning_context.schemas import (
     AIDesignGroundingView,
+    TwinAdvisoryContextAssemblyView,
     TwinDependencyImpactReadinessView,
     TwinDependencyReasoningView,
     TwinPlanningIntelligenceReadinessView,
@@ -75,6 +76,17 @@ def get_dependency_reasoning_view(home_id: str, db: Session = Depends(get_db)):
 )
 def get_planning_intelligence_readiness_view(home_id: str, db: Session = Depends(get_db)):
     view = twin_planning_context_service.build_planning_intelligence_readiness_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
+    return view
+
+
+@router.get(
+    "/homes/{home_id}/views/advisory-context-assembly",
+    response_model=TwinAdvisoryContextAssemblyView,
+)
+def get_advisory_context_assembly_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_advisory_context_assembly_view(db, home_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home not found")
     return view
