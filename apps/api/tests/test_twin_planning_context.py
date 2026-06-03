@@ -51,6 +51,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_dependency_reasoning_view(db, "home_001")
 
+    def _planning_intelligence_readiness_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_planning_intelligence_readiness_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -1439,6 +1443,227 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("compare scenarios", limitation_text)
         self.assertIn("recommend", limitation_text)
         self.assertIn("operate devices", limitation_text)
+
+    def test_planning_intelligence_readiness_route_is_additive_and_inventory_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/planning-intelligence-readiness",
+            paths,
+        )
+
+        view = self._planning_intelligence_readiness_view()
+        payload = view.dict()
+        scope = view.readiness_scope
+
+        self.assertEqual("planning_intelligence_readiness", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.descriptive_only)
+        self.assertTrue(scope.readiness_inventory_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_dependency_impact_readiness)
+        self.assertTrue(scope.derived_from_dependency_reasoning)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("not a reasoning engine", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_planning_intelligence_readiness_has_no_forbidden_capability_flags(self):
+        scope = self._planning_intelligence_readiness_view().readiness_scope
+
+        self.assertFalse(scope.ai_generated_facts_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.canonical_twin_runtime_model_changes_present)
+        self.assertFalse(scope.new_topology_facts_created)
+        self.assertFalse(scope.graph_database_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.scenario_intelligence_present)
+        self.assertFalse(scope.impact_propagation_present)
+        self.assertFalse(scope.stale_state_persistence_present)
+        self.assertFalse(scope.recalculation_engine_present)
+        self.assertFalse(scope.invalidation_engine_present)
+        self.assertFalse(scope.simulation_present)
+        self.assertFalse(scope.what_if_analysis_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.ranking_present)
+        self.assertFalse(scope.recommendations_present)
+        self.assertFalse(scope.economic_reasoning_present)
+        self.assertFalse(scope.utility_readiness_logic_present)
+        self.assertFalse(scope.survivability_recharge_modeling_present)
+        self.assertFalse(scope.compatibility_engine_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.marketplace_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_planning_intelligence_readiness_reports_ready_and_blocked_areas(self):
+        view = self._planning_intelligence_readiness_view()
+
+        self.assertTrue(view.ready_areas)
+        self.assertTrue(view.blocked_deferred_areas)
+        self.assertTrue(all(item.posture == "ready for read-only explanation" for item in view.ready_areas))
+        self.assertTrue(all(item.posture == "blocked/deferred" for item in view.blocked_deferred_areas))
+
+        ready_areas = {item.intelligence_area.value for item in view.ready_areas}
+        for area in [
+            "topology_explanation",
+            "lifecycle_explanation",
+            "relationship_coverage_explanation",
+            "dependency_impact_readiness",
+            "dependency_reasoning",
+            "provenance_gap_reporting",
+            "permission_readiness_metadata",
+        ]:
+            self.assertIn(area, ready_areas)
+
+        blocked_areas = {item.intelligence_area.value for item in view.blocked_deferred_areas}
+        for area in [
+            "scenario_intelligence",
+            "impact_propagation",
+            "stale_state_persistence",
+            "recalculation",
+            "invalidation",
+            "simulation",
+            "what_if_analysis",
+            "optimization",
+            "ranking",
+            "economic_reasoning",
+            "utility_readiness_logic",
+            "survivability_recharge_modeling",
+            "compatibility_engine",
+            "recommendation_or_proposal_generation",
+            "exports",
+            "auth_rbac_abac",
+            "permission_enforcement",
+            "marketplace",
+            "operational_behavior",
+        ]:
+            self.assertIn(area, blocked_areas)
+
+    def test_planning_intelligence_readiness_items_are_traceable(self):
+        view = self._planning_intelligence_readiness_view()
+
+        for source_view_name in [
+            "twin_planning_context",
+            "topology_snapshot",
+            "dependency_impact_readiness",
+            "dependency_reasoning",
+        ]:
+            self.assertIn(source_view_name, view.source_basis.source_view_names)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.topology_node_ids)
+        self.assertTrue(view.source_basis.topology_edge_ids)
+        self.assertTrue(view.source_basis.lifecycle_readiness_signals_used)
+        self.assertTrue(view.source_basis.provenance_gap_refs)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in (
+            view.ready_areas
+            + view.blocked_deferred_areas
+            + view.provenance_permission_basis
+            + view.confidence_posture
+        ):
+            self.assertTrue(item.statement)
+            self.assertTrue(item.available_evidence)
+            self.assertTrue(item.basis.source_view_names)
+            self.assertIn("twin_planning_context", item.basis.source_view_names)
+            self.assertIn("dependency_reasoning", item.basis.source_view_names)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+
+    def test_planning_intelligence_readiness_surfaces_unsafe_assumptions(self):
+        view = self._planning_intelligence_readiness_view()
+        assumptions = " ".join(view.unsafe_assumptions)
+
+        self.assertTrue(view.unsafe_assumptions)
+        self.assertIn("provenance presence as verification", assumptions)
+        self.assertIn("permission readiness metadata as permission enforcement", assumptions)
+        self.assertIn("recommendation or proposal", assumptions)
+        self.assertIn("operational readiness", assumptions)
+
+    def test_planning_intelligence_readiness_preserves_deferred_boundaries(self):
+        view = self._planning_intelligence_readiness_view()
+        deferred = set(view.deferred_reasoning_boundaries)
+
+        for boundary in [
+            "scenario_intelligence",
+            "impact_propagation",
+            "stale_state_persistence",
+            "recalculation",
+            "invalidation",
+            "simulation",
+            "what_if_analysis",
+            "optimization",
+            "ranking",
+            "recommendations",
+            "economic_reasoning",
+            "utility_readiness",
+            "survivability_recharge_modeling",
+            "compatibility_engines",
+            "proposal_generation",
+            "exports",
+            "auth",
+            "rbac_abac",
+            "permission_enforcement",
+            "marketplace",
+            "operational_behavior",
+            "twin_id",
+            "graph_engine",
+            "migrations",
+            "canonical_twin_runtime_model",
+        ]:
+            self.assertIn(boundary, deferred)
+
+        limitation_text = " ".join(view.limitations)
+        self.assertIn("readiness inventory only", limitation_text)
+        self.assertIn("ready for read-only explanation", limitation_text)
+        self.assertIn("blocked/deferred", limitation_text)
+
+    def test_planning_intelligence_readiness_is_deterministic_for_same_inputs(self):
+        first = self._planning_intelligence_readiness_view().dict()
+        second = self._planning_intelligence_readiness_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_reasoning_boundaries"]),
+            first["deferred_reasoning_boundaries"],
+        )
+
+    def test_planning_intelligence_readiness_preserves_provenance_and_permission_boundaries(self):
+        view = self._planning_intelligence_readiness_view()
+        provenance_item = next(
+            item
+            for item in view.ready_areas
+            if item.intelligence_area.value == "provenance_gap_reporting"
+        )
+        permission_item = next(
+            item
+            for item in view.ready_areas
+            if item.intelligence_area.value == "permission_readiness_metadata"
+        )
+
+        self.assertFalse(provenance_item.provenance_presence_is_verification)
+        self.assertFalse(permission_item.permission_readiness_is_enforcement)
+        self.assertIn("not_verification", provenance_item.confidence_posture)
+        self.assertIn("metadata_only", permission_item.confidence_posture)
+        self.assertTrue(view.provenance_permission_basis)
+        self.assertTrue(
+            all(not item.provenance_presence_is_verification for item in view.provenance_permission_basis)
+        )
+        self.assertTrue(
+            all(not item.permission_readiness_is_enforcement for item in view.provenance_permission_basis)
+        )
 
 
 if __name__ == "__main__":

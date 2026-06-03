@@ -9,6 +9,7 @@ from app.twin_planning_context.schemas import (
     AIDesignGroundingView,
     TwinDependencyImpactReadinessView,
     TwinDependencyReasoningView,
+    TwinPlanningIntelligenceReadinessView,
     TwinPlanningContext,
     TwinRuntimeParticipantRole,
     TwinRuntimeProjectionView,
@@ -63,6 +64,17 @@ def get_dependency_impact_readiness_view(home_id: str, db: Session = Depends(get
 )
 def get_dependency_reasoning_view(home_id: str, db: Session = Depends(get_db)):
     view = twin_planning_context_service.build_dependency_reasoning_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
+    return view
+
+
+@router.get(
+    "/homes/{home_id}/views/planning-intelligence-readiness",
+    response_model=TwinPlanningIntelligenceReadinessView,
+)
+def get_planning_intelligence_readiness_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_planning_intelligence_readiness_view(db, home_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home not found")
     return view

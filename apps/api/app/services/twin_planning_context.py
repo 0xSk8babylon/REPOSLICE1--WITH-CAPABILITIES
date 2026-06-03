@@ -19,6 +19,10 @@ from app.twin_planning_context.schemas import (
     TwinDependencyReasoningScope,
     TwinDependencyReasoningType,
     TwinDependencyReasoningView,
+    TwinPlanningIntelligenceReadinessArea,
+    TwinPlanningIntelligenceReadinessItem,
+    TwinPlanningIntelligenceReadinessScope,
+    TwinPlanningIntelligenceReadinessView,
     TwinPlanningChangeImpactHint,
     TwinPlanningContext,
     TwinPlanningContextRecord,
@@ -246,6 +250,42 @@ DEPENDENCY_REASONING_DEFERRED_CAPABILITIES = [
     "migrations",
     "canonical_twin_runtime_model",
     "recommendation_actions",
+]
+
+PLANNING_INTELLIGENCE_READINESS_LIMITATIONS = [
+    "Phase 3C planning intelligence readiness is a readiness inventory only.",
+    "Areas marked ready are ready for read-only explanation only.",
+    "Areas marked blocked/deferred are not implemented and must not be treated as available intelligence.",
+    "Provenance presence is not verification, and permission readiness is not permission enforcement.",
+    "This view does not recommend, rank, optimize, simulate, compare scenarios, generate proposals, export data, enforce permissions, operate devices, or create canonical Twin runtime state.",
+]
+
+PLANNING_INTELLIGENCE_READINESS_DEFERRED_BOUNDARIES = [
+    "scenario_intelligence",
+    "impact_propagation",
+    "stale_state_persistence",
+    "recalculation",
+    "invalidation",
+    "simulation",
+    "what_if_analysis",
+    "optimization",
+    "ranking",
+    "recommendations",
+    "economic_reasoning",
+    "utility_readiness",
+    "survivability_recharge_modeling",
+    "compatibility_engines",
+    "proposal_generation",
+    "exports",
+    "auth",
+    "rbac_abac",
+    "permission_enforcement",
+    "marketplace",
+    "operational_behavior",
+    "twin_id",
+    "graph_engine",
+    "migrations",
+    "canonical_twin_runtime_model",
 ]
 
 TOPOLOGY_RELATIONSHIP_COVERAGE_RULE_KEY = "twin_topology.relationship_coverage_v1"
@@ -3818,6 +3858,617 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, dependency impact readiness, AI grounding, runtime projection, "
                 "and current /api/* contracts remain unchanged; this is an additive Phase 3B derived explanation view."
+            ),
+        )
+
+    def _planning_intelligence_readiness_basis(
+        self,
+        *,
+        source_section_keys: Optional[List[str]] = None,
+        topology_node_ids: Optional[List[str]] = None,
+        topology_edge_ids: Optional[List[str]] = None,
+        lifecycle_readiness_signals_used: Optional[List[str]] = None,
+        dependency_warning_refs: Optional[List[str]] = None,
+        provenance_gap_refs: Optional[List[str]] = None,
+        missing_readiness_indicator_refs: Optional[List[str]] = None,
+        missing_relationship_indicator_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinDependencyImpactStatementBasis:
+        return self._dependency_impact_basis(
+            source_view_names=[
+                "twin_planning_context",
+                "topology_snapshot",
+                "dependency_impact_readiness",
+                "dependency_reasoning",
+            ],
+            source_section_keys=source_section_keys,
+            topology_node_ids=topology_node_ids,
+            topology_edge_ids=topology_edge_ids,
+            lifecycle_readiness_signals_used=lifecycle_readiness_signals_used,
+            dependency_warning_refs=dependency_warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_indicator_refs,
+            missing_relationship_indicator_refs=missing_relationship_indicator_refs,
+            derived_from=derived_from,
+            limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS,
+        )
+
+    def _planning_intelligence_readiness_item(
+        self,
+        *,
+        intelligence_area: TwinPlanningIntelligenceReadinessArea,
+        posture: str,
+        statement: str,
+        available_evidence: Optional[List[str]] = None,
+        missing_prerequisites: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinDependencyImpactStatementBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinPlanningIntelligenceReadinessItem:
+        return TwinPlanningIntelligenceReadinessItem(
+            intelligence_area=intelligence_area,
+            posture=posture,
+            statement=statement,
+            available_evidence=self._sorted_unique(available_evidence or []),
+            missing_prerequisites=self._sorted_unique(missing_prerequisites or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            provenance_presence_is_verification=False,
+            permission_readiness_is_enforcement=False,
+            basis=basis,
+            limitations=limitations or PLANNING_INTELLIGENCE_READINESS_LIMITATIONS,
+        )
+
+    def _planning_intelligence_item_sort_key(
+        self, item: TwinPlanningIntelligenceReadinessItem
+    ) -> str:
+        return item.intelligence_area.value
+
+    def _planning_intelligence_ready_items(
+        self,
+        *,
+        context: TwinPlanningContext,
+        snapshot: TwinTopologySnapshot,
+        impact_view: TwinDependencyImpactReadinessView,
+        reasoning_view: TwinDependencyReasoningView,
+        source_basis: TwinDependencyImpactStatementBasis,
+    ) -> List[TwinPlanningIntelligenceReadinessItem]:
+        permission_record_count = sum(
+            1
+            for section in context.sections
+            for record in section.records
+            if record.permission_readiness is not None
+        )
+        ready_posture = "ready for read-only explanation"
+        return sorted(
+            [
+                self._planning_intelligence_readiness_item(
+                    intelligence_area=TwinPlanningIntelligenceReadinessArea.topology_explanation,
+                    posture=ready_posture,
+                    statement=(
+                        "Topology explanation is ready for read-only explanation from existing topology snapshot nodes and edges."
+                    ),
+                    available_evidence=[
+                        f"topology_nodes:{len(snapshot.nodes)}",
+                        f"topology_edges:{len(snapshot.edges)}",
+                        "TwinTopologySnapshot.nodes",
+                        "TwinTopologySnapshot.edges",
+                    ],
+                    missing_prerequisites=[
+                        "field_verified_topology",
+                        "canonical_topology_graph",
+                    ],
+                    unsafe_assumptions=[
+                        "Treating planning topology as field-verified topology would be unsafe.",
+                    ],
+                    confidence_posture="ready_for_read_only_explanation_with_planning_limits",
+                    basis=self._planning_intelligence_readiness_basis(
+                        topology_node_ids=[node.node_id for node in snapshot.nodes],
+                        topology_edge_ids=[edge.edge_id for edge in snapshot.edges],
+                        derived_from=[
+                            "TwinTopologySnapshot.nodes",
+                            "TwinTopologySnapshot.edges",
+                        ],
+                    ),
+                    limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS
+                    + TOPOLOGY_SNAPSHOT_LIMITATIONS,
+                ),
+                self._planning_intelligence_readiness_item(
+                    intelligence_area=TwinPlanningIntelligenceReadinessArea.lifecycle_explanation,
+                    posture=ready_posture,
+                    statement=(
+                        "Lifecycle explanation is ready for read-only explanation from topology lifecycle readiness metadata."
+                    ),
+                    available_evidence=[
+                        f"lifecycle_hints:{len(snapshot.lifecycle_readiness_hints)}",
+                        f"domains_present:{len(snapshot.lifecycle_readiness_summary.domains_present)}",
+                        "TwinTopologySnapshot.lifecycle_readiness_summary",
+                        "TwinTopologySnapshot.lifecycle_readiness_hints",
+                    ],
+                    missing_prerequisites=[
+                        "lifecycle_workflow",
+                        "lifecycle_event_log",
+                        "topology_promotion_workflow",
+                    ],
+                    unsafe_assumptions=[
+                        "Treating lifecycle readiness metadata as lifecycle workflow state would be unsafe.",
+                    ],
+                    confidence_posture="ready_for_read_only_explanation_with_lifecycle_limits",
+                    basis=self._planning_intelligence_readiness_basis(
+                        lifecycle_readiness_signals_used=self._dependency_impact_lifecycle_signals(snapshot),
+                        derived_from=[
+                            "TwinTopologySnapshot.lifecycle_readiness_summary",
+                            "TwinTopologySnapshot.lifecycle_readiness_hints",
+                        ],
+                    ),
+                    limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS
+                    + TOPOLOGY_READINESS_LIMITATIONS,
+                ),
+                self._planning_intelligence_readiness_item(
+                    intelligence_area=TwinPlanningIntelligenceReadinessArea.relationship_coverage_explanation,
+                    posture=ready_posture,
+                    statement=(
+                        "Relationship coverage explanation is ready for read-only explanation from topology relationship coverage metadata."
+                    ),
+                    available_evidence=[
+                        f"relationship_edges:{snapshot.relationship_coverage_summary.relationship_edge_count}",
+                        f"dependency_hook_edges:{snapshot.relationship_coverage_summary.dependency_hook_edge_count}",
+                        f"missing_relationship_indicators:{len(snapshot.missing_relationship_indicators)}",
+                        "TwinTopologySnapshot.relationship_coverage_summary",
+                    ],
+                    missing_prerequisites=[
+                        "resolved_relationship_inputs_for_missing_indicators",
+                        "field_verified_relationships",
+                    ],
+                    unsafe_assumptions=[
+                        "Treating relationship coverage as complete or field-verified would be unsafe.",
+                    ],
+                    confidence_posture="ready_for_read_only_explanation_with_relationship_limits",
+                    basis=self._planning_intelligence_readiness_basis(
+                        topology_edge_ids=[edge.edge_id for edge in snapshot.edges],
+                        missing_relationship_indicator_refs=[
+                            self._missing_relationship_ref(indicator)
+                            for indicator in snapshot.missing_relationship_indicators
+                        ],
+                        derived_from=[
+                            "TwinTopologySnapshot.relationship_coverage_summary",
+                            "TwinTopologySnapshot.missing_relationship_indicators",
+                        ],
+                    ),
+                    limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS
+                    + TOPOLOGY_RELATIONSHIP_COVERAGE_LIMITATIONS,
+                ),
+                self._planning_intelligence_readiness_item(
+                    intelligence_area=TwinPlanningIntelligenceReadinessArea.dependency_impact_readiness,
+                    posture=ready_posture,
+                    statement=(
+                        "Dependency impact readiness is ready for read-only explanation from the Phase 3A dependency impact readiness view."
+                    ),
+                    available_evidence=[
+                        f"impact_posture_items:{len(impact_view.dependency_impact_posture)}",
+                        f"missing_inputs:{len(impact_view.missing_inputs)}",
+                        f"provenance_gap_posture_items:{len(impact_view.provenance_gap_posture)}",
+                        "TwinDependencyImpactReadinessView",
+                    ],
+                    missing_prerequisites=[
+                        "impact_propagation_engine",
+                        "recalculation_engine",
+                        "invalidation_engine",
+                    ],
+                    unsafe_assumptions=[
+                        "Treating dependency impact readiness as impact propagation would be unsafe.",
+                    ],
+                    confidence_posture="ready_for_read_only_explanation_with_impact_limits",
+                    basis=self._planning_intelligence_readiness_basis(
+                        source_section_keys=impact_view.source_basis.source_section_keys,
+                        topology_node_ids=impact_view.source_basis.topology_node_ids,
+                        topology_edge_ids=impact_view.source_basis.topology_edge_ids,
+                        lifecycle_readiness_signals_used=impact_view.source_basis.lifecycle_readiness_signals_used,
+                        dependency_warning_refs=impact_view.source_basis.dependency_warning_refs,
+                        provenance_gap_refs=impact_view.source_basis.provenance_gap_refs,
+                        missing_readiness_indicator_refs=impact_view.source_basis.missing_readiness_indicator_refs,
+                        missing_relationship_indicator_refs=impact_view.source_basis.missing_relationship_indicator_refs,
+                        derived_from=impact_view.source_basis.derived_from
+                        + ["TwinDependencyImpactReadinessView.source_basis"],
+                    ),
+                    limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS
+                    + impact_view.limitations,
+                ),
+                self._planning_intelligence_readiness_item(
+                    intelligence_area=TwinPlanningIntelligenceReadinessArea.dependency_reasoning,
+                    posture=ready_posture,
+                    statement=(
+                        "Dependency reasoning is ready for read-only explanation from the Phase 3B dependency reasoning view."
+                    ),
+                    available_evidence=[
+                        f"reasoning_items:{len(reasoning_view.dependency_reasoning_items)}",
+                        f"reasoning_types:{len(reasoning_view.dependency_type_summary)}",
+                        "TwinDependencyReasoningView",
+                    ],
+                    missing_prerequisites=[
+                        "scenario_intelligence",
+                        "impact_propagation",
+                        "recommendation_boundary",
+                    ],
+                    unsafe_assumptions=[
+                        "Treating dependency reasoning as recommendations or scenario intelligence would be unsafe.",
+                    ],
+                    confidence_posture="ready_for_read_only_explanation_with_reasoning_limits",
+                    basis=self._planning_intelligence_readiness_basis(
+                        source_section_keys=reasoning_view.source_basis.source_section_keys,
+                        topology_node_ids=reasoning_view.source_basis.topology_node_ids,
+                        topology_edge_ids=reasoning_view.source_basis.topology_edge_ids,
+                        lifecycle_readiness_signals_used=reasoning_view.source_basis.lifecycle_readiness_signals_used,
+                        dependency_warning_refs=reasoning_view.source_basis.dependency_warning_refs,
+                        provenance_gap_refs=reasoning_view.source_basis.provenance_gap_refs,
+                        missing_readiness_indicator_refs=reasoning_view.source_basis.missing_readiness_indicator_refs,
+                        missing_relationship_indicator_refs=reasoning_view.source_basis.missing_relationship_indicator_refs,
+                        derived_from=reasoning_view.source_basis.derived_from
+                        + ["TwinDependencyReasoningView.source_basis"],
+                    ),
+                    limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS
+                    + reasoning_view.limitations,
+                ),
+                self._planning_intelligence_readiness_item(
+                    intelligence_area=TwinPlanningIntelligenceReadinessArea.provenance_gap_reporting,
+                    posture=ready_posture,
+                    statement=(
+                        "Provenance gap reporting is ready for read-only explanation from existing provenance gap metadata."
+                    ),
+                    available_evidence=[
+                        f"provenance_gap_refs:{len(impact_view.source_basis.provenance_gap_refs)}",
+                        "TwinPlanningContextRecord.provenance_gaps",
+                        "TwinDependencyImpactReadinessView.provenance_gap_posture",
+                    ],
+                    missing_prerequisites=[
+                        "field_level_provenance_completion",
+                        "verification_workflow",
+                    ],
+                    unsafe_assumptions=[
+                        "Treating provenance presence as verification would be unsafe.",
+                    ],
+                    confidence_posture="ready_for_read_only_explanation_not_verification",
+                    basis=self._planning_intelligence_readiness_basis(
+                        provenance_gap_refs=impact_view.source_basis.provenance_gap_refs,
+                        derived_from=[
+                            "TwinPlanningContextRecord.provenance_gaps",
+                            "TwinDependencyImpactReadinessView.provenance_gap_posture",
+                        ],
+                    ),
+                    limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS
+                    + PROVENANCE_GAP_LIMITATIONS,
+                ),
+                self._planning_intelligence_readiness_item(
+                    intelligence_area=TwinPlanningIntelligenceReadinessArea.permission_readiness_metadata,
+                    posture=ready_posture,
+                    statement=(
+                        "Permission readiness metadata is ready for read-only explanation, but permission enforcement remains not implemented."
+                    ),
+                    available_evidence=[
+                        f"records_with_permission_readiness:{permission_record_count}",
+                        "TwinPlanningContext.permission_readiness",
+                        "TwinPlanningContextRecord.permission_readiness",
+                    ],
+                    missing_prerequisites=[
+                        "active_permission_grants",
+                        "active_consent_artifacts",
+                        "permission_enforcement",
+                    ],
+                    unsafe_assumptions=[
+                        "Treating permission readiness metadata as permission enforcement would be unsafe.",
+                    ],
+                    confidence_posture="ready_for_read_only_explanation_metadata_only",
+                    basis=self._planning_intelligence_readiness_basis(
+                        source_section_keys=[section.section_key for section in context.sections],
+                        derived_from=[
+                            "TwinPlanningContext.permission_readiness",
+                            "TwinPlanningContextRecord.permission_readiness",
+                        ],
+                    ),
+                    limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS
+                    + PERMISSION_READINESS_LIMITATIONS,
+                ),
+            ],
+            key=self._planning_intelligence_item_sort_key,
+        )
+
+    def _planning_intelligence_blocked_item(
+        self,
+        *,
+        intelligence_area: TwinPlanningIntelligenceReadinessArea,
+        statement: str,
+        missing_prerequisites: List[str],
+        unsafe_assumptions: List[str],
+        source_basis: TwinDependencyImpactStatementBasis,
+    ) -> TwinPlanningIntelligenceReadinessItem:
+        return self._planning_intelligence_readiness_item(
+            intelligence_area=intelligence_area,
+            posture="blocked/deferred",
+            statement=statement,
+            available_evidence=[
+                "Phase 3C approved boundary",
+                "current deferred capability list",
+            ],
+            missing_prerequisites=missing_prerequisites,
+            unsafe_assumptions=unsafe_assumptions,
+            confidence_posture="blocked_deferred_not_implemented",
+            basis=self._planning_intelligence_readiness_basis(
+                source_section_keys=source_basis.source_section_keys,
+                topology_node_ids=source_basis.topology_node_ids,
+                topology_edge_ids=source_basis.topology_edge_ids,
+                lifecycle_readiness_signals_used=source_basis.lifecycle_readiness_signals_used,
+                dependency_warning_refs=source_basis.dependency_warning_refs,
+                provenance_gap_refs=source_basis.provenance_gap_refs,
+                missing_readiness_indicator_refs=source_basis.missing_readiness_indicator_refs,
+                missing_relationship_indicator_refs=source_basis.missing_relationship_indicator_refs,
+                derived_from=source_basis.derived_from
+                + ["Phase3C.planning_intelligence_readiness_deferred_boundaries"],
+            ),
+            limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS,
+        )
+
+    def _planning_intelligence_blocked_items(
+        self, source_basis: TwinDependencyImpactStatementBasis
+    ) -> List[TwinPlanningIntelligenceReadinessItem]:
+        blocked_specs = [
+            (
+                TwinPlanningIntelligenceReadinessArea.scenario_intelligence,
+                "Scenario intelligence is blocked/deferred; scenario references are continuity context only.",
+                ["approved_scenario_intelligence_boundary", "scenario_comparison_engine"],
+                ["Treating saved scenario references as scenario intelligence would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.impact_propagation,
+                "Impact propagation is blocked/deferred; no propagation engine exists.",
+                ["impact_propagation_engine", "affected_output_registry"],
+                ["Treating dependency explanation as propagated impact state would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.stale_state_persistence,
+                "Stale-state persistence is blocked/deferred; no stale-state records are created.",
+                ["stale_state_model", "persistence_contract"],
+                ["Treating request-time limitations as persisted stale state would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.recalculation,
+                "Recalculation is blocked/deferred; no recalculation engine runs.",
+                ["recalculation_engine", "approved_calculation_trigger_contract"],
+                ["Treating readiness inventory as recalculation would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.invalidation,
+                "Invalidation is blocked/deferred; no invalidation engine runs.",
+                ["invalidation_engine", "approved_invalidation_state_contract"],
+                ["Treating missing prerequisites as invalidated outputs would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.simulation,
+                "Simulation is blocked/deferred; no scenario simulation or infrastructure simulation runs.",
+                ["approved_simulation_engine", "source_backed_simulation_inputs"],
+                ["Treating readiness evidence as simulated outcome data would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.what_if_analysis,
+                "What-if analysis is blocked/deferred; no modeled change analysis runs.",
+                ["approved_what_if_engine", "change_model_contract"],
+                ["Treating blocked/deferred readiness as what-if analysis would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.optimization,
+                "Optimization is blocked/deferred; no optimization logic runs.",
+                ["approved_optimization_boundary"],
+                ["Treating readiness posture as optimized choice would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.ranking,
+                "Ranking is blocked/deferred; no ranking logic runs.",
+                ["approved_ranking_boundary"],
+                ["Treating deterministic ordering as ranking would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.economic_reasoning,
+                "Economic reasoning is blocked/deferred; no pricing, savings, payback, incentive, or financial reasoning runs.",
+                ["source_backed_economic_inputs", "approved_economic_reasoning_boundary"],
+                ["Treating readiness posture as financial guidance would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.utility_readiness_logic,
+                "Utility readiness logic is blocked/deferred; no utility approval, interconnection, program eligibility, or grid-edge readiness logic runs.",
+                ["approved_utility_readiness_boundary", "source_backed_utility_inputs"],
+                ["Treating planning context as utility readiness would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.survivability_recharge_modeling,
+                "Survivability/recharge modeling is blocked/deferred; no endurance or recharge model runs.",
+                ["approved_survivability_model", "approved_recharge_model"],
+                ["Treating planning evidence as survivability or recharge results would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.compatibility_engine,
+                "Compatibility engine behavior is blocked/deferred; no product or system compatibility engine runs.",
+                ["approved_compatibility_engine", "verified_product_compatibility_sources"],
+                ["Treating dependency relationships as compatibility approval would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.recommendation_or_proposal_generation,
+                "Recommendations and proposal generation are blocked/deferred; this view does not choose or propose actions.",
+                ["approved_recommendation_boundary", "approved_proposal_generation_boundary"],
+                ["Treating readiness inventory as a recommendation or proposal would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.exports,
+                "Exports are blocked/deferred; no scoped export package is generated.",
+                ["approved_export_contract", "permissioned_view_enforcement"],
+                ["Treating this API view as an export would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.auth_rbac_abac,
+                "Auth/RBAC/ABAC is blocked/deferred; no authorization or access-control enforcement exists.",
+                ["approved_auth_architecture", "approved_rbac_abac_model"],
+                ["Treating metadata scopes as access control would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.permission_enforcement,
+                "Permission enforcement is blocked/deferred; permission readiness remains metadata only.",
+                ["active_permission_grants", "active_consent_artifacts", "permission_enforcement_layer"],
+                ["Treating permission readiness as permission enforcement would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.marketplace,
+                "Marketplace behavior is blocked/deferred; no registry or marketplace surface exists.",
+                ["approved_marketplace_boundary", "ownership_transfer_boundary"],
+                ["Treating planning intelligence readiness as marketplace readiness would be unsafe."],
+            ),
+            (
+                TwinPlanningIntelligenceReadinessArea.operational_behavior,
+                "Operational behavior is blocked/deferred; no device, dispatch, DERMS, telemetry, or control behavior exists.",
+                ["operational_control_boundary", "telemetry_governance", "device_identity"],
+                ["Treating planning intelligence readiness as operational readiness would be unsafe."],
+            ),
+        ]
+        return sorted(
+            [
+                self._planning_intelligence_blocked_item(
+                    intelligence_area=area,
+                    statement=statement,
+                    missing_prerequisites=missing_prerequisites,
+                    unsafe_assumptions=unsafe_assumptions,
+                    source_basis=source_basis,
+                )
+                for area, statement, missing_prerequisites, unsafe_assumptions in blocked_specs
+            ],
+            key=self._planning_intelligence_item_sort_key,
+        )
+
+    def build_planning_intelligence_readiness_view(
+        self, db, home_id: str
+    ) -> Optional[TwinPlanningIntelligenceReadinessView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = self.build_dependency_impact_readiness_view(db, home_id)
+        if impact_view is None:
+            return None
+        reasoning_view = self.build_dependency_reasoning_view(db, home_id)
+        if reasoning_view is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        warning_refs, provenance_gap_refs, _sections_by_entity = self._dependency_impact_record_refs(
+            section_records
+        )
+        missing_readiness_refs = [
+            self._missing_readiness_ref(indicator)
+            for indicator in snapshot.missing_readiness_indicators
+            if not indicator.present
+        ]
+        missing_relationship_refs = [
+            self._missing_relationship_ref(indicator)
+            for indicator in snapshot.missing_relationship_indicators
+        ]
+        lifecycle_signals = self._dependency_impact_lifecycle_signals(snapshot)
+        source_basis = self._planning_intelligence_readiness_basis(
+            source_section_keys=[section.section_key for section in context.sections],
+            topology_node_ids=[node.node_id for node in snapshot.nodes],
+            topology_edge_ids=[edge.edge_id for edge in snapshot.edges],
+            lifecycle_readiness_signals_used=lifecycle_signals,
+            dependency_warning_refs=warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_refs,
+            missing_relationship_indicator_refs=missing_relationship_refs,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinDependencyImpactReadinessView",
+                "TwinDependencyReasoningView",
+            ],
+        )
+
+        ready_items = self._planning_intelligence_ready_items(
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            source_basis=source_basis,
+        )
+        blocked_items = self._planning_intelligence_blocked_items(source_basis)
+        all_items = ready_items + blocked_items
+        missing_prerequisites = self._sorted_unique(
+            prerequisite
+            for item in all_items
+            for prerequisite in item.missing_prerequisites
+        )
+        available_evidence = self._sorted_unique(
+            evidence
+            for item in ready_items
+            for evidence in item.available_evidence
+        )
+        unsafe_assumptions = self._sorted_unique(
+            assumption
+            for item in all_items
+            for assumption in item.unsafe_assumptions
+        )
+        confidence_item = self._planning_intelligence_readiness_item(
+            intelligence_area=TwinPlanningIntelligenceReadinessArea.provenance_gap_reporting,
+            posture="ready for read-only explanation",
+            statement=(
+                "Overall planning intelligence readiness confidence is limited to read-only explanation because blocked/deferred areas are not implemented."
+            ),
+            available_evidence=[
+                f"ready_areas:{len(ready_items)}",
+                f"blocked_deferred_areas:{len(blocked_items)}",
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinDependencyImpactReadinessView",
+                "TwinDependencyReasoningView",
+            ],
+            missing_prerequisites=missing_prerequisites,
+            unsafe_assumptions=[
+                "Treating ready for read-only explanation as executable intelligence would be unsafe.",
+            ],
+            confidence_posture="read_only_explanation_ready_blocked_deferred_execution",
+            basis=source_basis,
+            limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS,
+        )
+
+        return TwinPlanningIntelligenceReadinessView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3C planning intelligence readiness inventory built request-time from "
+                "TwinPlanningContext, topology snapshot, dependency impact readiness, and dependency reasoning; "
+                "not a reasoning engine, recommendation layer, scenario simulation, export, permission enforcement, "
+                "graph engine, canonical Twin runtime model, or operational behavior."
+            ),
+            source_basis=source_basis,
+            readiness_scope=TwinPlanningIntelligenceReadinessScope(
+                limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS,
+            ),
+            ready_areas=ready_items,
+            blocked_deferred_areas=blocked_items,
+            provenance_permission_basis=[
+                item
+                for item in ready_items
+                if item.intelligence_area
+                in {
+                    TwinPlanningIntelligenceReadinessArea.provenance_gap_reporting,
+                    TwinPlanningIntelligenceReadinessArea.permission_readiness_metadata,
+                }
+            ],
+            missing_prerequisites=missing_prerequisites,
+            available_evidence=available_evidence,
+            unsafe_assumptions=unsafe_assumptions,
+            deferred_reasoning_boundaries=sorted(
+                PLANNING_INTELLIGENCE_READINESS_DEFERRED_BOUNDARIES
+            ),
+            confidence_posture=[confidence_item],
+            limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS,
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, dependency impact readiness, dependency reasoning, "
+                "AI grounding, runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3C readiness inventory."
             ),
         )
 
