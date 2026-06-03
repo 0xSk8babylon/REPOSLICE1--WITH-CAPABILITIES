@@ -29,7 +29,10 @@ Read these first:
 - Phase 3A: Derived Dependency Impact Readiness - complete for the approved first runtime boundary in `97b57fb`.
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/dependency-impact-readiness` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored derived intelligence envelope over existing `TwinPlanningContext` and topology snapshot outputs. It reports source basis, lifecycle scope, dependency impact posture, missing inputs, provenance gaps, confidence posture, limitations, and deferred capabilities. Every derived statement carries traceable basis metadata, and backend tests verify deterministic same-input/same-output behavior.
-  - Deferred: broader Phase 3 implementation, scenario intelligence, impact propagation engine, recalculation engine, invalidation engine, optimization, ranking, economic reasoning, utility readiness reasoning, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, `twin_id`, graph database, graph engine, scenario engine, simulation, what-if analysis, permission enforcement, recommendation actions, and operational behavior.
+- Phase 3B: Derived Dependency Reasoning - complete for the approved second runtime boundary in `d56f52e`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/dependency-reasoning` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored derived explanation view over existing `TwinPlanningContext`, topology snapshot, and Phase 3A dependency impact readiness outputs. It explains source, topology, lifecycle, rule, provenance, permission-readiness, continuity/snapshot, and missing-information dependency context. Every reasoning item carries traceable basis metadata, and backend tests verify deterministic same-input/same-output behavior.
+  - Deferred: scenario intelligence, impact propagation, stale-state persistence, recalculation, invalidation, simulation, what-if analysis, optimization, ranking, recommendations, economic reasoning, utility readiness, survivability/recharge modeling, compatibility engines, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, operational control, twin_id, graph database/engine, migrations, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -59,6 +62,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md`
   - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
   - `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
   - `docs/handoffs/2026-06-03-phase-2c-lifecycle-readiness-foundation.md`
@@ -103,6 +107,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3A Derived Dependency Impact Readiness:
     - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3B Derived Dependency Reasoning:
+    - `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
