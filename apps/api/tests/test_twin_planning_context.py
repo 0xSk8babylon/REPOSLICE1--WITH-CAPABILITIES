@@ -43,6 +43,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_topology_snapshot_view(db, "home_001")
 
+    def _dependency_impact_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_dependency_impact_readiness_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -1125,6 +1129,132 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertTrue(
             all("not create installation" in " ".join(node.limitations) for node in snapshot.nodes)
         )
+
+    def test_dependency_impact_readiness_route_is_additive_and_explain_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/dependency-impact-readiness",
+            paths,
+        )
+
+        view = self._dependency_impact_view()
+        payload = view.dict()
+        summary = view.readiness_summary
+
+        self.assertEqual("dependency_impact_readiness", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(summary.descriptive_only)
+        self.assertTrue(summary.read_only)
+        self.assertTrue(summary.request_time_only)
+        self.assertTrue(summary.home_id_anchored)
+        self.assertTrue(summary.derived_from_existing_twin_context)
+        self.assertTrue(summary.derived_from_topology_snapshot)
+        self.assertTrue(summary.deterministic_for_same_inputs)
+        self.assertFalse(summary.ai_generated_facts_present)
+        self.assertFalse(summary.graph_database_present)
+        self.assertFalse(summary.graph_engine_present)
+        self.assertFalse(summary.scenario_engine_present)
+        self.assertFalse(summary.simulation_present)
+        self.assertFalse(summary.what_if_analysis_present)
+        self.assertFalse(summary.recalculation_engine_present)
+        self.assertFalse(summary.invalidation_engine_present)
+        self.assertFalse(summary.recommendation_actions_present)
+        self.assertFalse(summary.optimization_present)
+        self.assertFalse(summary.ranking_present)
+        self.assertFalse(summary.authorization_present)
+        self.assertFalse(summary.permission_enforcement_present)
+        self.assertFalse(summary.export_present)
+        self.assertFalse(summary.operational_behavior_present)
+        self.assertIn("not a graph engine", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_dependency_impact_readiness_statements_are_traceable_to_existing_basis(self):
+        view = self._dependency_impact_view()
+
+        self.assertIn("twin_planning_context", view.source_basis.source_view_names)
+        self.assertIn("topology_snapshot", view.source_basis.source_view_names)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.topology_node_ids)
+        self.assertTrue(view.source_basis.topology_edge_ids)
+        self.assertTrue(view.source_basis.lifecycle_readiness_signals_used)
+        self.assertTrue(view.source_basis.dependency_warning_refs)
+        self.assertTrue(view.source_basis.provenance_gap_refs)
+        self.assertTrue(view.source_basis.missing_readiness_indicator_refs)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in (
+            view.lifecycle_scope
+            + view.dependency_impact_posture
+            + view.provenance_gap_posture
+            + view.confidence_posture
+        ):
+            self.assertTrue(item.statement)
+            self.assertTrue(item.basis.source_view_names)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+
+        for item in view.dependency_impact_posture:
+            self.assertTrue(item.basis.topology_node_ids)
+            self.assertTrue(item.basis.topology_edge_ids)
+            self.assertTrue(item.basis.lifecycle_readiness_signals_used)
+            self.assertTrue(item.basis.dependency_warning_refs)
+            self.assertTrue(item.basis.provenance_gap_refs)
+
+        self.assertTrue(view.missing_inputs)
+        for item in view.missing_inputs:
+            self.assertTrue(item.reason)
+            self.assertTrue(item.basis.source_view_names)
+            self.assertTrue(item.basis.derived_from)
+
+    def test_dependency_impact_readiness_is_deterministic_for_same_inputs(self):
+        first = self._dependency_impact_view().dict()
+        second = self._dependency_impact_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_capabilities"]),
+            first["deferred_capabilities"],
+        )
+
+    def test_dependency_impact_readiness_preserves_deferred_boundaries(self):
+        view = self._dependency_impact_view()
+        deferred = set(view.deferred_capabilities)
+
+        for capability in [
+            "scenario_intelligence",
+            "impact_propagation_engine",
+            "recalculation_engine",
+            "invalidation_engine",
+            "optimization",
+            "upgrade_ranking",
+            "economic_reasoning",
+            "utility_readiness_reasoning",
+            "survivability_modeling",
+            "recharge_modeling",
+            "compatibility_engines",
+            "simulation",
+            "what_if_analysis",
+            "auth",
+            "rbac_abac",
+            "permission_enforcement",
+            "exports",
+            "utility_sharing",
+            "telemetry_governance",
+            "ownership_transfer",
+            "registry",
+            "marketplace",
+            "operational_control",
+        ]:
+            self.assertIn(capability, deferred)
+
+        limitation_text = " ".join(view.limitations)
+        self.assertIn("does not recommend", limitation_text)
+        self.assertIn("simulate", limitation_text)
+        self.assertIn("operate devices", limitation_text)
 
 
 if __name__ == "__main__":

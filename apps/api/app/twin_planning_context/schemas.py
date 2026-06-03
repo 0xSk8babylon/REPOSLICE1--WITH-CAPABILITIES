@@ -498,6 +498,83 @@ class TwinTopologySnapshot(ORMModel):
     compatibility_note: str
 
 
+class TwinDependencyImpactStatementBasis(ORMModel):
+    source_view_names: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    topology_node_ids: List[str] = Field(default_factory=list)
+    topology_edge_ids: List[str] = Field(default_factory=list)
+    lifecycle_readiness_signals_used: List[str] = Field(default_factory=list)
+    dependency_warning_refs: List[str] = Field(default_factory=list)
+    provenance_gap_refs: List[str] = Field(default_factory=list)
+    missing_readiness_indicator_refs: List[str] = Field(default_factory=list)
+    missing_relationship_indicator_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinDependencyImpactPostureItem(ORMModel):
+    impact_area: str
+    posture: str
+    statement: str
+    confidence_posture: str
+    basis: TwinDependencyImpactStatementBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinDependencyMissingInputItem(ORMModel):
+    missing_input: str
+    reason: str
+    basis: TwinDependencyImpactStatementBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinDependencyImpactReadinessSummary(ORMModel):
+    readiness_scope: str = "phase_3a_dependency_impact_readiness"
+    descriptive_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    deterministic_for_same_inputs: bool = True
+    ai_generated_facts_present: bool = False
+    graph_database_present: bool = False
+    graph_engine_present: bool = False
+    scenario_engine_present: bool = False
+    simulation_present: bool = False
+    what_if_analysis_present: bool = False
+    recalculation_engine_present: bool = False
+    invalidation_engine_present: bool = False
+    recommendation_actions_present: bool = False
+    optimization_present: bool = False
+    ranking_present: bool = False
+    authorization_present: bool = False
+    permission_enforcement_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinDependencyImpactReadinessView(ORMModel):
+    view_name: str = "dependency_impact_readiness"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinDependencyImpactStatementBasis
+    readiness_summary: TwinDependencyImpactReadinessSummary
+    lifecycle_scope: List[TwinDependencyImpactPostureItem] = Field(default_factory=list)
+    dependency_impact_posture: List[TwinDependencyImpactPostureItem] = Field(default_factory=list)
+    missing_inputs: List[TwinDependencyMissingInputItem] = Field(default_factory=list)
+    provenance_gap_posture: List[TwinDependencyImpactPostureItem] = Field(default_factory=list)
+    confidence_posture: List[TwinDependencyImpactPostureItem] = Field(default_factory=list)
+    deferred_capabilities: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class AIDesignGroundingRecord(ORMModel):
     section_key: str
     entity_type: str

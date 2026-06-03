@@ -10,6 +10,11 @@ from app.services.provenance import provenance_service
 from app.twin_planning_context.schemas import (
     AIDesignGroundingRecord,
     AIDesignGroundingView,
+    TwinDependencyImpactPostureItem,
+    TwinDependencyImpactReadinessSummary,
+    TwinDependencyImpactReadinessView,
+    TwinDependencyImpactStatementBasis,
+    TwinDependencyMissingInputItem,
     TwinPlanningChangeImpactHint,
     TwinPlanningContext,
     TwinPlanningContextRecord,
@@ -164,6 +169,39 @@ TOPOLOGY_RELATIONSHIP_COVERAGE_LIMITATIONS = [
     "Topology relationship coverage is descriptive and read-only.",
     "Relationship coverage does not create a graph engine, lifecycle workflow, promotion engine, event log, recalculation, invalidation, simulation, what-if analysis, or Phase 3 intelligence.",
     "Relationship coverage uses existing planning-context records only and does not infer installed, verified, utility-reviewed, contractual, or operational topology.",
+]
+
+DEPENDENCY_IMPACT_READINESS_LIMITATIONS = [
+    "Phase 3A dependency impact readiness explains existing structure, dependencies, limitations, confidence, and missing information only.",
+    "Every derived statement is reproducible from the listed TwinPlanningContext and topology snapshot basis.",
+    "This view does not recommend, optimize, simulate, rank, choose, authorize, recalculate, invalidate, export, enforce permissions, or operate devices.",
+    "The Twin may interpret recorded and derived planning facts, but it may not invent facts.",
+]
+
+DEPENDENCY_IMPACT_DEFERRED_CAPABILITIES = [
+    "scenario_intelligence",
+    "impact_propagation_engine",
+    "recalculation_engine",
+    "invalidation_engine",
+    "optimization",
+    "upgrade_ranking",
+    "economic_reasoning",
+    "utility_readiness_reasoning",
+    "survivability_modeling",
+    "recharge_modeling",
+    "compatibility_engines",
+    "simulation",
+    "what_if_analysis",
+    "auth",
+    "rbac_abac",
+    "permission_enforcement",
+    "exports",
+    "utility_sharing",
+    "telemetry_governance",
+    "ownership_transfer",
+    "registry",
+    "marketplace",
+    "operational_control",
 ]
 
 TOPOLOGY_RELATIONSHIP_COVERAGE_RULE_KEY = "twin_topology.relationship_coverage_v1"
@@ -2649,6 +2687,557 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, AI grounding, runtime projection, and current /api/* contracts remain unchanged; "
                 "this is an additive topology snapshot view."
+            ),
+        )
+
+    def _sorted_unique(self, values: Iterable[Optional[str]]) -> List[str]:
+        return sorted({value for value in values if value})
+
+    def _dependency_warning_ref(self, warning: TwinPlanningDependencyWarning) -> str:
+        return ":".join(
+            [
+                warning.entity_type,
+                warning.entity_id or "unknown",
+                warning.warning_type,
+            ]
+        )
+
+    def _provenance_gap_ref(self, gap: TwinPlanningProvenanceGap) -> str:
+        return ":".join(
+            [
+                gap.gap_type.value,
+                gap.entity_type,
+                gap.entity_id or "unknown",
+                gap.field_name or "record",
+            ]
+        )
+
+    def _missing_readiness_ref(self, indicator: TwinTopologyMissingReadinessIndicator) -> str:
+        return indicator.indicator
+
+    def _missing_relationship_ref(self, indicator: TwinTopologyMissingRelationshipIndicator) -> str:
+        return ":".join(
+            [
+                indicator.indicator,
+                indicator.entity_type,
+                indicator.entity_id or "unknown",
+                indicator.field_name or "relationship",
+            ]
+        )
+
+    def _all_context_records_with_sections(
+        self, context: TwinPlanningContext
+    ) -> List[tuple]:
+        return [
+            (section.section_key, record)
+            for section in context.sections
+            for record in section.records
+        ]
+
+    def _dependency_impact_lifecycle_signals(
+        self, snapshot: TwinTopologySnapshot
+    ) -> List[str]:
+        signals = []
+        for domain in sorted(snapshot.lifecycle_readiness_summary.domains_present):
+            signals.append(f"summary:domain_present:{domain}")
+        for domain in sorted(snapshot.lifecycle_readiness_summary.domains_deferred):
+            signals.append(f"summary:domain_deferred:{domain}")
+        for hint in sorted(
+            snapshot.lifecycle_readiness_hints,
+            key=lambda item: item.lifecycle_domain.value,
+        ):
+            signals.append(
+                f"hint:{hint.lifecycle_domain.value}:{hint.readiness_status}"
+            )
+        for indicator in sorted(
+            snapshot.missing_readiness_indicators,
+            key=lambda item: item.indicator,
+        ):
+            signals.append(
+                f"missing_readiness:{indicator.indicator}:present:{str(indicator.present).lower()}"
+            )
+        return signals
+
+    def _dependency_impact_basis(
+        self,
+        *,
+        source_section_keys: Optional[List[str]] = None,
+        topology_node_ids: Optional[List[str]] = None,
+        topology_edge_ids: Optional[List[str]] = None,
+        lifecycle_readiness_signals_used: Optional[List[str]] = None,
+        dependency_warning_refs: Optional[List[str]] = None,
+        provenance_gap_refs: Optional[List[str]] = None,
+        missing_readiness_indicator_refs: Optional[List[str]] = None,
+        missing_relationship_indicator_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinDependencyImpactStatementBasis:
+        return TwinDependencyImpactStatementBasis(
+            source_view_names=["twin_planning_context", "topology_snapshot"],
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            topology_node_ids=self._sorted_unique(topology_node_ids or []),
+            topology_edge_ids=self._sorted_unique(topology_edge_ids or []),
+            lifecycle_readiness_signals_used=self._sorted_unique(
+                lifecycle_readiness_signals_used or []
+            ),
+            dependency_warning_refs=self._sorted_unique(dependency_warning_refs or []),
+            provenance_gap_refs=self._sorted_unique(provenance_gap_refs or []),
+            missing_readiness_indicator_refs=self._sorted_unique(
+                missing_readiness_indicator_refs or []
+            ),
+            missing_relationship_indicator_refs=self._sorted_unique(
+                missing_relationship_indicator_refs or []
+            ),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS,
+        )
+
+    def _dependency_impact_record_refs(
+        self, section_records: List[tuple]
+    ) -> tuple:
+        warning_refs = []
+        provenance_gap_refs = []
+        sections_by_entity = {}
+        for section_key, record in section_records:
+            sections_by_entity.setdefault((record.entity_type, record.entity_id), set()).add(section_key)
+            for warning in record.planning_dependency_warnings:
+                warning_refs.append(self._dependency_warning_ref(warning))
+            for gap in record.provenance_gaps:
+                provenance_gap_refs.append(self._provenance_gap_ref(gap))
+        return warning_refs, provenance_gap_refs, sections_by_entity
+
+    def _dependency_impact_confidence_posture(
+        self,
+        *,
+        warning_refs: List[str],
+        provenance_gap_refs: List[str],
+        missing_readiness_refs: List[str],
+        missing_relationship_refs: List[str],
+    ) -> str:
+        has_dependency_limits = bool(warning_refs or missing_relationship_refs)
+        has_missing_readiness = bool(missing_readiness_refs)
+        has_provenance_limits = bool(provenance_gap_refs)
+        if has_provenance_limits and (has_dependency_limits or has_missing_readiness):
+            return "provenance_dependency_and_missing_information_limited"
+        if has_provenance_limits:
+            return "provenance_limited"
+        if has_dependency_limits:
+            return "dependency_limited"
+        if has_missing_readiness:
+            return "missing_readiness_limited"
+        return "descriptive_planning_context_present"
+
+    def _dependency_impact_nodes_for_domain(
+        self, snapshot: TwinTopologySnapshot, lifecycle_domain: TwinTopologyLifecycleDomain
+    ) -> List[str]:
+        return [
+            node.node_id
+            for node in snapshot.nodes
+            if node.lifecycle_domain == lifecycle_domain
+        ]
+
+    def _dependency_impact_edges_for_domain(
+        self, snapshot: TwinTopologySnapshot, lifecycle_domain: TwinTopologyLifecycleDomain
+    ) -> List[str]:
+        return [
+            edge.edge_id
+            for edge in snapshot.edges
+            if edge.lifecycle_domain == lifecycle_domain
+        ]
+
+    def _dependency_impact_edges_for_nodes(
+        self, snapshot: TwinTopologySnapshot, node_ids: List[str]
+    ) -> List[str]:
+        node_id_set = set(node_ids)
+        return [
+            edge.edge_id
+            for edge in snapshot.edges
+            if edge.source_node_id in node_id_set or edge.target_node_id in node_id_set
+        ]
+
+    def _dependency_impact_lifecycle_scope(
+        self,
+        *,
+        snapshot: TwinTopologySnapshot,
+        sections_by_entity: Dict[tuple, set],
+    ) -> List[TwinDependencyImpactPostureItem]:
+        items = []
+        for hint in sorted(
+            snapshot.lifecycle_readiness_hints,
+            key=lambda item: item.lifecycle_domain.value,
+        ):
+            node_ids = self._dependency_impact_nodes_for_domain(snapshot, hint.lifecycle_domain)
+            edge_ids = self._dependency_impact_edges_for_domain(snapshot, hint.lifecycle_domain)
+            source_sections = []
+            node_keys = {
+                (node.entity_type, node.entity_id)
+                for node in snapshot.nodes
+                if node.node_id in set(node_ids)
+            }
+            for key in node_keys:
+                source_sections.extend(sections_by_entity.get(key, []))
+            signal = f"hint:{hint.lifecycle_domain.value}:{hint.readiness_status}"
+            statement = (
+                f"{hint.lifecycle_domain.value} is represented by {hint.node_count} topology nodes "
+                f"and {hint.edge_count} topology edges with readiness status {hint.readiness_status}."
+            )
+            items.append(
+                TwinDependencyImpactPostureItem(
+                    impact_area=f"lifecycle_scope:{hint.lifecycle_domain.value}",
+                    posture=hint.readiness_status,
+                    statement=statement,
+                    confidence_posture=hint.readiness_status,
+                    basis=self._dependency_impact_basis(
+                        source_section_keys=source_sections,
+                        topology_node_ids=node_ids,
+                        topology_edge_ids=edge_ids,
+                        lifecycle_readiness_signals_used=[signal],
+                        dependency_warning_refs=[
+                            f"{warning_type}:{hint.lifecycle_domain.value}"
+                            for warning_type in hint.planning_dependency_warning_types
+                        ],
+                        provenance_gap_refs=[
+                            f"{gap_type}:{hint.lifecycle_domain.value}"
+                            for gap_type in hint.provenance_gap_types
+                        ],
+                        derived_from=hint.derived_from,
+                    ),
+                    limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS + hint.limitations,
+                )
+            )
+        return items
+
+    def _dependency_impact_posture_items(
+        self,
+        *,
+        context: TwinPlanningContext,
+        snapshot: TwinTopologySnapshot,
+        warning_refs: List[str],
+        provenance_gap_refs: List[str],
+        missing_readiness_refs: List[str],
+        missing_relationship_refs: List[str],
+        lifecycle_signals: List[str],
+    ) -> List[TwinDependencyImpactPostureItem]:
+        section_keys = [section.section_key for section in context.sections]
+        node_ids = [node.node_id for node in snapshot.nodes]
+        edge_ids = [edge.edge_id for edge in snapshot.edges]
+        confidence_posture = self._dependency_impact_confidence_posture(
+            warning_refs=warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_refs=missing_readiness_refs,
+            missing_relationship_refs=missing_relationship_refs,
+        )
+
+        relationship_statement = (
+            "Topology relationship coverage is derived from existing topology nodes and edges; "
+            f"{snapshot.relationship_coverage_summary.missing_relationship_indicator_count} unresolved relationship indicators are present."
+        )
+        dependency_statement = (
+            "Dependency posture is derived from existing planning dependency warnings; "
+            f"{len(set(warning_refs))} warning references are present."
+        )
+        awareness_labels = sorted(context.dependency_awareness_summary.keys())
+        awareness_statement = (
+            "Dependency awareness labels are copied from the existing Twin Planning Context summary: "
+            + (", ".join(awareness_labels) if awareness_labels else "none")
+            + "."
+        )
+        return [
+            TwinDependencyImpactPostureItem(
+                impact_area="relationship_coverage",
+                posture=(
+                    "relationship_limited"
+                    if missing_relationship_refs
+                    else "descriptive_relationship_coverage_present"
+                ),
+                statement=relationship_statement,
+                confidence_posture=confidence_posture,
+                basis=self._dependency_impact_basis(
+                    source_section_keys=section_keys,
+                    topology_node_ids=node_ids,
+                    topology_edge_ids=edge_ids,
+                    lifecycle_readiness_signals_used=lifecycle_signals,
+                    dependency_warning_refs=warning_refs,
+                    provenance_gap_refs=provenance_gap_refs,
+                    missing_readiness_indicator_refs=missing_readiness_refs,
+                    missing_relationship_indicator_refs=missing_relationship_refs,
+                    derived_from=[
+                        "TwinTopologySnapshot.nodes",
+                        "TwinTopologySnapshot.edges",
+                        "TwinTopologySnapshot.relationship_coverage_summary",
+                        "TwinTopologySnapshot.missing_relationship_indicators",
+                    ],
+                ),
+                limitations=(
+                    DEPENDENCY_IMPACT_READINESS_LIMITATIONS
+                    + snapshot.relationship_coverage_summary.limitations
+                ),
+            ),
+            TwinDependencyImpactPostureItem(
+                impact_area="planning_dependency_warnings",
+                posture=(
+                    "dependency_limited"
+                    if warning_refs
+                    else "no_dependency_warnings_present"
+                ),
+                statement=dependency_statement,
+                confidence_posture=confidence_posture,
+                basis=self._dependency_impact_basis(
+                    source_section_keys=section_keys,
+                    topology_node_ids=node_ids,
+                    topology_edge_ids=edge_ids,
+                    lifecycle_readiness_signals_used=lifecycle_signals,
+                    dependency_warning_refs=warning_refs,
+                    provenance_gap_refs=provenance_gap_refs,
+                    missing_readiness_indicator_refs=missing_readiness_refs,
+                    missing_relationship_indicator_refs=missing_relationship_refs,
+                    derived_from=[
+                        "TwinPlanningContextRecord.planning_dependency_warnings",
+                        "TwinTopologySnapshot.lifecycle_readiness_summary",
+                    ],
+                ),
+                limitations=(
+                    DEPENDENCY_IMPACT_READINESS_LIMITATIONS
+                    + PLANNING_DEPENDENCY_WARNING_LIMITATIONS
+                ),
+            ),
+            TwinDependencyImpactPostureItem(
+                impact_area="dependency_awareness_summary",
+                posture=(
+                    "dependency_awareness_labels_present"
+                    if awareness_labels
+                    else "no_dependency_awareness_labels_present"
+                ),
+                statement=awareness_statement,
+                confidence_posture=confidence_posture,
+                basis=self._dependency_impact_basis(
+                    source_section_keys=section_keys,
+                    topology_node_ids=node_ids,
+                    topology_edge_ids=edge_ids,
+                    lifecycle_readiness_signals_used=lifecycle_signals,
+                    dependency_warning_refs=warning_refs,
+                    provenance_gap_refs=provenance_gap_refs,
+                    missing_readiness_indicator_refs=missing_readiness_refs,
+                    missing_relationship_indicator_refs=missing_relationship_refs,
+                    derived_from=[
+                        "TwinPlanningContext.dependency_awareness_summary",
+                        "TwinTopologySnapshot.lifecycle_readiness_summary",
+                    ],
+                ),
+                limitations=(
+                    DEPENDENCY_IMPACT_READINESS_LIMITATIONS
+                    + DEPENDENCY_AWARENESS_LIMITATIONS
+                ),
+            ),
+        ]
+
+    def _dependency_missing_inputs(
+        self,
+        *,
+        snapshot: TwinTopologySnapshot,
+        provenance_gap_refs: List[str],
+    ) -> List[TwinDependencyMissingInputItem]:
+        items: List[TwinDependencyMissingInputItem] = []
+        for indicator in sorted(
+            snapshot.missing_readiness_indicators,
+            key=lambda item: item.indicator,
+        ):
+            if indicator.present:
+                continue
+            items.append(
+                TwinDependencyMissingInputItem(
+                    missing_input=indicator.indicator,
+                    reason=indicator.reason,
+                    basis=self._dependency_impact_basis(
+                        missing_readiness_indicator_refs=[self._missing_readiness_ref(indicator)],
+                        derived_from=indicator.derived_from,
+                    ),
+                    limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS + indicator.limitations,
+                )
+            )
+
+        for indicator in sorted(
+            snapshot.missing_relationship_indicators,
+            key=lambda item: self._missing_relationship_ref(item),
+        ):
+            items.append(
+                TwinDependencyMissingInputItem(
+                    missing_input=self._missing_relationship_ref(indicator),
+                    reason=indicator.reason,
+                    basis=self._dependency_impact_basis(
+                        missing_relationship_indicator_refs=[
+                            self._missing_relationship_ref(indicator)
+                        ],
+                        derived_from=indicator.derived_from,
+                    ),
+                    limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS + indicator.limitations,
+                )
+            )
+
+        for gap_ref in sorted(set(provenance_gap_refs)):
+            items.append(
+                TwinDependencyMissingInputItem(
+                    missing_input=f"provenance:{gap_ref}",
+                    reason=(
+                        "A source or provenance basis is missing or partial for this recorded planning context."
+                    ),
+                    basis=self._dependency_impact_basis(
+                        provenance_gap_refs=[gap_ref],
+                        derived_from=["TwinPlanningContextRecord.provenance_gaps"],
+                    ),
+                    limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+                )
+            )
+        return items
+
+    def _dependency_provenance_gap_posture(
+        self,
+        *,
+        context: TwinPlanningContext,
+        snapshot: TwinTopologySnapshot,
+    ) -> List[TwinDependencyImpactPostureItem]:
+        section_records = self._all_context_records_with_sections(context)
+        node_by_entity = {
+            (node.entity_type, node.entity_id): node
+            for node in snapshot.nodes
+        }
+        refs_by_gap_type: Dict[str, List[str]] = {}
+        node_ids_by_gap_type: Dict[str, List[str]] = {}
+        sections_by_gap_type: Dict[str, List[str]] = {}
+        for section_key, record in section_records:
+            node = node_by_entity.get((record.entity_type, record.entity_id))
+            for gap in record.provenance_gaps:
+                gap_type = gap.gap_type.value
+                refs_by_gap_type.setdefault(gap_type, []).append(self._provenance_gap_ref(gap))
+                sections_by_gap_type.setdefault(gap_type, []).append(section_key)
+                if node is not None:
+                    node_ids_by_gap_type.setdefault(gap_type, []).append(node.node_id)
+
+        items = []
+        for gap_type in sorted(refs_by_gap_type):
+            node_ids = node_ids_by_gap_type.get(gap_type, [])
+            refs = refs_by_gap_type[gap_type]
+            edge_ids = self._dependency_impact_edges_for_nodes(snapshot, node_ids)
+            items.append(
+                TwinDependencyImpactPostureItem(
+                    impact_area=f"provenance_gap:{gap_type}",
+                    posture="provenance_limited",
+                    statement=(
+                        f"{len(set(refs))} {gap_type} provenance gap references are present in the existing Twin Planning Context."
+                    ),
+                    confidence_posture="provenance_limited",
+                    basis=self._dependency_impact_basis(
+                        source_section_keys=sections_by_gap_type.get(gap_type, []),
+                        topology_node_ids=node_ids,
+                        topology_edge_ids=edge_ids,
+                        provenance_gap_refs=refs,
+                        derived_from=["TwinPlanningContextRecord.provenance_gaps"],
+                    ),
+                    limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+                )
+            )
+        return items
+
+    def build_dependency_impact_readiness_view(
+        self, db, home_id: str
+    ) -> Optional[TwinDependencyImpactReadinessView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        warning_refs, provenance_gap_refs, sections_by_entity = self._dependency_impact_record_refs(
+            section_records
+        )
+        missing_readiness_refs = [
+            self._missing_readiness_ref(indicator)
+            for indicator in snapshot.missing_readiness_indicators
+            if not indicator.present
+        ]
+        missing_relationship_refs = [
+            self._missing_relationship_ref(indicator)
+            for indicator in snapshot.missing_relationship_indicators
+        ]
+        lifecycle_signals = self._dependency_impact_lifecycle_signals(snapshot)
+        source_section_keys = [section.section_key for section in context.sections]
+        topology_node_ids = [node.node_id for node in snapshot.nodes]
+        topology_edge_ids = [edge.edge_id for edge in snapshot.edges]
+        confidence_posture = self._dependency_impact_confidence_posture(
+            warning_refs=warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_refs=missing_readiness_refs,
+            missing_relationship_refs=missing_relationship_refs,
+        )
+
+        source_basis = self._dependency_impact_basis(
+            source_section_keys=source_section_keys,
+            topology_node_ids=topology_node_ids,
+            topology_edge_ids=topology_edge_ids,
+            lifecycle_readiness_signals_used=lifecycle_signals,
+            dependency_warning_refs=warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_refs,
+            missing_relationship_indicator_refs=missing_relationship_refs,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinTopologySnapshot.lifecycle_readiness_summary",
+                "TwinTopologySnapshot.relationship_coverage_summary",
+            ],
+        )
+
+        confidence_item = TwinDependencyImpactPostureItem(
+            impact_area="overall_confidence_posture",
+            posture=confidence_posture,
+            statement=(
+                "Overall dependency impact readiness confidence is derived from planning dependency warnings, "
+                "provenance gaps, missing lifecycle readiness indicators, and missing relationship indicators."
+            ),
+            confidence_posture=confidence_posture,
+            basis=source_basis,
+            limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS,
+        )
+
+        return TwinDependencyImpactReadinessView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3A derived intelligence envelope built request-time from TwinPlanningContext "
+                "and topology snapshot; not a graph engine, scenario engine, simulation, what-if analysis, "
+                "export, permission enforcement layer, or operational model."
+            ),
+            source_basis=source_basis,
+            readiness_summary=TwinDependencyImpactReadinessSummary(
+                limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS,
+            ),
+            lifecycle_scope=self._dependency_impact_lifecycle_scope(
+                snapshot=snapshot,
+                sections_by_entity=sections_by_entity,
+            ),
+            dependency_impact_posture=self._dependency_impact_posture_items(
+                context=context,
+                snapshot=snapshot,
+                warning_refs=warning_refs,
+                provenance_gap_refs=provenance_gap_refs,
+                missing_readiness_refs=missing_readiness_refs,
+                missing_relationship_refs=missing_relationship_refs,
+                lifecycle_signals=lifecycle_signals,
+            ),
+            missing_inputs=self._dependency_missing_inputs(
+                snapshot=snapshot,
+                provenance_gap_refs=provenance_gap_refs,
+            ),
+            provenance_gap_posture=self._dependency_provenance_gap_posture(
+                context=context,
+                snapshot=snapshot,
+            ),
+            confidence_posture=[confidence_item],
+            deferred_capabilities=sorted(DEPENDENCY_IMPACT_DEFERRED_CAPABILITIES),
+            limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS,
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, AI grounding, runtime projection, and current /api/* "
+                "contracts remain unchanged; this is an additive Phase 3A derived intelligence view."
             ),
         )
 
