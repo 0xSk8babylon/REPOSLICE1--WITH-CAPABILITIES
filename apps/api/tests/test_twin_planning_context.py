@@ -47,6 +47,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_dependency_impact_readiness_view(db, "home_001")
 
+    def _dependency_reasoning_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_dependency_reasoning_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -1254,6 +1258,186 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         limitation_text = " ".join(view.limitations)
         self.assertIn("does not recommend", limitation_text)
         self.assertIn("simulate", limitation_text)
+        self.assertIn("operate devices", limitation_text)
+
+    def test_dependency_reasoning_route_is_additive_and_explain_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/dependency-reasoning",
+            paths,
+        )
+
+        view = self._dependency_reasoning_view()
+        payload = view.dict()
+        scope = view.reasoning_scope
+
+        self.assertEqual("dependency_reasoning", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.descriptive_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_dependency_impact_readiness)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertFalse(scope.ai_generated_facts_present)
+        self.assertFalse(scope.new_topology_facts_created)
+        self.assertFalse(scope.graph_database_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.scenario_engine_present)
+        self.assertFalse(scope.scenario_intelligence_present)
+        self.assertFalse(scope.simulation_present)
+        self.assertFalse(scope.what_if_analysis_present)
+        self.assertFalse(scope.impact_propagation_engine_present)
+        self.assertFalse(scope.stale_state_created)
+        self.assertFalse(scope.recalculation_engine_present)
+        self.assertFalse(scope.invalidation_engine_present)
+        self.assertFalse(scope.recommendation_actions_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.ranking_present)
+        self.assertFalse(scope.authorization_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+        self.assertIn("not impact propagation", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_dependency_reasoning_reports_bounded_dependency_types(self):
+        view = self._dependency_reasoning_view()
+
+        for dependency_type in [
+            "source_dependency",
+            "topology_dependency",
+            "lifecycle_dependency",
+            "rule_dependency",
+            "provenance_dependency",
+            "permission_readiness_dependency",
+            "continuity_snapshot_dependency",
+            "missing_information_dependency",
+        ]:
+            self.assertIn(dependency_type, view.dependency_type_summary)
+            self.assertGreater(view.dependency_type_summary[dependency_type], 0)
+
+        self.assertTrue(view.dependency_reasoning_items)
+        self.assertTrue(view.upstream_downstream_interpretations)
+        self.assertTrue(view.lifecycle_dependency_context)
+        self.assertTrue(view.provenance_dependency_context)
+        self.assertTrue(view.missing_information_context)
+        self.assertTrue(view.confidence_posture)
+
+    def test_dependency_reasoning_statements_are_traceable_to_existing_basis(self):
+        view = self._dependency_reasoning_view()
+
+        for source_view_name in [
+            "twin_planning_context",
+            "topology_snapshot",
+            "dependency_impact_readiness",
+        ]:
+            self.assertIn(source_view_name, view.source_basis.source_view_names)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.topology_node_ids)
+        self.assertTrue(view.source_basis.topology_edge_ids)
+        self.assertTrue(view.source_basis.lifecycle_readiness_signals_used)
+        self.assertTrue(view.source_basis.dependency_warning_refs)
+        self.assertTrue(view.source_basis.provenance_gap_refs)
+        self.assertTrue(view.source_basis.missing_readiness_indicator_refs)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in (
+            view.dependency_reasoning_items
+            + view.upstream_downstream_interpretations
+            + view.lifecycle_dependency_context
+            + view.provenance_dependency_context
+            + view.missing_information_context
+            + view.confidence_posture
+        ):
+            self.assertTrue(item.statement)
+            self.assertTrue(item.subject_ref)
+            self.assertTrue(item.basis.source_view_names)
+            self.assertIn("dependency_impact_readiness", item.basis.source_view_names)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+
+        topology_items = [
+            item
+            for item in view.dependency_reasoning_items
+            if item.reasoning_type.value == "topology_dependency"
+        ]
+        self.assertTrue(topology_items)
+        self.assertTrue(all(item.basis.topology_edge_ids for item in topology_items))
+
+        missing_items = [
+            item
+            for item in view.dependency_reasoning_items
+            if item.reasoning_type.value == "missing_information_dependency"
+        ]
+        self.assertTrue(missing_items)
+        self.assertTrue(
+            all(
+                item.basis.provenance_gap_refs
+                or item.basis.missing_readiness_indicator_refs
+                or item.basis.missing_relationship_indicator_refs
+                for item in missing_items
+            )
+        )
+
+    def test_dependency_reasoning_is_deterministic_for_same_inputs(self):
+        first = self._dependency_reasoning_view().dict()
+        second = self._dependency_reasoning_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_capabilities"]),
+            first["deferred_capabilities"],
+        )
+
+    def test_dependency_reasoning_preserves_deferred_boundaries(self):
+        view = self._dependency_reasoning_view()
+        deferred = set(view.deferred_capabilities)
+
+        for capability in [
+            "scenario_intelligence",
+            "impact_propagation_engine",
+            "stale_state_persistence",
+            "recalculation_engine",
+            "invalidation_engine",
+            "optimization",
+            "upgrade_ranking",
+            "economic_reasoning",
+            "utility_readiness_reasoning",
+            "survivability_modeling",
+            "recharge_modeling",
+            "compatibility_engines",
+            "simulation",
+            "what_if_analysis",
+            "auth",
+            "rbac_abac",
+            "permission_enforcement",
+            "exports",
+            "utility_sharing",
+            "telemetry_governance",
+            "ownership_transfer",
+            "registry",
+            "marketplace",
+            "operational_control",
+            "twin_id",
+            "graph_database",
+            "graph_engine",
+            "migrations",
+            "canonical_twin_runtime_model",
+            "recommendation_actions",
+        ]:
+            self.assertIn(capability, deferred)
+
+        limitation_text = " ".join(view.limitations)
+        self.assertIn("does not propagate impacts", limitation_text)
+        self.assertIn("compare scenarios", limitation_text)
+        self.assertIn("recommend", limitation_text)
         self.assertIn("operate devices", limitation_text)
 
 

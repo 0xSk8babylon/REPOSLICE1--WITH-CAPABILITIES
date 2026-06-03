@@ -15,6 +15,10 @@ from app.twin_planning_context.schemas import (
     TwinDependencyImpactReadinessView,
     TwinDependencyImpactStatementBasis,
     TwinDependencyMissingInputItem,
+    TwinDependencyReasoningItem,
+    TwinDependencyReasoningScope,
+    TwinDependencyReasoningType,
+    TwinDependencyReasoningView,
     TwinPlanningChangeImpactHint,
     TwinPlanningContext,
     TwinPlanningContextRecord,
@@ -202,6 +206,46 @@ DEPENDENCY_IMPACT_DEFERRED_CAPABILITIES = [
     "registry",
     "marketplace",
     "operational_control",
+]
+
+DEPENDENCY_REASONING_LIMITATIONS = [
+    "Phase 3B dependency reasoning explains existing dependency meaning only.",
+    "Every reasoning statement is reproducible from the listed TwinPlanningContext, topology snapshot, and dependency impact readiness basis.",
+    "This view does not propagate impacts, mark stale state, recalculate, invalidate, compare scenarios, recommend, optimize, simulate, rank, choose, authorize, export, enforce permissions, or operate devices.",
+    "The Twin may classify existing dependency meaning, but it may not invent facts or create new topology relationships.",
+]
+
+DEPENDENCY_REASONING_DEFERRED_CAPABILITIES = [
+    "scenario_intelligence",
+    "impact_propagation_engine",
+    "stale_state_persistence",
+    "recalculation_engine",
+    "invalidation_engine",
+    "optimization",
+    "upgrade_ranking",
+    "economic_reasoning",
+    "utility_readiness_reasoning",
+    "survivability_modeling",
+    "recharge_modeling",
+    "compatibility_engines",
+    "simulation",
+    "what_if_analysis",
+    "auth",
+    "rbac_abac",
+    "permission_enforcement",
+    "exports",
+    "utility_sharing",
+    "telemetry_governance",
+    "ownership_transfer",
+    "registry",
+    "marketplace",
+    "operational_control",
+    "twin_id",
+    "graph_database",
+    "graph_engine",
+    "migrations",
+    "canonical_twin_runtime_model",
+    "recommendation_actions",
 ]
 
 TOPOLOGY_RELATIONSHIP_COVERAGE_RULE_KEY = "twin_topology.relationship_coverage_v1"
@@ -2770,9 +2814,13 @@ class TwinPlanningContextService:
         missing_readiness_indicator_refs: Optional[List[str]] = None,
         missing_relationship_indicator_refs: Optional[List[str]] = None,
         derived_from: Optional[List[str]] = None,
+        source_view_names: Optional[List[str]] = None,
+        limitations: Optional[List[str]] = None,
     ) -> TwinDependencyImpactStatementBasis:
         return TwinDependencyImpactStatementBasis(
-            source_view_names=["twin_planning_context", "topology_snapshot"],
+            source_view_names=self._sorted_unique(
+                source_view_names or ["twin_planning_context", "topology_snapshot"]
+            ),
             source_section_keys=self._sorted_unique(source_section_keys or []),
             topology_node_ids=self._sorted_unique(topology_node_ids or []),
             topology_edge_ids=self._sorted_unique(topology_edge_ids or []),
@@ -2788,7 +2836,7 @@ class TwinPlanningContextService:
                 missing_relationship_indicator_refs or []
             ),
             derived_from=self._sorted_unique(derived_from or []),
-            limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS,
+            limitations=limitations or DEPENDENCY_IMPACT_READINESS_LIMITATIONS,
         )
 
     def _dependency_impact_record_refs(
@@ -3238,6 +3286,538 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, AI grounding, runtime projection, and current /api/* "
                 "contracts remain unchanged; this is an additive Phase 3A derived intelligence view."
+            ),
+        )
+
+    def _dependency_reasoning_basis(
+        self,
+        *,
+        source_section_keys: Optional[List[str]] = None,
+        topology_node_ids: Optional[List[str]] = None,
+        topology_edge_ids: Optional[List[str]] = None,
+        lifecycle_readiness_signals_used: Optional[List[str]] = None,
+        dependency_warning_refs: Optional[List[str]] = None,
+        provenance_gap_refs: Optional[List[str]] = None,
+        missing_readiness_indicator_refs: Optional[List[str]] = None,
+        missing_relationship_indicator_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinDependencyImpactStatementBasis:
+        return self._dependency_impact_basis(
+            source_view_names=[
+                "twin_planning_context",
+                "topology_snapshot",
+                "dependency_impact_readiness",
+            ],
+            source_section_keys=source_section_keys,
+            topology_node_ids=topology_node_ids,
+            topology_edge_ids=topology_edge_ids,
+            lifecycle_readiness_signals_used=lifecycle_readiness_signals_used,
+            dependency_warning_refs=dependency_warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_indicator_refs,
+            missing_relationship_indicator_refs=missing_relationship_indicator_refs,
+            derived_from=derived_from,
+            limitations=DEPENDENCY_REASONING_LIMITATIONS,
+        )
+
+    def _dependency_reasoning_item_sort_key(self, item: TwinDependencyReasoningItem) -> tuple:
+        return (item.reasoning_type.value, item.subject_ref, item.statement)
+
+    def _dependency_reasoning_items_from_edges(
+        self, snapshot: TwinTopologySnapshot
+    ) -> List[TwinDependencyReasoningItem]:
+        items = []
+        for edge in sorted(snapshot.edges, key=lambda item: item.edge_id):
+            basis = self._dependency_reasoning_basis(
+                topology_node_ids=[edge.source_node_id, edge.target_node_id],
+                topology_edge_ids=[edge.edge_id],
+                lifecycle_readiness_signals_used=[
+                    f"edge_lifecycle:{edge.lifecycle_domain.value}"
+                ],
+                derived_from=[
+                    "TwinTopologySnapshot.edges",
+                    "TwinTopologyEdge.source_node_id",
+                    "TwinTopologyEdge.target_node_id",
+                    "TwinTopologyEdge.relationship",
+                ],
+            )
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.topology_dependency,
+                    subject_ref=edge.edge_id,
+                    statement=(
+                        f"Topology edge {edge.edge_id} explains that {edge.source_node_id} is the recorded "
+                        f"source side and {edge.target_node_id} is the recorded target side for relationship {edge.relationship}."
+                    ),
+                    confidence_posture=edge.confidence_level or "descriptive_topology_relationship",
+                    basis=basis,
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS + edge.limitations,
+                )
+            )
+        return items
+
+    def _dependency_reasoning_upstream_downstream_items(
+        self, snapshot: TwinTopologySnapshot
+    ) -> List[TwinDependencyReasoningItem]:
+        items = []
+        for edge in sorted(snapshot.edges, key=lambda item: item.edge_id):
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.topology_dependency,
+                    subject_ref=f"direction:{edge.edge_id}",
+                    statement=(
+                        f"Directional dependency interpretation for {edge.edge_id} follows topology edge metadata only: "
+                        f"{edge.source_node_id} is upstream/source-side context and {edge.target_node_id} is downstream/target-side context."
+                    ),
+                    confidence_posture=edge.confidence_level or "source_target_metadata_only",
+                    basis=self._dependency_reasoning_basis(
+                        topology_node_ids=[edge.source_node_id, edge.target_node_id],
+                        topology_edge_ids=[edge.edge_id],
+                        lifecycle_readiness_signals_used=[
+                            f"edge_lifecycle:{edge.lifecycle_domain.value}"
+                        ],
+                        derived_from=[
+                            "TwinTopologySnapshot.edges",
+                            "TwinTopologyEdge.source_node_id",
+                            "TwinTopologyEdge.target_node_id",
+                        ],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS
+                    + [
+                        "Upstream/downstream means topology edge source/target direction only; it is not measured power flow, field verification, utility approval, or operational direction.",
+                    ],
+                )
+            )
+        return items
+
+    def _dependency_reasoning_source_items(
+        self,
+        *,
+        section_records: List[tuple],
+        node_by_entity: Dict[tuple, TwinTopologyNode],
+    ) -> List[TwinDependencyReasoningItem]:
+        items = []
+        for section_key, record in sorted(
+            section_records,
+            key=lambda item: (item[0], item[1].entity_type, item[1].entity_id or ""),
+        ):
+            if not (record.source_document_ids or record.data_origin or record.provenance_summary):
+                continue
+            subject_ref = f"{record.entity_type}:{record.entity_id or 'unknown'}"
+            node = node_by_entity.get((record.entity_type, record.entity_id))
+            source_basis_parts = []
+            if record.source_document_ids:
+                source_basis_parts.append(f"{len(record.source_document_ids)} source document refs")
+            if record.data_origin:
+                source_basis_parts.append(f"data origin {record.data_origin.value}")
+            if record.provenance_summary:
+                source_basis_parts.append("provenance summary")
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.source_dependency,
+                    subject_ref=subject_ref,
+                    statement=(
+                        f"{subject_ref} has source dependency context from existing "
+                        f"{', '.join(source_basis_parts)}."
+                    ),
+                    confidence_posture="source_context_present",
+                    basis=self._dependency_reasoning_basis(
+                        source_section_keys=[section_key],
+                        topology_node_ids=[node.node_id] if node else [],
+                        provenance_gap_refs=[
+                            self._provenance_gap_ref(gap)
+                            for gap in record.provenance_gaps
+                        ],
+                        derived_from=[
+                            "TwinPlanningContextRecord.source_document_ids",
+                            "TwinPlanningContextRecord.data_origin",
+                            "TwinPlanningContextRecord.provenance_summary",
+                        ],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS
+                    + [
+                        "Source dependency context identifies recorded source posture only; it does not verify correctness or create field authority.",
+                    ],
+                )
+            )
+        return items
+
+    def _dependency_reasoning_lifecycle_items(
+        self, impact_view: TwinDependencyImpactReadinessView
+    ) -> List[TwinDependencyReasoningItem]:
+        items = []
+        for impact_item in sorted(impact_view.lifecycle_scope, key=lambda item: item.impact_area):
+            basis = self._dependency_reasoning_basis(
+                source_section_keys=impact_item.basis.source_section_keys,
+                topology_node_ids=impact_item.basis.topology_node_ids,
+                topology_edge_ids=impact_item.basis.topology_edge_ids,
+                lifecycle_readiness_signals_used=impact_item.basis.lifecycle_readiness_signals_used,
+                dependency_warning_refs=impact_item.basis.dependency_warning_refs,
+                provenance_gap_refs=impact_item.basis.provenance_gap_refs,
+                missing_readiness_indicator_refs=impact_item.basis.missing_readiness_indicator_refs,
+                missing_relationship_indicator_refs=impact_item.basis.missing_relationship_indicator_refs,
+                derived_from=impact_item.basis.derived_from
+                + ["TwinDependencyImpactReadinessView.lifecycle_scope"],
+            )
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.lifecycle_dependency,
+                    subject_ref=impact_item.impact_area,
+                    statement=(
+                        f"Lifecycle dependency context for {impact_item.impact_area} is explained from Phase 3A posture {impact_item.posture}: {impact_item.statement}"
+                    ),
+                    confidence_posture=impact_item.confidence_posture,
+                    basis=basis,
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS + impact_item.limitations,
+                )
+            )
+        return items
+
+    def _dependency_reasoning_rule_items(
+        self,
+        *,
+        section_records: List[tuple],
+        snapshot: TwinTopologySnapshot,
+    ) -> List[TwinDependencyReasoningItem]:
+        sections_by_rule: Dict[str, List[str]] = {}
+        edge_ids_by_rule: Dict[str, List[str]] = {}
+        warning_refs_by_rule: Dict[str, List[str]] = {}
+        for section_key, record in section_records:
+            rule_keys = list(record.rule_keys)
+            for hook in record.dependency_hooks:
+                rule_keys.extend(hook.rule_keys)
+            for warning in record.planning_dependency_warnings:
+                for rule_key in warning.rule_keys:
+                    warning_refs_by_rule.setdefault(rule_key, []).append(
+                        self._dependency_warning_ref(warning)
+                    )
+                    rule_keys.append(rule_key)
+            for rule_key in rule_keys:
+                sections_by_rule.setdefault(rule_key, []).append(section_key)
+        for edge in snapshot.edges:
+            for rule_key in edge.rule_keys:
+                edge_ids_by_rule.setdefault(rule_key, []).append(edge.edge_id)
+
+        items = []
+        for rule_key in sorted(set(sections_by_rule) | set(edge_ids_by_rule)):
+            section_count = len(set(sections_by_rule.get(rule_key, [])))
+            edge_count = len(set(edge_ids_by_rule.get(rule_key, [])))
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.rule_dependency,
+                    subject_ref=rule_key,
+                    statement=(
+                        f"Rule dependency {rule_key} appears in {section_count} Twin Planning Context sections "
+                        f"and {edge_count} topology edges."
+                    ),
+                    confidence_posture="deterministic_rule_reference_present",
+                    basis=self._dependency_reasoning_basis(
+                        source_section_keys=sections_by_rule.get(rule_key, []),
+                        topology_edge_ids=edge_ids_by_rule.get(rule_key, []),
+                        dependency_warning_refs=warning_refs_by_rule.get(rule_key, []),
+                        derived_from=[
+                            "TwinPlanningContextRecord.rule_keys",
+                            "TwinPlanningDependencyHook.rule_keys",
+                            "TwinPlanningDependencyWarning.rule_keys",
+                            "TwinTopologyEdge.rule_keys",
+                        ],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS
+                    + [
+                        "Rule dependency context identifies existing rule references only; it does not run a recalculation or choose an action.",
+                    ],
+                )
+            )
+        return items
+
+    def _dependency_reasoning_provenance_items(
+        self, impact_view: TwinDependencyImpactReadinessView
+    ) -> List[TwinDependencyReasoningItem]:
+        items = []
+        for impact_item in sorted(impact_view.provenance_gap_posture, key=lambda item: item.impact_area):
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.provenance_dependency,
+                    subject_ref=impact_item.impact_area,
+                    statement=(
+                        f"Provenance dependency context for {impact_item.impact_area} is explained from Phase 3A posture {impact_item.posture}: {impact_item.statement}"
+                    ),
+                    confidence_posture=impact_item.confidence_posture,
+                    basis=self._dependency_reasoning_basis(
+                        source_section_keys=impact_item.basis.source_section_keys,
+                        topology_node_ids=impact_item.basis.topology_node_ids,
+                        topology_edge_ids=impact_item.basis.topology_edge_ids,
+                        provenance_gap_refs=impact_item.basis.provenance_gap_refs,
+                        derived_from=impact_item.basis.derived_from
+                        + ["TwinDependencyImpactReadinessView.provenance_gap_posture"],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS + impact_item.limitations,
+                )
+            )
+        return items
+
+    def _dependency_reasoning_permission_items(
+        self,
+        *,
+        context: TwinPlanningContext,
+        section_records: List[tuple],
+        node_by_entity: Dict[tuple, TwinTopologyNode],
+    ) -> List[TwinDependencyReasoningItem]:
+        items = []
+        if context.permission_readiness is not None:
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.permission_readiness_dependency,
+                    subject_ref="context_permission_readiness",
+                    statement=(
+                        f"Context permission readiness describes audience {context.permission_readiness.audience} "
+                        f"and purpose {context.permission_readiness.purpose}; permission enforcement remains not enforced."
+                    ),
+                    confidence_posture="permission_readiness_metadata_only",
+                    basis=self._dependency_reasoning_basis(
+                        source_section_keys=[section.section_key for section in context.sections],
+                        derived_from=["TwinPlanningContext.permission_readiness"],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+                )
+            )
+
+        for section_key, record in sorted(
+            section_records,
+            key=lambda item: (item[0], item[1].entity_type, item[1].entity_id or ""),
+        ):
+            if record.permission_readiness is None:
+                continue
+            subject_ref = f"{record.entity_type}:{record.entity_id or 'unknown'}"
+            node = node_by_entity.get((record.entity_type, record.entity_id))
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.permission_readiness_dependency,
+                    subject_ref=subject_ref,
+                    statement=(
+                        f"{subject_ref} carries permission readiness metadata for audience {record.permission_readiness.audience} "
+                        f"and purpose {record.permission_readiness.purpose}; it is not an authorization decision."
+                    ),
+                    confidence_posture="permission_readiness_metadata_only",
+                    basis=self._dependency_reasoning_basis(
+                        source_section_keys=[section_key],
+                        topology_node_ids=[node.node_id] if node else [],
+                        derived_from=["TwinPlanningContextRecord.permission_readiness"],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+                )
+            )
+        return items
+
+    def _dependency_reasoning_continuity_items(
+        self, snapshot: TwinTopologySnapshot
+    ) -> List[TwinDependencyReasoningItem]:
+        items = []
+        if snapshot.scenario_branch_references:
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.continuity_snapshot_dependency,
+                    subject_ref="scenario_branch_references",
+                    statement=(
+                        f"Topology snapshot includes {len(snapshot.scenario_branch_references)} scenario branch references as snapshot-bound continuity context."
+                    ),
+                    confidence_posture="snapshot_bound_context_only",
+                    basis=self._dependency_reasoning_basis(
+                        derived_from=["TwinTopologySnapshot.scenario_branch_references"],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS
+                    + [
+                        "Scenario branch references are continuity context only; this view does not compare scenarios or implement scenario intelligence.",
+                    ],
+                )
+            )
+        if snapshot.revision_lineage_references:
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.continuity_snapshot_dependency,
+                    subject_ref="revision_lineage_references",
+                    statement=(
+                        f"Topology snapshot includes {len(snapshot.revision_lineage_references)} revision lineage references as snapshot-bound continuity context."
+                    ),
+                    confidence_posture="snapshot_bound_context_only",
+                    basis=self._dependency_reasoning_basis(
+                        derived_from=["TwinTopologySnapshot.revision_lineage_references"],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS
+                    + [
+                        "Revision lineage references are continuity context only; this view does not replay, compare, or rank revisions.",
+                    ],
+                )
+            )
+        return items
+
+    def _dependency_reasoning_missing_items(
+        self, impact_view: TwinDependencyImpactReadinessView
+    ) -> List[TwinDependencyReasoningItem]:
+        items = []
+        for missing_item in sorted(impact_view.missing_inputs, key=lambda item: item.missing_input):
+            items.append(
+                TwinDependencyReasoningItem(
+                    reasoning_type=TwinDependencyReasoningType.missing_information_dependency,
+                    subject_ref=missing_item.missing_input,
+                    statement=(
+                        f"Missing information dependency {missing_item.missing_input} is identified because {missing_item.reason}"
+                    ),
+                    confidence_posture="missing_information_limited",
+                    basis=self._dependency_reasoning_basis(
+                        source_section_keys=missing_item.basis.source_section_keys,
+                        topology_node_ids=missing_item.basis.topology_node_ids,
+                        topology_edge_ids=missing_item.basis.topology_edge_ids,
+                        provenance_gap_refs=missing_item.basis.provenance_gap_refs,
+                        missing_readiness_indicator_refs=missing_item.basis.missing_readiness_indicator_refs,
+                        missing_relationship_indicator_refs=missing_item.basis.missing_relationship_indicator_refs,
+                        derived_from=missing_item.basis.derived_from
+                        + ["TwinDependencyImpactReadinessView.missing_inputs"],
+                    ),
+                    limitations=DEPENDENCY_REASONING_LIMITATIONS + missing_item.limitations,
+                )
+            )
+        return items
+
+    def build_dependency_reasoning_view(
+        self, db, home_id: str
+    ) -> Optional[TwinDependencyReasoningView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = self.build_dependency_impact_readiness_view(db, home_id)
+        if impact_view is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        node_by_entity = {
+            (node.entity_type, node.entity_id): node
+            for node in snapshot.nodes
+        }
+        warning_refs, provenance_gap_refs, _sections_by_entity = self._dependency_impact_record_refs(
+            section_records
+        )
+        missing_readiness_refs = [
+            self._missing_readiness_ref(indicator)
+            for indicator in snapshot.missing_readiness_indicators
+            if not indicator.present
+        ]
+        missing_relationship_refs = [
+            self._missing_relationship_ref(indicator)
+            for indicator in snapshot.missing_relationship_indicators
+        ]
+        lifecycle_signals = self._dependency_impact_lifecycle_signals(snapshot)
+        source_basis = self._dependency_reasoning_basis(
+            source_section_keys=[section.section_key for section in context.sections],
+            topology_node_ids=[node.node_id for node in snapshot.nodes],
+            topology_edge_ids=[edge.edge_id for edge in snapshot.edges],
+            lifecycle_readiness_signals_used=lifecycle_signals,
+            dependency_warning_refs=warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_refs,
+            missing_relationship_indicator_refs=missing_relationship_refs,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinDependencyImpactReadinessView",
+                "TwinDependencyImpactReadinessView.source_basis",
+            ],
+        )
+
+        topology_items = self._dependency_reasoning_items_from_edges(snapshot)
+        upstream_downstream_items = self._dependency_reasoning_upstream_downstream_items(snapshot)
+        source_items = self._dependency_reasoning_source_items(
+            section_records=section_records,
+            node_by_entity=node_by_entity,
+        )
+        lifecycle_items = self._dependency_reasoning_lifecycle_items(impact_view)
+        rule_items = self._dependency_reasoning_rule_items(
+            section_records=section_records,
+            snapshot=snapshot,
+        )
+        provenance_items = self._dependency_reasoning_provenance_items(impact_view)
+        permission_items = self._dependency_reasoning_permission_items(
+            context=context,
+            section_records=section_records,
+            node_by_entity=node_by_entity,
+        )
+        continuity_items = self._dependency_reasoning_continuity_items(snapshot)
+        missing_items = self._dependency_reasoning_missing_items(impact_view)
+
+        confidence_posture = self._dependency_impact_confidence_posture(
+            warning_refs=warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_refs=missing_readiness_refs,
+            missing_relationship_refs=missing_relationship_refs,
+        )
+        confidence_item = TwinDependencyReasoningItem(
+            reasoning_type=TwinDependencyReasoningType.provenance_dependency,
+            subject_ref="overall_dependency_reasoning_confidence",
+            statement=(
+                "Overall dependency reasoning confidence is derived from Phase 3A confidence posture, "
+                "planning dependency warnings, provenance gaps, missing lifecycle readiness indicators, and missing relationship indicators."
+            ),
+            confidence_posture=confidence_posture,
+            basis=source_basis,
+            limitations=DEPENDENCY_REASONING_LIMITATIONS,
+        )
+
+        primary_items = sorted(
+            source_items
+            + topology_items
+            + upstream_downstream_items
+            + lifecycle_items
+            + rule_items
+            + provenance_items
+            + permission_items
+            + continuity_items
+            + missing_items,
+            key=self._dependency_reasoning_item_sort_key,
+        )
+        type_counts = Counter(item.reasoning_type.value for item in primary_items)
+        dependency_type_summary = {
+            dependency_type.value: type_counts.get(dependency_type.value, 0)
+            for dependency_type in TwinDependencyReasoningType
+        }
+
+        return TwinDependencyReasoningView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3B dependency reasoning view built request-time from TwinPlanningContext, "
+                "topology snapshot, and Phase 3A dependency impact readiness; not impact propagation, "
+                "scenario intelligence, simulation, what-if analysis, export, permission enforcement, or operational behavior."
+            ),
+            source_basis=source_basis,
+            reasoning_scope=TwinDependencyReasoningScope(
+                limitations=DEPENDENCY_REASONING_LIMITATIONS,
+            ),
+            dependency_type_summary=dependency_type_summary,
+            dependency_reasoning_items=primary_items,
+            upstream_downstream_interpretations=sorted(
+                upstream_downstream_items,
+                key=self._dependency_reasoning_item_sort_key,
+            ),
+            lifecycle_dependency_context=sorted(
+                lifecycle_items,
+                key=self._dependency_reasoning_item_sort_key,
+            ),
+            provenance_dependency_context=sorted(
+                provenance_items,
+                key=self._dependency_reasoning_item_sort_key,
+            ),
+            missing_information_context=sorted(
+                missing_items,
+                key=self._dependency_reasoning_item_sort_key,
+            ),
+            confidence_posture=[confidence_item],
+            deferred_capabilities=sorted(DEPENDENCY_REASONING_DEFERRED_CAPABILITIES),
+            limitations=DEPENDENCY_REASONING_LIMITATIONS,
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, dependency impact readiness, AI grounding, runtime projection, "
+                "and current /api/* contracts remain unchanged; this is an additive Phase 3B derived explanation view."
             ),
         )
 

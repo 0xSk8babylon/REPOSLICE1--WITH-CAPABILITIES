@@ -528,6 +528,80 @@ class TwinDependencyMissingInputItem(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinDependencyReasoningType(str, Enum):
+    source_dependency = "source_dependency"
+    topology_dependency = "topology_dependency"
+    lifecycle_dependency = "lifecycle_dependency"
+    rule_dependency = "rule_dependency"
+    provenance_dependency = "provenance_dependency"
+    permission_readiness_dependency = "permission_readiness_dependency"
+    continuity_snapshot_dependency = "continuity_snapshot_dependency"
+    missing_information_dependency = "missing_information_dependency"
+
+
+class TwinDependencyReasoningScope(ORMModel):
+    reasoning_scope: str = "phase_3b_dependency_reasoning"
+    descriptive_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_dependency_impact_readiness: bool = True
+    deterministic_for_same_inputs: bool = True
+    ai_generated_facts_present: bool = False
+    new_topology_facts_created: bool = False
+    graph_database_present: bool = False
+    graph_engine_present: bool = False
+    scenario_engine_present: bool = False
+    scenario_intelligence_present: bool = False
+    simulation_present: bool = False
+    what_if_analysis_present: bool = False
+    impact_propagation_engine_present: bool = False
+    stale_state_created: bool = False
+    recalculation_engine_present: bool = False
+    invalidation_engine_present: bool = False
+    recommendation_actions_present: bool = False
+    optimization_present: bool = False
+    ranking_present: bool = False
+    authorization_present: bool = False
+    permission_enforcement_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinDependencyReasoningItem(ORMModel):
+    reasoning_type: TwinDependencyReasoningType
+    subject_ref: str
+    statement: str
+    confidence_posture: str
+    basis: TwinDependencyImpactStatementBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinDependencyReasoningView(ORMModel):
+    view_name: str = "dependency_reasoning"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinDependencyImpactStatementBasis
+    reasoning_scope: TwinDependencyReasoningScope
+    dependency_type_summary: Dict[str, int] = Field(default_factory=dict)
+    dependency_reasoning_items: List[TwinDependencyReasoningItem] = Field(default_factory=list)
+    upstream_downstream_interpretations: List[TwinDependencyReasoningItem] = Field(default_factory=list)
+    lifecycle_dependency_context: List[TwinDependencyReasoningItem] = Field(default_factory=list)
+    provenance_dependency_context: List[TwinDependencyReasoningItem] = Field(default_factory=list)
+    missing_information_context: List[TwinDependencyReasoningItem] = Field(default_factory=list)
+    confidence_posture: List[TwinDependencyReasoningItem] = Field(default_factory=list)
+    deferred_capabilities: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True
