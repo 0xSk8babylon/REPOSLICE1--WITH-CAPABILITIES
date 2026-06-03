@@ -792,6 +792,96 @@ class TwinAdvisoryContextAssemblyView(ORMModel):
     compatibility_note: str
 
 
+class TwinConstraintRiskReasoningArea(str, Enum):
+    missing_equipment_specs = "missing_equipment_specs"
+    incomplete_topology = "incomplete_topology"
+    low_trust_assumptions = "low_trust_assumptions"
+    unsupported_load_data = "unsupported_load_data"
+    permission_limited_visibility = "permission_limited_visibility"
+    lifecycle_conflicts = "lifecycle_conflicts"
+    provenance_gaps = "provenance_gaps"
+    contractor_install_complexity_risks = "contractor_install_complexity_risks"
+    field_verification_needs = "field_verification_needs"
+    professional_review_boundaries = "professional_review_boundaries"
+
+
+class TwinConstraintRiskReasoningScope(ORMModel):
+    reasoning_scope: str = "phase_3e_constraint_risk_reasoning"
+    constraint_risk_explanation_only: bool = True
+    descriptive_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_dependency_impact_readiness: bool = True
+    derived_from_dependency_reasoning: bool = True
+    derived_from_planning_intelligence_readiness: bool = True
+    derived_from_advisory_context_assembly: bool = True
+    deterministic_for_same_inputs: bool = True
+    recommendations_present: bool = False
+    priority_ranking_present: bool = False
+    optimization_present: bool = False
+    scenario_simulation_present: bool = False
+    what_if_analysis_present: bool = False
+    proposal_generation_present: bool = False
+    final_design_guidance_present: bool = False
+    contractor_directives_present: bool = False
+    homeowner_directives_present: bool = False
+    economic_reasoning_present: bool = False
+    utility_readiness_logic_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinConstraintRiskReasoningItem(ORMModel):
+    risk_area: TwinConstraintRiskReasoningArea
+    non_decisional_severity_label: str
+    statement: str
+    observed_constraint_refs: List[str] = Field(default_factory=list)
+    missing_inputs: List[str] = Field(default_factory=list)
+    low_trust_inputs: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    professional_review_boundaries: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinDependencyImpactStatementBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinConstraintRiskReasoningView(ORMModel):
+    view_name: str = "constraint_risk_reasoning"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinDependencyImpactStatementBasis
+    reasoning_scope: TwinConstraintRiskReasoningScope
+    constraint_risk_items: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    missing_equipment_specs: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    incomplete_topology: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    low_trust_assumptions: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    unsupported_load_data: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    permission_limited_visibility: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    lifecycle_conflicts: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    provenance_gaps: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    contractor_install_complexity_risks: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    field_verification_needs: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    professional_review_boundaries: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
+    deferred_capabilities: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

@@ -14,6 +14,10 @@ from app.twin_planning_context.schemas import (
     TwinAdvisoryContextAssemblyItem,
     TwinAdvisoryContextAssemblyScope,
     TwinAdvisoryContextAssemblyView,
+    TwinConstraintRiskReasoningArea,
+    TwinConstraintRiskReasoningItem,
+    TwinConstraintRiskReasoningScope,
+    TwinConstraintRiskReasoningView,
     TwinDependencyImpactPostureItem,
     TwinDependencyImpactReadinessSummary,
     TwinDependencyImpactReadinessView,
@@ -309,6 +313,36 @@ ADVISORY_CONTEXT_DEFERRED_BOUNDARIES = [
     "proposal_generation",
     "contractor_sales_logic",
     "homeowner_guidance_outputs",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "exports",
+    "operational_behavior",
+]
+
+CONSTRAINT_RISK_REASONING_LIMITATIONS = [
+    "Phase 3E constraint and risk reasoning explains existing constraint and risk context only.",
+    "Non-decisional severity labels are descriptive labels, not rankings, priorities, recommendations, directives, or final design guidance.",
+    "This view does not recommend actions, rank risks, optimize, simulate scenarios, generate what-if analysis, generate proposals, perform economic reasoning, perform utility readiness logic, enforce permissions, export data, or operate devices.",
+    "Constraint and risk statements are derived from existing Twin Planning Context and approved Phase 3 views only; the Twin may not invent facts.",
+]
+
+CONSTRAINT_RISK_DEFERRED_CAPABILITIES = [
+    "recommendations",
+    "priority_ranking",
+    "optimization",
+    "scenario_simulation",
+    "what_if_analysis",
+    "proposal_generation",
+    "final_design_guidance",
+    "contractor_directives",
+    "homeowner_directives",
+    "economic_reasoning",
+    "utility_readiness_logic",
     "permission_enforcement",
     "auth",
     "rbac_abac",
@@ -4956,6 +4990,545 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A, Phase 3B, Phase 3C, AI grounding, "
                 "runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3D advisory input assembly view."
+            ),
+        )
+
+    def _constraint_risk_basis(
+        self,
+        *,
+        source_section_keys: Optional[List[str]] = None,
+        topology_node_ids: Optional[List[str]] = None,
+        topology_edge_ids: Optional[List[str]] = None,
+        lifecycle_readiness_signals_used: Optional[List[str]] = None,
+        dependency_warning_refs: Optional[List[str]] = None,
+        provenance_gap_refs: Optional[List[str]] = None,
+        missing_readiness_indicator_refs: Optional[List[str]] = None,
+        missing_relationship_indicator_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinDependencyImpactStatementBasis:
+        return self._dependency_impact_basis(
+            source_view_names=[
+                "twin_planning_context",
+                "topology_snapshot",
+                "dependency_impact_readiness",
+                "dependency_reasoning",
+                "planning_intelligence_readiness",
+                "advisory_context_assembly",
+            ],
+            source_section_keys=source_section_keys,
+            topology_node_ids=topology_node_ids,
+            topology_edge_ids=topology_edge_ids,
+            lifecycle_readiness_signals_used=lifecycle_readiness_signals_used,
+            dependency_warning_refs=dependency_warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_indicator_refs,
+            missing_relationship_indicator_refs=missing_relationship_indicator_refs,
+            derived_from=derived_from,
+            limitations=CONSTRAINT_RISK_REASONING_LIMITATIONS,
+        )
+
+    def _constraint_risk_item(
+        self,
+        *,
+        risk_area: TwinConstraintRiskReasoningArea,
+        non_decisional_severity_label: str,
+        statement: str,
+        observed_constraint_refs: Optional[List[str]] = None,
+        missing_inputs: Optional[List[str]] = None,
+        low_trust_inputs: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        professional_review_boundaries: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinDependencyImpactStatementBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinConstraintRiskReasoningItem:
+        return TwinConstraintRiskReasoningItem(
+            risk_area=risk_area,
+            non_decisional_severity_label=non_decisional_severity_label,
+            statement=statement,
+            observed_constraint_refs=self._sorted_unique(observed_constraint_refs or []),
+            missing_inputs=self._sorted_unique(missing_inputs or []),
+            low_trust_inputs=self._sorted_unique(low_trust_inputs or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            professional_review_boundaries=self._sorted_unique(professional_review_boundaries or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or CONSTRAINT_RISK_REASONING_LIMITATIONS,
+        )
+
+    def _constraint_risk_item_sort_key(self, item: TwinConstraintRiskReasoningItem) -> str:
+        return item.risk_area.value
+
+    def build_constraint_risk_reasoning_view(
+        self, db, home_id: str
+    ) -> Optional[TwinConstraintRiskReasoningView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = self.build_dependency_impact_readiness_view(db, home_id)
+        if impact_view is None:
+            return None
+        reasoning_view = self.build_dependency_reasoning_view(db, home_id)
+        if reasoning_view is None:
+            return None
+        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        if readiness_view is None:
+            return None
+        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        if advisory_view is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        node_by_entity = {
+            (node.entity_type, node.entity_id): node
+            for node in snapshot.nodes
+        }
+        warning_refs, provenance_gap_refs, _sections_by_entity = self._dependency_impact_record_refs(
+            section_records
+        )
+        missing_readiness_refs = [
+            self._missing_readiness_ref(indicator)
+            for indicator in snapshot.missing_readiness_indicators
+            if not indicator.present
+        ]
+        missing_relationship_refs = [
+            self._missing_relationship_ref(indicator)
+            for indicator in snapshot.missing_relationship_indicators
+        ]
+        lifecycle_signals = self._dependency_impact_lifecycle_signals(snapshot)
+        source_basis = self._constraint_risk_basis(
+            source_section_keys=[section.section_key for section in context.sections],
+            topology_node_ids=[node.node_id for node in snapshot.nodes],
+            topology_edge_ids=[edge.edge_id for edge in snapshot.edges],
+            lifecycle_readiness_signals_used=lifecycle_signals,
+            dependency_warning_refs=warning_refs,
+            provenance_gap_refs=provenance_gap_refs,
+            missing_readiness_indicator_refs=missing_readiness_refs,
+            missing_relationship_indicator_refs=missing_relationship_refs,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinDependencyImpactReadinessView",
+                "TwinDependencyReasoningView",
+                "TwinPlanningIntelligenceReadinessView",
+                "TwinAdvisoryContextAssemblyView",
+            ],
+        )
+
+        equipment_records = [
+            (section_key, record)
+            for section_key, record in section_records
+            if record.entity_type in {"equipment_product", "design_equipment"}
+        ]
+        missing_equipment_refs = [
+            f"{self._advisory_record_ref(record)}:specs"
+            for _section_key, record in equipment_records
+            if record.entity_type == "equipment_product"
+            and (not record.record.get("specs") or record.provenance_gaps or record.missing_fields)
+        ]
+        equipment_node_ids = [
+            node_by_entity[(record.entity_type, record.entity_id)].node_id
+            for _section_key, record in equipment_records
+            if (record.entity_type, record.entity_id) in node_by_entity
+        ]
+        equipment_provenance_refs = [
+            self._provenance_gap_ref(gap)
+            for _section_key, record in equipment_records
+            for gap in record.provenance_gaps
+        ]
+        missing_equipment_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.missing_equipment_specs,
+            non_decisional_severity_label="missing_or_low_trust_input",
+            statement=(
+                "Missing equipment spec context is derived from existing equipment records, missing fields, and provenance gaps; it is not compatibility reasoning."
+            ),
+            observed_constraint_refs=missing_equipment_refs or ["equipment_spec_context_present_without_complete_verification"],
+            missing_inputs=missing_equipment_refs + ["verified_equipment_spec_sources"],
+            low_trust_inputs=equipment_provenance_refs,
+            unsafe_assumptions=[
+                "Treating recorded equipment context as verified product compatibility would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "Product compatibility and final equipment selection require future approved review boundaries.",
+            ],
+            confidence_posture="equipment_spec_context_limited",
+            basis=self._constraint_risk_basis(
+                source_section_keys=[section_key for section_key, _record in equipment_records],
+                topology_node_ids=equipment_node_ids,
+                provenance_gap_refs=equipment_provenance_refs,
+                derived_from=[
+                    "TwinPlanningContextRecord.record.specs",
+                    "TwinPlanningContextRecord.missing_fields",
+                    "TwinPlanningContextRecord.provenance_gaps",
+                ],
+            ),
+        )
+
+        incomplete_topology_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.incomplete_topology,
+            non_decisional_severity_label="topology_boundary_limited",
+            statement=(
+                "Incomplete topology context is derived from missing readiness and missing relationship indicators."
+            ),
+            observed_constraint_refs=missing_readiness_refs + missing_relationship_refs,
+            missing_inputs=missing_readiness_refs + missing_relationship_refs + ["field_verified_topology"],
+            low_trust_inputs=provenance_gap_refs,
+            unsafe_assumptions=[
+                "Treating planning topology as complete or field-verified would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "Field verification remains required before topology can support professional design decisions.",
+            ],
+            confidence_posture="topology_incomplete_planning_context",
+            basis=self._constraint_risk_basis(
+                topology_node_ids=source_basis.topology_node_ids,
+                topology_edge_ids=source_basis.topology_edge_ids,
+                missing_readiness_indicator_refs=missing_readiness_refs,
+                missing_relationship_indicator_refs=missing_relationship_refs,
+                derived_from=[
+                    "TwinTopologySnapshot.missing_readiness_indicators",
+                    "TwinTopologySnapshot.missing_relationship_indicators",
+                ],
+            ),
+        )
+
+        load_records = [
+            (section_key, record)
+            for section_key, record in section_records
+            if record.entity_type == "load"
+        ]
+        unsupported_load_refs = [
+            self._advisory_record_ref(record)
+            for _section_key, record in load_records
+            if record.provenance_gaps or record.missing_fields or not record.record.get("running_watts")
+        ]
+        load_provenance_refs = [
+            self._provenance_gap_ref(gap)
+            for _section_key, record in load_records
+            for gap in record.provenance_gaps
+        ]
+        unsupported_load_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.unsupported_load_data,
+            non_decisional_severity_label="source_support_limited",
+            statement=(
+                "Unsupported load data context is derived from load records with provenance gaps, missing fields, or missing wattage inputs."
+            ),
+            observed_constraint_refs=unsupported_load_refs or ["load_context_present_without_full_source_verification"],
+            missing_inputs=["fully_source_backed_load_inputs"],
+            low_trust_inputs=load_provenance_refs,
+            unsafe_assumptions=[
+                "Treating partially sourced load data as verified load data would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "Load data remains planning context and does not replace professional review.",
+            ],
+            confidence_posture="load_data_source_limited",
+            basis=self._constraint_risk_basis(
+                source_section_keys=[section_key for section_key, _record in load_records],
+                provenance_gap_refs=load_provenance_refs,
+                derived_from=[
+                    "TwinPlanningContextRecord.record.running_watts",
+                    "TwinPlanningContextRecord.missing_fields",
+                    "TwinPlanningContextRecord.provenance_gaps",
+                ],
+            ),
+        )
+
+        permission_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.permission_limited_visibility,
+            non_decisional_severity_label="permission_metadata_only",
+            statement=(
+                "Permission-limited visibility context is derived from permission-readiness metadata; no permission enforcement exists."
+            ),
+            observed_constraint_refs=[
+                f"permission_readiness_sections:{len(context.sections)}",
+                f"advisory_permission_items:{len(advisory_view.permission_readiness_metadata)}",
+            ],
+            missing_inputs=[
+                "active_permission_grants",
+                "active_consent_artifacts",
+                "permission_enforcement_layer",
+            ],
+            unsafe_assumptions=[
+                "Treating permission readiness metadata as authorization would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "External visibility requires a future approved permission model.",
+            ],
+            confidence_posture="permission_readiness_metadata_only",
+            basis=self._constraint_risk_basis(
+                source_section_keys=source_basis.source_section_keys,
+                derived_from=[
+                    "TwinPlanningContext.permission_readiness",
+                    "TwinPlanningContextRecord.permission_readiness",
+                    "TwinAdvisoryContextAssemblyView.permission_readiness_metadata",
+                ],
+            ),
+            limitations=CONSTRAINT_RISK_REASONING_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+        )
+
+        lifecycle_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.lifecycle_conflicts,
+            non_decisional_severity_label="lifecycle_boundary_requires_separation",
+            statement=(
+                "Lifecycle conflict risk context is limited to lifecycle boundary separation across current, proposed, saved revision, and deferred lifecycle domains."
+            ),
+            observed_constraint_refs=lifecycle_signals,
+            missing_inputs=[
+                "contractor_reviewed_topology",
+                "field_verified_topology",
+                "utility_reviewed_topology",
+                "operational_topology",
+            ],
+            low_trust_inputs=provenance_gap_refs,
+            unsafe_assumptions=[
+                "Collapsing planning, proposed, saved revision, verified, utility-reviewed, or operational lifecycle states would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "Future lifecycle transitions require approved review and authority boundaries.",
+            ],
+            confidence_posture="lifecycle_boundary_limited",
+            basis=self._constraint_risk_basis(
+                lifecycle_readiness_signals_used=lifecycle_signals,
+                missing_readiness_indicator_refs=missing_readiness_refs,
+                derived_from=[
+                    "TwinTopologySnapshot.lifecycle_readiness_summary",
+                    "TwinTopologySnapshot.lifecycle_readiness_hints",
+                    "TwinTopologySnapshot.deferred_lifecycle_domains",
+                ],
+            ),
+        )
+
+        provenance_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.provenance_gaps,
+            non_decisional_severity_label="provenance_limited",
+            statement=(
+                "Provenance gap risk context is derived from existing typed provenance gaps and Phase 3A provenance gap posture."
+            ),
+            observed_constraint_refs=provenance_gap_refs,
+            missing_inputs=["complete_field_level_provenance", "verification_workflow"],
+            low_trust_inputs=provenance_gap_refs,
+            unsafe_assumptions=[
+                "Treating provenance presence as verification would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "Provenance gaps do not prove facts wrong or verified; they require future source review where needed.",
+            ],
+            confidence_posture="provenance_gap_limited",
+            basis=self._constraint_risk_basis(
+                source_section_keys=source_basis.source_section_keys,
+                provenance_gap_refs=provenance_gap_refs,
+                derived_from=[
+                    "TwinPlanningContextRecord.provenance_gaps",
+                    "TwinDependencyImpactReadinessView.provenance_gap_posture",
+                ],
+            ),
+            limitations=CONSTRAINT_RISK_REASONING_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+
+        low_trust_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.low_trust_assumptions,
+            non_decisional_severity_label="assumption_boundary_present",
+            statement=(
+                "Low-trust assumption context is derived from Phase 3C and Phase 3D unsafe assumption lists."
+            ),
+            observed_constraint_refs=readiness_view.unsafe_assumptions + [
+                item
+                for assembly_item in advisory_view.unsafe_assumptions
+                for item in assembly_item.unsafe_assumptions
+            ],
+            missing_inputs=["verified_replacements_for_low_trust_assumptions"],
+            low_trust_inputs=provenance_gap_refs,
+            unsafe_assumptions=readiness_view.unsafe_assumptions,
+            professional_review_boundaries=[
+                "Low-trust assumptions remain planning context until future approved verification exists.",
+            ],
+            confidence_posture="low_trust_assumption_context_present",
+            basis=self._constraint_risk_basis(
+                source_section_keys=source_basis.source_section_keys,
+                provenance_gap_refs=provenance_gap_refs,
+                derived_from=[
+                    "TwinPlanningIntelligenceReadinessView.unsafe_assumptions",
+                    "TwinAdvisoryContextAssemblyView.unsafe_assumptions",
+                ],
+            ),
+        )
+
+        pathway_records = [
+            (section_key, record)
+            for section_key, record in section_records
+            if record.entity_type in {"estimated_pathway", "scenario"}
+        ]
+        install_refs = []
+        for _section_key, record in pathway_records:
+            for field_name in [
+                "route_difficulty",
+                "confidence_level",
+                "install_complexity_score",
+            ]:
+                value = record.record.get(field_name)
+                if value is not None:
+                    install_refs.append(f"{self._advisory_record_ref(record)}:{field_name}:{value}")
+        install_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.contractor_install_complexity_risks,
+            non_decisional_severity_label="install_complexity_context_present",
+            statement=(
+                "Contractor/install complexity risk context is derived from existing pathway and scenario planning fields only."
+            ),
+            observed_constraint_refs=install_refs or ["no_install_complexity_fields_recorded"],
+            missing_inputs=["contractor_reviewed_scope", "field_surveyed_route"],
+            low_trust_inputs=[
+                self._provenance_gap_ref(gap)
+                for _section_key, record in pathway_records
+                for gap in record.provenance_gaps
+            ],
+            unsafe_assumptions=[
+                "Treating planning install complexity context as contractor direction or proposal logic would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "Contractor/install complexity context requires future contractor review before directing work.",
+            ],
+            confidence_posture="install_complexity_context_planning_only",
+            basis=self._constraint_risk_basis(
+                source_section_keys=[section_key for section_key, _record in pathway_records],
+                derived_from=[
+                    "TwinPlanningContextRecord.record.route_difficulty",
+                    "TwinPlanningContextRecord.record.confidence_level",
+                    "TwinPlanningContextRecord.record.install_complexity_score",
+                ],
+            ),
+        )
+
+        field_verification_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.field_verification_needs,
+            non_decisional_severity_label="field_verification_needed",
+            statement=(
+                "Field-verification need context is derived from topology missing-readiness indicators and planning limitations."
+            ),
+            observed_constraint_refs=missing_readiness_refs,
+            missing_inputs=missing_readiness_refs + ["field_verification_workflow"],
+            low_trust_inputs=provenance_gap_refs,
+            unsafe_assumptions=[
+                "Treating planning context as field verification would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "Field verification remains outside current runtime capability.",
+            ],
+            confidence_posture="field_verification_not_present",
+            basis=self._constraint_risk_basis(
+                missing_readiness_indicator_refs=missing_readiness_refs,
+                derived_from=[
+                    "TwinTopologySnapshot.missing_readiness_indicators",
+                    "TwinTopologySnapshot.limitations",
+                ],
+            ),
+        )
+
+        professional_review_item = self._constraint_risk_item(
+            risk_area=TwinConstraintRiskReasoningArea.professional_review_boundaries,
+            non_decisional_severity_label="professional_review_boundary_present",
+            statement=(
+                "Professional-review boundary context is derived from existing planning limitations and deferred review domains."
+            ),
+            observed_constraint_refs=[
+                "contractor_review_deferred",
+                "engineer_review_deferred",
+                "field_verification_deferred",
+                "utility_review_deferred",
+            ],
+            missing_inputs=[
+                "contractor_reviewed_topology",
+                "engineer_review_artifact",
+                "field_verification_artifact",
+                "utility_review_artifact",
+            ],
+            unsafe_assumptions=[
+                "Treating constraint/risk reasoning as final design guidance or professional direction would be unsafe.",
+            ],
+            professional_review_boundaries=[
+                "Contractor review remains deferred.",
+                "Engineer review remains deferred.",
+                "Field verification remains deferred.",
+                "Utility review remains deferred.",
+            ],
+            confidence_posture="professional_review_required_not_present",
+            basis=self._constraint_risk_basis(
+                source_section_keys=source_basis.source_section_keys,
+                derived_from=[
+                    "TwinTopologySnapshot.deferred_lifecycle_domains",
+                    "TwinPlanningContextRecord.limitations",
+                    "TwinAdvisoryContextAssemblyView.deferred_advisory_output_boundaries",
+                ],
+            ),
+        )
+
+        items = sorted(
+            [
+                missing_equipment_item,
+                incomplete_topology_item,
+                low_trust_item,
+                unsupported_load_item,
+                permission_item,
+                lifecycle_item,
+                provenance_item,
+                install_item,
+                field_verification_item,
+                professional_review_item,
+            ],
+            key=self._constraint_risk_item_sort_key,
+        )
+
+        return TwinConstraintRiskReasoningView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3E constraint and risk reasoning view built request-time from existing TwinPlanningContext "
+                "and approved Phase 3 views; not recommendations, priority ranking, optimization, scenario simulation, "
+                "what-if analysis, proposals, final design guidance, contractor directives, homeowner directives, economic reasoning, "
+                "utility readiness logic, permission enforcement, export, graph engine, persistence, or operational behavior."
+            ),
+            source_basis=source_basis,
+            reasoning_scope=TwinConstraintRiskReasoningScope(
+                limitations=CONSTRAINT_RISK_REASONING_LIMITATIONS,
+            ),
+            constraint_risk_items=items,
+            missing_equipment_specs=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.missing_equipment_specs
+            ],
+            incomplete_topology=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.incomplete_topology
+            ],
+            low_trust_assumptions=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.low_trust_assumptions
+            ],
+            unsupported_load_data=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.unsupported_load_data
+            ],
+            permission_limited_visibility=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.permission_limited_visibility
+            ],
+            lifecycle_conflicts=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.lifecycle_conflicts
+            ],
+            provenance_gaps=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.provenance_gaps
+            ],
+            contractor_install_complexity_risks=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.contractor_install_complexity_risks
+            ],
+            field_verification_needs=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.field_verification_needs
+            ],
+            professional_review_boundaries=[
+                item for item in items if item.risk_area == TwinConstraintRiskReasoningArea.professional_review_boundaries
+            ],
+            deferred_capabilities=sorted(CONSTRAINT_RISK_DEFERRED_CAPABILITIES),
+            limitations=CONSTRAINT_RISK_REASONING_LIMITATIONS,
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A, Phase 3B, Phase 3C, Phase 3D, AI grounding, "
+                "runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3E constraint/risk explanation view."
             ),
         )
 

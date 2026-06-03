@@ -59,6 +59,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_advisory_context_assembly_view(db, "home_001")
 
+    def _constraint_risk_reasoning_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_constraint_risk_reasoning_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -1812,6 +1816,198 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             sorted(first["deferred_advisory_output_boundaries"]),
             first["deferred_advisory_output_boundaries"],
         )
+
+    def test_constraint_risk_reasoning_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/constraint-risk-reasoning",
+            paths,
+        )
+
+        view = self._constraint_risk_reasoning_view()
+        payload = view.dict()
+        scope = view.reasoning_scope
+
+        self.assertEqual("constraint_risk_reasoning", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.constraint_risk_explanation_only)
+        self.assertTrue(scope.descriptive_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_dependency_impact_readiness)
+        self.assertTrue(scope.derived_from_dependency_reasoning)
+        self.assertTrue(scope.derived_from_planning_intelligence_readiness)
+        self.assertTrue(scope.derived_from_advisory_context_assembly)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("constraint and risk reasoning view", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_constraint_risk_reasoning_has_no_forbidden_capabilities(self):
+        scope = self._constraint_risk_reasoning_view().reasoning_scope
+
+        self.assertFalse(scope.recommendations_present)
+        self.assertFalse(scope.priority_ranking_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.scenario_simulation_present)
+        self.assertFalse(scope.what_if_analysis_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.final_design_guidance_present)
+        self.assertFalse(scope.contractor_directives_present)
+        self.assertFalse(scope.homeowner_directives_present)
+        self.assertFalse(scope.economic_reasoning_present)
+        self.assertFalse(scope.utility_readiness_logic_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_constraint_risk_reasoning_reports_expected_risk_areas(self):
+        view = self._constraint_risk_reasoning_view()
+
+        self.assertTrue(view.constraint_risk_items)
+        self.assertTrue(view.missing_equipment_specs)
+        self.assertTrue(view.incomplete_topology)
+        self.assertTrue(view.low_trust_assumptions)
+        self.assertTrue(view.unsupported_load_data)
+        self.assertTrue(view.permission_limited_visibility)
+        self.assertTrue(view.lifecycle_conflicts)
+        self.assertTrue(view.provenance_gaps)
+        self.assertTrue(view.contractor_install_complexity_risks)
+        self.assertTrue(view.field_verification_needs)
+        self.assertTrue(view.professional_review_boundaries)
+
+        risk_areas = {item.risk_area.value for item in view.constraint_risk_items}
+        for area in [
+            "missing_equipment_specs",
+            "incomplete_topology",
+            "low_trust_assumptions",
+            "unsupported_load_data",
+            "permission_limited_visibility",
+            "lifecycle_conflicts",
+            "provenance_gaps",
+            "contractor_install_complexity_risks",
+            "field_verification_needs",
+            "professional_review_boundaries",
+        ]:
+            self.assertIn(area, risk_areas)
+
+    def test_constraint_risk_reasoning_items_are_traceable(self):
+        view = self._constraint_risk_reasoning_view()
+
+        for source_view_name in [
+            "twin_planning_context",
+            "topology_snapshot",
+            "dependency_impact_readiness",
+            "dependency_reasoning",
+            "planning_intelligence_readiness",
+            "advisory_context_assembly",
+        ]:
+            self.assertIn(source_view_name, view.source_basis.source_view_names)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.topology_node_ids)
+        self.assertTrue(view.source_basis.topology_edge_ids)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in view.constraint_risk_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.non_decisional_severity_label)
+            self.assertTrue(item.observed_constraint_refs or item.missing_inputs or item.low_trust_inputs)
+            self.assertTrue(item.basis.source_view_names)
+            self.assertIn("advisory_context_assembly", item.basis.source_view_names)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+            self.assertTrue(item.confidence_posture)
+
+    def test_constraint_risk_reasoning_surfaces_unsafe_assumptions_and_boundaries(self):
+        view = self._constraint_risk_reasoning_view()
+        unsafe_text = " ".join(
+            assumption
+            for item in view.constraint_risk_items
+            for assumption in item.unsafe_assumptions
+        )
+        review_text = " ".join(
+            boundary
+            for item in view.constraint_risk_items
+            for boundary in item.professional_review_boundaries
+        )
+
+        self.assertIn("field verification", unsafe_text)
+        self.assertIn("permission readiness metadata as authorization", unsafe_text)
+        self.assertIn("provenance presence as verification", unsafe_text)
+        self.assertIn("final design guidance", unsafe_text)
+        self.assertIn("Engineer review remains deferred", review_text)
+        self.assertIn("Contractor review remains deferred", review_text)
+
+    def test_constraint_risk_reasoning_preserves_deferred_boundaries(self):
+        view = self._constraint_risk_reasoning_view()
+        deferred = set(view.deferred_capabilities)
+
+        for boundary in [
+            "recommendations",
+            "priority_ranking",
+            "optimization",
+            "scenario_simulation",
+            "what_if_analysis",
+            "proposal_generation",
+            "final_design_guidance",
+            "contractor_directives",
+            "homeowner_directives",
+            "economic_reasoning",
+            "utility_readiness_logic",
+            "permission_enforcement",
+            "auth",
+            "rbac_abac",
+            "persistence",
+            "migrations",
+            "twin_id",
+            "graph_engine",
+            "exports",
+            "operational_behavior",
+        ]:
+            self.assertIn(boundary, deferred)
+
+        limitation_text = " ".join(view.limitations)
+        self.assertIn("explains existing constraint and risk context only", limitation_text)
+        self.assertIn("not rankings", limitation_text)
+        self.assertIn("does not recommend actions", limitation_text)
+
+    def test_constraint_risk_reasoning_is_deterministic_for_same_inputs(self):
+        first = self._constraint_risk_reasoning_view().dict()
+        second = self._constraint_risk_reasoning_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_capabilities"]),
+            first["deferred_capabilities"],
+        )
+        self.assertEqual(
+            sorted(item["risk_area"] for item in first["constraint_risk_items"]),
+            [item["risk_area"] for item in first["constraint_risk_items"]],
+        )
+
+    def test_constraint_risk_reasoning_keeps_provenance_and_permission_non_authoritative(self):
+        view = self._constraint_risk_reasoning_view()
+        provenance_item = view.provenance_gaps[0]
+        permission_item = view.permission_limited_visibility[0]
+
+        self.assertIn("provenance presence as verification", " ".join(provenance_item.unsafe_assumptions))
+        self.assertIn("not_enforced", view.permission_enforcement)
+        self.assertIn("permission_readiness_metadata_only", permission_item.confidence_posture)
+        self.assertIn("permission_enforcement_layer", permission_item.missing_inputs)
+        self.assertIn("permission-readiness metadata", permission_item.statement)
+        self.assertFalse(view.reasoning_scope.permission_enforcement_present)
 
 
 if __name__ == "__main__":
