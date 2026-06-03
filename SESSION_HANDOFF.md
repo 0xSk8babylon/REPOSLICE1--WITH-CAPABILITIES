@@ -9,8 +9,8 @@
 - Session date: 2026-06-03
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
-- Latest committed checkpoint before this continuity alignment: `5a762a0`
-- Latest commit before this continuity alignment: `feat: add scenario comparison readiness view`
+- Latest committed checkpoint before this continuity alignment: `5883985`
+- Latest commit before this continuity alignment: `feat: add pre recommendation advisory view`
 - Current branch: `fix/github-workflow`
 - Upstream tracking branch: `origin/fix/github-workflow`
 - GitHub preservation remote: `https://github.com/0xSk8babylon/resi-twin.git`
@@ -24,6 +24,7 @@
 - Phase 3D Advisory Context Assembly complete in `1120998`.
 - Phase 3E Constraint and Risk Reasoning complete in `ee3b102`.
 - Phase 3F Scenario Comparison Readiness complete in `5a762a0`.
+- Phase 3G Pre-Recommendation Advisory complete in `5883985`.
 - Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Phase 2B Twin Runtime Expression is complete and stabilized for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
 - Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`.
@@ -33,6 +34,7 @@
 - Phase 3D Advisory Context Assembly is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored advisory input context assembly view over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, Phase 3B dependency reasoning, and Phase 3C planning intelligence readiness outputs.
 - Phase 3E Constraint and Risk Reasoning is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored constraint/risk explanation view over existing `TwinPlanningContext`, topology snapshot, Phase 3A dependency impact readiness, Phase 3B dependency reasoning, Phase 3C planning intelligence readiness, and Phase 3D advisory context assembly outputs.
 - Phase 3F Scenario Comparison Readiness is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored readiness inventory over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, and Phase 3E constraint/risk reasoning outputs.
+- Phase 3G Pre-Recommendation Advisory is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored advisory boundary view over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, and Phase 3F scenario comparison readiness outputs.
 - Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, permission enforcement, scoped exports, and operational control remain unapproved.
 - `.github/` remains out of scope for this session.
 - Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
@@ -75,8 +77,10 @@
   - `ee3b102` `feat: add constraint risk reasoning view`
   - `085f230` `docs: record phase 3e constraint risk reasoning closeout`
   - `5a762a0` `feat: add scenario comparison readiness view`
+  - `035fb13` `docs: record phase 3f scenario comparison readiness closeout`
+  - `5883985` `feat: add pre recommendation advisory view`
 - Current closeout checkpoint:
-  - Aligning project memory for Phase 3F scenario comparison readiness closeout only. No runtime feature work is in scope.
+  - Aligning project memory for Phase 3G pre-recommendation advisory closeout only. No runtime feature work is in scope.
 
 ## Canonical Phase Structure
 
@@ -89,17 +93,18 @@
 - Phase 3C: Planning Intelligence Readiness - complete for the approved third runtime boundary in `a22042d`.
 - Phase 3D: Advisory Context Assembly - complete for the approved fourth runtime boundary in `1120998`.
 - Phase 3E: Constraint and Risk Reasoning - complete for the approved fifth runtime boundary in `ee3b102`.
-- Phase 3F: Scenario Comparison Readiness - complete for the approved sixth runtime boundary in `5a762a0`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
+- Phase 3F: Scenario Comparison Readiness - complete for the approved sixth runtime boundary in `5a762a0`.
+- Phase 3G: Pre-Recommendation Advisory - complete for the approved seventh runtime boundary in `5883985`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
 
 ## What Changed Last
 
-- Phase 3F Scenario Comparison Readiness complete in `5a762a0`.
-- Added the Scenario Comparison Readiness endpoint: `/api/twin-planning-context/homes/{home_id}/views/scenario-comparison-readiness`.
-- Added a read-only, request-time, `home_id`-anchored readiness inventory over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, and Phase 3E constraint/risk reasoning outputs.
-- The view inventories available scenario records, scenario revision lineage, linked design references, topology branch references, provenance basis, permission-readiness metadata, missing prerequisites, unsafe assumptions, confidence posture, limitations, and deferred scenario boundaries.
-- Every readiness item carries a traceable `basis`, and backend tests verify deterministic same-input/same-output behavior.
+- Phase 3G Pre-Recommendation Advisory complete in `5883985`.
+- Added the Pre-Recommendation Advisory endpoint: `/api/twin-planning-context/homes/{home_id}/views/pre-recommendation-advisory`.
+- Added a read-only, request-time, `home_id`-anchored advisory boundary view over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, and Phase 3F scenario comparison readiness outputs.
+- The view reports advice-eligible areas for pre-recommendation explanation, advice-blocked areas, missing data before advice, unsafe assumptions, professional verification boundaries, provenance basis, permission-readiness basis, advisory limitations, and deferred recommendation boundaries.
+- Every advisory item carries a traceable `basis`, and backend tests verify deterministic same-input/same-output behavior.
 - Current closeout is documentation and continuity alignment only; no app code, runtime feature work, broader Phase 3 implementation, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, or operational control is in scope.
-- Scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, calculated change analysis, option ordering, optimization, recommendations, change propagation, stale-state persistence, recalculation, invalidation, proposal generation, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph engine/database, exports, operational behavior, economic reasoning, utility readiness logic, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model remain deferred.
+- Recommendation generation, recommendation ranking, best-option selection, scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, calculated change analysis, option ordering, optimization, change propagation, stale-state persistence, recalculation, invalidation, final design guidance, proposal generation, contractor directives, homeowner directives, economic reasoning, utility readiness logic, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph engine/database, exports, operational behavior, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model remain deferred.
 
 ## Earlier Change
 

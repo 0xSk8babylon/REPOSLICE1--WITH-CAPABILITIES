@@ -49,6 +49,10 @@ Read these first:
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/scenario-comparison-readiness` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored readiness inventory over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, and Phase 3E constraint/risk reasoning outputs. It inventories readiness for future scenario comparison only, including available scenario records, scenario revision lineage, linked design references, topology branch references, provenance basis, permission-readiness metadata, missing prerequisites, unsafe assumptions, confidence posture, limitations, and deferred scenario boundaries.
   - Deferred: scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, calculated change analysis, option ordering, optimization, recommendations, change propagation, stale-state persistence, recalculation, invalidation, proposal generation, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, economic reasoning, utility readiness logic, permission enforcement, auth, RBAC/ABAC, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model.
+- Phase 3G: Pre-Recommendation Advisory - complete for the approved seventh runtime boundary in `5883985`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/pre-recommendation-advisory` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored advisory boundary view over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, and Phase 3F scenario comparison readiness outputs. It explains what can and cannot be advised safely before recommendations are allowed.
+  - Deferred: recommendation generation, recommendation ranking, best-option selection, scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, calculated change analysis, option ordering, optimization, change propagation, stale-state persistence, recalculation, invalidation, final design guidance, proposal generation, contractor directives, homeowner directives, economic reasoning, utility readiness logic, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -81,6 +85,7 @@ Read these first:
   - `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`
   - `docs/handoffs/2026-06-03-phase-3e-constraint-risk-reasoning.md`
   - `docs/handoffs/2026-06-03-phase-3f-scenario-comparison-readiness.md`
+  - `docs/handoffs/2026-06-03-phase-3g-pre-recommendation-advisory.md`
   - `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md`
   - `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md`
   - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
@@ -157,6 +162,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3F Scenario Comparison Readiness:
     - `docs/handoffs/2026-06-03-phase-3f-scenario-comparison-readiness.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3G Pre-Recommendation Advisory:
+    - `docs/handoffs/2026-06-03-phase-3g-pre-recommendation-advisory.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
