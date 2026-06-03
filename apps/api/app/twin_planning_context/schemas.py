@@ -34,6 +34,24 @@ class TwinPlanningDependencyAwarenessLabel(str, Enum):
     stale_unknown = "stale_unknown"
 
 
+class TwinRuntimeParticipantRole(str, Enum):
+    homeowner = "homeowner"
+    contractor = "contractor"
+    pilot = "pilot"
+    partner = "partner"
+    internal_system = "internal_system"
+    ai = "ai"
+
+
+class TwinRuntimeVisibilityScope(str, Enum):
+    owner_private = "owner_private"
+    contractor_scoped = "contractor_scoped"
+    pilot_scoped = "pilot_scoped"
+    partner_scoped = "partner_scoped"
+    internal_governance = "internal_governance"
+    ai_grounding = "ai_grounding"
+
+
 class TwinPlanningDependencyHook(ORMModel):
     source_entity_type: str
     source_entity_id: Optional[str] = None
@@ -75,6 +93,32 @@ class TwinPlanningPermissionReadiness(ORMModel):
     deferred_capabilities: List[str] = Field(default_factory=list)
 
 
+class TwinRuntimeParticipant(ORMModel):
+    role: TwinRuntimeParticipantRole
+    participant_id: Optional[str] = None
+    display_name: Optional[str] = None
+    relationship_to_home: Optional[str] = None
+
+
+class TwinRuntimeViewContext(ORMModel):
+    view_name: str
+    role: TwinRuntimeParticipantRole
+    visibility_scope: TwinRuntimeVisibilityScope
+    purpose: str
+    minimum_necessary: bool
+    permission_basis: str = "permission_readiness_metadata_only"
+    permission_enforcement: str = "not_enforced"
+    canonical_anchor: str = "home_id"
+
+
+class TwinRuntimeContributionIdentity(ORMModel):
+    contributor_type: str
+    contributor_ref: Optional[str] = None
+    data_origin: Optional[DataOrigin] = None
+    source_document_ids: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
 class TwinPlanningContextRecord(ORMModel):
     entity_type: str
     entity_id: Optional[str] = None
@@ -89,6 +133,29 @@ class TwinPlanningContextRecord(ORMModel):
     rule_keys: List[str] = Field(default_factory=list)
     dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     classification_reasons: List[str] = Field(default_factory=list)
+    missing_fields: List[str] = Field(default_factory=list)
+    provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
+    dependency_awareness: List[TwinPlanningDependencyAwareness] = Field(default_factory=list)
+    permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinRuntimeProjectionRecord(ORMModel):
+    section_key: str
+    entity_type: str
+    entity_id: Optional[str] = None
+    label: str
+    visibility_scope: TwinRuntimeVisibilityScope
+    classification: TwinPlanningRecordClassification
+    authority_layer: AuthorityLayer
+    data_classification: DataClassification = DataClassification.planning_private
+    data_origin: Optional[DataOrigin] = None
+    fields: Dict[str, Any] = Field(default_factory=dict)
+    provenance_summary: Optional[ProvenanceSummary] = None
+    source_document_ids: List[str] = Field(default_factory=list)
+    contributor_identity: TwinRuntimeContributionIdentity
+    rule_keys: List[str] = Field(default_factory=list)
+    dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
     missing_fields: List[str] = Field(default_factory=list)
     provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
     dependency_awareness: List[TwinPlanningDependencyAwareness] = Field(default_factory=list)
@@ -123,6 +190,26 @@ class TwinPlanningContext(ORMModel):
     dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
     permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
     limitations: List[str] = Field(default_factory=list)
+
+
+class TwinRuntimeProjectionView(ORMModel):
+    view_name: str = "twin_runtime_projection"
+    home_id: str
+    anchor_type: str = "home_id"
+    participant: TwinRuntimeParticipant
+    view_context: TwinRuntimeViewContext
+    permission_enforcement: str = "not_enforced"
+    implementation_boundary: str
+    included_sections: List[str] = Field(default_factory=list)
+    excluded_sections: List[str] = Field(default_factory=list)
+    projection_records: List[TwinRuntimeProjectionRecord] = Field(default_factory=list)
+    classification_summary: Dict[str, int] = Field(default_factory=dict)
+    provenance_gaps: List[TwinPlanningProvenanceGap] = Field(default_factory=list)
+    dependency_hooks: List[TwinPlanningDependencyHook] = Field(default_factory=list)
+    dependency_awareness_summary: Dict[str, int] = Field(default_factory=dict)
+    permission_readiness: Optional[TwinPlanningPermissionReadiness] = None
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str
 
 
 class AIDesignGroundingRecord(ORMModel):

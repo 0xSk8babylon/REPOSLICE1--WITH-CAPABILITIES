@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-06-02
+2026-06-03
 
 ## Repo Shape
 
@@ -17,7 +17,7 @@
 
 - Phase 1: Planner Foundation is complete.
 - Phase 2A: Twin Doctrine Foundation is complete.
-- Phase 2B: Twin Runtime Foundations are complete and stabilized as an approved read-only, `home_id`-anchored planning-context runtime over existing planner records.
+- Phase 2B: Twin Runtime Foundations are complete and stabilized as an approved read-only, `home_id`-anchored planning-context runtime over existing planner records, now including additive role-aware runtime projection foundations for homeowner, contractor, and internal/system contexts.
 - Phase 3: Twin Intelligence Expansion is next.
 - A repository-cognition formalization layer now supports model-agnostic restore and governance routing without changing runtime behavior.
 - Twin Doctrine Foundation architecture is substantially complete as a documentation/governance foundation.
@@ -75,9 +75,10 @@
 - The Design Advisor API now also includes an additive `planning_state` snapshot envelope so recommendation, architecture, and pathway-comparison outputs are explicitly tied to a specific live design state plus any linked persistent scenario records
 - Scenario persistence now also includes additive immutable scenario revisions so saved planning states can accumulate revision lineage and advisor-linked snapshot framing without replacing the current live scenario workspace model
 - The Scenario Comparison UI now also includes a historical revision-comparison workspace that compares saved revision drift for design goal, status, recommended pathway, current-state architecture framing, and pathway-confidence posture from stored revision snapshots
-- Phase 2B Twin Runtime Foundations are now live through `TwinPlanningContextService`, an additive `/api/twin-planning-context/homes/{home_id}` endpoint, typed provenance gaps, dependency awareness labels, permission-readiness metadata, and an additive `/api/twin-planning-context/homes/{home_id}/views/ai-design-grounding` scoped AI/design grounding projection.
+- Phase 2B Twin Runtime Foundations are now live through `TwinPlanningContextService`, an additive `/api/twin-planning-context/homes/{home_id}` endpoint, typed provenance gaps, dependency awareness labels, permission-readiness metadata, an additive `/api/twin-planning-context/homes/{home_id}/views/ai-design-grounding` scoped AI/design grounding projection, and an additive `/api/twin-planning-context/homes/{home_id}/views/runtime-projection/{role}` role-aware projection foundation.
 - `TwinPlanningContextService` composes existing `home_id`-linked planner records only; it does not create `twin_id`, a canonical `ResidentialEnergyTwin` model/table, migrations, permission enforcement, Exchange, Ownership & Transfer, Registry, Identity, utility-control, or operational-control behavior.
 - `AIDesignGroundingView` is a minimized read-only projection for grounded AI/design recommendations; it preserves provenance summaries, typed provenance gaps, rule keys, dependency hooks, missing fields, limitations, dependency awareness labels, and permission-readiness metadata while excluding account and street-address fields.
+- `TwinRuntimeProjectionView` is a read-only projection foundation over the same canonical `home_id` context. It introduces minimal participant role, view context, visibility scope, contributor identity, and permission-readiness metadata for homeowner, contractor, and internal/system contexts while preserving provenance and contributor/source identity where available.
 - The repository now includes canonical cognition-layer definitions, terminology, governance gap analysis, trust zones, provenance lineage model, topology lifecycle, scoped intelligence boundaries, orchestration readiness gaps, and roadmap sequencing docs.
 - ADR 0007 now records the decision to treat the repository as the durable project memory substrate.
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
@@ -107,7 +108,7 @@
 
 Phase 2B Twin Runtime Foundations should be treated as closed and stabilized before Phase 3 Twin Intelligence Expansion resumes.
 
-The next safe step is either a Matt-approved Phase 3 Twin Intelligence Expansion advisory/derived implementation plan grounded in the completed Twin Planning Context runtime, or a separately approved permission-enforcement planning milestone. Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, scoped exports, permission enforcement, and operational control remain unapproved.
+The next safe step is either a Matt-approved Phase 3 Twin Intelligence Expansion advisory/derived implementation plan grounded in the completed Twin Planning Context runtime and projection foundations, or a separately approved permission-enforcement planning milestone. Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, scoped exports, permission enforcement, and operational control remain unapproved.
 
 ## Restore Model
 
@@ -122,7 +123,7 @@ The next safe step is either a Matt-approved Phase 3 Twin Intelligence Expansion
 - Provenance coverage is still partial and gap-reporting based, so trust messaging must stay explicit.
 - Dependency awareness labels are descriptive runtime metadata only; there is no invalidation engine, recalculation queue, background job, or persisted stale state.
 - Permission readiness is metadata only; there is no permission enforcement, grants, consent artifacts, revocation workflow, RBAC/ABAC, auth, tenant isolation, or scoped exports.
-- `AIDesignGroundingView` is implemented as an additive minimized AI/design projection, but consumer/contractor/utility scoped view models remain mapped only and are not enforced permissioned views.
+- `TwinRuntimeProjectionView` now provides additive homeowner, contractor, and internal/system projection foundations, but these are not enforced permissioned views and do not create portals, exports, grants, consent artifacts, RBAC/ABAC, tenant isolation, utility views, or partner APIs.
 - No canonical Residential Energy Twin runtime identity exists; `home_id` remains the only runtime anchor for the Twin Planning Context.
 - Migration discipline is still early-stage even though Alembic scaffolding exists.
 - Existing local databases may need reseeding to surface the new seeded current-home-energy-architecture, backup-architecture-consistency, profile-architecture-fit, inverter/system-architecture, and structured-reasoning-graph rule provenance records.
@@ -155,6 +156,7 @@ The next safe step is either a Matt-approved Phase 3 Twin Intelligence Expansion
 - What-If Analysis: `docs/architecture/WhatIfAnalysis.md`
 - Dependency Impact Propagation: `docs/architecture/DependencyImpactPropagation.md`
 - Phase 2B Twin Runtime Foundation closeout handoff: `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
+- Phase 2B runtime view foundations handoff: `docs/handoffs/2026-06-03-phase-2b-runtime-view-foundations.md`
 - First Residential Energy Twin runtime-boundary planning note: `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
 - Residential Energy Twin provenance policy planning note: `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - Residential Energy Twin permissioned-view planning note: `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`

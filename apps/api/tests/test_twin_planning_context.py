@@ -35,6 +35,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
                 db, "home_001", design_id=design_id
             )
 
+    def _runtime_view(self, role):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_runtime_projection_view(db, "home_001", role=role)
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -403,6 +407,110 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
 
     def test_ai_design_grounding_view_returns_none_for_design_outside_home_context(self):
         self.assertIsNone(self._ai_view("missing_design"))
+
+    def test_runtime_projection_route_is_additive_and_role_addressed(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/runtime-projection/{role}",
+            paths,
+        )
+
+        view = self._runtime_view("homeowner")
+        payload = view.dict()
+        self.assertEqual("twin_runtime_projection", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("home_id", view.view_context.canonical_anchor)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertNotIn("twin_id", payload)
+        self.assertIn("not a separate portal", view.implementation_boundary)
+
+    def test_runtime_projections_use_same_canonical_home_with_different_scopes(self):
+        homeowner = self._runtime_view("homeowner")
+        contractor = self._runtime_view("contractor")
+        internal = self._runtime_view("internal_system")
+
+        self.assertEqual("owner_private", homeowner.view_context.visibility_scope.value)
+        self.assertEqual("contractor_scoped", contractor.view_context.visibility_scope.value)
+        self.assertEqual("internal_governance", internal.view_context.visibility_scope.value)
+
+        homeowner_home = next(record for record in homeowner.projection_records if record.entity_type == "home")
+        contractor_home = next(record for record in contractor.projection_records if record.entity_type == "home")
+        internal_home = next(record for record in internal.projection_records if record.entity_type == "home")
+
+        self.assertEqual("home_001", homeowner_home.entity_id)
+        self.assertEqual(homeowner_home.entity_id, contractor_home.entity_id)
+        self.assertEqual(homeowner_home.entity_id, internal_home.entity_id)
+
+        self.assertIn("address_line_1", homeowner_home.fields)
+        self.assertIn("account_id", homeowner_home.fields)
+        self.assertNotIn("address_line_1", contractor_home.fields)
+        self.assertNotIn("account_id", contractor_home.fields)
+        self.assertIn("address_line_1", internal_home.fields)
+        self.assertEqual("contractor_scoped", contractor_home.data_classification.value)
+
+    def test_contractor_projection_is_minimized_without_internal_unknowns_or_advisory_notes(self):
+        contractor = self._runtime_view("contractor")
+        section_keys = {record.section_key for record in contractor.projection_records}
+        entity_types = {record.entity_type for record in contractor.projection_records}
+
+        self.assertIn("premise", section_keys)
+        self.assertIn("loads", section_keys)
+        self.assertIn("derived_intelligence", section_keys)
+        self.assertNotIn("scenario_revisions", section_keys)
+        self.assertNotIn("unknowns", section_keys)
+        self.assertIn("advisor_recommendation_summary", entity_types)
+        self.assertNotIn("advisor_note", entity_types)
+
+        self.assertTrue(contractor.permission_readiness.permission_required)
+        self.assertTrue(contractor.permission_readiness.permission_not_enforced)
+        self.assertTrue(contractor.permission_readiness.minimum_necessary)
+        self.assertEqual("contractor", contractor.permission_readiness.audience)
+        self.assertIn("permission_grants", contractor.permission_readiness.deferred_capabilities)
+
+    def test_internal_projection_includes_governance_unknowns_without_permission_enforcement(self):
+        internal = self._runtime_view("internal_system")
+        section_keys = {record.section_key for record in internal.projection_records}
+        unknown_records = [record for record in internal.projection_records if record.section_key == "unknowns"]
+
+        self.assertIn("unknowns", section_keys)
+        self.assertTrue(unknown_records)
+        self.assertTrue(
+            all(record.data_classification.value == "internal_governance" for record in internal.projection_records)
+        )
+        self.assertTrue(internal.permission_readiness.permission_required)
+        self.assertTrue(internal.permission_readiness.permission_not_enforced)
+        self.assertEqual("internal_system", internal.permission_readiness.audience)
+        self.assertIn("auth", internal.permission_readiness.deferred_capabilities)
+
+    def test_runtime_projection_preserves_provenance_and_contributor_identity(self):
+        contractor = self._runtime_view("contractor")
+        load_record = next(
+            record
+            for record in contractor.projection_records
+            if record.entity_type == "load" and record.entity_id == "load_001"
+        )
+        advisor_record = next(
+            record
+            for record in contractor.projection_records
+            if record.entity_type == "advisor_recommendation_summary"
+        )
+
+        self.assertIsNotNone(load_record.provenance_summary)
+        self.assertIn("source_doc_user_load_entry", load_record.source_document_ids)
+        self.assertIn("source_doc_user_load_entry", load_record.contributor_identity.source_document_ids)
+        self.assertEqual("source_document", load_record.contributor_identity.contributor_type)
+        self.assertTrue(load_record.provenance_gaps)
+        self.assertTrue(load_record.permission_readiness.permission_not_enforced)
+
+        self.assertEqual("derived_output", advisor_record.classification.value)
+        self.assertTrue(advisor_record.rule_keys)
+        self.assertEqual(
+            "deterministic_rule_or_advisory_runtime",
+            advisor_record.contributor_identity.contributor_type,
+        )
+        self.assertTrue(advisor_record.dependency_hooks)
 
 
 if __name__ == "__main__":

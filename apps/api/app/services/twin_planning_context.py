@@ -20,6 +20,13 @@ from app.twin_planning_context.schemas import (
     TwinPlanningProvenanceGap,
     TwinPlanningProvenanceGapType,
     TwinPlanningRecordClassification,
+    TwinRuntimeContributionIdentity,
+    TwinRuntimeParticipant,
+    TwinRuntimeParticipantRole,
+    TwinRuntimeProjectionRecord,
+    TwinRuntimeProjectionView,
+    TwinRuntimeViewContext,
+    TwinRuntimeVisibilityScope,
 )
 
 
@@ -281,6 +288,162 @@ AI_GROUNDING_BASE_SECTION_KEYS = {
     "structures",
     "electrical_infrastructure",
     "loads",
+}
+
+RUNTIME_VIEW_SECTION_ALLOWLIST = {
+    TwinRuntimeParticipantRole.homeowner: {
+        "premise",
+        "structures",
+        "electrical_infrastructure",
+        "loads",
+        "equipment_locations",
+        "equipment_products",
+        "designs",
+        "design_equipment",
+        "pathways",
+        "scenarios",
+        "scenario_revisions",
+        "derived_intelligence",
+    },
+    TwinRuntimeParticipantRole.contractor: {
+        "premise",
+        "structures",
+        "electrical_infrastructure",
+        "loads",
+        "equipment_locations",
+        "equipment_products",
+        "designs",
+        "design_equipment",
+        "pathways",
+        "derived_intelligence",
+    },
+    TwinRuntimeParticipantRole.internal_system: {
+        "premise",
+        "structures",
+        "electrical_infrastructure",
+        "loads",
+        "equipment_locations",
+        "equipment_products",
+        "designs",
+        "design_equipment",
+        "pathways",
+        "scenarios",
+        "scenario_revisions",
+        "derived_intelligence",
+        "unknowns",
+    },
+}
+
+RUNTIME_VIEW_SCOPE = {
+    TwinRuntimeParticipantRole.homeowner: TwinRuntimeVisibilityScope.owner_private,
+    TwinRuntimeParticipantRole.contractor: TwinRuntimeVisibilityScope.contractor_scoped,
+    TwinRuntimeParticipantRole.internal_system: TwinRuntimeVisibilityScope.internal_governance,
+}
+
+RUNTIME_VIEW_PURPOSE = {
+    TwinRuntimeParticipantRole.homeowner: "owner_planning_context",
+    TwinRuntimeParticipantRole.contractor: "contractor_scoping_context",
+    TwinRuntimeParticipantRole.internal_system: "runtime_governance_review",
+}
+
+RUNTIME_FIELD_ALLOWLIST = {
+    TwinRuntimeParticipantRole.contractor: {
+        "home": {"id", "name", "city", "state", "country", "utility_provider", "service_size", "data_origin"},
+        "building": {
+            "id",
+            "home_id",
+            "name",
+            "type",
+            "approximate_distance_from_main_service",
+            "data_origin",
+        },
+        "electrical_panel": {
+            "id",
+            "home_id",
+            "building_id",
+            "panel_type",
+            "amperage",
+            "busbar_rating",
+            "breaker_spaces_total",
+            "breaker_spaces_available",
+            "indoor_outdoor",
+            "data_origin",
+        },
+        "load": {
+            "id",
+            "home_id",
+            "building_id",
+            "name",
+            "category",
+            "running_watts",
+            "surge_watts",
+            "estimated_daily_hours",
+            "backup_priority",
+            "phase_type",
+            "data_origin",
+        },
+        "equipment_location": {
+            "id",
+            "home_id",
+            "building_id",
+            "name",
+            "location_type",
+            "approximate_coordinates",
+            "data_origin",
+        },
+        "equipment_product": {
+            "id",
+            "manufacturer",
+            "model",
+            "product_type",
+            "ecosystem",
+            "specs",
+            "documentation_url",
+            "data_origin",
+        },
+        "energy_system_design": {
+            "id",
+            "home_id",
+            "name",
+            "design_goal",
+            "architecture_type",
+            "status",
+            "data_origin",
+        },
+        "design_equipment": {
+            "id",
+            "design_id",
+            "product_id",
+            "quantity",
+            "location_id",
+            "role_in_system",
+            "data_origin",
+        },
+        "estimated_pathway": {
+            "id",
+            "home_id",
+            "design_id",
+            "name",
+            "lifecycle_stage",
+            "source_location",
+            "destination_location",
+            "estimated_distance_ft",
+            "route_type",
+            "route_difficulty",
+            "visibility_level",
+            "confidence_level",
+            "data_origin",
+        },
+        "advisor_recommendation_summary": {
+            "design_id",
+            "recommended_profile",
+            "confidence_level",
+            "context_signals",
+            "basis",
+            "scope_note",
+            "reasoning_graph_scope",
+        },
+    },
 }
 
 
@@ -1023,6 +1186,274 @@ class TwinPlanningContextService:
             dependency_awareness=record.dependency_awareness,
             permission_readiness=self._ai_record_permission_readiness(record),
             limitations=record.limitations,
+        )
+
+    def _runtime_role(self, role: TwinRuntimeParticipantRole) -> Optional[TwinRuntimeParticipantRole]:
+        try:
+            return TwinRuntimeParticipantRole(role)
+        except ValueError:
+            return None
+
+    def _runtime_view_context(self, role: TwinRuntimeParticipantRole) -> TwinRuntimeViewContext:
+        return TwinRuntimeViewContext(
+            view_name=f"{role.value}_runtime_projection",
+            role=role,
+            visibility_scope=RUNTIME_VIEW_SCOPE[role],
+            purpose=RUNTIME_VIEW_PURPOSE[role],
+            minimum_necessary=role == TwinRuntimeParticipantRole.contractor,
+        )
+
+    def _runtime_view_permission_readiness(
+        self, role: TwinRuntimeParticipantRole
+    ) -> TwinPlanningPermissionReadiness:
+        if role == TwinRuntimeParticipantRole.homeowner:
+            return self._permission_readiness(
+                permission_required=False,
+                audience=role.value,
+                purpose=RUNTIME_VIEW_PURPOSE[role],
+                minimum_necessary=False,
+                visibility_limitations=[
+                    "Homeowner projection is owner-facing planning context, not a permission grant or export package.",
+                    "It may include private planning fields that are excluded from external scoped projections.",
+                ],
+            )
+        if role == TwinRuntimeParticipantRole.contractor:
+            return self._permission_readiness(
+                permission_required=True,
+                audience=role.value,
+                purpose=RUNTIME_VIEW_PURPOSE[role],
+                minimum_necessary=True,
+                visibility_limitations=[
+                    "Contractor projection is a minimized planning/scoping view only.",
+                    "It is not a contractor portal, authorization grant, bid packet, stamped design, or export package.",
+                    "Homeowner account scaffolding, private notes, full address fields, and internal unknown markers are excluded.",
+                ],
+            )
+        return self._permission_readiness(
+            permission_required=True,
+            audience=role.value,
+            purpose=RUNTIME_VIEW_PURPOSE[role],
+            minimum_necessary=False,
+            visibility_limitations=[
+                "Internal/system projection supports runtime governance inspection only.",
+                "Internal visibility metadata does not create tenant isolation, audit policy, or authorization enforcement.",
+            ],
+        )
+
+    def _runtime_record_permission_readiness(
+        self, role: TwinRuntimeParticipantRole, record: TwinPlanningContextRecord
+    ) -> TwinPlanningPermissionReadiness:
+        limitations = [
+            "Projection record visibility metadata does not authorize sharing or export.",
+            "Future permission enforcement may further narrow fields, source documents, and derived outputs.",
+        ]
+        if role == TwinRuntimeParticipantRole.contractor:
+            limitations.append("Contractor-scoped records remain planning-only and do not imply professional review.")
+        if record.classification in {
+            TwinPlanningRecordClassification.derived_output,
+            TwinPlanningRecordClassification.advisory_output,
+        }:
+            limitations.append("Derived and advisory outputs remain downstream of recorded planning context.")
+        return self._permission_readiness(
+            permission_required=role != TwinRuntimeParticipantRole.homeowner,
+            audience=role.value,
+            purpose=f"{record.entity_type}_{RUNTIME_VIEW_PURPOSE[role]}",
+            minimum_necessary=role == TwinRuntimeParticipantRole.contractor,
+            visibility_limitations=limitations,
+        )
+
+    def _runtime_view_fields(
+        self, role: TwinRuntimeParticipantRole, record: TwinPlanningContextRecord
+    ) -> Dict[str, object]:
+        if role in {
+            TwinRuntimeParticipantRole.homeowner,
+            TwinRuntimeParticipantRole.internal_system,
+        }:
+            return dict(record.record)
+        allowed_fields = RUNTIME_FIELD_ALLOWLIST.get(role, {}).get(record.entity_type, set())
+        return {
+            field: value
+            for field, value in record.record.items()
+            if field in allowed_fields
+        }
+
+    def _runtime_data_classification(
+        self, role: TwinRuntimeParticipantRole, record: TwinPlanningContextRecord
+    ) -> DataClassification:
+        if role == TwinRuntimeParticipantRole.contractor:
+            return DataClassification.contractor_scoped
+        if role == TwinRuntimeParticipantRole.internal_system:
+            return DataClassification.internal_governance
+        return record.data_classification
+
+    def _runtime_contribution_identity(
+        self, role: TwinRuntimeParticipantRole, record: TwinPlanningContextRecord
+    ) -> TwinRuntimeContributionIdentity:
+        contributor_ref = None
+        if role in {
+            TwinRuntimeParticipantRole.homeowner,
+            TwinRuntimeParticipantRole.internal_system,
+        }:
+            contributor_ref = record.record.get("account_id")
+
+        if record.rule_keys or record.classification in {
+            TwinPlanningRecordClassification.derived_output,
+            TwinPlanningRecordClassification.advisory_output,
+        }:
+            contributor_type = "deterministic_rule_or_advisory_runtime"
+        elif record.source_document_ids:
+            contributor_type = "source_document"
+        elif record.data_origin:
+            contributor_type = record.data_origin.value if hasattr(record.data_origin, "value") else record.data_origin
+        else:
+            contributor_type = "unknown"
+
+        return TwinRuntimeContributionIdentity(
+            contributor_type=contributor_type,
+            contributor_ref=contributor_ref,
+            data_origin=record.data_origin,
+            source_document_ids=record.source_document_ids,
+            limitations=[
+                "Contributor identity is limited to available runtime provenance and data_origin metadata.",
+                "Absence of contributor_ref does not mean the value is owner-authorized, verified, or externally shareable.",
+            ],
+        )
+
+    def _runtime_projection_record(
+        self,
+        *,
+        role: TwinRuntimeParticipantRole,
+        section_key: str,
+        record: TwinPlanningContextRecord,
+    ) -> Optional[TwinRuntimeProjectionRecord]:
+        fields = self._runtime_view_fields(role, record)
+        if (
+            role != TwinRuntimeParticipantRole.internal_system
+            and not fields
+            and not record.rule_keys
+            and not record.dependency_hooks
+        ):
+            return None
+
+        return TwinRuntimeProjectionRecord(
+            section_key=section_key,
+            entity_type=record.entity_type,
+            entity_id=record.entity_id,
+            label=record.label,
+            visibility_scope=RUNTIME_VIEW_SCOPE[role],
+            classification=record.classification,
+            authority_layer=record.authority_layer,
+            data_classification=self._runtime_data_classification(role, record),
+            data_origin=record.data_origin,
+            fields=fields,
+            provenance_summary=record.provenance_summary,
+            source_document_ids=record.source_document_ids,
+            contributor_identity=self._runtime_contribution_identity(role, record),
+            rule_keys=record.rule_keys,
+            dependency_hooks=record.dependency_hooks,
+            missing_fields=record.missing_fields,
+            provenance_gaps=record.provenance_gaps,
+            dependency_awareness=record.dependency_awareness,
+            permission_readiness=self._runtime_record_permission_readiness(role, record),
+            limitations=record.limitations,
+        )
+
+    def build_runtime_projection_view(
+        self, db, home_id: str, role: TwinRuntimeParticipantRole
+    ) -> Optional[TwinRuntimeProjectionView]:
+        role = self._runtime_role(role)
+        if role not in RUNTIME_VIEW_SECTION_ALLOWLIST:
+            return None
+
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+
+        projection_records: List[TwinRuntimeProjectionRecord] = []
+        allowed_sections = RUNTIME_VIEW_SECTION_ALLOWLIST[role]
+        all_sections = {section.section_key for section in context.sections}
+
+        for section in context.sections:
+            if section.section_key not in allowed_sections:
+                continue
+            for record in section.records:
+                projection_record = self._runtime_projection_record(
+                    role=role,
+                    section_key=section.section_key,
+                    record=record,
+                )
+                if projection_record is not None:
+                    projection_records.append(projection_record)
+
+        classification_counts = Counter(record.classification for record in projection_records)
+        classification_summary = {
+            classification.value: classification_counts.get(classification, 0)
+            for classification in TwinPlanningRecordClassification
+        }
+
+        provenance_gap_map = {}
+        for record in projection_records:
+            for gap in record.provenance_gaps:
+                key = (
+                    gap.gap_type.value,
+                    gap.entity_type,
+                    gap.entity_id,
+                    gap.field_name,
+                    gap.reason,
+                )
+                provenance_gap_map.setdefault(key, gap)
+        provenance_gaps = sorted(
+            provenance_gap_map.values(),
+            key=lambda gap: (
+                gap.gap_type.value,
+                gap.entity_type,
+                gap.entity_id or "",
+                gap.field_name or "",
+                gap.reason,
+            ),
+        )
+
+        dependency_hooks = [
+            hook
+            for record in projection_records
+            for hook in record.dependency_hooks
+        ]
+
+        included_sections = sorted({record.section_key for record in projection_records})
+        return TwinRuntimeProjectionView(
+            home_id=home_id,
+            participant=TwinRuntimeParticipant(
+                role=role,
+                relationship_to_home=(
+                    "owner_or_owner_authorized_household"
+                    if role == TwinRuntimeParticipantRole.homeowner
+                    else role.value
+                ),
+            ),
+            view_context=self._runtime_view_context(role),
+            implementation_boundary=(
+                "Read-only role-aware projection over one existing home_id-anchored Twin Planning Context; "
+                "not a separate portal, product codebase, export, permission grant, or canonical ResidentialEnergyTwin model."
+            ),
+            included_sections=included_sections,
+            excluded_sections=sorted(all_sections - set(included_sections)),
+            projection_records=projection_records,
+            classification_summary=classification_summary,
+            provenance_gaps=provenance_gaps,
+            dependency_hooks=dependency_hooks,
+            dependency_awareness_summary=self._dependency_awareness_summary(projection_records),
+            permission_readiness=self._runtime_view_permission_readiness(role),
+            limitations=[
+                "No twin_id is created or inferred.",
+                "The canonical source remains the home_id-anchored Twin Planning Context composed from existing planner records.",
+                "This projection does not enforce permissions, authenticate actors, create grants, create exports, or transfer ownership.",
+                "This projection does not imply engineering approval, utility approval, safety approval, procurement readiness, or operational control.",
+                "Pilot, partner, registry, marketplace, utility sharing, and external partner API behavior remain deferred.",
+            ],
+            compatibility_note=(
+                "Existing TwinPlanningContext, AI grounding, and current /api/* contracts remain unchanged; "
+                "this is an additive runtime projection view."
+            ),
         )
 
     def build_ai_design_grounding_view(
