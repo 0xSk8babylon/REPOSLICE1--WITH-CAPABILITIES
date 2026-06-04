@@ -105,6 +105,9 @@ from app.twin_planning_context.schemas import (
     TwinScenarioComparisonReadinessItem,
     TwinScenarioComparisonReadinessScope,
     TwinScenarioComparisonReadinessView,
+    TwinTrustProvenanceReadinessIndexEntry,
+    TwinTrustProvenanceReadinessIndexScope,
+    TwinTrustProvenanceReadinessIndexView,
     TwinTrustProvenanceReadinessSummary,
     TwinTopologyDeferredLifecycleDomain,
     TwinTopologyEdge,
@@ -686,6 +689,108 @@ PRODUCT_SPEC_READINESS_VENDOR_DEFERRED_BOUNDARIES = [
     "twin_id",
     "graph_engine",
     "operational_behavior",
+]
+
+TRUST_PROVENANCE_READINESS_INDEX_LIMITATIONS = [
+    "Phase 4B trust/provenance/readiness index is a cross-view metadata index only.",
+    "Index entries mirror existing Phase 4A trust_provenance_readiness_summary metadata and minimal source metadata only.",
+    "This index does not create scores, rankings, pass/fail verdicts, approval claims, verification claims, pricing, proposal generation, product selection, compatibility claims, export packages, scenario simulation, permission enforcement, persistence, graph behavior, twin_id, marketplace behavior, or operational behavior.",
+]
+
+TRUST_PROVENANCE_READINESS_INDEX_DEFERRED_BOUNDARIES = [
+    "scoring",
+    "ranking",
+    "pass_fail_verdicts",
+    "approval_claims",
+    "verification_claims",
+    "proposal_generation",
+    "pricing",
+    "product_selection",
+    "compatibility_claims",
+    "export_packages",
+    "scenario_simulation",
+    "operational_behavior",
+    "permission_enforcement",
+    "persistence",
+    "migrations",
+    "frontend",
+    "auth_security_changes",
+    "graph_engine",
+    "twin_id",
+    "marketplace_behavior",
+]
+
+PHASE_3_DERIVED_VIEW_INDEX_SPECS = [
+    (
+        "dependency_impact_readiness",
+        "phase_3a",
+        "/api/twin-planning-context/homes/{home_id}/views/dependency-impact-readiness",
+    ),
+    (
+        "dependency_reasoning",
+        "phase_3b",
+        "/api/twin-planning-context/homes/{home_id}/views/dependency-reasoning",
+    ),
+    (
+        "planning_intelligence_readiness",
+        "phase_3c",
+        "/api/twin-planning-context/homes/{home_id}/views/planning-intelligence-readiness",
+    ),
+    (
+        "advisory_context_assembly",
+        "phase_3d",
+        "/api/twin-planning-context/homes/{home_id}/views/advisory-context-assembly",
+    ),
+    (
+        "constraint_risk_reasoning",
+        "phase_3e",
+        "/api/twin-planning-context/homes/{home_id}/views/constraint-risk-reasoning",
+    ),
+    (
+        "scenario_comparison_readiness",
+        "phase_3f",
+        "/api/twin-planning-context/homes/{home_id}/views/scenario-comparison-readiness",
+    ),
+    (
+        "pre_recommendation_advisory",
+        "phase_3g",
+        "/api/twin-planning-context/homes/{home_id}/views/pre-recommendation-advisory",
+    ),
+    (
+        "recommendation_eligibility_readiness",
+        "phase_3h",
+        "/api/twin-planning-context/homes/{home_id}/views/recommendation-eligibility-readiness",
+    ),
+    (
+        "basic_advisory_recommendations",
+        "phase_3i",
+        "/api/twin-planning-context/homes/{home_id}/views/basic-advisory-recommendations",
+    ),
+    (
+        "contractor_facing_advisory",
+        "phase_3j",
+        "/api/twin-planning-context/homes/{home_id}/views/contractor-facing-advisory",
+    ),
+    (
+        "homeowner_facing_advisory",
+        "phase_3k",
+        "/api/twin-planning-context/homes/{home_id}/views/homeowner-facing-advisory",
+    ),
+    (
+        "energy_goal_reasoning",
+        "phase_3l",
+        "/api/twin-planning-context/homes/{home_id}/views/energy-goal-reasoning",
+    ),
+    (
+        "proposal_readiness_foundation",
+        "phase_3m",
+        "/api/twin-planning-context/homes/{home_id}/views/proposal-readiness-foundation",
+    ),
+    (
+        "product_spec_readiness",
+        "phase_3n",
+        "/api/twin-planning-context/homes/{home_id}/views/product-spec-readiness",
+    ),
 ]
 
 TOPOLOGY_RELATIONSHIP_COVERAGE_RULE_KEY = "twin_topology.relationship_coverage_v1"
@@ -11244,6 +11349,298 @@ class TwinPlanningContextService:
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3N product/spec readiness view."
             ),
         ))
+
+    def _trust_provenance_readiness_index_entry(
+        self,
+        *,
+        source_view_name: str,
+        source_phase: str,
+        source_endpoint_path: str,
+        summary: TwinTrustProvenanceReadinessSummary,
+    ) -> TwinTrustProvenanceReadinessIndexEntry:
+        return TwinTrustProvenanceReadinessIndexEntry(
+            source_view_name=source_view_name,
+            source_phase=source_phase,
+            source_endpoint_path=source_endpoint_path,
+            summary=summary,
+            gap_notes=summary.gap_notes,
+            limitations=summary.limitations
+            + [
+                "Index entry mirrors existing Phase 4A summary metadata only.",
+            ],
+        )
+
+    def _phase3_index_entries(
+        self,
+        view_by_name: Dict[str, object],
+    ) -> tuple:
+        entries = []
+        missing_view_names = []
+        for source_view_name, source_phase, source_endpoint_path in PHASE_3_DERIVED_VIEW_INDEX_SPECS:
+            source_view = view_by_name.get(source_view_name)
+            summary = getattr(source_view, "trust_provenance_readiness_summary", None)
+            if source_view is None or summary is None:
+                missing_view_names.append(source_view_name)
+                continue
+            entries.append(
+                self._trust_provenance_readiness_index_entry(
+                    source_view_name=source_view_name,
+                    source_phase=source_phase,
+                    source_endpoint_path=source_endpoint_path,
+                    summary=summary,
+                )
+            )
+        return entries, missing_view_names
+
+    def build_trust_provenance_readiness_index_view(
+        self,
+        db,
+        home_id: str,
+    ) -> Optional[TwinTrustProvenanceReadinessIndexView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+
+        impact_view = self.build_dependency_impact_readiness_view(db, home_id, context=context, snapshot=snapshot)
+        if impact_view is None:
+            return None
+        reasoning_view = self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
+        if readiness_view is None:
+            return None
+        advisory_view = self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
+        if advisory_view is None:
+            return None
+        risk_view = self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
+        if risk_view is None:
+            return None
+        scenario_view = self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
+        if scenario_view is None:
+            return None
+        pre_recommendation_view = self.build_pre_recommendation_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+        )
+        if pre_recommendation_view is None:
+            return None
+        eligibility_view = self.build_recommendation_eligibility_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+        )
+        if eligibility_view is None:
+            return None
+        basic_recommendations_view = self.build_basic_advisory_recommendations_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+        )
+        if basic_recommendations_view is None:
+            return None
+        contractor_advisory_view = self.build_contractor_facing_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+        )
+        if contractor_advisory_view is None:
+            return None
+        homeowner_advisory_view = self.build_homeowner_facing_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+        )
+        if homeowner_advisory_view is None:
+            return None
+        energy_goal_reasoning_view = self.build_energy_goal_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+            contractor_advisory_view=contractor_advisory_view,
+            homeowner_advisory_view=homeowner_advisory_view,
+        )
+        if energy_goal_reasoning_view is None:
+            return None
+        proposal_readiness_view = self.build_proposal_readiness_foundation_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+            contractor_advisory_view=contractor_advisory_view,
+            energy_goal_reasoning_view=energy_goal_reasoning_view,
+        )
+        if proposal_readiness_view is None:
+            return None
+        product_spec_readiness_view = self.build_product_spec_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+            proposal_readiness_view=proposal_readiness_view,
+        )
+        if product_spec_readiness_view is None:
+            return None
+
+        view_by_name = {
+            view.view_name: view
+            for view in [
+                impact_view,
+                reasoning_view,
+                readiness_view,
+                advisory_view,
+                risk_view,
+                scenario_view,
+                pre_recommendation_view,
+                eligibility_view,
+                basic_recommendations_view,
+                contractor_advisory_view,
+                homeowner_advisory_view,
+                energy_goal_reasoning_view,
+                proposal_readiness_view,
+                product_spec_readiness_view,
+            ]
+        }
+        indexed_views, missing_indexed_views = self._phase3_index_entries(view_by_name)
+        expected_view_count = len(PHASE_3_DERIVED_VIEW_INDEX_SPECS)
+        return TwinTrustProvenanceReadinessIndexView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 4B trust/provenance/readiness index built request-time from existing Phase 3 "
+                "derived views and their Phase 4A trust_provenance_readiness_summary metadata only; not scoring, ranking, "
+                "pass/fail verdicts, approval claims, verification claims, proposal generation, pricing, product selection, "
+                "compatibility claims, export packaging, scenario simulation, permission enforcement, or operational behavior."
+            ),
+            index_scope=TwinTrustProvenanceReadinessIndexScope(
+                limitations=TRUST_PROVENANCE_READINESS_INDEX_LIMITATIONS,
+            ),
+            indexed_views=indexed_views,
+            indexed_view_count=len(indexed_views),
+            expected_view_count=expected_view_count,
+            missing_indexed_views=missing_indexed_views,
+            deferred_boundaries=sorted(TRUST_PROVENANCE_READINESS_INDEX_DEFERRED_BOUNDARIES),
+            limitations=TRUST_PROVENANCE_READINESS_INDEX_LIMITATIONS,
+            compatibility_note=(
+                "Existing Phase 3 derived view routes and response fields remain unchanged; this is an additive Phase 4B "
+                "cross-view metadata index over Phase 4A summaries."
+            ),
+        )
 
     def _runtime_role(self, role: TwinRuntimeParticipantRole) -> Optional[TwinRuntimeParticipantRole]:
         try:

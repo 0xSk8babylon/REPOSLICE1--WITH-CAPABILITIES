@@ -558,6 +558,63 @@ class TwinTrustProvenanceReadinessSummary(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinTrustProvenanceReadinessIndexScope(ORMModel):
+    index_scope: str = "phase_4b_trust_provenance_readiness_index"
+    index_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    deterministic_for_same_inputs: bool = True
+    scoring_present: bool = False
+    ranking_present: bool = False
+    pass_fail_verdict_present: bool = False
+    approval_claim_present: bool = False
+    verification_claim_present: bool = False
+    proposal_generation_present: bool = False
+    pricing_present: bool = False
+    product_selection_present: bool = False
+    compatibility_claim_present: bool = False
+    export_package_present: bool = False
+    scenario_simulation_present: bool = False
+    operational_behavior_present: bool = False
+    permission_enforcement_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    frontend_present: bool = False
+    auth_security_changes_present: bool = False
+    graph_engine_present: bool = False
+    twin_id_present: bool = False
+    marketplace_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTrustProvenanceReadinessIndexEntry(ORMModel):
+    source_view_name: str
+    source_phase: str
+    source_endpoint_path: str
+    summary: TwinTrustProvenanceReadinessSummary
+    gap_notes: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTrustProvenanceReadinessIndexView(ORMModel):
+    view_name: str = "trust_provenance_readiness_index"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    index_scope: TwinTrustProvenanceReadinessIndexScope
+    indexed_views: List[TwinTrustProvenanceReadinessIndexEntry] = Field(default_factory=list)
+    indexed_view_count: int = 0
+    expected_view_count: int = 0
+    missing_indexed_views: List[str] = Field(default_factory=list)
+    deferred_boundaries: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyReasoningType(str, Enum):
     source_dependency = "source_dependency"
     topology_dependency = "topology_dependency"

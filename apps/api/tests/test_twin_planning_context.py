@@ -99,6 +99,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_product_spec_readiness_view(db, "home_001")
 
+    def _trust_provenance_readiness_index_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_trust_provenance_readiness_index_view(db, "home_001")
+
     def _phase3_derived_views(self):
         return [
             self._dependency_impact_view(),
@@ -184,6 +188,122 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         second = [view.dict()["trust_provenance_readiness_summary"] for view in self._phase3_derived_views()]
 
         self.assertEqual(first, second)
+
+    def test_trust_provenance_readiness_index_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/trust-provenance-readiness-index",
+            paths,
+        )
+
+        view = self._trust_provenance_readiness_index_view()
+        payload = view.dict()
+        scope = view.index_scope
+
+        self.assertEqual("trust_provenance_readiness_index", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("planning_private", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.index_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+
+    def test_trust_provenance_readiness_index_includes_all_phase3_summaries(self):
+        view = self._trust_provenance_readiness_index_view()
+
+        self.assertEqual(14, view.expected_view_count)
+        self.assertEqual(14, view.indexed_view_count)
+        self.assertEqual([], view.missing_indexed_views)
+        self.assertEqual(14, len(view.indexed_views))
+
+        expected_names = [
+            "dependency_impact_readiness",
+            "dependency_reasoning",
+            "planning_intelligence_readiness",
+            "advisory_context_assembly",
+            "constraint_risk_reasoning",
+            "scenario_comparison_readiness",
+            "pre_recommendation_advisory",
+            "recommendation_eligibility_readiness",
+            "basic_advisory_recommendations",
+            "contractor_facing_advisory",
+            "homeowner_facing_advisory",
+            "energy_goal_reasoning",
+            "proposal_readiness_foundation",
+            "product_spec_readiness",
+        ]
+        self.assertEqual(expected_names, [entry.source_view_name for entry in view.indexed_views])
+
+        for entry in view.indexed_views:
+            self.assertTrue(entry.source_phase.startswith("phase_3"))
+            self.assertTrue(entry.source_endpoint_path.startswith("/api/twin-planning-context/homes/{home_id}/views/"))
+            self.assertIsNotNone(entry.summary)
+            self.assertEqual(
+                "phase_4a_trust_provenance_readiness_normalization",
+                entry.summary.summary_scope,
+            )
+            self.assertTrue(entry.summary.normalization_only)
+            self.assertEqual("not_enforced", entry.summary.permission_enforcement)
+            self.assertTrue(entry.summary.permission_enforcement_remains_not_enforced)
+            self.assertEqual(entry.summary.gap_notes, entry.gap_notes)
+
+    def test_trust_provenance_readiness_index_preserves_hard_boundaries(self):
+        view = self._trust_provenance_readiness_index_view()
+        scope = view.index_scope
+        response_text = str(view.dict()).lower()
+
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertFalse(scope.scoring_present)
+        self.assertFalse(scope.ranking_present)
+        self.assertFalse(scope.pass_fail_verdict_present)
+        self.assertFalse(scope.approval_claim_present)
+        self.assertFalse(scope.verification_claim_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.pricing_present)
+        self.assertFalse(scope.product_selection_present)
+        self.assertFalse(scope.compatibility_claim_present)
+        self.assertFalse(scope.export_package_present)
+        self.assertFalse(scope.scenario_simulation_present)
+        self.assertFalse(scope.operational_behavior_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.frontend_present)
+        self.assertFalse(scope.auth_security_changes_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.marketplace_behavior_present)
+
+        for phrase in [
+            "is approved",
+            "has approval",
+            "is verified",
+            "has verification",
+            "price quote",
+            "proposal generated",
+            "compatibility confirmed",
+            "export package created",
+            "simulation result",
+            "operational command",
+            "contractor ready",
+            "ahj approved",
+        ]:
+            self.assertNotIn(phrase, response_text)
+
+    def test_trust_provenance_readiness_index_is_deterministic_for_same_inputs(self):
+        first = self._trust_provenance_readiness_index_view().dict()
+        second = self._trust_provenance_readiness_index_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_boundaries"]),
+            first["deferred_boundaries"],
+        )
 
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()

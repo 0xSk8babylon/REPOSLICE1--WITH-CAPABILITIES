@@ -25,6 +25,7 @@ from app.twin_planning_context.schemas import (
     TwinRuntimeProjectionView,
     TwinScenarioComparisonReadinessView,
     TwinTopologySnapshot,
+    TwinTrustProvenanceReadinessIndexView,
 )
 
 router = APIRouter(prefix="/twin-planning-context", tags=["twin_planning_context"])
@@ -207,6 +208,17 @@ def get_proposal_readiness_foundation_view(home_id: str, db: Session = Depends(g
 )
 def get_product_spec_readiness_view(home_id: str, db: Session = Depends(get_db)):
     view = twin_planning_context_service.build_product_spec_readiness_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
+    return view
+
+
+@router.get(
+    "/homes/{home_id}/views/trust-provenance-readiness-index",
+    response_model=TwinTrustProvenanceReadinessIndexView,
+)
+def get_trust_provenance_readiness_index_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_trust_provenance_readiness_index_view(db, home_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home not found")
     return view
