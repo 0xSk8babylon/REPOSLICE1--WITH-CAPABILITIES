@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session  # noqa: E402
 from app.core.database import database_path, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.seed.runtime import reset_and_reseed  # noqa: E402
+from app.services.contractor_context import contractor_context_service  # noqa: E402
 from app.services.twin_planning_context import twin_planning_context_service  # noqa: E402
 
 
@@ -102,6 +103,18 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
     def _trust_provenance_readiness_index_view(self):
         with Session(engine) as db:
             return twin_planning_context_service.build_trust_provenance_readiness_index_view(db, "home_001")
+
+    def _contractor_planning_context_view(self):
+        with Session(engine) as db:
+            return contractor_context_service.build_contractor_planning_context(db, "home_001")
+
+    def _contractor_confirmation_gate_view(self):
+        with Session(engine) as db:
+            return contractor_context_service.build_confirmation_gate_projection(db, "home_001")
+
+    def _contractor_install_complexity_view(self):
+        with Session(engine) as db:
+            return contractor_context_service.build_install_complexity_view(db, "home_001")
 
     def _phase3_derived_views(self):
         return [
@@ -3173,6 +3186,305 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             sorted(item["advisory_area"] for item in first["advisory_items"]),
             [item["advisory_area"] for item in first["advisory_items"]],
         )
+
+    def test_contractor_planning_context_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn("/api/contractor-context/homes/{home_id}", paths)
+
+        view = self._contractor_planning_context_view()
+        payload = view.dict()
+        scope = view.contractor_scope
+
+        self.assertEqual("contractor_scoped_planning_context", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("contractor_scoped", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertFalse(scope.write_endpoints_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.auth_security_changes_present)
+        self.assertFalse(scope.contractor_accounts_present)
+        self.assertFalse(scope.exports_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.final_electrical_design_claims_present)
+
+    def test_contractor_planning_context_exposes_safe_sections_and_provenance(self):
+        view = self._contractor_planning_context_view()
+
+        self.assertTrue(view.homeowner_goals)
+        self.assertTrue(view.home_site_planning_summary)
+        self.assertTrue(view.known_electrical_equipment_summary)
+        self.assertTrue(view.proposed_system_context)
+        self.assertTrue(view.missing_information)
+        self.assertTrue(view.contractor_verification_needs)
+        self.assertTrue(view.provenance_trust_notes)
+        self.assertTrue(view.permission_readiness_notes)
+        self.assertTrue(view.next_safe_contractor_review_prompts)
+        self.assertTrue(view.deferred_boundaries)
+        self.assertIn("TwinContractorFacingAdvisoryView", view.source_basis.source_views)
+        self.assertIn("TwinRuntimeProjectionView.contractor", view.source_basis.source_views)
+
+        for item in (
+            view.homeowner_goals
+            + view.home_site_planning_summary
+            + view.known_electrical_equipment_summary
+            + view.proposed_system_context
+            + view.missing_information
+            + view.contractor_verification_needs
+            + view.provenance_trust_notes
+            + view.permission_readiness_notes
+            + view.next_safe_contractor_review_prompts
+        ):
+            self.assertTrue(item.source_or_basis)
+            self.assertTrue(item.provenance.source_views)
+            self.assertTrue(item.provenance.derived_from)
+            self.assertTrue(item.limitations)
+
+    def test_contractor_planning_context_preserves_trust_boundaries(self):
+        view = self._contractor_planning_context_view()
+        payload_text = str(view.dict()).lower()
+
+        self.assertIn("not authorization", view.permission_readiness_notes[0].statement)
+        self.assertIn("not contractor directives", view.next_safe_contractor_review_prompts[0].statement)
+        self.assertIn("does not verify field conditions", view.contractor_verification_needs[0].statement)
+        self.assertIn("not a final design", view.proposed_system_context[0].statement)
+        for forbidden in [
+            "contractor_ready",
+            "contractor ready",
+            "code compliant",
+            "nec compliant",
+            "approved installation",
+            "final wire size is",
+            "final conduit size is",
+            "final breaker size is",
+            "disconnect requirement is",
+            "recommended_profile",
+            "advisor recommendation summary for",
+        ]:
+            self.assertNotIn(forbidden, payload_text)
+        for boundary in [
+            "write_endpoints",
+            "persistence",
+            "migrations",
+            "permission_enforcement",
+            "contractor_accounts",
+            "marketplace_behavior",
+            "crm_integration",
+            "pricing",
+            "proposals",
+            "final_wire_sizing",
+            "final_conduit_sizing",
+            "final_breaker_sizing",
+        ]:
+            self.assertIn(boundary, view.deferred_boundaries)
+
+    def test_contractor_planning_context_is_deterministic_for_same_inputs(self):
+        first = self._contractor_planning_context_view().dict()
+        second = self._contractor_planning_context_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])
+
+    def test_contractor_confirmation_gate_route_is_additive_read_only_and_deterministic(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn("/api/contractor-context/homes/{home_id}/confirmation-gates", paths)
+
+        view = self._contractor_confirmation_gate_view()
+        payload = view.dict()
+
+        self.assertEqual("contractor_confirmation_gate_projection", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("contractor_scoped", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(view.read_only)
+        self.assertTrue(view.request_time_only)
+        self.assertTrue(view.deterministic_for_same_inputs)
+        self.assertTrue(view.gate_titles_are_review_topics_only)
+        self.assertFalse(view.gate_state_persisted)
+
+        first = view.dict()
+        second = self._contractor_confirmation_gate_view().dict()
+        self.assertEqual(first, second)
+
+    def test_contractor_confirmation_gate_projection_exposes_all_required_gates(self):
+        view = self._contractor_confirmation_gate_view()
+        gate_ids = [gate.gate_id for gate in view.gates]
+
+        self.assertEqual(19, len(view.gates))
+        self.assertEqual(
+            [
+                "product_specs_verified",
+                "nameplate_ratings_verified",
+                "manufacturer_install_manual_reviewed",
+                "circuit_purpose_confirmed",
+                "load_current_assumptions_confirmed",
+                "distance_measurements_confirmed",
+                "conduit_routing_path_confirmed",
+                "indoor_outdoor_wet_location_confirmed",
+                "conductor_material_confirmed",
+                "raceway_type_confirmed",
+                "current_carrying_conductors_confirmed",
+                "derating_factors_applied",
+                "voltage_drop_reviewed",
+                "disconnect_requirements_reviewed",
+                "overcurrent_protection_reviewed",
+                "grounding_bonding_reviewed",
+                "labeling_signage_requirements_reviewed",
+                "utility_ahj_requirements_reviewed",
+                "contractor_final_review_completed",
+            ],
+            gate_ids,
+        )
+
+        allowed_statuses = {
+            "unknown",
+            "homeowner_provided",
+            "app_derived",
+            "contractor_review_required",
+            "contractor_confirmed_future",
+            "contractor_rejected_future",
+            "needs_site_visit",
+            "ahj_or_utility_dependent",
+        }
+        for gate in view.gates:
+            self.assertIn(gate.status, allowed_statuses)
+            self.assertTrue(gate.category)
+            self.assertTrue(gate.required_verifier)
+            self.assertTrue(gate.source_or_basis)
+            self.assertTrue(gate.blocker_level)
+            self.assertTrue(gate.reason)
+            self.assertTrue(gate.next_action)
+            self.assertTrue(gate.provenance.source_views)
+            self.assertTrue(gate.provenance.derived_from)
+
+    def test_contractor_confirmation_gate_projection_preserves_non_authoritative_boundary(self):
+        view = self._contractor_confirmation_gate_view()
+        payload_text = str(view.dict()).lower()
+
+        self.assertIn("read-only derived review topics", " ".join(view.limitations))
+        self.assertIn("not persisted gate state", view.limitations[0])
+        self.assertIn("not persisted confirmation", view.gates[0].source_or_basis)
+        self.assertIn("do not treat it as completed verification", view.gates[0].next_action)
+        for forbidden in [
+            "code compliant",
+            "nec compliant",
+            "approved installation",
+            "field verification completed",
+            "contractor final review is completed",
+            "final wire size is",
+            "final conduit size is",
+            "final breaker size is",
+            "disconnect requirement is",
+            "permission enforced",
+        ]:
+            self.assertNotIn(forbidden, payload_text)
+
+    def test_contractor_install_complexity_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn("/api/contractor-context/homes/{home_id}/install-complexity", paths)
+
+        view = self._contractor_install_complexity_view()
+        payload = view.dict()
+
+        self.assertEqual("contractor_install_complexity", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("contractor_scoped", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(view.read_only)
+        self.assertTrue(view.request_time_only)
+        self.assertTrue(view.deterministic_for_same_inputs)
+        self.assertFalse(view.final_electrical_design_claims_present)
+        self.assertFalse(view.wire_sizing_present)
+        self.assertFalse(view.conduit_sizing_present)
+        self.assertFalse(view.breaker_sizing_present)
+        self.assertFalse(view.disconnect_requirement_sizing_present)
+        self.assertFalse(view.nec_code_compliant_design_present)
+
+    def test_contractor_install_complexity_exposes_required_signal_categories(self):
+        view = self._contractor_install_complexity_view()
+        categories = [signal.category for signal in view.signals]
+
+        self.assertEqual(
+            [
+                "product_uncertainty",
+                "nameplate_uncertainty",
+                "panel_service_uncertainty",
+                "routing_path_uncertainty",
+                "backup_scope_uncertainty",
+                "ahj_utility_uncertainty",
+                "material_takeoff_uncertainty",
+                "field_verification_burden",
+                "homeowner_decision_dependency",
+                "contractor_review_burden",
+            ],
+            categories,
+        )
+        allowed_severities = {"low", "medium", "high", "blocked", "unknown"}
+        for signal in view.signals:
+            self.assertIn(signal.severity, allowed_severities)
+            self.assertTrue(signal.reason)
+            self.assertTrue(signal.missing_inputs)
+            self.assertTrue(signal.required_verifier)
+            self.assertTrue(signal.next_action)
+            self.assertTrue(signal.source_or_basis)
+            self.assertTrue(signal.provenance.source_views)
+            self.assertTrue(signal.provenance.derived_from)
+
+    def test_contractor_install_complexity_preserves_electrical_boundary(self):
+        view = self._contractor_install_complexity_view()
+        payload_text = str(view.dict()).lower()
+
+        self.assertIn("does not calculate final wire", view.implementation_boundary)
+        self.assertIn("uncertainty and review-burden signals only", view.limitations[0])
+        for forbidden in [
+            "final wire size is",
+            "final conduit size is",
+            "final breaker size is",
+            "disconnect requirement is",
+            "nec compliant",
+            "code compliant",
+            "approved design",
+            "field verification completed",
+            "contractor directive issued",
+            "contractor directive created",
+            "bid ready",
+            "proposal ready",
+        ]:
+            self.assertNotIn(forbidden, payload_text)
+        for boundary in [
+            "final_wire_sizing",
+            "final_conduit_sizing",
+            "final_breaker_sizing",
+            "final_disconnect_requirements",
+            "write_endpoints",
+            "permission_enforcement",
+            "persistence",
+            "migrations",
+            "pricing",
+            "proposals",
+        ]:
+            self.assertIn(boundary, view.deferred_boundaries)
+
+    def test_contractor_install_complexity_is_deterministic_for_same_inputs(self):
+        first = self._contractor_install_complexity_view().dict()
+        second = self._contractor_install_complexity_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])
 
     def test_homeowner_facing_advisory_route_is_additive_and_read_only(self):
         paths = {getattr(route, "path", None) for route in app.routes}

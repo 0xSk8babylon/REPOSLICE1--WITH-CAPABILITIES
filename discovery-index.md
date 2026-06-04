@@ -97,7 +97,15 @@ Read these first:
   - Product purpose: normalize trust, provenance, readiness, confidence, missing-data, unsafe-assumption, limitation, and deferred-boundary visibility across existing Phase 3 outputs.
   - Completed runtime scope: Phase 4A added per-view optional `trust_provenance_readiness_summary` metadata to all 14 Phase 3 derived views; Phase 4B added `/api/twin-planning-context/homes/{home_id}/views/trust-provenance-readiness-index`; Phase 4C through Phase 4E normalized gap categories, source/provenance/readiness field paths, and advisory-only readiness language.
   - Latest backend verification: focused twin planning context tests passed with 125 tests, and full backend discovery passed with 136 tests.
-  - Current boundary: Phase 4 runtime is complete unless Matt approves another Phase 4 slice. The next phase remains separate and unapproved. Phase 4 did not add frontend, persistence, migrations, auth/security, exports, pricing, proposals, product selection, compatibility engine behavior, scenario simulation, graph engine, `twin_id`, marketplace behavior, operational behavior, scoring, ranking, pass/fail verdicts, approval claims, verification claims, AHJ/manual approval claims, contractor readiness claims, permission enforcement claims, or push work.
+  - Current boundary: Phase 4 runtime is complete unless Matt approves another Phase 4 slice. Phase 4 did not add frontend, persistence, migrations, auth/security, exports, pricing, proposals, product selection, compatibility engine behavior, scenario simulation, graph engine, `twin_id`, marketplace behavior, operational behavior, scoring, ranking, pass/fail verdicts, approval claims, verification claims, AHJ/manual approval claims, contractor readiness claims, permission enforcement claims, or push work.
+- Phase 5A through Phase 5E: Contractor Participant Foundation - implemented in the working tree pending Matt's final commit approval.
+  - Charter: `docs/phase-5-contractor-participant-foundation.md`
+  - Handoff: `docs/handoffs/2026-06-04-phase-5a-contractor-participant-charter.md`
+  - Phase 5E handoff: `docs/handoffs/2026-06-04-phase-5e-contractor-observation-doctrine.md`
+  - Product purpose: establish the contractor as a permission-scoped planning participant through read-only contractor views, confirmation gate projections, install complexity reasoning, and future contractor observation doctrine.
+  - Runtime endpoints: `GET /api/contractor-context/homes/{home_id}`, `GET /api/contractor-context/homes/{home_id}/confirmation-gates`, and `GET /api/contractor-context/homes/{home_id}/install-complexity`.
+  - Current boundary: Phase 5B through Phase 5D runtime foundations are read-only, request-time, deterministic, contractor-safe, provenance-preserving, permission-readiness-aware, and `home_id` anchored. Phase 5E is docs-only future contractor observation doctrine and does not implement observation intake.
+  - Deferred: persistence, migrations, auth/security changes, permission enforcement, contractor accounts, write endpoints, source-of-truth mutation, frontend work, exports, marketplace features, bidding, contractor ranking, CRM integration, payments, pricing, proposals, product recommendations, compatibility engines, scenario simulation, graph behavior, `twin_id`, operational behavior, final wire sizing, final conduit sizing, final breaker sizing, disconnect requirement claims, NEC-compliant installation design claims, AHJ/utility approval, field-verification approval, git push, and production deployment.
 
 ## Operational References By Task
 
@@ -130,6 +138,8 @@ Read these first:
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`
+  - `docs/phase-5-contractor-participant-foundation.md`
+  - `docs/handoffs/2026-06-04-phase-5a-contractor-participant-charter.md`
   - `docs/handoffs/2026-06-04-phase-3o-phase-3-closeout-stabilization.md`
   - `docs/handoffs/2026-06-04-phase-3n-product-spec-readiness.md`
   - `docs/handoffs/2026-06-04-phase-3m-proposal-readiness-foundation.md`

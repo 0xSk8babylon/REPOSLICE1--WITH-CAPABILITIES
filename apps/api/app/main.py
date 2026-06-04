@@ -6,6 +6,7 @@ from app.accounts.router import router as accounts_router
 from app.ai_context.router import router as ai_context_router
 from app.buildings.router import router as buildings_router
 from app.compatibility_rules.router import router as compatibility_router
+from app.contractor_context.router import router as contractor_context_router
 from app.core.config import settings
 from app.core.database import db_session
 from app.design_advisor.router import router as design_advisor_router
@@ -87,4 +88,5 @@ for router in [
     api_router.include_router(router)
 
 api_router.include_router(twin_planning_context_router)
+api_router.include_router(contractor_context_router)
 app.include_router(api_router)
