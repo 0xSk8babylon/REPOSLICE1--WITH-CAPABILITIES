@@ -1531,6 +1531,116 @@ class TwinHomeownerFacingAdvisoryView(ORMModel):
     compatibility_note: str
 
 
+class TwinEnergyGoalReasoningArea(str, Enum):
+    recorded_homeowner_goals = "recorded_homeowner_goals"
+    goal_to_known_fact_alignment = "goal_to_known_fact_alignment"
+    goal_to_missing_prerequisite_gaps = "goal_to_missing_prerequisite_gaps"
+    goal_readiness_posture = "goal_readiness_posture"
+    provenance_basis = "provenance_basis"
+    permission_readiness_metadata = "permission_readiness_metadata"
+    contractor_homeowner_advisory_context_links = "contractor_homeowner_advisory_context_links"
+    professional_review_boundaries = "professional_review_boundaries"
+    unsafe_assumptions = "unsafe_assumptions"
+    deferred_goal_optimization_proposal_boundaries = "deferred_goal_optimization_proposal_boundaries"
+
+
+class TwinEnergyGoalReasoningScope(ORMModel):
+    reasoning_scope: str = "phase_3l_energy_goal_reasoning"
+    goal_to_context_reasoning_only: bool = True
+    categorical_traceable_alignment_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_advisory_context_assembly: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    derived_from_pre_recommendation_advisory: bool = True
+    derived_from_recommendation_eligibility_readiness: bool = True
+    derived_from_basic_advisory_recommendations: bool = True
+    derived_from_contractor_facing_advisory: bool = True
+    derived_from_homeowner_facing_advisory: bool = True
+    deterministic_for_same_inputs: bool = True
+    product_recommendations_present: bool = False
+    final_design_recommendations_present: bool = False
+    goal_ranking_present: bool = False
+    solution_ranking_present: bool = False
+    optimization_present: bool = False
+    simulation_present: bool = False
+    scenario_comparison_present: bool = False
+    savings_payback_present: bool = False
+    proposal_generation_present: bool = False
+    contractor_directives_present: bool = False
+    homeowner_directives_present: bool = False
+    utility_readiness_logic_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinEnergyGoalReasoningBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    goal_refs: List[str] = Field(default_factory=list)
+    known_fact_refs: List[str] = Field(default_factory=list)
+    missing_prerequisite_refs: List[str] = Field(default_factory=list)
+    advisory_context_refs: List[str] = Field(default_factory=list)
+    provenance_refs: List[str] = Field(default_factory=list)
+    permission_refs: List[str] = Field(default_factory=list)
+    professional_boundary_refs: List[str] = Field(default_factory=list)
+    unsafe_assumption_refs: List[str] = Field(default_factory=list)
+    blocked_deferred_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinEnergyGoalReasoningItem(ORMModel):
+    reasoning_area: TwinEnergyGoalReasoningArea
+    posture: str
+    statement: str
+    recorded_goal_refs: List[str] = Field(default_factory=list)
+    known_fact_alignment: List[str] = Field(default_factory=list)
+    missing_prerequisite_gaps: List[str] = Field(default_factory=list)
+    advisory_context_links: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinEnergyGoalReasoningBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinEnergyGoalReasoningView(ORMModel):
+    view_name: str = "energy_goal_reasoning"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinEnergyGoalReasoningBasis
+    reasoning_scope: TwinEnergyGoalReasoningScope
+    reasoning_items: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    recorded_homeowner_goals: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    goal_to_known_fact_alignment: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    goal_to_missing_prerequisite_gaps: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    goal_readiness_posture: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    provenance_basis: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    permission_readiness_metadata: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    contractor_homeowner_advisory_context_links: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    professional_review_boundaries: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    unsafe_assumptions: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    deferred_goal_optimization_proposal_boundaries: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

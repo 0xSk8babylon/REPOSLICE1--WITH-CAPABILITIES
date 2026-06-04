@@ -37,6 +37,11 @@ from app.twin_planning_context.schemas import (
     TwinDependencyReasoningScope,
     TwinDependencyReasoningType,
     TwinDependencyReasoningView,
+    TwinEnergyGoalReasoningArea,
+    TwinEnergyGoalReasoningBasis,
+    TwinEnergyGoalReasoningItem,
+    TwinEnergyGoalReasoningScope,
+    TwinEnergyGoalReasoningView,
     TwinHomeownerFacingAdvisoryArea,
     TwinHomeownerFacingAdvisoryBasis,
     TwinHomeownerFacingAdvisoryItem,
@@ -564,6 +569,39 @@ HOMEOWNER_FACING_ADVISORY_DEFERRED_BOUNDARIES = [
     "proposal_generation",
     "sales_claims",
     "contractor_directives",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "exports",
+    "operational_behavior",
+]
+
+ENERGY_GOAL_REASONING_LIMITATIONS = [
+    "Phase 3L energy goal reasoning is goal-to-context reasoning only.",
+    "Goal-readiness means context readiness for goal reasoning.",
+    "Goal-readiness does not mean design readiness, proposal readiness, approval, verification, or recommendation authority.",
+    "Goal alignment is categorical and traceable, not numeric, ranked, optimized, or ordered by desirability.",
+    "This view does not recommend products, recommend final designs, rank goals, rank solutions, optimize, simulate, compare scenarios, calculate savings or payback, generate proposals, create directives, perform utility-readiness logic, enforce permissions, export data, persist state, create graph behavior, create twin_id, or operate devices.",
+    "Permission readiness is metadata only and is not authorization or enforcement; provenance basis is source context only and is not verification.",
+]
+
+ENERGY_GOAL_REASONING_DEFERRED_BOUNDARIES = [
+    "product_recommendations",
+    "final_design_recommendations",
+    "goal_ranking",
+    "solution_ranking",
+    "optimization",
+    "simulation",
+    "scenario_comparison",
+    "savings_payback",
+    "proposal_generation",
+    "contractor_directives",
+    "homeowner_directives",
+    "utility_readiness_logic",
     "permission_enforcement",
     "auth",
     "rbac_abac",
@@ -9255,6 +9293,611 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3I views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3K homeowner-facing translation view."
+            ),
+        )
+
+    def _energy_goal_reasoning_basis(
+        self,
+        *,
+        source_views: Optional[List[str]] = None,
+        source_section_keys: Optional[List[str]] = None,
+        goal_refs: Optional[List[str]] = None,
+        known_fact_refs: Optional[List[str]] = None,
+        missing_prerequisite_refs: Optional[List[str]] = None,
+        advisory_context_refs: Optional[List[str]] = None,
+        provenance_refs: Optional[List[str]] = None,
+        permission_refs: Optional[List[str]] = None,
+        professional_boundary_refs: Optional[List[str]] = None,
+        unsafe_assumption_refs: Optional[List[str]] = None,
+        blocked_deferred_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinEnergyGoalReasoningBasis:
+        return TwinEnergyGoalReasoningBasis(
+            source_views=self._sorted_unique(
+                source_views
+                or [
+                    "twin_planning_context",
+                    "topology_snapshot",
+                    "advisory_context_assembly",
+                    "constraint_risk_reasoning",
+                    "pre_recommendation_advisory",
+                    "recommendation_eligibility_readiness",
+                    "basic_advisory_recommendations",
+                    "contractor_facing_advisory",
+                    "homeowner_facing_advisory",
+                ]
+            ),
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            goal_refs=self._sorted_unique(goal_refs or []),
+            known_fact_refs=self._sorted_unique(known_fact_refs or []),
+            missing_prerequisite_refs=self._sorted_unique(missing_prerequisite_refs or []),
+            advisory_context_refs=self._sorted_unique(advisory_context_refs or []),
+            provenance_refs=self._sorted_unique(provenance_refs or []),
+            permission_refs=self._sorted_unique(permission_refs or []),
+            professional_boundary_refs=self._sorted_unique(professional_boundary_refs or []),
+            unsafe_assumption_refs=self._sorted_unique(unsafe_assumption_refs or []),
+            blocked_deferred_refs=self._sorted_unique(blocked_deferred_refs or []),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=ENERGY_GOAL_REASONING_LIMITATIONS,
+        )
+
+    def _energy_goal_reasoning_item(
+        self,
+        *,
+        reasoning_area: TwinEnergyGoalReasoningArea,
+        posture: str,
+        statement: str,
+        recorded_goal_refs: Optional[List[str]] = None,
+        known_fact_alignment: Optional[List[str]] = None,
+        missing_prerequisite_gaps: Optional[List[str]] = None,
+        advisory_context_links: Optional[List[str]] = None,
+        blocked_deferred: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinEnergyGoalReasoningBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinEnergyGoalReasoningItem:
+        return TwinEnergyGoalReasoningItem(
+            reasoning_area=reasoning_area,
+            posture=posture,
+            statement=statement,
+            recorded_goal_refs=self._sorted_unique(recorded_goal_refs or []),
+            known_fact_alignment=self._sorted_unique(known_fact_alignment or []),
+            missing_prerequisite_gaps=self._sorted_unique(missing_prerequisite_gaps or []),
+            advisory_context_links=self._sorted_unique(advisory_context_links or []),
+            blocked_deferred=self._sorted_unique(blocked_deferred or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or ENERGY_GOAL_REASONING_LIMITATIONS,
+        )
+
+    def _energy_goal_reasoning_item_sort_key(
+        self, item: TwinEnergyGoalReasoningItem
+    ) -> str:
+        return item.reasoning_area.value
+
+    def build_energy_goal_reasoning_view(
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
+        scenario_view: Optional[TwinScenarioComparisonReadinessView] = None,
+        pre_recommendation_view: Optional[TwinPreRecommendationAdvisoryView] = None,
+        eligibility_view: Optional[TwinRecommendationEligibilityReadinessView] = None,
+        basic_recommendations_view: Optional[TwinBasicAdvisoryRecommendationsView] = None,
+        contractor_advisory_view: Optional[TwinContractorFacingAdvisoryView] = None,
+        homeowner_advisory_view: Optional[TwinHomeownerFacingAdvisoryView] = None,
+    ) -> Optional[TwinEnergyGoalReasoningView]:
+        context = context or self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
+        if readiness_view is None:
+            return None
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
+        if advisory_view is None:
+            return None
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
+        if risk_view is None:
+            return None
+        scenario_view = scenario_view or self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
+        if scenario_view is None:
+            return None
+        pre_recommendation_view = pre_recommendation_view or self.build_pre_recommendation_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+        )
+        if pre_recommendation_view is None:
+            return None
+        eligibility_view = eligibility_view or self.build_recommendation_eligibility_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+        )
+        if eligibility_view is None:
+            return None
+        basic_recommendations_view = basic_recommendations_view or self.build_basic_advisory_recommendations_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+        )
+        if basic_recommendations_view is None:
+            return None
+        contractor_advisory_view = contractor_advisory_view or self.build_contractor_facing_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+        )
+        if contractor_advisory_view is None:
+            return None
+        homeowner_advisory_view = homeowner_advisory_view or self.build_homeowner_facing_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+        )
+        if homeowner_advisory_view is None:
+            return None
+
+        source_section_keys = [section.section_key for section in context.sections]
+        goal_refs = self._sorted_unique(
+            goal
+            for goal_item in advisory_view.homeowner_goals
+            for goal in goal_item.assembled_inputs + goal_item.missing_inputs
+        )
+        known_fact_refs = self._sorted_unique(
+            [f"section:{section.section_key}:records:{len(section.records)}" for section in context.sections]
+            + [
+                f"topology_nodes:{len(snapshot.nodes)}",
+                f"topology_edges:{len(snapshot.edges)}",
+                f"advisory_goal_items:{len(advisory_view.homeowner_goals)}",
+                f"contractor_advisory_items:{len(contractor_advisory_view.advisory_items)}",
+                f"homeowner_advisory_items:{len(homeowner_advisory_view.advisory_items)}",
+            ]
+        )
+        missing_prerequisite_refs = self._sorted_unique(
+            eligibility_view.missing_prerequisites
+            + (
+                pre_recommendation_view.missing_data_before_advice[0].missing_data
+                if pre_recommendation_view.missing_data_before_advice
+                else []
+            )
+            + basic_recommendations_view.source_basis.prerequisite_refs
+            + [
+                missing
+                for goal_item in advisory_view.homeowner_goals
+                for missing in goal_item.missing_inputs
+            ]
+        )
+        advisory_context_refs = self._sorted_unique(
+            [
+                "TwinAdvisoryContextAssemblyView.homeowner_goals",
+                "TwinContractorFacingAdvisoryView.contractor_visible_known_unknown_summary",
+                "TwinContractorFacingAdvisoryView.professional_review_boundaries",
+                "TwinHomeownerFacingAdvisoryView.homeowner_visible_known_unknown_summary",
+                "TwinHomeownerFacingAdvisoryView.questions_to_ask_contractor",
+                "TwinBasicAdvisoryRecommendationsView.recommendation_items",
+            ]
+        )
+        provenance_refs = eligibility_view.source_basis.provenance_refs
+        permission_refs = eligibility_view.source_basis.permission_refs
+        professional_boundary_refs = self._sorted_unique(
+            eligibility_view.source_basis.professional_boundary_refs
+            + [
+                boundary
+                for item in risk_view.professional_review_boundaries + risk_view.field_verification_needs
+                for boundary in item.professional_review_boundaries
+            ]
+        )
+        unsafe_assumption_refs = self._sorted_unique(
+            list(scenario_view.unsafe_assumptions)
+            + [
+                assumption
+                for goal_item in advisory_view.homeowner_goals
+                for assumption in goal_item.unsafe_assumptions
+            ]
+            + [
+                assumption
+                for item in risk_view.constraint_risk_items
+                for assumption in item.unsafe_assumptions
+            ]
+        )
+        source_basis = self._energy_goal_reasoning_basis(
+            source_section_keys=source_section_keys,
+            goal_refs=goal_refs,
+            known_fact_refs=known_fact_refs,
+            missing_prerequisite_refs=missing_prerequisite_refs,
+            advisory_context_refs=advisory_context_refs,
+            provenance_refs=provenance_refs,
+            permission_refs=permission_refs,
+            professional_boundary_refs=professional_boundary_refs,
+            unsafe_assumption_refs=unsafe_assumption_refs,
+            blocked_deferred_refs=ENERGY_GOAL_REASONING_DEFERRED_BOUNDARIES,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinAdvisoryContextAssemblyView",
+                "TwinConstraintRiskReasoningView",
+                "TwinPreRecommendationAdvisoryView",
+                "TwinRecommendationEligibilityReadinessView",
+                "TwinBasicAdvisoryRecommendationsView",
+                "TwinContractorFacingAdvisoryView",
+                "TwinHomeownerFacingAdvisoryView",
+            ],
+        )
+        common_unsafe_assumptions = [
+            "Treating energy goal reasoning as product selection, final design guidance, goal ranking, proposal generation, economic reasoning, or directive behavior would be unsafe.",
+        ]
+        recorded_goal_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.recorded_homeowner_goals,
+            posture="recorded_goal_context_only",
+            statement="Recorded homeowner goals are represented only when existing planning context contains recorded design goal fields.",
+            recorded_goal_refs=goal_refs,
+            missing_prerequisite_gaps=[
+                "recorded_design_goal"
+            ] if not goal_refs or "recorded_design_goal" in goal_refs else [],
+            blocked_deferred=ENERGY_GOAL_REASONING_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Inventing homeowner energy goals would be unsafe."],
+            confidence_posture="recorded_goal_context_planning_only",
+            basis=self._energy_goal_reasoning_basis(
+                source_section_keys=source_section_keys,
+                goal_refs=goal_refs,
+                derived_from=["TwinAdvisoryContextAssemblyView.homeowner_goals"],
+            ),
+        )
+        known_alignment_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.goal_to_known_fact_alignment,
+            posture="categorical_traceable_alignment_only",
+            statement=(
+                "Goal alignment is categorical and traceable to known context facts; it is not numeric, ranked, optimized, or ordered by desirability."
+            ),
+            recorded_goal_refs=goal_refs,
+            known_fact_alignment=known_fact_refs,
+            blocked_deferred=["goal_ranking", "solution_ranking", "optimization", "final_design_recommendations"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="known_fact_alignment_context_present",
+            basis=self._energy_goal_reasoning_basis(
+                goal_refs=goal_refs,
+                known_fact_refs=known_fact_refs,
+                derived_from=[
+                    "TwinPlanningContext.sections",
+                    "TwinTopologySnapshot.nodes",
+                    "TwinTopologySnapshot.edges",
+                    "TwinAdvisoryContextAssemblyView.homeowner_goals",
+                ],
+            ),
+        )
+        missing_gap_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.goal_to_missing_prerequisite_gaps,
+            posture="missing_prerequisites_visible_before_goal_reasoning_expansion",
+            statement=(
+                "Goal-to-missing-prerequisite gaps identify what context is missing before broader goal reasoning can safely expand."
+            ),
+            recorded_goal_refs=goal_refs,
+            missing_prerequisite_gaps=missing_prerequisite_refs,
+            blocked_deferred=["final_design_recommendations", "proposal_generation", "optimization"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating missing prerequisite context as resolved would be unsafe."],
+            confidence_posture="missing_prerequisites_traceable",
+            basis=self._energy_goal_reasoning_basis(
+                goal_refs=goal_refs,
+                missing_prerequisite_refs=missing_prerequisite_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.missing_prerequisites",
+                    "TwinPreRecommendationAdvisoryView.missing_data_before_advice",
+                    "TwinBasicAdvisoryRecommendationsView.source_basis.prerequisite_refs",
+                ],
+            ),
+        )
+        readiness_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.goal_readiness_posture,
+            posture="context_readiness_for_goal_reasoning_only",
+            statement=(
+                "Goal-readiness means context readiness for goal reasoning; it does not mean design readiness, proposal readiness, approval, verification, or recommendation authority."
+            ),
+            recorded_goal_refs=goal_refs,
+            known_fact_alignment=known_fact_refs,
+            missing_prerequisite_gaps=missing_prerequisite_refs,
+            blocked_deferred=ENERGY_GOAL_REASONING_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="goal_readiness_is_context_readiness_only",
+            basis=source_basis,
+        )
+        provenance_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.provenance_basis,
+            posture="provenance_visible_not_verification",
+            statement="Provenance basis is source context for energy goal reasoning only; provenance presence is not verification.",
+            recorded_goal_refs=goal_refs,
+            known_fact_alignment=provenance_refs,
+            blocked_deferred=["verification_workflow", "final_design_recommendations", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating provenance presence as verification would be unsafe."],
+            confidence_posture="provenance_context_visible_not_verified",
+            basis=self._energy_goal_reasoning_basis(
+                goal_refs=goal_refs,
+                provenance_refs=provenance_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.provenance_sufficiency",
+                    "TwinHomeownerFacingAdvisoryView.provenance_basis_plain_language",
+                    "TwinContractorFacingAdvisoryView.provenance_basis",
+                ],
+            ),
+            limitations=ENERGY_GOAL_REASONING_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+        permission_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.permission_readiness_metadata,
+            posture="permission_readiness_metadata_only",
+            statement="Permission-readiness metadata is visible for energy goal reasoning context only and is not authorization or enforcement.",
+            recorded_goal_refs=goal_refs,
+            known_fact_alignment=permission_refs,
+            blocked_deferred=["permission_enforcement", "auth", "rbac_abac", "exports"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating permission-readiness metadata as authorization would be unsafe."],
+            confidence_posture="permission_metadata_only_not_authorization",
+            basis=self._energy_goal_reasoning_basis(
+                goal_refs=goal_refs,
+                permission_refs=permission_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.permission_readiness_basis",
+                    "TwinHomeownerFacingAdvisoryView.permission_readiness_metadata",
+                    "TwinContractorFacingAdvisoryView.permission_readiness_metadata",
+                ],
+            ),
+            limitations=ENERGY_GOAL_REASONING_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+        )
+        advisory_links_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.contractor_homeowner_advisory_context_links,
+            posture="advisory_context_links_only",
+            statement=(
+                "Contractor and homeowner advisory context links connect goal reasoning to existing translation views without creating directives or proposal logic."
+            ),
+            recorded_goal_refs=goal_refs,
+            advisory_context_links=advisory_context_refs,
+            blocked_deferred=["contractor_directives", "homeowner_directives", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="advisory_context_links_present_not_directives",
+            basis=self._energy_goal_reasoning_basis(
+                goal_refs=goal_refs,
+                advisory_context_refs=advisory_context_refs,
+                derived_from=[
+                    "TwinContractorFacingAdvisoryView",
+                    "TwinHomeownerFacingAdvisoryView",
+                    "TwinBasicAdvisoryRecommendationsView",
+                ],
+            ),
+        )
+        professional_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.professional_review_boundaries,
+            posture="professional_review_boundary_visible",
+            statement="Professional-review boundaries remain visible; this view does not approve goals, designs, proposals, or work.",
+            recorded_goal_refs=goal_refs,
+            missing_prerequisite_gaps=professional_boundary_refs,
+            blocked_deferred=["final_design_recommendations", "proposal_generation", "operational_behavior"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating professional-review boundaries as completed review would be unsafe."],
+            confidence_posture="professional_review_required_not_present",
+            basis=self._energy_goal_reasoning_basis(
+                goal_refs=goal_refs,
+                professional_boundary_refs=professional_boundary_refs,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.professional_review_boundaries",
+                    "TwinRecommendationEligibilityReadinessView.professional_review_boundaries",
+                ],
+            ),
+        )
+        unsafe_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.unsafe_assumptions,
+            posture="unsafe_assumptions_visible",
+            statement="Unsafe assumptions remain visible before goal reasoning can be treated as broader recommendation or proposal context.",
+            recorded_goal_refs=goal_refs,
+            missing_prerequisite_gaps=unsafe_assumption_refs,
+            blocked_deferred=ENERGY_GOAL_REASONING_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions + unsafe_assumption_refs,
+            confidence_posture="unsafe_assumptions_not_resolved",
+            basis=self._energy_goal_reasoning_basis(
+                goal_refs=goal_refs,
+                unsafe_assumption_refs=unsafe_assumption_refs,
+                derived_from=[
+                    "TwinAdvisoryContextAssemblyView.homeowner_goals",
+                    "TwinConstraintRiskReasoningView.constraint_risk_items",
+                    "TwinScenarioComparisonReadinessView.unsafe_assumptions",
+                ],
+            ),
+        )
+        deferred_item = self._energy_goal_reasoning_item(
+            reasoning_area=TwinEnergyGoalReasoningArea.deferred_goal_optimization_proposal_boundaries,
+            posture="goal_optimization_and_proposals_deferred",
+            statement="Goal optimization, proposal generation, economic reasoning, ranking, design guidance, and directives remain deferred.",
+            recorded_goal_refs=goal_refs,
+            blocked_deferred=ENERGY_GOAL_REASONING_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="deferred_goal_boundaries_preserved",
+            basis=source_basis,
+        )
+        items = sorted(
+            [
+                recorded_goal_item,
+                known_alignment_item,
+                missing_gap_item,
+                readiness_item,
+                provenance_item,
+                permission_item,
+                advisory_links_item,
+                professional_item,
+                unsafe_item,
+                deferred_item,
+            ],
+            key=self._energy_goal_reasoning_item_sort_key,
+        )
+        return TwinEnergyGoalReasoningView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3L energy goal reasoning view built request-time from existing TwinPlanningContext, "
+                "topology snapshot, and approved Phase 3 readiness/advisory views; connects recorded homeowner energy goals "
+                "to known facts, missing prerequisites, advisory context, and prerequisite-only recommendations. Goal-readiness "
+                "means context readiness for goal reasoning and does not mean design readiness, proposal readiness, approval, "
+                "verification, or recommendation authority. Goal alignment is categorical and traceable, not numeric, ranked, "
+                "optimized, or ordered by desirability. This view does not recommend products, recommend final designs, rank goals, "
+                "rank solutions, optimize, simulate, compare scenarios, calculate savings or payback, generate proposals, create "
+                "contractor or homeowner directives, perform utility-readiness logic, enforce permissions, export data, persist "
+                "state, create graph behavior, create twin_id, or operate devices."
+            ),
+            source_basis=source_basis,
+            reasoning_scope=TwinEnergyGoalReasoningScope(
+                limitations=ENERGY_GOAL_REASONING_LIMITATIONS,
+            ),
+            reasoning_items=items,
+            recorded_homeowner_goals=[
+                item for item in items if item.reasoning_area == TwinEnergyGoalReasoningArea.recorded_homeowner_goals
+            ],
+            goal_to_known_fact_alignment=[
+                item
+                for item in items
+                if item.reasoning_area == TwinEnergyGoalReasoningArea.goal_to_known_fact_alignment
+            ],
+            goal_to_missing_prerequisite_gaps=[
+                item
+                for item in items
+                if item.reasoning_area == TwinEnergyGoalReasoningArea.goal_to_missing_prerequisite_gaps
+            ],
+            goal_readiness_posture=[
+                item for item in items if item.reasoning_area == TwinEnergyGoalReasoningArea.goal_readiness_posture
+            ],
+            provenance_basis=[
+                item for item in items if item.reasoning_area == TwinEnergyGoalReasoningArea.provenance_basis
+            ],
+            permission_readiness_metadata=[
+                item
+                for item in items
+                if item.reasoning_area == TwinEnergyGoalReasoningArea.permission_readiness_metadata
+            ],
+            contractor_homeowner_advisory_context_links=[
+                item
+                for item in items
+                if item.reasoning_area == TwinEnergyGoalReasoningArea.contractor_homeowner_advisory_context_links
+            ],
+            professional_review_boundaries=[
+                item
+                for item in items
+                if item.reasoning_area == TwinEnergyGoalReasoningArea.professional_review_boundaries
+            ],
+            unsafe_assumptions=[
+                item for item in items if item.reasoning_area == TwinEnergyGoalReasoningArea.unsafe_assumptions
+            ],
+            limitations=ENERGY_GOAL_REASONING_LIMITATIONS,
+            deferred_goal_optimization_proposal_boundaries=sorted(
+                ENERGY_GOAL_REASONING_DEFERRED_BOUNDARIES
+            ),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3K views, AI grounding, "
+                "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3L energy goal reasoning view."
             ),
         )
 
