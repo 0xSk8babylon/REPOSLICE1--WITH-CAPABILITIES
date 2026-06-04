@@ -65,6 +65,10 @@ Read these first:
   - Completed: internal service-layer request-time reuse of already-built `TwinPlanningContext`, topology snapshot, and Phase 3A through Phase 3I derived view objects.
   - Current boundary: performance/determinism stabilization only. No endpoint, schema, router, persistence, response-shape, frontend, auth, permission enforcement, export, graph, `twin_id`, operational behavior, or Phase 3J implementation changed.
   - Verification: focused problematic test passed; `python3 -m unittest tests.test_twin_planning_context` passed with 93 tests; `python3 -m unittest discover tests` passed with 104 tests.
+- Phase 3J: Contractor-Facing Advisory Logic - complete for the approved tenth runtime boundary in `58bd14f`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/contractor-facing-advisory` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored contractor-facing translation over existing `TwinPlanningContext`, topology snapshot, and Phase 3C through Phase 3I readiness/advisory/recommendation context. It translates existing context into field-verification and install-readiness language only.
+  - Deferred: contractor action directives, proposal generation, pricing, bid logic, product recommendations, final design recommendations, ranked options, best-option selection, optimization, simulation, scenario comparison, marketplace behavior, CRM workflows, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -94,6 +98,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
   - `docs/handoffs/2026-06-04-phase-3-derived-view-assembly-stabilization.md`
   - `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`
   - `docs/handoffs/2026-06-03-phase-3e-constraint-risk-reasoning.md`
@@ -196,6 +201,12 @@ Read these first:
   - Phase 3I Basic Advisory Recommendations:
     - `docs/handoffs/2026-06-03-phase-3i-basic-advisory-recommendations.md`
     - `docs/handoffs/2026-06-04-phase-3-derived-view-assembly-stabilization.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3J Contractor-Facing Advisory Logic:
+    - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`

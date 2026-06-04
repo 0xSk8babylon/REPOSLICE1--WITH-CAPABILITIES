@@ -28,6 +28,7 @@
 - Phase 3H Recommendation Eligibility Readiness complete in `958f3e0`.
 - Phase 3I Basic Advisory Recommendations complete in `2f1b4bd`.
 - Phase 3 derived-view assembly stabilization complete in `f1fbc7b`.
+- Phase 3J Contractor-Facing Advisory Logic complete in `58bd14f`.
 - Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Phase 2B Twin Runtime Expression is complete and stabilized for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
 - Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`.
@@ -41,6 +42,7 @@
 - Phase 3H Recommendation Eligibility Readiness is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored recommendation-readiness gate over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, Phase 3F scenario comparison readiness, and Phase 3G pre-recommendation advisory outputs.
 - Phase 3I Basic Advisory Recommendations is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored prerequisite/remediation recommendation view over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, Phase 3F scenario comparison readiness, Phase 3G pre-recommendation advisory, and Phase 3H recommendation eligibility readiness outputs.
 - Phase 3 derived-view assembly stabilization is complete for the approved internal service-layer boundary: request-time `TwinPlanningContext`, topology snapshot, and Phase 3A through Phase 3I derived view objects are reused inside a single builder chain to avoid recursive rebuilding. This changed no endpoints, schemas, routers, persistence, response shapes, frontend behavior, auth, permission enforcement, exports, graph behavior, `twin_id`, operational behavior, or Phase 3J scope.
+- Phase 3J Contractor-Facing Advisory Logic is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored contractor-facing translation view over existing `TwinPlanningContext`, topology snapshot, and Phase 3C through Phase 3I readiness/advisory/recommendation context.
 - Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, permission enforcement, scoped exports, and operational control remain unapproved.
 - `.github/` remains out of scope for this session.
 - Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
@@ -91,8 +93,10 @@
   - `2f1b4bd` `feat: add basic advisory recommendations view`
   - `8d4bea1` `docs: record phase 3i basic advisory recommendations closeout`
   - `f1fbc7b` `fix: reuse derived planning view assembly inputs`
+  - `e4d5f70` `docs: record phase 3 derived view assembly stabilization`
+  - `58bd14f` `feat: add contractor facing advisory view`
 - Current closeout checkpoint:
-  - Aligning project memory for Phase 3 derived-view assembly stabilization only. No runtime feature work, Phase 3J implementation, endpoint/schema/router/persistence changes, response-shape changes, frontend work, auth, permission enforcement, exports, graph behavior, `twin_id`, or operational behavior is in scope.
+  - Aligning project memory for Phase 3J Contractor-Facing Advisory Logic closeout only. No runtime feature work, Phase 3K implementation, persistence changes, migrations, response-shape changes beyond the additive Phase 3J view already committed, frontend work, auth, permission enforcement, exports, graph behavior, `twin_id`, or operational behavior is in scope.
 
 ## Canonical Phase Structure
 
@@ -109,14 +113,16 @@
 - Phase 3G: Pre-Recommendation Advisory - complete for the approved seventh runtime boundary in `5883985`.
 - Phase 3H: Recommendation Eligibility Readiness - complete for the approved eighth runtime boundary in `958f3e0`.
 - Phase 3I: Basic Advisory Recommendations - complete for the approved ninth runtime boundary in `2f1b4bd`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
+- Phase 3J: Contractor-Facing Advisory Logic - complete for the approved tenth runtime boundary in `58bd14f`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
 
 ## What Changed Last
 
-- Phase 3 derived-view assembly stabilization complete in `f1fbc7b`.
-- Root cause: Phase 3I Basic Advisory Recommendations recursively rebuilt Phase 3C through Phase 3H and earlier Phase 3 views inside deterministic same-input/same-output tests, creating CPU-bound focused unittest runs.
-- Fix: `TwinPlanningContextService` now reuses already-built request-time `TwinPlanningContext`, topology snapshot, and Phase 3A through Phase 3I derived view objects inside a single builder chain.
-- Behavior/API impact: no endpoint, schema, router, persistence, response-shape, frontend, auth, permission enforcement, export, graph, `twin_id`, operational behavior, or Phase 3J change.
-- Verification for `f1fbc7b`: `git diff --check` passed; focused problematic test passed; `python3 -m unittest tests.test_twin_planning_context` passed with 93 tests; `python3 -m unittest discover tests` passed with 104 tests; final git status was clean before this docs-only continuity update.
+- Phase 3J Contractor-Facing Advisory Logic complete in `58bd14f`.
+- Added the Contractor-Facing Advisory endpoint: `/api/twin-planning-context/homes/{home_id}/views/contractor-facing-advisory`.
+- Added a read-only, request-time, `home_id`-anchored contractor-facing translation view over existing `TwinPlanningContext`, topology snapshot, and Phase 3C through Phase 3I readiness/advisory/recommendation context.
+- The view reports contractor-visible known/unknown summaries, field-verification needs, install-readiness signals, missing equipment/spec information, topology verification needs, provenance basis, permission-readiness metadata, professional-review boundaries, prerequisite-only advisory recommendations, limitations, and deferred contractor workflow boundaries.
+- Behavior/API impact: additive endpoint and schemas only. No existing response shape, router behavior, persistence, migrations, frontend, auth, permission enforcement, export, graph, `twin_id`, operational behavior, proposal generation, pricing, bid logic, product/design recommendation, marketplace behavior, CRM workflow, or scenario-comparison behavior changed.
+- Verification for `58bd14f`: `git diff --check` passed; focused Phase 3J tests passed; `python3 -m unittest tests.test_twin_planning_context` passed with 98 tests; `python3 -m unittest discover tests` passed with 109 tests; `git diff --cached --check` passed; final git status was clean after the code commit.
 - Product/design recommendations, recommendation ranking, best-option selection, scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, outcome calculation, calculated change analysis, option ordering, optimization, change propagation, stale-state persistence, recalculation, invalidation, final design guidance, proposal generation, contractor directives, homeowner directives, economic reasoning, utility readiness logic/reasoning, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph engine/database, exports, operational behavior, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model remain deferred.
 
 ## Earlier Change
