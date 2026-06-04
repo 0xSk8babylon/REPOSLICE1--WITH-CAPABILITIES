@@ -89,7 +89,14 @@ Read these first:
   - Completed: Phase 3A through Phase 3N completion, Phase 3 derived-view assembly stabilization, all Phase 3 endpoints, latest recorded verification, deferred boundaries, and Phase 4 readiness notes are normalized in continuity docs.
   - Current boundary: closeout only. Phase 3O is not Phase 4 planning implementation and adds no endpoints, app/runtime code, schemas, services, routes, tests, migrations, persistence, frontend behavior, exports, permission enforcement, auth/security behavior, graph behavior, `twin_id`, pricing, proposal generation, product selection, compatibility engine behavior, economic reasoning, scenario simulation, marketplace behavior, operational behavior, roadmap restructuring, or architecture doctrine rewrite.
   - Latest recorded verification: `python3 -m unittest discover tests` passed with 129 tests during Phase 3N verification. Phase 3O did not rerun backend tests because it changed docs/continuity only.
-  - Next safe step: Phase 4 readiness assessment only, with any implementation requiring a separate Matt-approved boundary.
+  - Next safe step: use the Phase 4 charter for assessment-only routing, with any implementation requiring a separate Matt-approved boundary.
+- Phase 4: Trust / Provenance Maturity and Readiness Normalization - chartered as docs-only boundary definition.
+  - Charter: `docs/phase-4-charter.md`
+  - Handoff: `docs/handoffs/2026-06-04-phase-4-charter.md`
+  - Product purpose: normalize trust, provenance, readiness, confidence, missing-data, unsafe-assumption, limitation, and deferred-boundary visibility across existing Phase 3 outputs.
+  - First safe implementation candidate after separate approval: additive read-only normalization of existing Phase 3 trust/provenance/readiness metadata.
+  - Assessment-before-implementation rule: inventory affected Phase 3 outputs first, then propose a narrow Matt-approved implementation boundary before runtime work.
+  - Current boundary: Phase 4 is not yet implemented. No app/runtime code, frontend, APIs, endpoints, schemas, services, routes, tests, exports, permission enforcement, auth/security changes, persistence, migrations, graph engine, `twin_id`, operational behavior, proposals, pricing, product selection, compatibility engine, economic reasoning, scenario simulation, marketplace behavior, or roadmap rewrite is approved by the charter.
 
 ## Operational References By Task
 
@@ -119,6 +126,8 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/phase-4-charter.md`
+  - `docs/handoffs/2026-06-04-phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-3o-phase-3-closeout-stabilization.md`
   - `docs/handoffs/2026-06-04-phase-3n-product-spec-readiness.md`
   - `docs/handoffs/2026-06-04-phase-3m-proposal-readiness-foundation.md`
