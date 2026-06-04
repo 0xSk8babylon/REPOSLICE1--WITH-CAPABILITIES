@@ -13,6 +13,7 @@ from app.twin_planning_context.schemas import (
     TwinConstraintRiskReasoningView,
     TwinDependencyImpactReadinessView,
     TwinDependencyReasoningView,
+    TwinHomeownerFacingAdvisoryView,
     TwinPlanningIntelligenceReadinessView,
     TwinPlanningContext,
     TwinPreRecommendationAdvisoryView,
@@ -159,6 +160,17 @@ def get_basic_advisory_recommendations_view(home_id: str, db: Session = Depends(
 )
 def get_contractor_facing_advisory_view(home_id: str, db: Session = Depends(get_db)):
     view = twin_planning_context_service.build_contractor_facing_advisory_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
+    return view
+
+
+@router.get(
+    "/homes/{home_id}/views/homeowner-facing-advisory",
+    response_model=TwinHomeownerFacingAdvisoryView,
+)
+def get_homeowner_facing_advisory_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_homeowner_facing_advisory_view(db, home_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home not found")
     return view

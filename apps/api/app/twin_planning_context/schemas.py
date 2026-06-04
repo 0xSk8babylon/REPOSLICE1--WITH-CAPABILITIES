@@ -1422,6 +1422,115 @@ class TwinContractorFacingAdvisoryView(ORMModel):
     compatibility_note: str
 
 
+class TwinHomeownerFacingAdvisoryArea(str, Enum):
+    homeowner_visible_known_unknown_summary = "homeowner_visible_known_unknown_summary"
+    safe_context_explanation = "safe_context_explanation"
+    missing_information = "missing_information"
+    questions_to_ask_contractor = "questions_to_ask_contractor"
+    professional_review_boundaries = "professional_review_boundaries"
+    provenance_basis_plain_language = "provenance_basis_plain_language"
+    permission_readiness_metadata = "permission_readiness_metadata"
+    prerequisite_advisory_recommendations = "prerequisite_advisory_recommendations"
+    deferred_homeowner_workflow_boundaries = "deferred_homeowner_workflow_boundaries"
+
+
+class TwinHomeownerFacingAdvisoryScope(ORMModel):
+    advisory_scope: str = "phase_3k_homeowner_facing_advisory"
+    homeowner_facing_translation_only: bool = True
+    safe_explanation_language_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_planning_intelligence_readiness: bool = True
+    derived_from_advisory_context_assembly: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    derived_from_scenario_comparison_readiness: bool = True
+    derived_from_pre_recommendation_advisory: bool = True
+    derived_from_recommendation_eligibility_readiness: bool = True
+    derived_from_basic_advisory_recommendations: bool = True
+    deterministic_for_same_inputs: bool = True
+    homeowner_action_directives_present: bool = False
+    final_design_guidance_present: bool = False
+    product_recommendations_present: bool = False
+    specific_equipment_recommendations_present: bool = False
+    ranked_options_present: bool = False
+    best_option_selection_present: bool = False
+    scenario_comparison_present: bool = False
+    simulation_present: bool = False
+    savings_payback_present: bool = False
+    proposal_generation_present: bool = False
+    sales_claims_present: bool = False
+    contractor_directives_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinHomeownerFacingAdvisoryBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    known_refs: List[str] = Field(default_factory=list)
+    unknown_refs: List[str] = Field(default_factory=list)
+    missing_information_refs: List[str] = Field(default_factory=list)
+    question_refs: List[str] = Field(default_factory=list)
+    professional_boundary_refs: List[str] = Field(default_factory=list)
+    provenance_refs: List[str] = Field(default_factory=list)
+    permission_refs: List[str] = Field(default_factory=list)
+    prerequisite_recommendation_refs: List[str] = Field(default_factory=list)
+    blocked_deferred_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinHomeownerFacingAdvisoryItem(ORMModel):
+    advisory_area: TwinHomeownerFacingAdvisoryArea
+    posture: str
+    statement: str
+    homeowner_visible_knowns: List[str] = Field(default_factory=list)
+    homeowner_visible_unknowns: List[str] = Field(default_factory=list)
+    missing_information: List[str] = Field(default_factory=list)
+    questions_to_ask_contractor: List[str] = Field(default_factory=list)
+    prerequisite_recommendation_refs: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinHomeownerFacingAdvisoryBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinHomeownerFacingAdvisoryView(ORMModel):
+    view_name: str = "homeowner_facing_advisory"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinHomeownerFacingAdvisoryBasis
+    advisory_scope: TwinHomeownerFacingAdvisoryScope
+    advisory_items: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    homeowner_visible_known_unknown_summary: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    safe_context_explanation: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    missing_information: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    questions_to_ask_contractor: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    professional_review_boundaries: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    provenance_basis_plain_language: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    permission_readiness_metadata: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    prerequisite_advisory_recommendations: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    deferred_homeowner_workflow_boundaries: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

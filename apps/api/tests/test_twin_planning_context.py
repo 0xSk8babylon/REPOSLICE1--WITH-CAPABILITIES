@@ -83,6 +83,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_contractor_facing_advisory_view(db, "home_001")
 
+    def _homeowner_facing_advisory_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_homeowner_facing_advisory_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -2897,6 +2901,129 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual(
             sorted(first["deferred_contractor_workflow_boundaries"]),
             first["deferred_contractor_workflow_boundaries"],
+        )
+        self.assertEqual(
+            sorted(item["advisory_area"] for item in first["advisory_items"]),
+            [item["advisory_area"] for item in first["advisory_items"]],
+        )
+
+    def test_homeowner_facing_advisory_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/homeowner-facing-advisory",
+            paths,
+        )
+
+        view = self._homeowner_facing_advisory_view()
+        payload = view.dict()
+        scope = view.advisory_scope
+
+        self.assertEqual("homeowner_facing_advisory", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("planning_private", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.homeowner_facing_translation_only)
+        self.assertTrue(scope.safe_explanation_language_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_basic_advisory_recommendations)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("homeowner-facing advisory view", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_homeowner_facing_advisory_has_no_forbidden_capability_flags(self):
+        scope = self._homeowner_facing_advisory_view().advisory_scope
+
+        self.assertFalse(scope.homeowner_action_directives_present)
+        self.assertFalse(scope.final_design_guidance_present)
+        self.assertFalse(scope.product_recommendations_present)
+        self.assertFalse(scope.specific_equipment_recommendations_present)
+        self.assertFalse(scope.ranked_options_present)
+        self.assertFalse(scope.best_option_selection_present)
+        self.assertFalse(scope.scenario_comparison_present)
+        self.assertFalse(scope.simulation_present)
+        self.assertFalse(scope.savings_payback_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.sales_claims_present)
+        self.assertFalse(scope.contractor_directives_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_homeowner_facing_advisory_reports_allowed_translation_areas(self):
+        view = self._homeowner_facing_advisory_view()
+
+        self.assertTrue(view.advisory_items)
+        self.assertTrue(view.homeowner_visible_known_unknown_summary)
+        self.assertTrue(view.safe_context_explanation)
+        self.assertTrue(view.missing_information)
+        self.assertTrue(view.questions_to_ask_contractor)
+        self.assertTrue(view.professional_review_boundaries)
+        self.assertTrue(view.provenance_basis_plain_language)
+        self.assertTrue(view.permission_readiness_metadata)
+        self.assertTrue(view.prerequisite_advisory_recommendations)
+        self.assertTrue(view.deferred_homeowner_workflow_boundaries)
+
+        areas = {item.advisory_area.value for item in view.advisory_items}
+        self.assertEqual(
+            {
+                "homeowner_visible_known_unknown_summary",
+                "safe_context_explanation",
+                "missing_information",
+                "questions_to_ask_contractor",
+                "professional_review_boundaries",
+                "provenance_basis_plain_language",
+                "permission_readiness_metadata",
+                "prerequisite_advisory_recommendations",
+                "deferred_homeowner_workflow_boundaries",
+            },
+            areas,
+        )
+        for item in view.advisory_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(item.basis.derived_from or item.advisory_area.value == "deferred_homeowner_workflow_boundaries")
+            self.assertIn("basic_advisory_recommendations", item.basis.source_views)
+
+    def test_homeowner_facing_advisory_preserves_trust_boundaries(self):
+        view = self._homeowner_facing_advisory_view()
+        limitation_text = " ".join(view.limitations)
+        payload_text = str(view.dict())
+
+        self.assertIn("audience translation only", limitation_text)
+        self.assertIn("does not direct homeowner action", limitation_text)
+        self.assertIn("conversation prompts only", view.questions_to_ask_contractor[0].statement)
+        self.assertIn("not authorization or enforcement", view.permission_readiness_metadata[0].statement)
+        self.assertIn("not field verification", view.provenance_basis_plain_language[0].statement)
+        self.assertIn(
+            "not design advice, product recommendations, or homeowner directives",
+            view.prerequisite_advisory_recommendations[0].statement,
+        )
+        self.assertIn("homeowner_action_directives", view.deferred_homeowner_workflow_boundaries)
+        self.assertIn("sales_claims", view.deferred_homeowner_workflow_boundaries)
+        self.assertNotIn("recommended_profile", payload_text)
+        self.assertNotIn("Advisor recommendation summary for", payload_text)
+        self.assertFalse(view.advisory_scope.final_design_guidance_present)
+        self.assertFalse(view.advisory_scope.homeowner_action_directives_present)
+
+    def test_homeowner_facing_advisory_is_deterministic_for_same_inputs(self):
+        first = self._homeowner_facing_advisory_view().dict()
+        second = self._homeowner_facing_advisory_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_homeowner_workflow_boundaries"]),
+            first["deferred_homeowner_workflow_boundaries"],
         )
         self.assertEqual(
             sorted(item["advisory_area"] for item in first["advisory_items"]),

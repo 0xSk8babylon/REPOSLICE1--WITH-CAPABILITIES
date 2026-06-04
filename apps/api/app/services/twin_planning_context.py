@@ -37,6 +37,11 @@ from app.twin_planning_context.schemas import (
     TwinDependencyReasoningScope,
     TwinDependencyReasoningType,
     TwinDependencyReasoningView,
+    TwinHomeownerFacingAdvisoryArea,
+    TwinHomeownerFacingAdvisoryBasis,
+    TwinHomeownerFacingAdvisoryItem,
+    TwinHomeownerFacingAdvisoryScope,
+    TwinHomeownerFacingAdvisoryView,
     TwinPlanningIntelligenceReadinessArea,
     TwinPlanningIntelligenceReadinessItem,
     TwinPlanningIntelligenceReadinessScope,
@@ -528,6 +533,37 @@ CONTRACTOR_FACING_ADVISORY_DEFERRED_BOUNDARIES = [
     "scenario_comparison",
     "marketplace_behavior",
     "crm_workflows",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "exports",
+    "operational_behavior",
+]
+
+HOMEOWNER_FACING_ADVISORY_LIMITATIONS = [
+    "Phase 3K homeowner-facing advisory is audience translation only.",
+    "It translates existing advisory, readiness, risk, and prerequisite/remediation recommendation context into homeowner-safe explanation language.",
+    "It does not direct homeowner action, generate final design guidance, recommend products or specific equipment, rank options, choose designs, compare scenarios, simulate outcomes, calculate savings or payback, generate proposals, create sales claims, enforce permissions, export data, persist state, create graph behavior, create twin_id, or operate devices.",
+    "Permission readiness is visibility/readiness metadata only and is not authorization or enforcement; provenance basis is source context only and is not verification.",
+]
+
+HOMEOWNER_FACING_ADVISORY_DEFERRED_BOUNDARIES = [
+    "homeowner_action_directives",
+    "final_design_guidance",
+    "product_recommendations",
+    "specific_equipment_recommendations",
+    "ranked_options",
+    "best_option_selection",
+    "scenario_comparison",
+    "simulation",
+    "savings_payback",
+    "proposal_generation",
+    "sales_claims",
+    "contractor_directives",
     "permission_enforcement",
     "auth",
     "rbac_abac",
@@ -8673,6 +8709,552 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3I views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3J contractor-facing translation view."
+            ),
+        )
+
+    def _homeowner_facing_advisory_basis(
+        self,
+        *,
+        source_views: Optional[List[str]] = None,
+        source_section_keys: Optional[List[str]] = None,
+        known_refs: Optional[List[str]] = None,
+        unknown_refs: Optional[List[str]] = None,
+        missing_information_refs: Optional[List[str]] = None,
+        question_refs: Optional[List[str]] = None,
+        professional_boundary_refs: Optional[List[str]] = None,
+        provenance_refs: Optional[List[str]] = None,
+        permission_refs: Optional[List[str]] = None,
+        prerequisite_recommendation_refs: Optional[List[str]] = None,
+        blocked_deferred_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinHomeownerFacingAdvisoryBasis:
+        return TwinHomeownerFacingAdvisoryBasis(
+            source_views=self._sorted_unique(
+                source_views
+                or [
+                    "twin_planning_context",
+                    "topology_snapshot",
+                    "planning_intelligence_readiness",
+                    "advisory_context_assembly",
+                    "constraint_risk_reasoning",
+                    "scenario_comparison_readiness",
+                    "pre_recommendation_advisory",
+                    "recommendation_eligibility_readiness",
+                    "basic_advisory_recommendations",
+                ]
+            ),
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            known_refs=self._sorted_unique(known_refs or []),
+            unknown_refs=self._sorted_unique(unknown_refs or []),
+            missing_information_refs=self._sorted_unique(missing_information_refs or []),
+            question_refs=self._sorted_unique(question_refs or []),
+            professional_boundary_refs=self._sorted_unique(professional_boundary_refs or []),
+            provenance_refs=self._sorted_unique(provenance_refs or []),
+            permission_refs=self._sorted_unique(permission_refs or []),
+            prerequisite_recommendation_refs=self._sorted_unique(prerequisite_recommendation_refs or []),
+            blocked_deferred_refs=self._sorted_unique(blocked_deferred_refs or []),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=HOMEOWNER_FACING_ADVISORY_LIMITATIONS,
+        )
+
+    def _homeowner_facing_advisory_item(
+        self,
+        *,
+        advisory_area: TwinHomeownerFacingAdvisoryArea,
+        posture: str,
+        statement: str,
+        homeowner_visible_knowns: Optional[List[str]] = None,
+        homeowner_visible_unknowns: Optional[List[str]] = None,
+        missing_information: Optional[List[str]] = None,
+        questions_to_ask_contractor: Optional[List[str]] = None,
+        prerequisite_recommendation_refs: Optional[List[str]] = None,
+        blocked_deferred: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinHomeownerFacingAdvisoryBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinHomeownerFacingAdvisoryItem:
+        return TwinHomeownerFacingAdvisoryItem(
+            advisory_area=advisory_area,
+            posture=posture,
+            statement=statement,
+            homeowner_visible_knowns=self._sorted_unique(homeowner_visible_knowns or []),
+            homeowner_visible_unknowns=self._sorted_unique(homeowner_visible_unknowns or []),
+            missing_information=self._sorted_unique(missing_information or []),
+            questions_to_ask_contractor=self._sorted_unique(questions_to_ask_contractor or []),
+            prerequisite_recommendation_refs=self._sorted_unique(prerequisite_recommendation_refs or []),
+            blocked_deferred=self._sorted_unique(blocked_deferred or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or HOMEOWNER_FACING_ADVISORY_LIMITATIONS,
+        )
+
+    def _homeowner_facing_advisory_item_sort_key(
+        self, item: TwinHomeownerFacingAdvisoryItem
+    ) -> str:
+        return item.advisory_area.value
+
+    def build_homeowner_facing_advisory_view(
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
+        scenario_view: Optional[TwinScenarioComparisonReadinessView] = None,
+        pre_recommendation_view: Optional[TwinPreRecommendationAdvisoryView] = None,
+        eligibility_view: Optional[TwinRecommendationEligibilityReadinessView] = None,
+        basic_recommendations_view: Optional[TwinBasicAdvisoryRecommendationsView] = None,
+    ) -> Optional[TwinHomeownerFacingAdvisoryView]:
+        context = context or self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
+        if readiness_view is None:
+            return None
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
+        if advisory_view is None:
+            return None
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
+        if risk_view is None:
+            return None
+        scenario_view = scenario_view or self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
+        if scenario_view is None:
+            return None
+        pre_recommendation_view = pre_recommendation_view or self.build_pre_recommendation_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+        )
+        if pre_recommendation_view is None:
+            return None
+        eligibility_view = eligibility_view or self.build_recommendation_eligibility_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+        )
+        if eligibility_view is None:
+            return None
+        basic_recommendations_view = basic_recommendations_view or self.build_basic_advisory_recommendations_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+        )
+        if basic_recommendations_view is None:
+            return None
+
+        source_section_keys = [section.section_key for section in context.sections]
+        known_refs = self._sorted_unique(
+            [f"section:{section.section_key}:records:{len(section.records)}" for section in context.sections]
+            + [
+                f"topology_nodes:{len(snapshot.nodes)}",
+                f"topology_edges:{len(snapshot.edges)}",
+                f"phase_3i_prerequisite_recommendations:{len(basic_recommendations_view.recommendation_items)}",
+            ]
+        )
+        missing_refs = self._sorted_unique(
+            eligibility_view.missing_prerequisites
+            + (
+                pre_recommendation_view.missing_data_before_advice[0].missing_data
+                if pre_recommendation_view.missing_data_before_advice
+                else []
+            )
+            + basic_recommendations_view.source_basis.prerequisite_refs
+        )
+        professional_boundary_refs = self._sorted_unique(
+            eligibility_view.source_basis.professional_boundary_refs
+            + [
+                boundary
+                for item in risk_view.professional_review_boundaries + risk_view.field_verification_needs
+                for boundary in item.professional_review_boundaries
+            ]
+        )
+        provenance_refs = eligibility_view.source_basis.provenance_refs
+        permission_refs = eligibility_view.source_basis.permission_refs
+        prerequisite_recommendation_refs = [
+            item.recommendation_category.value
+            for item in basic_recommendations_view.recommendation_items
+        ]
+        question_refs = [
+            "which_information_is_missing_or_uncertain",
+            "which_topology_or_equipment_details_need_professional_review",
+            "which_source_documents_support_the_current_context",
+            "which_review_artifacts_are_needed_before_design_or_proposal_decisions",
+        ]
+        source_basis = self._homeowner_facing_advisory_basis(
+            source_section_keys=source_section_keys,
+            known_refs=known_refs,
+            unknown_refs=missing_refs,
+            missing_information_refs=missing_refs,
+            question_refs=question_refs,
+            professional_boundary_refs=professional_boundary_refs,
+            provenance_refs=provenance_refs,
+            permission_refs=permission_refs,
+            prerequisite_recommendation_refs=prerequisite_recommendation_refs,
+            blocked_deferred_refs=HOMEOWNER_FACING_ADVISORY_DEFERRED_BOUNDARIES,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinPlanningIntelligenceReadinessView",
+                "TwinAdvisoryContextAssemblyView",
+                "TwinConstraintRiskReasoningView",
+                "TwinScenarioComparisonReadinessView",
+                "TwinPreRecommendationAdvisoryView",
+                "TwinRecommendationEligibilityReadinessView",
+                "TwinBasicAdvisoryRecommendationsView",
+            ],
+        )
+        common_unsafe_assumptions = [
+            "Treating homeowner-facing advisory translation as homeowner action direction, final design guidance, a product recommendation, a proposal, or a sales claim would be unsafe.",
+        ]
+        known_unknown_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.homeowner_visible_known_unknown_summary,
+            posture="homeowner_context_summary_only",
+            statement=(
+                "Homeowner-visible known and unknown context is summarized from existing planning records and derived readiness views only."
+            ),
+            homeowner_visible_knowns=known_refs,
+            homeowner_visible_unknowns=missing_refs,
+            missing_information=missing_refs,
+            blocked_deferred=HOMEOWNER_FACING_ADVISORY_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="known_unknown_summary_planning_only",
+            basis=self._homeowner_facing_advisory_basis(
+                source_section_keys=source_section_keys,
+                known_refs=known_refs,
+                unknown_refs=missing_refs,
+                missing_information_refs=missing_refs,
+                derived_from=[
+                    "TwinPlanningContext.sections",
+                    "TwinRecommendationEligibilityReadinessView.missing_prerequisites",
+                    "TwinPreRecommendationAdvisoryView.missing_data_before_advice",
+                    "TwinBasicAdvisoryRecommendationsView.source_basis.prerequisite_refs",
+                ],
+            ),
+        )
+        safe_context_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.safe_context_explanation,
+            posture="safe_explanation_language_only",
+            statement=(
+                "Current context can explain missing data, source basis, permission-readiness metadata, topology uncertainty, and professional-review boundaries in plain language only."
+            ),
+            homeowner_visible_knowns=[
+                "known_and_unknown_summary_available",
+                "missing_information_visible",
+                "professional_review_boundaries_visible",
+                "provenance_basis_visible",
+                "permission_readiness_metadata_visible",
+            ],
+            homeowner_visible_unknowns=missing_refs,
+            blocked_deferred=["homeowner_action_directives", "final_design_guidance", "sales_claims"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="safe_explanation_context_present_not_design_guidance",
+            basis=self._homeowner_facing_advisory_basis(
+                known_refs=known_refs,
+                unknown_refs=missing_refs,
+                derived_from=[
+                    "TwinAdvisoryContextAssemblyView",
+                    "TwinConstraintRiskReasoningView",
+                    "TwinRecommendationEligibilityReadinessView",
+                ],
+            ),
+        )
+        missing_information_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.missing_information,
+            posture="missing_information_visible_before_design_decisions",
+            statement=(
+                "Missing information is translated for homeowner understanding only and is not final design guidance."
+            ),
+            homeowner_visible_unknowns=missing_refs,
+            missing_information=missing_refs,
+            blocked_deferred=["final_design_guidance", "product_recommendations", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating missing information context as enough for design decisions would be unsafe."],
+            confidence_posture="missing_information_prerequisites_visible",
+            basis=self._homeowner_facing_advisory_basis(
+                missing_information_refs=missing_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.missing_prerequisites",
+                    "TwinPreRecommendationAdvisoryView.missing_data_before_advice",
+                    "TwinBasicAdvisoryRecommendationsView.source_basis.prerequisite_refs",
+                ],
+            ),
+        )
+        questions_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.questions_to_ask_contractor,
+            posture="conversation_prompts_only",
+            statement=(
+                "Questions to ask a contractor are planning conversation prompts only and are not homeowner instructions or contractor directives."
+            ),
+            questions_to_ask_contractor=[
+                "Which equipment or spec details still need source-backed confirmation?",
+                "Which topology facts need field or professional review before design decisions?",
+                "Which source documents or review artifacts would be needed before proposal or installation decisions?",
+                "Which limitations should remain visible until professional review is complete?",
+            ],
+            blocked_deferred=["homeowner_action_directives", "contractor_directives", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating conversation prompts as instructions to perform work would be unsafe."],
+            confidence_posture="questions_are_prompts_not_directives",
+            basis=self._homeowner_facing_advisory_basis(
+                question_refs=question_refs,
+                missing_information_refs=missing_refs,
+                professional_boundary_refs=professional_boundary_refs,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView",
+                    "TwinRecommendationEligibilityReadinessView",
+                    "TwinBasicAdvisoryRecommendationsView",
+                ],
+            ),
+        )
+        professional_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.professional_review_boundaries,
+            posture="professional_review_boundary_visible",
+            statement=(
+                "Professional-review boundaries explain where qualified review is still needed; this view does not approve work or provide final design guidance."
+            ),
+            homeowner_visible_unknowns=professional_boundary_refs,
+            missing_information=professional_boundary_refs,
+            blocked_deferred=["final_design_guidance", "contractor_directives", "operational_behavior"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating professional-review boundaries as completed review would be unsafe."],
+            confidence_posture="professional_review_required_not_present",
+            basis=self._homeowner_facing_advisory_basis(
+                professional_boundary_refs=professional_boundary_refs,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.professional_review_boundaries",
+                    "TwinRecommendationEligibilityReadinessView.professional_review_boundaries",
+                    "TwinPreRecommendationAdvisoryView.professional_verification_boundaries",
+                ],
+            ),
+        )
+        provenance_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.provenance_basis_plain_language,
+            posture="provenance_visible_not_verification",
+            statement=(
+                "Provenance basis explains where current context came from in plain language; provenance presence is not field verification."
+            ),
+            homeowner_visible_knowns=provenance_refs,
+            homeowner_visible_unknowns=["complete_field_level_provenance", "verification_workflow"],
+            blocked_deferred=["verification_workflow", "final_design_guidance", "sales_claims"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating provenance presence as verification would be unsafe."],
+            confidence_posture="provenance_context_visible_not_verified",
+            basis=self._homeowner_facing_advisory_basis(
+                provenance_refs=provenance_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.provenance_sufficiency",
+                    "TwinPreRecommendationAdvisoryView.provenance_basis",
+                ],
+            ),
+            limitations=HOMEOWNER_FACING_ADVISORY_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+        permission_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.permission_readiness_metadata,
+            posture="permission_readiness_metadata_only",
+            statement=(
+                "Permission-readiness metadata is visible for homeowner-facing readiness context only and is not authorization or enforcement."
+            ),
+            homeowner_visible_knowns=permission_refs,
+            homeowner_visible_unknowns=["active_permission_grants", "active_consent_artifacts"],
+            blocked_deferred=["permission_enforcement", "auth", "rbac_abac", "exports"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating permission-readiness metadata as authorization would be unsafe."],
+            confidence_posture="permission_metadata_only_not_authorization",
+            basis=self._homeowner_facing_advisory_basis(
+                permission_refs=permission_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.permission_readiness_basis",
+                    "TwinPreRecommendationAdvisoryView.permission_readiness_basis",
+                ],
+            ),
+            limitations=HOMEOWNER_FACING_ADVISORY_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+        )
+        prerequisite_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.prerequisite_advisory_recommendations,
+            posture="phase_3i_prerequisite_remediation_only",
+            statement=(
+                "Phase 3I prerequisite/remediation recommendations are translated for homeowner understanding only; they are not design advice, product recommendations, or homeowner directives."
+            ),
+            prerequisite_recommendation_refs=prerequisite_recommendation_refs,
+            homeowner_visible_unknowns=basic_recommendations_view.source_basis.prerequisite_refs,
+            missing_information=basic_recommendations_view.source_basis.prerequisite_refs,
+            blocked_deferred=BASIC_ADVISORY_RECOMMENDATIONS_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating prerequisite/remediation recommendations as homeowner action directives would be unsafe."],
+            confidence_posture="prerequisite_recommendations_visible_not_design_advice",
+            basis=self._homeowner_facing_advisory_basis(
+                prerequisite_recommendation_refs=prerequisite_recommendation_refs,
+                blocked_deferred_refs=BASIC_ADVISORY_RECOMMENDATIONS_DEFERRED_BOUNDARIES,
+                derived_from=["TwinBasicAdvisoryRecommendationsView.recommendation_items"],
+            ),
+        )
+        deferred_item = self._homeowner_facing_advisory_item(
+            advisory_area=TwinHomeownerFacingAdvisoryArea.deferred_homeowner_workflow_boundaries,
+            posture="homeowner_workflows_deferred",
+            statement=(
+                "Homeowner workflow behavior remains deferred; this view does not create action directives, design guidance, proposals, sales claims, exports, or operational behavior."
+            ),
+            blocked_deferred=HOMEOWNER_FACING_ADVISORY_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="homeowner_workflow_boundaries_preserved",
+            basis=source_basis,
+        )
+        items = sorted(
+            [
+                known_unknown_item,
+                safe_context_item,
+                missing_information_item,
+                questions_item,
+                professional_item,
+                provenance_item,
+                permission_item,
+                prerequisite_item,
+                deferred_item,
+            ],
+            key=self._homeowner_facing_advisory_item_sort_key,
+        )
+        return TwinHomeownerFacingAdvisoryView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3K homeowner-facing advisory view built request-time from existing TwinPlanningContext, "
+                "topology snapshot, and approved Phase 3 readiness/advisory views; translates existing context into "
+                "homeowner-facing safe explanation language only, and does not direct homeowner action, generate final design guidance, "
+                "recommend products or specific equipment, rank options, choose designs, compare scenarios, simulate outcomes, "
+                "calculate savings or payback, generate proposals, create sales claims, create contractor directives, enforce permissions, "
+                "export data, persist state, create graph behavior, create twin_id, or operate devices."
+            ),
+            source_basis=source_basis,
+            advisory_scope=TwinHomeownerFacingAdvisoryScope(
+                limitations=HOMEOWNER_FACING_ADVISORY_LIMITATIONS,
+            ),
+            advisory_items=items,
+            homeowner_visible_known_unknown_summary=[
+                item
+                for item in items
+                if item.advisory_area
+                == TwinHomeownerFacingAdvisoryArea.homeowner_visible_known_unknown_summary
+            ],
+            safe_context_explanation=[
+                item for item in items if item.advisory_area == TwinHomeownerFacingAdvisoryArea.safe_context_explanation
+            ],
+            missing_information=[
+                item for item in items if item.advisory_area == TwinHomeownerFacingAdvisoryArea.missing_information
+            ],
+            questions_to_ask_contractor=[
+                item for item in items if item.advisory_area == TwinHomeownerFacingAdvisoryArea.questions_to_ask_contractor
+            ],
+            professional_review_boundaries=[
+                item
+                for item in items
+                if item.advisory_area == TwinHomeownerFacingAdvisoryArea.professional_review_boundaries
+            ],
+            provenance_basis_plain_language=[
+                item
+                for item in items
+                if item.advisory_area == TwinHomeownerFacingAdvisoryArea.provenance_basis_plain_language
+            ],
+            permission_readiness_metadata=[
+                item
+                for item in items
+                if item.advisory_area == TwinHomeownerFacingAdvisoryArea.permission_readiness_metadata
+            ],
+            prerequisite_advisory_recommendations=[
+                item
+                for item in items
+                if item.advisory_area == TwinHomeownerFacingAdvisoryArea.prerequisite_advisory_recommendations
+            ],
+            limitations=HOMEOWNER_FACING_ADVISORY_LIMITATIONS,
+            deferred_homeowner_workflow_boundaries=sorted(
+                HOMEOWNER_FACING_ADVISORY_DEFERRED_BOUNDARIES
+            ),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3I views, AI grounding, "
+                "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3K homeowner-facing translation view."
             ),
         )
 
