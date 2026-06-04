@@ -81,6 +81,10 @@ Read these first:
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/proposal-readiness-foundation` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored proposal-readiness reporting over existing `TwinPlanningContext`, topology snapshot, and Phase 3E through Phase 3L readiness/advisory/reasoning context. It determines whether current context is ready to support future proposal generation without generating proposals.
   - Deferred: proposal generation, pricing, quotes, good/better/best packages, sales copy, savings/payback, financing logic, ranked options, best-design selection, product recommendations, final design recommendations, contractor CRM workflows, exports, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, operational behavior, and canonical Twin runtime model.
+- Phase 3N: Product / Spec Intelligence Readiness - complete for the approved fourteenth runtime boundary in `39822c9`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/product-spec-readiness` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored product/spec readiness reporting over existing `TwinPlanningContext`, topology snapshot, and Phase 3E through Phase 3M readiness/advisory context. It reports whether product/spec context is available, missing, traceable, or blocked.
+  - Deferred: autonomous spec-sheet engineering, compatibility engine behavior, product recommendations, equipment selection, product ranking, proposal generation, pricing, vendor scraping, supplier data integration, vendor marketplace behavior, procurement logic, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -110,6 +114,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-04-phase-3n-product-spec-readiness.md`
   - `docs/handoffs/2026-06-04-phase-3m-proposal-readiness-foundation.md`
   - `docs/handoffs/2026-06-04-phase-3l-energy-goal-reasoning.md`
   - `docs/handoffs/2026-06-04-phase-3k-homeowner-facing-advisory.md`
@@ -240,6 +245,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3M Proposal Readiness Foundation:
     - `docs/handoffs/2026-06-04-phase-3m-proposal-readiness-foundation.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3N Product / Spec Intelligence Readiness:
+    - `docs/handoffs/2026-06-04-phase-3n-product-spec-readiness.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
