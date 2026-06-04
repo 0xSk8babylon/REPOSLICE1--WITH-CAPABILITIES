@@ -61,6 +61,11 @@ from app.twin_planning_context.schemas import (
     TwinProposalReadinessFoundationItem,
     TwinProposalReadinessFoundationScope,
     TwinProposalReadinessFoundationView,
+    TwinProductSpecReadinessArea,
+    TwinProductSpecReadinessBasis,
+    TwinProductSpecReadinessItem,
+    TwinProductSpecReadinessScope,
+    TwinProductSpecReadinessView,
     TwinPlanningChangeImpactHint,
     TwinPlanningContext,
     TwinPlanningContextRecord,
@@ -638,6 +643,39 @@ PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES = [
     "product_recommendations",
     "final_design_recommendations",
     "contractor_crm_workflow",
+    "exports",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "operational_behavior",
+]
+
+PRODUCT_SPEC_READINESS_LIMITATIONS = [
+    "Phase 3N product/spec readiness is readiness reporting only.",
+    "It prepares for future product/spec-sheet reasoning by reporting whether product/spec context is available, missing, traceable, or blocked.",
+    "It does not perform autonomous engineering from spec sheets, create a compatibility engine, recommend products, select equipment, rank products, generate proposals, generate pricing, scrape vendors, integrate supplier data, create vendor marketplace behavior, create procurement logic, enforce permissions, export data, persist state, create graph behavior, create twin_id, or operate devices.",
+    "Spec-sheet provenance is source context only and is not verification; missing specs remain prerequisites, not compatibility conclusions.",
+]
+
+PRODUCT_SPEC_READINESS_COMPATIBILITY_DEFERRED_BOUNDARIES = [
+    "autonomous_spec_engineering",
+    "compatibility_engine",
+    "product_recommendations",
+    "equipment_selection",
+    "product_ranking",
+    "proposal_generation",
+    "pricing",
+]
+
+PRODUCT_SPEC_READINESS_VENDOR_DEFERRED_BOUNDARIES = [
+    "vendor_scraping",
+    "supplier_data_integration",
+    "vendor_marketplace_behavior",
+    "procurement_logic",
     "exports",
     "permission_enforcement",
     "auth",
@@ -10498,6 +10536,562 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3L views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3M proposal readiness view."
+            ),
+        )
+
+    def _product_spec_readiness_basis(
+        self,
+        *,
+        source_views: Optional[List[str]] = None,
+        source_section_keys: Optional[List[str]] = None,
+        product_refs: Optional[List[str]] = None,
+        manufacturer_model_refs: Optional[List[str]] = None,
+        spec_sheet_refs: Optional[List[str]] = None,
+        missing_spec_refs: Optional[List[str]] = None,
+        source_trust_refs: Optional[List[str]] = None,
+        compatibility_prerequisite_refs: Optional[List[str]] = None,
+        equipment_gap_refs: Optional[List[str]] = None,
+        professional_boundary_refs: Optional[List[str]] = None,
+        unsafe_assumption_refs: Optional[List[str]] = None,
+        blocked_deferred_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinProductSpecReadinessBasis:
+        return TwinProductSpecReadinessBasis(
+            source_views=self._sorted_unique(
+                source_views
+                or [
+                    "twin_planning_context",
+                    "topology_snapshot",
+                    "constraint_risk_reasoning",
+                    "recommendation_eligibility_readiness",
+                    "basic_advisory_recommendations",
+                    "proposal_readiness_foundation",
+                ]
+            ),
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            product_refs=self._sorted_unique(product_refs or []),
+            manufacturer_model_refs=self._sorted_unique(manufacturer_model_refs or []),
+            spec_sheet_refs=self._sorted_unique(spec_sheet_refs or []),
+            missing_spec_refs=self._sorted_unique(missing_spec_refs or []),
+            source_trust_refs=self._sorted_unique(source_trust_refs or []),
+            compatibility_prerequisite_refs=self._sorted_unique(compatibility_prerequisite_refs or []),
+            equipment_gap_refs=self._sorted_unique(equipment_gap_refs or []),
+            professional_boundary_refs=self._sorted_unique(professional_boundary_refs or []),
+            unsafe_assumption_refs=self._sorted_unique(unsafe_assumption_refs or []),
+            blocked_deferred_refs=self._sorted_unique(blocked_deferred_refs or []),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=PRODUCT_SPEC_READINESS_LIMITATIONS,
+        )
+
+    def _product_spec_readiness_item(
+        self,
+        *,
+        readiness_area: TwinProductSpecReadinessArea,
+        posture: str,
+        statement: str,
+        readiness_refs: Optional[List[str]] = None,
+        missing_spec_refs: Optional[List[str]] = None,
+        blockers: Optional[List[str]] = None,
+        blocked_deferred: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinProductSpecReadinessBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinProductSpecReadinessItem:
+        return TwinProductSpecReadinessItem(
+            readiness_area=readiness_area,
+            posture=posture,
+            statement=statement,
+            readiness_refs=self._sorted_unique(readiness_refs or []),
+            missing_spec_refs=self._sorted_unique(missing_spec_refs or []),
+            blockers=self._sorted_unique(blockers or []),
+            blocked_deferred=self._sorted_unique(blocked_deferred or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or PRODUCT_SPEC_READINESS_LIMITATIONS,
+        )
+
+    def _product_spec_readiness_item_sort_key(
+        self, item: TwinProductSpecReadinessItem
+    ) -> str:
+        return item.readiness_area.value
+
+    def build_product_spec_readiness_view(
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
+        scenario_view: Optional[TwinScenarioComparisonReadinessView] = None,
+        pre_recommendation_view: Optional[TwinPreRecommendationAdvisoryView] = None,
+        eligibility_view: Optional[TwinRecommendationEligibilityReadinessView] = None,
+        basic_recommendations_view: Optional[TwinBasicAdvisoryRecommendationsView] = None,
+        contractor_advisory_view: Optional[TwinContractorFacingAdvisoryView] = None,
+        homeowner_advisory_view: Optional[TwinHomeownerFacingAdvisoryView] = None,
+        energy_goal_reasoning_view: Optional[TwinEnergyGoalReasoningView] = None,
+        proposal_readiness_view: Optional[TwinProposalReadinessFoundationView] = None,
+    ) -> Optional[TwinProductSpecReadinessView]:
+        context = context or self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(db, home_id, context=context, snapshot=snapshot)
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db, home_id, context=context, snapshot=snapshot, impact_view=impact_view
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db, home_id, context=context, snapshot=snapshot, impact_view=impact_view, reasoning_view=reasoning_view
+        )
+        if readiness_view is None:
+            return None
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
+        if advisory_view is None:
+            return None
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
+        if risk_view is None:
+            return None
+        scenario_view = scenario_view or self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
+        if scenario_view is None:
+            return None
+        pre_recommendation_view = pre_recommendation_view or self.build_pre_recommendation_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+        )
+        if pre_recommendation_view is None:
+            return None
+        eligibility_view = eligibility_view or self.build_recommendation_eligibility_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+        )
+        if eligibility_view is None:
+            return None
+        basic_recommendations_view = basic_recommendations_view or self.build_basic_advisory_recommendations_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+        )
+        if basic_recommendations_view is None:
+            return None
+        proposal_readiness_view = proposal_readiness_view or self.build_proposal_readiness_foundation_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+            contractor_advisory_view=contractor_advisory_view,
+            homeowner_advisory_view=homeowner_advisory_view,
+            energy_goal_reasoning_view=energy_goal_reasoning_view,
+        )
+        if proposal_readiness_view is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        product_records = [
+            (section_key, record)
+            for section_key, record in section_records
+            if record.entity_type in {"equipment_product", "design_equipment"}
+        ]
+        source_section_keys = [section.section_key for section in context.sections]
+        product_refs = self._sorted_unique(
+            f"{record.entity_type}:{record.entity_id or 'unknown'}" for _section_key, record in product_records
+        )
+        manufacturer_model_refs = self._sorted_unique(
+            f"{record.entity_type}:{record.entity_id or 'unknown'}:manufacturer_model:{record.record.get('manufacturer') or 'missing'}:{record.record.get('model') or 'missing'}"
+            for _section_key, record in product_records
+        )
+        spec_sheet_refs = self._sorted_unique(
+            f"{record.entity_type}:{record.entity_id or 'unknown'}:specs_present"
+            for _section_key, record in product_records
+            if record.record.get("specs")
+        )
+        missing_spec_refs = self._sorted_unique(
+            [
+                f"{record.entity_type}:{record.entity_id or 'unknown'}:{field}"
+                for _section_key, record in product_records
+                for field in record.missing_fields
+            ]
+            + [
+                f"{record.entity_type}:{record.entity_id or 'unknown'}:specs"
+                for _section_key, record in product_records
+                if not record.record.get("specs")
+            ]
+        )
+        source_trust_refs = self._sorted_unique(
+            [
+                f"{record.entity_type}:{record.entity_id or 'unknown'}:origin:{record.data_origin}"
+                for _section_key, record in product_records
+            ]
+            + [
+                self._provenance_gap_ref(gap)
+                for _section_key, record in product_records
+                for gap in record.provenance_gaps
+            ]
+        )
+        compatibility_prerequisite_refs = self._sorted_unique(
+            eligibility_view.source_basis.equipment_refs
+            + basic_recommendations_view.source_basis.equipment_refs
+            + [
+                TwinBasicAdvisoryRecommendationCategory.verify_equipment_spec_information.value,
+                TwinBasicAdvisoryRecommendationCategory.request_spec_sheet.value,
+                "complete_equipment_specs",
+                "verified_equipment_spec_sources",
+            ]
+        )
+        equipment_gap_refs = self._sorted_unique(
+            [
+                ref
+                for item in risk_view.missing_equipment_specs
+                for ref in item.missing_inputs + item.observed_constraint_refs
+            ]
+            + proposal_readiness_view.source_basis.product_spec_refs
+        )
+        professional_boundary_refs = self._sorted_unique(
+            eligibility_view.source_basis.professional_boundary_refs
+            + proposal_readiness_view.source_basis.professional_boundary_refs
+        )
+        unsafe_assumption_refs = self._sorted_unique(
+            proposal_readiness_view.source_basis.unsafe_assumption_refs
+            + [
+                assumption
+                for item in risk_view.missing_equipment_specs
+                for assumption in item.unsafe_assumptions
+            ]
+        )
+        deferred_refs = self._sorted_unique(
+            PRODUCT_SPEC_READINESS_COMPATIBILITY_DEFERRED_BOUNDARIES
+            + PRODUCT_SPEC_READINESS_VENDOR_DEFERRED_BOUNDARIES
+        )
+        source_basis = self._product_spec_readiness_basis(
+            source_section_keys=source_section_keys,
+            product_refs=product_refs,
+            manufacturer_model_refs=manufacturer_model_refs,
+            spec_sheet_refs=spec_sheet_refs,
+            missing_spec_refs=missing_spec_refs,
+            source_trust_refs=source_trust_refs,
+            compatibility_prerequisite_refs=compatibility_prerequisite_refs,
+            equipment_gap_refs=equipment_gap_refs,
+            professional_boundary_refs=professional_boundary_refs,
+            unsafe_assumption_refs=unsafe_assumption_refs,
+            blocked_deferred_refs=deferred_refs,
+            derived_from=[
+                "TwinPlanningContext.equipment_products",
+                "TwinPlanningContext.design_equipment",
+                "TwinConstraintRiskReasoningView.missing_equipment_specs",
+                "TwinRecommendationEligibilityReadinessView.equipment_spec_sufficiency",
+                "TwinBasicAdvisoryRecommendationsView",
+                "TwinProposalReadinessFoundationView",
+            ],
+        )
+        common_unsafe_assumptions = [
+            "Treating product/spec readiness as autonomous spec engineering, compatibility conclusions, product selection, product ranking, pricing, vendor procurement, or marketplace behavior would be unsafe.",
+        ]
+        identity_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.product_identity_readiness,
+            posture="product_identity_context_visible",
+            statement="Product identity readiness reports whether product/equipment records exist; it does not select or recommend products.",
+            readiness_refs=product_refs,
+            missing_spec_refs=["equipment_product_records"] if not product_refs else [],
+            blocked_deferred=["product_recommendations", "equipment_selection", "product_ranking"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="product_identity_context_available" if product_refs else "product_identity_context_missing",
+            basis=self._product_spec_readiness_basis(
+                product_refs=product_refs,
+                derived_from=["TwinPlanningContext.equipment_products", "TwinPlanningContext.design_equipment"],
+            ),
+        )
+        manufacturer_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.manufacturer_model_readiness,
+            posture="manufacturer_model_context_visible",
+            statement="Manufacturer/model readiness reports available identity fields only and does not imply compatibility or equipment selection.",
+            readiness_refs=manufacturer_model_refs,
+            missing_spec_refs=[ref for ref in manufacturer_model_refs if ":missing" in ref],
+            blocked_deferred=["compatibility_engine", "equipment_selection", "product_recommendations"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="manufacturer_model_context_planning_only",
+            basis=self._product_spec_readiness_basis(
+                manufacturer_model_refs=manufacturer_model_refs,
+                derived_from=["TwinPlanningContextRecord.record.manufacturer", "TwinPlanningContextRecord.record.model"],
+            ),
+        )
+        spec_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.spec_sheet_provenance,
+            posture="spec_sheet_provenance_context_only",
+            statement="Spec-sheet provenance is source context only and is not verification, engineering approval, or autonomous spec interpretation.",
+            readiness_refs=spec_sheet_refs + source_trust_refs,
+            missing_spec_refs=missing_spec_refs,
+            blockers=["verified_equipment_spec_sources"] if missing_spec_refs else [],
+            blocked_deferred=["autonomous_spec_engineering", "compatibility_engine", "product_recommendations"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating spec-sheet provenance as verified engineering data would be unsafe."],
+            confidence_posture="spec_sheet_provenance_visible_not_verified",
+            basis=self._product_spec_readiness_basis(
+                spec_sheet_refs=spec_sheet_refs,
+                missing_spec_refs=missing_spec_refs,
+                source_trust_refs=source_trust_refs,
+                derived_from=["TwinPlanningContextRecord.record.specs", "TwinPlanningContextRecord.provenance_gaps"],
+            ),
+            limitations=PRODUCT_SPEC_READINESS_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+        missing_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.missing_spec_fields,
+            posture="missing_spec_fields_visible",
+            statement="Missing spec fields are reported as prerequisites only and are not compatibility failures or product recommendations.",
+            missing_spec_refs=missing_spec_refs,
+            blockers=missing_spec_refs,
+            blocked_deferred=["compatibility_engine", "product_recommendations", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="missing_specs_require_source_backing",
+            basis=self._product_spec_readiness_basis(
+                missing_spec_refs=missing_spec_refs,
+                derived_from=["TwinPlanningContextRecord.missing_fields", "TwinPlanningContextRecord.record.specs"],
+            ),
+        )
+        trust_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.source_trust_indicators,
+            posture="source_trust_context_visible",
+            statement="Source/trust indicators are readiness context only and do not verify product data or certify compatibility.",
+            readiness_refs=source_trust_refs,
+            blockers=[ref for ref in source_trust_refs if "provenance_gap" in ref],
+            blocked_deferred=["autonomous_spec_engineering", "compatibility_engine", "vendor_marketplace_behavior"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating source/trust indicators as verified specs would be unsafe."],
+            confidence_posture="source_trust_visible_not_verified",
+            basis=self._product_spec_readiness_basis(
+                source_trust_refs=source_trust_refs,
+                derived_from=["TwinPlanningContextRecord.data_origin", "TwinPlanningContextRecord.provenance_gaps"],
+            ),
+        )
+        compatibility_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.compatibility_prerequisites,
+            posture="compatibility_prerequisites_visible_engine_deferred",
+            statement="Compatibility prerequisites are visible for future readiness only; no compatibility engine or autonomous engineering is implemented.",
+            readiness_refs=compatibility_prerequisite_refs,
+            missing_spec_refs=missing_spec_refs,
+            blockers=compatibility_prerequisite_refs,
+            blocked_deferred=PRODUCT_SPEC_READINESS_COMPATIBILITY_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="compatibility_engine_deferred",
+            basis=self._product_spec_readiness_basis(
+                compatibility_prerequisite_refs=compatibility_prerequisite_refs,
+                missing_spec_refs=missing_spec_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.equipment_spec_sufficiency",
+                    "TwinBasicAdvisoryRecommendationsView.verify_equipment_spec_information",
+                    "TwinBasicAdvisoryRecommendationsView.request_spec_sheet",
+                ],
+            ),
+        )
+        gap_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.equipment_spec_gaps,
+            posture="equipment_spec_gaps_visible",
+            statement="Equipment/spec gaps are reported for readiness only and do not select equipment or produce compatibility conclusions.",
+            readiness_refs=equipment_gap_refs,
+            missing_spec_refs=equipment_gap_refs,
+            blockers=equipment_gap_refs,
+            blocked_deferred=["equipment_selection", "compatibility_engine", "product_recommendations"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="equipment_spec_gaps_not_resolved",
+            basis=self._product_spec_readiness_basis(
+                equipment_gap_refs=equipment_gap_refs,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.missing_equipment_specs",
+                    "TwinProposalReadinessFoundationView.missing_product_spec_data",
+                ],
+            ),
+        )
+        professional_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.professional_review_boundaries,
+            posture="professional_review_boundary_visible",
+            statement="Professional-review boundaries remain visible and are not completed review, compatibility approval, or product approval.",
+            blockers=professional_boundary_refs,
+            blocked_deferred=["compatibility_engine", "equipment_selection", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="professional_review_required_not_present",
+            basis=self._product_spec_readiness_basis(
+                professional_boundary_refs=professional_boundary_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.professional_review_boundaries",
+                    "TwinProposalReadinessFoundationView.professional_review_boundaries",
+                ],
+            ),
+        )
+        unsafe_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.unsafe_assumptions,
+            posture="unsafe_assumptions_visible",
+            statement="Unsafe assumptions remain visible before product/spec readiness can be used by future spec reasoning.",
+            blockers=unsafe_assumption_refs,
+            blocked_deferred=deferred_refs,
+            unsafe_assumptions=common_unsafe_assumptions + unsafe_assumption_refs,
+            confidence_posture="unsafe_assumptions_not_resolved",
+            basis=self._product_spec_readiness_basis(
+                unsafe_assumption_refs=unsafe_assumption_refs,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.missing_equipment_specs",
+                    "TwinProposalReadinessFoundationView.unsafe_assumptions",
+                ],
+            ),
+        )
+        compatibility_deferred_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.deferred_compatibility_engine_boundaries,
+            posture="compatibility_engine_deferred",
+            statement="Autonomous spec engineering, compatibility engines, product recommendations, equipment selection, product ranking, proposals, and pricing remain deferred.",
+            blockers=PRODUCT_SPEC_READINESS_COMPATIBILITY_DEFERRED_BOUNDARIES,
+            blocked_deferred=PRODUCT_SPEC_READINESS_COMPATIBILITY_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="compatibility_boundaries_preserved",
+            basis=source_basis,
+        )
+        vendor_deferred_item = self._product_spec_readiness_item(
+            readiness_area=TwinProductSpecReadinessArea.deferred_vendor_procurement_boundaries,
+            posture="vendor_procurement_deferred",
+            statement="Vendor scraping, supplier integrations, marketplace behavior, procurement logic, exports, persistence, and operational behavior remain deferred.",
+            blockers=PRODUCT_SPEC_READINESS_VENDOR_DEFERRED_BOUNDARIES,
+            blocked_deferred=PRODUCT_SPEC_READINESS_VENDOR_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="vendor_procurement_boundaries_preserved",
+            basis=source_basis,
+        )
+        items = sorted(
+            [
+                identity_item,
+                manufacturer_item,
+                spec_item,
+                missing_item,
+                trust_item,
+                compatibility_item,
+                gap_item,
+                professional_item,
+                unsafe_item,
+                compatibility_deferred_item,
+                vendor_deferred_item,
+            ],
+            key=self._product_spec_readiness_item_sort_key,
+        )
+        return TwinProductSpecReadinessView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3N product/spec readiness view built request-time from existing TwinPlanningContext, topology snapshot, "
+                "and approved Phase 3 readiness/advisory views; reports whether product/spec context is available, missing, traceable, or blocked. "
+                "It does not perform autonomous engineering from spec sheets, create a compatibility engine, recommend products, select equipment, "
+                "rank products, generate proposals, generate pricing, scrape vendors, integrate supplier data, create marketplace behavior, "
+                "create procurement logic, enforce permissions, persist state, export data, create graph behavior, create twin_id, or operate devices."
+            ),
+            source_basis=source_basis,
+            readiness_scope=TwinProductSpecReadinessScope(
+                limitations=PRODUCT_SPEC_READINESS_LIMITATIONS,
+            ),
+            readiness_items=items,
+            product_identity_readiness=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.product_identity_readiness
+            ],
+            manufacturer_model_readiness=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.manufacturer_model_readiness
+            ],
+            spec_sheet_provenance=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.spec_sheet_provenance
+            ],
+            missing_spec_fields=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.missing_spec_fields
+            ],
+            source_trust_indicators=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.source_trust_indicators
+            ],
+            compatibility_prerequisites=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.compatibility_prerequisites
+            ],
+            equipment_spec_gaps=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.equipment_spec_gaps
+            ],
+            professional_review_boundaries=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.professional_review_boundaries
+            ],
+            unsafe_assumptions=[
+                item for item in items if item.readiness_area == TwinProductSpecReadinessArea.unsafe_assumptions
+            ],
+            limitations=PRODUCT_SPEC_READINESS_LIMITATIONS,
+            deferred_compatibility_engine_boundaries=sorted(
+                PRODUCT_SPEC_READINESS_COMPATIBILITY_DEFERRED_BOUNDARIES
+            ),
+            deferred_vendor_procurement_boundaries=sorted(
+                PRODUCT_SPEC_READINESS_VENDOR_DEFERRED_BOUNDARIES
+            ),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3M views, AI grounding, "
+                "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3N product/spec readiness view."
             ),
         )
 

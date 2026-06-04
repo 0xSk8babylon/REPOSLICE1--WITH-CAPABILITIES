@@ -1750,6 +1750,113 @@ class TwinProposalReadinessFoundationView(ORMModel):
     compatibility_note: str
 
 
+class TwinProductSpecReadinessArea(str, Enum):
+    product_identity_readiness = "product_identity_readiness"
+    manufacturer_model_readiness = "manufacturer_model_readiness"
+    spec_sheet_provenance = "spec_sheet_provenance"
+    missing_spec_fields = "missing_spec_fields"
+    source_trust_indicators = "source_trust_indicators"
+    compatibility_prerequisites = "compatibility_prerequisites"
+    equipment_spec_gaps = "equipment_spec_gaps"
+    professional_review_boundaries = "professional_review_boundaries"
+    unsafe_assumptions = "unsafe_assumptions"
+    deferred_compatibility_engine_boundaries = "deferred_compatibility_engine_boundaries"
+    deferred_vendor_procurement_boundaries = "deferred_vendor_procurement_boundaries"
+
+
+class TwinProductSpecReadinessScope(ORMModel):
+    readiness_scope: str = "phase_3n_product_spec_readiness"
+    product_spec_readiness_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    derived_from_recommendation_eligibility_readiness: bool = True
+    derived_from_basic_advisory_recommendations: bool = True
+    derived_from_proposal_readiness_foundation: bool = True
+    deterministic_for_same_inputs: bool = True
+    autonomous_spec_engineering_present: bool = False
+    compatibility_engine_present: bool = False
+    product_recommendations_present: bool = False
+    equipment_selection_present: bool = False
+    product_ranking_present: bool = False
+    proposal_generation_present: bool = False
+    pricing_present: bool = False
+    vendor_scraping_present: bool = False
+    supplier_data_integration_present: bool = False
+    vendor_marketplace_present: bool = False
+    procurement_logic_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinProductSpecReadinessBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    product_refs: List[str] = Field(default_factory=list)
+    manufacturer_model_refs: List[str] = Field(default_factory=list)
+    spec_sheet_refs: List[str] = Field(default_factory=list)
+    missing_spec_refs: List[str] = Field(default_factory=list)
+    source_trust_refs: List[str] = Field(default_factory=list)
+    compatibility_prerequisite_refs: List[str] = Field(default_factory=list)
+    equipment_gap_refs: List[str] = Field(default_factory=list)
+    professional_boundary_refs: List[str] = Field(default_factory=list)
+    unsafe_assumption_refs: List[str] = Field(default_factory=list)
+    blocked_deferred_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinProductSpecReadinessItem(ORMModel):
+    readiness_area: TwinProductSpecReadinessArea
+    posture: str
+    statement: str
+    readiness_refs: List[str] = Field(default_factory=list)
+    missing_spec_refs: List[str] = Field(default_factory=list)
+    blockers: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinProductSpecReadinessBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinProductSpecReadinessView(ORMModel):
+    view_name: str = "product_spec_readiness"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinProductSpecReadinessBasis
+    readiness_scope: TwinProductSpecReadinessScope
+    readiness_items: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    product_identity_readiness: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    manufacturer_model_readiness: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    spec_sheet_provenance: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    missing_spec_fields: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    source_trust_indicators: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    compatibility_prerequisites: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    equipment_spec_gaps: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    professional_review_boundaries: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    unsafe_assumptions: List[TwinProductSpecReadinessItem] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    deferred_compatibility_engine_boundaries: List[str] = Field(default_factory=list)
+    deferred_vendor_procurement_boundaries: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

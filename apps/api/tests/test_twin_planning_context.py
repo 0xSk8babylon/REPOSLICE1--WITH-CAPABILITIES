@@ -95,6 +95,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_proposal_readiness_foundation_view(db, "home_001")
 
+    def _product_spec_readiness_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_product_spec_readiness_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -3277,6 +3281,139 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual(
             sorted(first["deferred_proposal_generation_boundaries"]),
             first["deferred_proposal_generation_boundaries"],
+        )
+        self.assertEqual(
+            sorted(item["readiness_area"] for item in first["readiness_items"]),
+            [item["readiness_area"] for item in first["readiness_items"]],
+        )
+
+    def test_product_spec_readiness_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/product-spec-readiness",
+            paths,
+        )
+
+        view = self._product_spec_readiness_view()
+        payload = view.dict()
+        scope = view.readiness_scope
+
+        self.assertEqual("product_spec_readiness", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("planning_private", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.product_spec_readiness_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_proposal_readiness_foundation)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("product/spec readiness view", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_product_spec_readiness_has_no_forbidden_capability_flags(self):
+        scope = self._product_spec_readiness_view().readiness_scope
+
+        self.assertFalse(scope.autonomous_spec_engineering_present)
+        self.assertFalse(scope.compatibility_engine_present)
+        self.assertFalse(scope.product_recommendations_present)
+        self.assertFalse(scope.equipment_selection_present)
+        self.assertFalse(scope.product_ranking_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.pricing_present)
+        self.assertFalse(scope.vendor_scraping_present)
+        self.assertFalse(scope.supplier_data_integration_present)
+        self.assertFalse(scope.vendor_marketplace_present)
+        self.assertFalse(scope.procurement_logic_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_product_spec_readiness_reports_allowed_readiness_areas(self):
+        view = self._product_spec_readiness_view()
+
+        self.assertTrue(view.readiness_items)
+        self.assertTrue(view.product_identity_readiness)
+        self.assertTrue(view.manufacturer_model_readiness)
+        self.assertTrue(view.spec_sheet_provenance)
+        self.assertTrue(view.missing_spec_fields)
+        self.assertTrue(view.source_trust_indicators)
+        self.assertTrue(view.compatibility_prerequisites)
+        self.assertTrue(view.equipment_spec_gaps)
+        self.assertTrue(view.professional_review_boundaries)
+        self.assertTrue(view.unsafe_assumptions)
+        self.assertTrue(view.deferred_compatibility_engine_boundaries)
+        self.assertTrue(view.deferred_vendor_procurement_boundaries)
+
+        areas = {item.readiness_area.value for item in view.readiness_items}
+        self.assertEqual(
+            {
+                "product_identity_readiness",
+                "manufacturer_model_readiness",
+                "spec_sheet_provenance",
+                "missing_spec_fields",
+                "source_trust_indicators",
+                "compatibility_prerequisites",
+                "equipment_spec_gaps",
+                "professional_review_boundaries",
+                "unsafe_assumptions",
+                "deferred_compatibility_engine_boundaries",
+                "deferred_vendor_procurement_boundaries",
+            },
+            areas,
+        )
+        for item in view.readiness_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(
+                item.basis.derived_from
+                or item.readiness_area.value
+                in {
+                    "deferred_compatibility_engine_boundaries",
+                    "deferred_vendor_procurement_boundaries",
+                }
+            )
+            self.assertIn("proposal_readiness_foundation", item.basis.source_views)
+
+    def test_product_spec_readiness_preserves_trust_boundaries(self):
+        view = self._product_spec_readiness_view()
+        limitation_text = " ".join(view.limitations)
+        payload_text = str(view.dict())
+
+        self.assertIn("readiness reporting only", limitation_text)
+        self.assertIn("does not perform autonomous engineering", limitation_text)
+        self.assertIn("does not select or recommend products", view.product_identity_readiness[0].statement)
+        self.assertIn("not verification", view.spec_sheet_provenance[0].statement)
+        self.assertIn("no compatibility engine", view.compatibility_prerequisites[0].statement)
+        self.assertIn("autonomous_spec_engineering", view.deferred_compatibility_engine_boundaries)
+        self.assertIn("compatibility_engine", view.deferred_compatibility_engine_boundaries)
+        self.assertIn("vendor_scraping", view.deferred_vendor_procurement_boundaries)
+        self.assertNotIn("recommended_profile", payload_text)
+        self.assertNotIn("Advisor recommendation summary for", payload_text)
+        self.assertFalse(view.readiness_scope.compatibility_engine_present)
+        self.assertFalse(view.readiness_scope.vendor_marketplace_present)
+
+    def test_product_spec_readiness_is_deterministic_for_same_inputs(self):
+        first = self._product_spec_readiness_view().dict()
+        second = self._product_spec_readiness_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_compatibility_engine_boundaries"]),
+            first["deferred_compatibility_engine_boundaries"],
+        )
+        self.assertEqual(
+            sorted(first["deferred_vendor_procurement_boundaries"]),
+            first["deferred_vendor_procurement_boundaries"],
         )
         self.assertEqual(
             sorted(item["readiness_area"] for item in first["readiness_items"]),

@@ -19,6 +19,7 @@ from app.twin_planning_context.schemas import (
     TwinPlanningContext,
     TwinPreRecommendationAdvisoryView,
     TwinProposalReadinessFoundationView,
+    TwinProductSpecReadinessView,
     TwinRecommendationEligibilityReadinessView,
     TwinRuntimeParticipantRole,
     TwinRuntimeProjectionView,
@@ -195,6 +196,17 @@ def get_energy_goal_reasoning_view(home_id: str, db: Session = Depends(get_db)):
 )
 def get_proposal_readiness_foundation_view(home_id: str, db: Session = Depends(get_db)):
     view = twin_planning_context_service.build_proposal_readiness_foundation_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
+    return view
+
+
+@router.get(
+    "/homes/{home_id}/views/product-spec-readiness",
+    response_model=TwinProductSpecReadinessView,
+)
+def get_product_spec_readiness_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_product_spec_readiness_view(db, home_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home not found")
     return view
