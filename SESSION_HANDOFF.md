@@ -2,15 +2,15 @@
 
 ## Updated
 
-2026-06-03
+2026-06-04
 
 ## Session Summary
 
-- Session date: 2026-06-03
+- Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
-- Latest committed checkpoint before this continuity alignment: `2f1b4bd`
-- Latest commit before this continuity alignment: `feat: add basic advisory recommendations view`
+- Latest committed checkpoint before this continuity alignment: `f1fbc7b`
+- Latest commit before this continuity alignment: `fix: reuse derived planning view assembly inputs`
 - Current branch: `fix/github-workflow`
 - Upstream tracking branch: `origin/fix/github-workflow`
 - GitHub preservation remote: `https://github.com/0xSk8babylon/resi-twin.git`
@@ -27,6 +27,7 @@
 - Phase 3G Pre-Recommendation Advisory complete in `5883985`.
 - Phase 3H Recommendation Eligibility Readiness complete in `958f3e0`.
 - Phase 3I Basic Advisory Recommendations complete in `2f1b4bd`.
+- Phase 3 derived-view assembly stabilization complete in `f1fbc7b`.
 - Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Phase 2B Twin Runtime Expression is complete and stabilized for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
 - Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`.
@@ -39,6 +40,7 @@
 - Phase 3G Pre-Recommendation Advisory is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored advisory boundary view over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, and Phase 3F scenario comparison readiness outputs.
 - Phase 3H Recommendation Eligibility Readiness is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored recommendation-readiness gate over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, Phase 3F scenario comparison readiness, and Phase 3G pre-recommendation advisory outputs.
 - Phase 3I Basic Advisory Recommendations is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored prerequisite/remediation recommendation view over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, Phase 3F scenario comparison readiness, Phase 3G pre-recommendation advisory, and Phase 3H recommendation eligibility readiness outputs.
+- Phase 3 derived-view assembly stabilization is complete for the approved internal service-layer boundary: request-time `TwinPlanningContext`, topology snapshot, and Phase 3A through Phase 3I derived view objects are reused inside a single builder chain to avoid recursive rebuilding. This changed no endpoints, schemas, routers, persistence, response shapes, frontend behavior, auth, permission enforcement, exports, graph behavior, `twin_id`, operational behavior, or Phase 3J scope.
 - Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, permission enforcement, scoped exports, and operational control remain unapproved.
 - `.github/` remains out of scope for this session.
 - Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
@@ -87,8 +89,10 @@
   - `958f3e0` `feat: add recommendation eligibility readiness view`
   - `052eae3` `docs: record phase 3h recommendation eligibility readiness closeout`
   - `2f1b4bd` `feat: add basic advisory recommendations view`
+  - `8d4bea1` `docs: record phase 3i basic advisory recommendations closeout`
+  - `f1fbc7b` `fix: reuse derived planning view assembly inputs`
 - Current closeout checkpoint:
-  - Aligning project memory for Phase 3I basic advisory recommendations closeout only. No runtime feature work is in scope.
+  - Aligning project memory for Phase 3 derived-view assembly stabilization only. No runtime feature work, Phase 3J implementation, endpoint/schema/router/persistence changes, response-shape changes, frontend work, auth, permission enforcement, exports, graph behavior, `twin_id`, or operational behavior is in scope.
 
 ## Canonical Phase Structure
 
@@ -108,12 +112,11 @@
 
 ## What Changed Last
 
-- Phase 3I Basic Advisory Recommendations complete in `2f1b4bd`.
-- Added the Basic Advisory Recommendations endpoint: `/api/twin-planning-context/homes/{home_id}/views/basic-advisory-recommendations`.
-- Added a read-only, request-time, `home_id`-anchored prerequisite/remediation recommendation view over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, Phase 3F scenario comparison readiness, Phase 3G pre-recommendation advisory, and Phase 3H recommendation eligibility readiness outputs.
-- The view emits only basic advisory recommendations: collect missing data, verify topology, verify equipment/spec information, request spec sheets, contractor review required, professional review required, cannot recommend yet because prerequisites are missing, permission/provenance limitations prevent broader recommendations, scenario comparison is not ready yet, and proposal generation remains deferred.
-- Every recommendation item carries a traceable `basis`, backend tests verify deterministic same-input/same-output behavior, and existing advisor recommendation records are not exposed as current recommendations.
-- Current closeout is documentation and continuity alignment only; no app code, runtime feature work, broader Phase 3 implementation, auth, RBAC/ABAC, permission enforcement, exports, utility sharing, telemetry governance, ownership transfer, registry, marketplace, or operational control is in scope.
+- Phase 3 derived-view assembly stabilization complete in `f1fbc7b`.
+- Root cause: Phase 3I Basic Advisory Recommendations recursively rebuilt Phase 3C through Phase 3H and earlier Phase 3 views inside deterministic same-input/same-output tests, creating CPU-bound focused unittest runs.
+- Fix: `TwinPlanningContextService` now reuses already-built request-time `TwinPlanningContext`, topology snapshot, and Phase 3A through Phase 3I derived view objects inside a single builder chain.
+- Behavior/API impact: no endpoint, schema, router, persistence, response-shape, frontend, auth, permission enforcement, export, graph, `twin_id`, operational behavior, or Phase 3J change.
+- Verification for `f1fbc7b`: `git diff --check` passed; focused problematic test passed; `python3 -m unittest tests.test_twin_planning_context` passed with 93 tests; `python3 -m unittest discover tests` passed with 104 tests; final git status was clean before this docs-only continuity update.
 - Product/design recommendations, recommendation ranking, best-option selection, scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, outcome calculation, calculated change analysis, option ordering, optimization, change propagation, stale-state persistence, recalculation, invalidation, final design guidance, proposal generation, contractor directives, homeowner directives, economic reasoning, utility readiness logic/reasoning, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph engine/database, exports, operational behavior, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model remain deferred.
 
 ## Earlier Change
