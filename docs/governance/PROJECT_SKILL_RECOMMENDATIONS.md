@@ -9,6 +9,7 @@
 - `canonical-authority-discipline`: authority layer separation and terminology normalization
 - `provenance-lineage`: source lineage, trust states, derived outputs, and AI grounding
 - `roadmap-continuity`: sequencing, active tasks, deferred architecture, and future phases
+- `codex-automation-governance`: repeatable Codex workflow blocks with assessment, implementation, verification, commit, closeout, and Matt approval gates
 
 ## Trigger Guidance
 
