@@ -31,6 +31,7 @@
 - Phase 3J Contractor-Facing Advisory Logic complete in `58bd14f`.
 - Phase 3K Homeowner-Facing Advisory Logic complete in `5814c18`.
 - Phase 3L Energy Goal Reasoning complete in `492d492`.
+- Phase 3M Proposal Readiness Foundation complete in `916a6f5`.
 - Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Phase 2B Twin Runtime Expression is complete and stabilized for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
 - Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`.
@@ -47,6 +48,7 @@
 - Phase 3J Contractor-Facing Advisory Logic is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored contractor-facing translation view over existing `TwinPlanningContext`, topology snapshot, and Phase 3C through Phase 3I readiness/advisory/recommendation context.
 - Phase 3K Homeowner-Facing Advisory Logic is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored homeowner-facing translation view over existing `TwinPlanningContext`, topology snapshot, and Phase 3C through Phase 3I readiness/advisory/recommendation context.
 - Phase 3L Energy Goal Reasoning is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored goal-to-context reasoning view over existing `TwinPlanningContext`, topology snapshot, and Phase 3D through Phase 3K advisory/readiness/recommendation context.
+- Phase 3M Proposal Readiness Foundation is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored proposal-readiness view over existing `TwinPlanningContext`, topology snapshot, and Phase 3E through Phase 3L readiness/advisory/reasoning context.
 - Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, permission enforcement, scoped exports, and operational control remain unapproved.
 - `.github/` remains out of scope for this session.
 - Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
@@ -103,8 +105,10 @@
   - `5814c18` `feat: add homeowner facing advisory view`
   - `fa98f0a` `docs: record phase 3k homeowner facing advisory closeout`
   - `492d492` `feat: add energy goal reasoning view`
+  - `031d3df` `docs: record phase 3l energy goal reasoning closeout`
+  - `916a6f5` `feat: add proposal readiness foundation view`
 - Current closeout checkpoint:
-  - Aligning project memory for Phase 3L Energy Goal Reasoning closeout only. No runtime feature work, persistence changes, migrations, response-shape changes beyond the additive Phase 3L view already committed, frontend work, auth, permission enforcement, exports, graph behavior, `twin_id`, operational behavior, or next Phase 3 implementation is in scope.
+  - Aligning project memory for Phase 3M Proposal Readiness Foundation closeout only. No runtime feature work, persistence changes, migrations, response-shape changes beyond the additive Phase 3M view already committed, frontend work, auth, permission enforcement, exports, graph behavior, `twin_id`, operational behavior, or next Phase 3 implementation is in scope.
 
 ## Canonical Phase Structure
 
@@ -123,16 +127,17 @@
 - Phase 3I: Basic Advisory Recommendations - complete for the approved ninth runtime boundary in `2f1b4bd`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
 - Phase 3J: Contractor-Facing Advisory Logic - complete for the approved tenth runtime boundary in `58bd14f`.
 - Phase 3K: Homeowner-Facing Advisory Logic - complete for the approved eleventh runtime boundary in `5814c18`.
-- Phase 3L: Energy Goal Reasoning - complete for the approved twelfth runtime boundary in `492d492`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
+- Phase 3L: Energy Goal Reasoning - complete for the approved twelfth runtime boundary in `492d492`.
+- Phase 3M: Proposal Readiness Foundation - complete for the approved thirteenth runtime boundary in `916a6f5`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
 
 ## What Changed Last
 
-- Phase 3L Energy Goal Reasoning complete in `492d492`.
-- Added the Energy Goal Reasoning endpoint: `/api/twin-planning-context/homes/{home_id}/views/energy-goal-reasoning`.
-- Added a read-only, request-time, `home_id`-anchored goal-to-context reasoning view over existing `TwinPlanningContext`, topology snapshot, and Phase 3D through Phase 3K advisory/readiness/recommendation context.
-- The view reports recorded homeowner goals, goal-to-known-fact alignment, goal-to-missing-prerequisite gaps, goal-readiness posture, provenance basis, permission-readiness metadata, contractor/homeowner advisory context links, professional-review boundaries, unsafe assumptions, limitations, and deferred goal optimization/proposal boundaries.
-- Behavior/API impact: additive endpoint and schemas only. No existing response shape, persistence, migrations, frontend, auth, permission enforcement, export, graph, `twin_id`, operational behavior, product/final-design recommendation, goal/solution ranking, optimization, simulation, scenario comparison, savings/payback, proposal generation, directives, or utility-readiness logic changed.
-- Verification for `492d492`: `git diff --check` passed; focused Phase 3L smoke tests passed; `python3 -m unittest tests.test_twin_planning_context` passed with 108 tests; `python3 -m unittest discover tests` passed with 119 tests; `git diff --cached --check` passed; final git status was clean after the code commit.
+- Phase 3M Proposal Readiness Foundation complete in `916a6f5`.
+- Added the Proposal Readiness Foundation endpoint: `/api/twin-planning-context/homes/{home_id}/views/proposal-readiness-foundation`.
+- Added a read-only, request-time, `home_id`-anchored proposal-readiness view over existing `TwinPlanningContext`, topology snapshot, and Phase 3E through Phase 3L readiness/advisory/reasoning context.
+- The view reports proposal-readiness posture, homeowner goal readiness for proposal context, contractor advisory context readiness, topology readiness, missing proposal prerequisites, missing product/spec data, risk/provenance blockers, professional-review boundaries, unsafe assumptions, limitations, and deferred proposal-generation boundaries.
+- Behavior/API impact: additive endpoint and schemas only. No existing response shape, persistence, migrations, frontend, auth, permission enforcement, export, graph, `twin_id`, operational behavior, proposal generation, pricing, quotes, packages, sales copy, savings/payback, financing logic, rankings, product/final-design recommendations, contractor CRM workflow, or exports changed.
+- Verification for `916a6f5`: `git diff --check` passed; focused Phase 3M smoke tests passed; `python3 -m unittest tests.test_twin_planning_context` passed with 113 tests; `python3 -m unittest discover tests` passed with 124 tests; `git diff --cached --check` passed; final git status was clean after the code commit.
 - Product/design recommendations, recommendation ranking, best-option selection, scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, outcome calculation, calculated change analysis, option ordering, optimization, change propagation, stale-state persistence, recalculation, invalidation, final design guidance, proposal generation, contractor directives, homeowner directives, economic reasoning, utility readiness logic/reasoning, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph engine/database, exports, operational behavior, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model remain deferred.
 
 ## Earlier Change

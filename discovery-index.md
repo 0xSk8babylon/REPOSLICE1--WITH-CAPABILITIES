@@ -77,6 +77,10 @@ Read these first:
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/energy-goal-reasoning` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored goal-to-context reasoning over existing `TwinPlanningContext`, topology snapshot, and Phase 3D through Phase 3K advisory/readiness/recommendation context. Goal-readiness means context readiness for goal reasoning; it does not mean design readiness, proposal readiness, approval, verification, or recommendation authority. Goal alignment is categorical and traceable, not numeric, ranked, optimized, or ordered by desirability.
   - Deferred: product recommendations, final design recommendations, goal ranking, solution ranking, optimization, simulation, scenario comparison, savings/payback, proposal generation, contractor directives, homeowner directives, utility-readiness logic, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, and canonical Twin runtime model.
+- Phase 3M: Proposal Readiness Foundation - complete for the approved thirteenth runtime boundary in `916a6f5`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/proposal-readiness-foundation` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored proposal-readiness reporting over existing `TwinPlanningContext`, topology snapshot, and Phase 3E through Phase 3L readiness/advisory/reasoning context. It determines whether current context is ready to support future proposal generation without generating proposals.
+  - Deferred: proposal generation, pricing, quotes, good/better/best packages, sales copy, savings/payback, financing logic, ranked options, best-design selection, product recommendations, final design recommendations, contractor CRM workflows, exports, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, operational behavior, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -106,6 +110,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-04-phase-3m-proposal-readiness-foundation.md`
   - `docs/handoffs/2026-06-04-phase-3l-energy-goal-reasoning.md`
   - `docs/handoffs/2026-06-04-phase-3k-homeowner-facing-advisory.md`
   - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
@@ -229,6 +234,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3L Energy Goal Reasoning:
     - `docs/handoffs/2026-06-04-phase-3l-energy-goal-reasoning.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3M Proposal Readiness Foundation:
+    - `docs/handoffs/2026-06-04-phase-3m-proposal-readiness-foundation.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
