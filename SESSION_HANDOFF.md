@@ -35,7 +35,7 @@
 - Phase 3N Product / Spec Intelligence Readiness complete in `39822c9`.
 - Phase 3O Phase 3 Closeout Stabilization complete as docs-only continuity work.
 - Phase 4 Trust / Provenance Maturity and Readiness Normalization is complete and closed out in `74448241f955d6a5b98ff09d0c2ddf6edb117dbd`.
-- Phase 5A through Phase 5E Contractor Participant Foundation is implemented in the working tree pending Matt's final commit approval. Phase 5 runtime work remains read-only, request-time, deterministic, `home_id` anchored, provenance-bearing, contractor-safe, and non-authoritative.
+- Phase 5A through Phase 5E Contractor Participant Foundation is complete and locally committed in `f616e9ac9e4d2a2b763d692a5135245d57eb6407` (`feat: add contractor participant read-only foundations`). Final status after commit was clean, and no push was run. Phase 5 runtime work remains read-only, request-time, deterministic, `home_id` anchored, provenance-bearing, contractor-safe, and non-authoritative.
 - Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Phase 2B Twin Runtime Expression is complete and stabilized for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
 - Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`.
@@ -125,7 +125,7 @@
 - Current Phase 4 closeout checkpoint:
   - Phase 4 is defined as Trust / Provenance Maturity and Readiness Normalization. Phase 3 is closed and serves as the source foundation. Phase 4A through Phase 4E runtime normalization is complete and committed. Phase 4 closeout is committed in `74448241f955d6a5b98ff09d0c2ddf6edb117dbd`.
 - Current Phase 5 checkpoint:
-  - Phase 5 is defined as Contractor Participant Foundation. Phase 5A is docs-only charter work defining the contractor participant role, contractor-safe visibility model, read-only mutability boundary, trust/provenance boundaries, confirmation gate lifecycle, install complexity categories, future contractor observation doctrine, forbidden scope, verification requirements, and approved Phase 5B through Phase 5D runtime boundaries. Phase 5B through Phase 5D add read-only derived contractor-context endpoints. Phase 5E documents future contractor observation doctrine only. No Phase 5 write endpoint, persistence, migration, auth/security change, permission enforcement, contractor account, frontend, export, marketplace/CRM/payment behavior, source-of-truth mutation, or final electrical sizing/design claim is approved or implemented.
+  - Phase 5 is defined as Contractor Participant Foundation. Phase 5A through Phase 5E is complete and locally committed in `f616e9ac9e4d2a2b763d692a5135245d57eb6407`; no push was run. Phase 5A is docs-only charter work defining the contractor participant role, contractor-safe visibility model, read-only mutability boundary, trust/provenance boundaries, confirmation gate lifecycle, install complexity categories, future contractor observation doctrine, forbidden scope, verification requirements, and approved Phase 5B through Phase 5D runtime boundaries. Phase 5B through Phase 5D add read-only derived contractor-context endpoints. Phase 5E documents future contractor observation doctrine only. No Phase 5 write endpoint, persistence, migration, auth/security change, permission enforcement, contractor account, frontend, export, marketplace/CRM/payment behavior, source-of-truth mutation, or final electrical sizing/design claim is approved or implemented.
 
 ## Canonical Phase Structure
 
@@ -157,10 +157,12 @@
 
 ## What Changed Last
 
-- Phase 5A through Phase 5E Contractor Participant Foundation was implemented in the working tree pending Matt's final commit approval.
+- Phase 5A through Phase 5E Contractor Participant Foundation was locally committed in `f616e9ac9e4d2a2b763d692a5135245d57eb6407` with commit message `feat: add contractor participant read-only foundations`.
+- Final status after commit was clean, and no push was run.
 - Added `docs/phase-5-contractor-participant-foundation.md`.
 - Added `docs/handoffs/2026-06-04-phase-5a-contractor-participant-charter.md`.
 - Added `docs/handoffs/2026-06-04-phase-5e-contractor-observation-doctrine.md`.
+- Added `docs/handoffs/2026-06-04-phase-5-contractor-participant-foundation-closeout.md`.
 - Added backend read-only contractor-context package, schemas, router, and service.
 - Updated compact continuity in `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, and `discovery-index.md`.
 - Phase 5A defines contractor participant role, contractor-safe visibility, read-only mutability boundary, trust/provenance boundaries, confirmation gate lifecycle, install complexity categories, future contractor observation doctrine, forbidden scope, and verification requirements.
@@ -168,7 +170,7 @@
 - Phase 5C adds backend read-only derived `GET /api/contractor-context/homes/{home_id}/confirmation-gates`.
 - Phase 5D adds backend read-only derived `GET /api/contractor-context/homes/{home_id}/install-complexity`.
 - Phase 5E documents future contractor observations as append-only participant input only; it does not implement observation intake.
-- No frontend, persistence, migration, auth/security, permission enforcement, write endpoint, contractor account, marketplace, CRM, payment, pricing/proposal, final electrical sizing, export, `twin_id`, graph, operational behavior, commit, push, or source-of-truth mutation work has been performed during Phase 5A through Phase 5E.
+- No frontend, persistence, migration, auth/security, permission enforcement, write endpoint, contractor account, marketplace, CRM, payment, pricing/proposal, final electrical sizing, export, `twin_id`, graph, operational behavior, push, or source-of-truth mutation work has been performed during Phase 5A through Phase 5E.
 
 - Phase 4 Trust / Provenance Maturity and Readiness Normalization runtime normalization completed through approved slices 4A through 4E and is now in docs-only closeout.
 - Phase 3O Phase 3 Closeout Stabilization remains the Phase 3 closeout foundation.

@@ -98,13 +98,16 @@ Read these first:
   - Completed runtime scope: Phase 4A added per-view optional `trust_provenance_readiness_summary` metadata to all 14 Phase 3 derived views; Phase 4B added `/api/twin-planning-context/homes/{home_id}/views/trust-provenance-readiness-index`; Phase 4C through Phase 4E normalized gap categories, source/provenance/readiness field paths, and advisory-only readiness language.
   - Latest backend verification: focused twin planning context tests passed with 125 tests, and full backend discovery passed with 136 tests.
   - Current boundary: Phase 4 runtime is complete unless Matt approves another Phase 4 slice. Phase 4 did not add frontend, persistence, migrations, auth/security, exports, pricing, proposals, product selection, compatibility engine behavior, scenario simulation, graph engine, `twin_id`, marketplace behavior, operational behavior, scoring, ranking, pass/fail verdicts, approval claims, verification claims, AHJ/manual approval claims, contractor readiness claims, permission enforcement claims, or push work.
-- Phase 5A through Phase 5E: Contractor Participant Foundation - implemented in the working tree pending Matt's final commit approval.
+- Phase 5A through Phase 5E: Contractor Participant Foundation - complete and locally committed in `f616e9ac9e4d2a2b763d692a5135245d57eb6407`.
   - Charter: `docs/phase-5-contractor-participant-foundation.md`
   - Handoff: `docs/handoffs/2026-06-04-phase-5a-contractor-participant-charter.md`
   - Phase 5E handoff: `docs/handoffs/2026-06-04-phase-5e-contractor-observation-doctrine.md`
+  - Closeout handoff: `docs/handoffs/2026-06-04-phase-5-contractor-participant-foundation-closeout.md`
   - Product purpose: establish the contractor as a permission-scoped planning participant through read-only contractor views, confirmation gate projections, install complexity reasoning, and future contractor observation doctrine.
+  - Commit message: `feat: add contractor participant read-only foundations`. Final status after commit was clean; no push was run.
   - Runtime endpoints: `GET /api/contractor-context/homes/{home_id}`, `GET /api/contractor-context/homes/{home_id}/confirmation-gates`, and `GET /api/contractor-context/homes/{home_id}/install-complexity`.
   - Current boundary: Phase 5B through Phase 5D runtime foundations are read-only, request-time, deterministic, contractor-safe, provenance-preserving, permission-readiness-aware, and `home_id` anchored. Phase 5E is docs-only future contractor observation doctrine and does not implement observation intake.
+  - Next boundary: Phase 6 should start as planning only unless separately approved. If continuing within Phase 5 first, Phase 5F should stay read-only contractor review summary/readiness hardening over existing Phase 5B-D views.
   - Deferred: persistence, migrations, auth/security changes, permission enforcement, contractor accounts, write endpoints, source-of-truth mutation, frontend work, exports, marketplace features, bidding, contractor ranking, CRM integration, payments, pricing, proposals, product recommendations, compatibility engines, scenario simulation, graph behavior, `twin_id`, operational behavior, final wire sizing, final conduit sizing, final breaker sizing, disconnect requirement claims, NEC-compliant installation design claims, AHJ/utility approval, field-verification approval, git push, and production deployment.
 
 ## Operational References By Task
