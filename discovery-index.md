@@ -57,6 +57,10 @@ Read these first:
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/recommendation-eligibility-readiness` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored recommendation-readiness gate over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, Phase 3F scenario comparison readiness, and Phase 3G pre-recommendation advisory outputs. Eligibility means readiness posture only and is not permission, approval, engineering review, authority, or recommendation generation.
   - Deferred: recommendation generation, recommendation ranking, best-option selection, scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, outcome calculation, calculated change analysis, option ordering, optimization, change propagation, stale-state persistence, recalculation, invalidation, final design guidance, proposal generation, contractor directives, homeowner directives, economic reasoning, utility readiness logic/reasoning, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model.
+- Phase 3I: Basic Advisory Recommendations - complete for the approved ninth runtime boundary in `2f1b4bd`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/basic-advisory-recommendations` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored prerequisite/remediation recommendation view over existing `TwinPlanningContext`, topology snapshot, Phase 3C planning intelligence readiness, Phase 3D advisory context assembly, Phase 3E constraint/risk reasoning, Phase 3F scenario comparison readiness, Phase 3G pre-recommendation advisory, and Phase 3H recommendation eligibility readiness outputs. It emits only basic advisory recommendations to collect missing data, verify topology, verify equipment/spec information, request spec sheets, seek contractor or professional review, preserve cannot-recommend-yet posture, surface permission/provenance blockers, keep scenario comparison not ready, and keep proposal generation deferred.
+  - Deferred: product/design recommendations, recommendation ranking, best-option selection, scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, outcome calculation, calculated change analysis, option ordering, optimization, change propagation, stale-state persistence, recalculation, invalidation, final design guidance, proposal generation, contractor directives, homeowner directives, economic reasoning, utility readiness logic/reasoning, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -91,6 +95,7 @@ Read these first:
   - `docs/handoffs/2026-06-03-phase-3f-scenario-comparison-readiness.md`
   - `docs/handoffs/2026-06-03-phase-3g-pre-recommendation-advisory.md`
   - `docs/handoffs/2026-06-03-phase-3h-recommendation-eligibility-readiness.md`
+  - `docs/handoffs/2026-06-03-phase-3i-basic-advisory-recommendations.md`
   - `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md`
   - `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md`
   - `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
@@ -179,6 +184,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3H Recommendation Eligibility Readiness:
     - `docs/handoffs/2026-06-03-phase-3h-recommendation-eligibility-readiness.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3I Basic Advisory Recommendations:
+    - `docs/handoffs/2026-06-03-phase-3i-basic-advisory-recommendations.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
