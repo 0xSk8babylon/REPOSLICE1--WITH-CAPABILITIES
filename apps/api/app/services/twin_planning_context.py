@@ -56,6 +56,11 @@ from app.twin_planning_context.schemas import (
     TwinPreRecommendationAdvisoryItem,
     TwinPreRecommendationAdvisoryScope,
     TwinPreRecommendationAdvisoryView,
+    TwinProposalReadinessFoundationArea,
+    TwinProposalReadinessFoundationBasis,
+    TwinProposalReadinessFoundationItem,
+    TwinProposalReadinessFoundationScope,
+    TwinProposalReadinessFoundationView,
     TwinPlanningChangeImpactHint,
     TwinPlanningContext,
     TwinPlanningContextRecord,
@@ -610,6 +615,37 @@ ENERGY_GOAL_REASONING_DEFERRED_BOUNDARIES = [
     "twin_id",
     "graph_engine",
     "exports",
+    "operational_behavior",
+]
+
+PROPOSAL_READINESS_FOUNDATION_LIMITATIONS = [
+    "Phase 3M proposal readiness foundation is readiness reporting only.",
+    "It determines whether current context is ready to support future proposal generation without generating a proposal.",
+    "It does not generate proposals, pricing, quotes, good/better/best packages, sales copy, savings/payback, financing logic, ranked options, best design selection, product recommendations, final design recommendations, CRM workflows, exports, permission enforcement, persistence, graph behavior, twin_id, or operational behavior.",
+    "Permission readiness is metadata only and is not authorization or enforcement; provenance basis is source context only and is not verification.",
+]
+
+PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES = [
+    "proposal_generation",
+    "pricing",
+    "quote_generation",
+    "good_better_best_packages",
+    "sales_copy",
+    "savings_payback",
+    "financing_logic",
+    "ranked_options",
+    "best_design_selection",
+    "product_recommendations",
+    "final_design_recommendations",
+    "contractor_crm_workflow",
+    "exports",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
     "operational_behavior",
 ]
 
@@ -9898,6 +9934,570 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3K views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3L energy goal reasoning view."
+            ),
+        )
+
+    def _proposal_readiness_foundation_basis(
+        self,
+        *,
+        source_views: Optional[List[str]] = None,
+        source_section_keys: Optional[List[str]] = None,
+        proposal_readiness_refs: Optional[List[str]] = None,
+        goal_refs: Optional[List[str]] = None,
+        contractor_context_refs: Optional[List[str]] = None,
+        topology_refs: Optional[List[str]] = None,
+        missing_prerequisite_refs: Optional[List[str]] = None,
+        product_spec_refs: Optional[List[str]] = None,
+        risk_refs: Optional[List[str]] = None,
+        provenance_refs: Optional[List[str]] = None,
+        permission_refs: Optional[List[str]] = None,
+        professional_boundary_refs: Optional[List[str]] = None,
+        unsafe_assumption_refs: Optional[List[str]] = None,
+        blocked_deferred_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinProposalReadinessFoundationBasis:
+        return TwinProposalReadinessFoundationBasis(
+            source_views=self._sorted_unique(
+                source_views
+                or [
+                    "twin_planning_context",
+                    "topology_snapshot",
+                    "constraint_risk_reasoning",
+                    "recommendation_eligibility_readiness",
+                    "basic_advisory_recommendations",
+                    "contractor_facing_advisory",
+                    "energy_goal_reasoning",
+                ]
+            ),
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            proposal_readiness_refs=self._sorted_unique(proposal_readiness_refs or []),
+            goal_refs=self._sorted_unique(goal_refs or []),
+            contractor_context_refs=self._sorted_unique(contractor_context_refs or []),
+            topology_refs=self._sorted_unique(topology_refs or []),
+            missing_prerequisite_refs=self._sorted_unique(missing_prerequisite_refs or []),
+            product_spec_refs=self._sorted_unique(product_spec_refs or []),
+            risk_refs=self._sorted_unique(risk_refs or []),
+            provenance_refs=self._sorted_unique(provenance_refs or []),
+            permission_refs=self._sorted_unique(permission_refs or []),
+            professional_boundary_refs=self._sorted_unique(professional_boundary_refs or []),
+            unsafe_assumption_refs=self._sorted_unique(unsafe_assumption_refs or []),
+            blocked_deferred_refs=self._sorted_unique(blocked_deferred_refs or []),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=PROPOSAL_READINESS_FOUNDATION_LIMITATIONS,
+        )
+
+    def _proposal_readiness_foundation_item(
+        self,
+        *,
+        readiness_area: TwinProposalReadinessFoundationArea,
+        posture: str,
+        statement: str,
+        readiness_refs: Optional[List[str]] = None,
+        missing_prerequisites: Optional[List[str]] = None,
+        blockers: Optional[List[str]] = None,
+        blocked_deferred: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinProposalReadinessFoundationBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinProposalReadinessFoundationItem:
+        return TwinProposalReadinessFoundationItem(
+            readiness_area=readiness_area,
+            posture=posture,
+            statement=statement,
+            readiness_refs=self._sorted_unique(readiness_refs or []),
+            missing_prerequisites=self._sorted_unique(missing_prerequisites or []),
+            blockers=self._sorted_unique(blockers or []),
+            blocked_deferred=self._sorted_unique(blocked_deferred or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or PROPOSAL_READINESS_FOUNDATION_LIMITATIONS,
+        )
+
+    def _proposal_readiness_foundation_item_sort_key(
+        self, item: TwinProposalReadinessFoundationItem
+    ) -> str:
+        return item.readiness_area.value
+
+    def build_proposal_readiness_foundation_view(
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
+        scenario_view: Optional[TwinScenarioComparisonReadinessView] = None,
+        pre_recommendation_view: Optional[TwinPreRecommendationAdvisoryView] = None,
+        eligibility_view: Optional[TwinRecommendationEligibilityReadinessView] = None,
+        basic_recommendations_view: Optional[TwinBasicAdvisoryRecommendationsView] = None,
+        contractor_advisory_view: Optional[TwinContractorFacingAdvisoryView] = None,
+        homeowner_advisory_view: Optional[TwinHomeownerFacingAdvisoryView] = None,
+        energy_goal_reasoning_view: Optional[TwinEnergyGoalReasoningView] = None,
+    ) -> Optional[TwinProposalReadinessFoundationView]:
+        context = context or self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(db, home_id, context=context, snapshot=snapshot)
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db, home_id, context=context, snapshot=snapshot, impact_view=impact_view
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db, home_id, context=context, snapshot=snapshot, impact_view=impact_view, reasoning_view=reasoning_view
+        )
+        if readiness_view is None:
+            return None
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
+        if advisory_view is None:
+            return None
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
+        if risk_view is None:
+            return None
+        scenario_view = scenario_view or self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
+        if scenario_view is None:
+            return None
+        pre_recommendation_view = pre_recommendation_view or self.build_pre_recommendation_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+        )
+        if pre_recommendation_view is None:
+            return None
+        eligibility_view = eligibility_view or self.build_recommendation_eligibility_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+        )
+        if eligibility_view is None:
+            return None
+        basic_recommendations_view = basic_recommendations_view or self.build_basic_advisory_recommendations_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+        )
+        if basic_recommendations_view is None:
+            return None
+        contractor_advisory_view = contractor_advisory_view or self.build_contractor_facing_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+        )
+        if contractor_advisory_view is None:
+            return None
+        homeowner_advisory_view = homeowner_advisory_view or self.build_homeowner_facing_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+        )
+        if homeowner_advisory_view is None:
+            return None
+        energy_goal_reasoning_view = energy_goal_reasoning_view or self.build_energy_goal_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+            basic_recommendations_view=basic_recommendations_view,
+            contractor_advisory_view=contractor_advisory_view,
+            homeowner_advisory_view=homeowner_advisory_view,
+        )
+        if energy_goal_reasoning_view is None:
+            return None
+
+        source_section_keys = [section.section_key for section in context.sections]
+        proposal_readiness_refs = [
+            TwinBasicAdvisoryRecommendationCategory.proposal_generation_deferred.value,
+            "proposal_context_readiness_only",
+            f"phase_3l_goal_readiness_items:{len(energy_goal_reasoning_view.goal_readiness_posture)}",
+        ]
+        goal_refs = energy_goal_reasoning_view.source_basis.goal_refs
+        contractor_context_refs = contractor_advisory_view.source_basis.known_refs + [
+            f"contractor_advisory_items:{len(contractor_advisory_view.advisory_items)}"
+        ]
+        topology_refs = self._sorted_unique(
+            [f"topology_node:{node.entity_type}:{node.node_id}" for node in snapshot.nodes]
+            + [f"topology_edge:{edge.source_node_id}->{edge.target_node_id}:{edge.relationship}" for edge in snapshot.edges]
+            + eligibility_view.source_basis.topology_refs
+        )
+        missing_prerequisite_refs = self._sorted_unique(
+            eligibility_view.missing_prerequisites
+            + basic_recommendations_view.source_basis.prerequisite_refs
+            + energy_goal_reasoning_view.source_basis.missing_prerequisite_refs
+            + [
+                item
+                for item in contractor_advisory_view.prerequisite_advisory_recommendations
+                for item in item.contractor_visible_unknowns
+            ]
+        )
+        product_spec_refs = self._sorted_unique(
+            eligibility_view.source_basis.equipment_refs
+            + [
+                ref
+                for item in risk_view.missing_equipment_specs
+                for ref in item.missing_inputs + item.observed_constraint_refs
+            ]
+            + basic_recommendations_view.source_basis.equipment_refs
+        )
+        risk_refs = self._sorted_unique(
+            item.risk_area.value for item in risk_view.constraint_risk_items
+        )
+        provenance_refs = eligibility_view.source_basis.provenance_refs
+        permission_refs = eligibility_view.source_basis.permission_refs
+        professional_boundary_refs = self._sorted_unique(
+            eligibility_view.source_basis.professional_boundary_refs
+            + energy_goal_reasoning_view.source_basis.professional_boundary_refs
+        )
+        unsafe_assumption_refs = self._sorted_unique(
+            energy_goal_reasoning_view.source_basis.unsafe_assumption_refs
+            + [
+                assumption
+                for item in risk_view.constraint_risk_items
+                for assumption in item.unsafe_assumptions
+            ]
+        )
+        source_basis = self._proposal_readiness_foundation_basis(
+            source_section_keys=source_section_keys,
+            proposal_readiness_refs=proposal_readiness_refs,
+            goal_refs=goal_refs,
+            contractor_context_refs=contractor_context_refs,
+            topology_refs=topology_refs,
+            missing_prerequisite_refs=missing_prerequisite_refs,
+            product_spec_refs=product_spec_refs,
+            risk_refs=risk_refs,
+            provenance_refs=provenance_refs,
+            permission_refs=permission_refs,
+            professional_boundary_refs=professional_boundary_refs,
+            unsafe_assumption_refs=unsafe_assumption_refs,
+            blocked_deferred_refs=PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinConstraintRiskReasoningView",
+                "TwinRecommendationEligibilityReadinessView",
+                "TwinBasicAdvisoryRecommendationsView",
+                "TwinContractorFacingAdvisoryView",
+                "TwinEnergyGoalReasoningView",
+            ],
+        )
+        common_unsafe_assumptions = [
+            "Treating proposal-readiness reporting as proposal generation, pricing, quoting, package generation, sales copy, product recommendation, final design recommendation, or CRM workflow would be unsafe.",
+        ]
+        proposal_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.proposal_readiness_posture,
+            posture="proposal_readiness_only_not_proposal_generation",
+            statement="Proposal-readiness posture reports whether current context can support future proposal generation; it does not generate a proposal.",
+            readiness_refs=proposal_readiness_refs,
+            missing_prerequisites=missing_prerequisite_refs,
+            blockers=PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES,
+            blocked_deferred=PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="proposal_generation_deferred_readiness_only",
+            basis=source_basis,
+        )
+        goal_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.homeowner_goal_readiness,
+            posture="goal_context_readiness_for_proposal_context_only",
+            statement="Homeowner goal readiness is proposal-context readiness only and is not design readiness, proposal readiness approval, or recommendation authority.",
+            readiness_refs=goal_refs,
+            missing_prerequisites=energy_goal_reasoning_view.source_basis.missing_prerequisite_refs,
+            blocked_deferred=["proposal_generation", "final_design_recommendations", "sales_copy"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="goal_context_available_for_readiness_not_proposal",
+            basis=self._proposal_readiness_foundation_basis(
+                goal_refs=goal_refs,
+                missing_prerequisite_refs=energy_goal_reasoning_view.source_basis.missing_prerequisite_refs,
+                derived_from=["TwinEnergyGoalReasoningView"],
+            ),
+        )
+        contractor_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.contractor_advisory_context_readiness,
+            posture="contractor_context_available_not_crm_or_directive",
+            statement="Contractor advisory context can inform readiness reporting only; it does not create contractor directives, CRM workflow, bids, quotes, or proposals.",
+            readiness_refs=contractor_context_refs,
+            missing_prerequisites=contractor_advisory_view.source_basis.unknown_refs,
+            blocked_deferred=["contractor_crm_workflow", "quote_generation", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="contractor_context_visible_not_workflow",
+            basis=self._proposal_readiness_foundation_basis(
+                contractor_context_refs=contractor_context_refs,
+                missing_prerequisite_refs=contractor_advisory_view.source_basis.unknown_refs,
+                derived_from=["TwinContractorFacingAdvisoryView"],
+            ),
+        )
+        topology_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.topology_readiness,
+            posture="topology_readiness_context_only",
+            statement="Topology readiness reports whether topology context is available for future proposal context; it is not field-verified topology or design approval.",
+            readiness_refs=topology_refs,
+            missing_prerequisites=eligibility_view.source_basis.topology_refs,
+            blockers=["field_verified_topology"],
+            blocked_deferred=["proposal_generation", "final_design_recommendations", "operational_behavior"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating topology readiness as field-verified topology would be unsafe."],
+            confidence_posture="topology_context_available_not_verified",
+            basis=self._proposal_readiness_foundation_basis(
+                topology_refs=topology_refs,
+                missing_prerequisite_refs=eligibility_view.source_basis.topology_refs,
+                derived_from=["TwinTopologySnapshot", "TwinRecommendationEligibilityReadinessView.topology_sufficiency"],
+            ),
+        )
+        missing_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.missing_proposal_prerequisites,
+            posture="proposal_prerequisites_missing",
+            statement="Missing proposal prerequisites are listed for readiness only; resolving them is outside this view.",
+            missing_prerequisites=missing_prerequisite_refs,
+            blockers=missing_prerequisite_refs,
+            blocked_deferred=PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="proposal_prerequisites_not_complete",
+            basis=self._proposal_readiness_foundation_basis(
+                missing_prerequisite_refs=missing_prerequisite_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.missing_prerequisites",
+                    "TwinBasicAdvisoryRecommendationsView.source_basis.prerequisite_refs",
+                    "TwinEnergyGoalReasoningView.source_basis.missing_prerequisite_refs",
+                ],
+            ),
+        )
+        product_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.missing_product_spec_data,
+            posture="product_spec_data_incomplete",
+            statement="Missing product/spec data can block future proposal context; this view does not recommend, price, select, or package products.",
+            readiness_refs=product_spec_refs,
+            missing_prerequisites=product_spec_refs or ["source_backed_spec_sheet", "verified_equipment_spec_sources"],
+            blockers=product_spec_refs,
+            blocked_deferred=["product_recommendations", "pricing", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating product/spec readiness as product selection or pricing would be unsafe."],
+            confidence_posture="product_spec_prerequisites_visible",
+            basis=self._proposal_readiness_foundation_basis(
+                product_spec_refs=product_spec_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.equipment_spec_sufficiency",
+                    "TwinConstraintRiskReasoningView.missing_equipment_specs",
+                    "TwinBasicAdvisoryRecommendationsView.verify_equipment_spec_information",
+                ],
+            ),
+        )
+        risk_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.risk_provenance_blockers,
+            posture="risk_and_provenance_blockers_visible",
+            statement="Risk and provenance blockers are basis context only; provenance presence is not verification and risk visibility is not proposal approval.",
+            readiness_refs=risk_refs + provenance_refs,
+            blockers=risk_refs + provenance_refs,
+            blocked_deferred=["proposal_generation", "final_design_recommendations", "quote_generation"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating provenance basis as verification or proposal approval would be unsafe."],
+            confidence_posture="risk_provenance_context_visible_not_verified",
+            basis=self._proposal_readiness_foundation_basis(
+                risk_refs=risk_refs,
+                provenance_refs=provenance_refs,
+                permission_refs=permission_refs,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView",
+                    "TwinRecommendationEligibilityReadinessView.provenance_sufficiency",
+                    "TwinRecommendationEligibilityReadinessView.permission_readiness_basis",
+                ],
+            ),
+            limitations=PROPOSAL_READINESS_FOUNDATION_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+        professional_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.professional_review_boundaries,
+            posture="professional_review_boundary_visible",
+            statement="Professional-review boundaries remain visible and are not completed review, approval, quote authority, or proposal authority.",
+            missing_prerequisites=professional_boundary_refs,
+            blockers=professional_boundary_refs,
+            blocked_deferred=["proposal_generation", "quote_generation", "final_design_recommendations"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating professional-review boundaries as completed review would be unsafe."],
+            confidence_posture="professional_review_required_not_present",
+            basis=self._proposal_readiness_foundation_basis(
+                professional_boundary_refs=professional_boundary_refs,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.professional_review_boundaries",
+                    "TwinRecommendationEligibilityReadinessView.professional_review_boundaries",
+                ],
+            ),
+        )
+        unsafe_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.unsafe_assumptions,
+            posture="unsafe_assumptions_visible",
+            statement="Unsafe assumptions remain visible before proposal readiness can be interpreted beyond planning context.",
+            blockers=unsafe_assumption_refs,
+            blocked_deferred=PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions + unsafe_assumption_refs,
+            confidence_posture="unsafe_assumptions_not_resolved",
+            basis=self._proposal_readiness_foundation_basis(
+                unsafe_assumption_refs=unsafe_assumption_refs,
+                derived_from=[
+                    "TwinEnergyGoalReasoningView.source_basis.unsafe_assumption_refs",
+                    "TwinConstraintRiskReasoningView.constraint_risk_items",
+                ],
+            ),
+        )
+        deferred_item = self._proposal_readiness_foundation_item(
+            readiness_area=TwinProposalReadinessFoundationArea.deferred_proposal_generation_boundaries,
+            posture="proposal_generation_deferred",
+            statement="Proposal generation, pricing, quotes, packages, sales copy, CRM workflows, exports, and recommendations remain deferred.",
+            blockers=PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES,
+            blocked_deferred=PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="proposal_boundaries_preserved",
+            basis=source_basis,
+        )
+        items = sorted(
+            [
+                proposal_item,
+                goal_item,
+                contractor_item,
+                topology_item,
+                missing_item,
+                product_item,
+                risk_item,
+                professional_item,
+                unsafe_item,
+                deferred_item,
+            ],
+            key=self._proposal_readiness_foundation_item_sort_key,
+        )
+        return TwinProposalReadinessFoundationView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3M proposal readiness foundation view built request-time from existing TwinPlanningContext, "
+                "topology snapshot, and approved Phase 3 readiness/advisory views; reports proposal-readiness posture only and "
+                "does not generate proposals, pricing, quotes, good/better/best packages, sales copy, savings/payback, financing logic, "
+                "ranked options, best design selection, product recommendations, final design recommendations, contractor CRM workflows, "
+                "exports, permission enforcement, persistence, graph behavior, twin_id, or operational behavior."
+            ),
+            source_basis=source_basis,
+            readiness_scope=TwinProposalReadinessFoundationScope(
+                limitations=PROPOSAL_READINESS_FOUNDATION_LIMITATIONS,
+            ),
+            readiness_items=items,
+            proposal_readiness_posture=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.proposal_readiness_posture
+            ],
+            homeowner_goal_readiness=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.homeowner_goal_readiness
+            ],
+            contractor_advisory_context_readiness=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.contractor_advisory_context_readiness
+            ],
+            topology_readiness=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.topology_readiness
+            ],
+            missing_proposal_prerequisites=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.missing_proposal_prerequisites
+            ],
+            missing_product_spec_data=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.missing_product_spec_data
+            ],
+            risk_provenance_blockers=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.risk_provenance_blockers
+            ],
+            professional_review_boundaries=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.professional_review_boundaries
+            ],
+            unsafe_assumptions=[
+                item for item in items if item.readiness_area == TwinProposalReadinessFoundationArea.unsafe_assumptions
+            ],
+            limitations=PROPOSAL_READINESS_FOUNDATION_LIMITATIONS,
+            deferred_proposal_generation_boundaries=sorted(
+                PROPOSAL_READINESS_FOUNDATION_DEFERRED_BOUNDARIES
+            ),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3L views, AI grounding, "
+                "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3M proposal readiness view."
             ),
         )
 

@@ -18,6 +18,7 @@ from app.twin_planning_context.schemas import (
     TwinPlanningIntelligenceReadinessView,
     TwinPlanningContext,
     TwinPreRecommendationAdvisoryView,
+    TwinProposalReadinessFoundationView,
     TwinRecommendationEligibilityReadinessView,
     TwinRuntimeParticipantRole,
     TwinRuntimeProjectionView,
@@ -183,6 +184,17 @@ def get_homeowner_facing_advisory_view(home_id: str, db: Session = Depends(get_d
 )
 def get_energy_goal_reasoning_view(home_id: str, db: Session = Depends(get_db)):
     view = twin_planning_context_service.build_energy_goal_reasoning_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
+    return view
+
+
+@router.get(
+    "/homes/{home_id}/views/proposal-readiness-foundation",
+    response_model=TwinProposalReadinessFoundationView,
+)
+def get_proposal_readiness_foundation_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_proposal_readiness_foundation_view(db, home_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home not found")
     return view

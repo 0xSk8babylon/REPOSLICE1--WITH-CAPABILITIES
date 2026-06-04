@@ -1641,6 +1641,115 @@ class TwinEnergyGoalReasoningView(ORMModel):
     compatibility_note: str
 
 
+class TwinProposalReadinessFoundationArea(str, Enum):
+    proposal_readiness_posture = "proposal_readiness_posture"
+    homeowner_goal_readiness = "homeowner_goal_readiness"
+    contractor_advisory_context_readiness = "contractor_advisory_context_readiness"
+    topology_readiness = "topology_readiness"
+    missing_proposal_prerequisites = "missing_proposal_prerequisites"
+    missing_product_spec_data = "missing_product_spec_data"
+    risk_provenance_blockers = "risk_provenance_blockers"
+    professional_review_boundaries = "professional_review_boundaries"
+    unsafe_assumptions = "unsafe_assumptions"
+    deferred_proposal_generation_boundaries = "deferred_proposal_generation_boundaries"
+
+
+class TwinProposalReadinessFoundationScope(ORMModel):
+    readiness_scope: str = "phase_3m_proposal_readiness_foundation"
+    proposal_readiness_only: bool = True
+    proposal_generation_present: bool = False
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_energy_goal_reasoning: bool = True
+    derived_from_contractor_facing_advisory: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    derived_from_recommendation_eligibility_readiness: bool = True
+    derived_from_basic_advisory_recommendations: bool = True
+    deterministic_for_same_inputs: bool = True
+    pricing_present: bool = False
+    quote_generation_present: bool = False
+    package_generation_present: bool = False
+    sales_copy_present: bool = False
+    savings_payback_present: bool = False
+    financing_logic_present: bool = False
+    ranked_options_present: bool = False
+    best_design_selection_present: bool = False
+    product_recommendations_present: bool = False
+    final_design_recommendations_present: bool = False
+    contractor_crm_workflow_present: bool = False
+    export_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinProposalReadinessFoundationBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    proposal_readiness_refs: List[str] = Field(default_factory=list)
+    goal_refs: List[str] = Field(default_factory=list)
+    contractor_context_refs: List[str] = Field(default_factory=list)
+    topology_refs: List[str] = Field(default_factory=list)
+    missing_prerequisite_refs: List[str] = Field(default_factory=list)
+    product_spec_refs: List[str] = Field(default_factory=list)
+    risk_refs: List[str] = Field(default_factory=list)
+    provenance_refs: List[str] = Field(default_factory=list)
+    permission_refs: List[str] = Field(default_factory=list)
+    professional_boundary_refs: List[str] = Field(default_factory=list)
+    unsafe_assumption_refs: List[str] = Field(default_factory=list)
+    blocked_deferred_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinProposalReadinessFoundationItem(ORMModel):
+    readiness_area: TwinProposalReadinessFoundationArea
+    posture: str
+    statement: str
+    readiness_refs: List[str] = Field(default_factory=list)
+    missing_prerequisites: List[str] = Field(default_factory=list)
+    blockers: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinProposalReadinessFoundationBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinProposalReadinessFoundationView(ORMModel):
+    view_name: str = "proposal_readiness_foundation"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.contractor_scoped
+    implementation_boundary: str
+    source_basis: TwinProposalReadinessFoundationBasis
+    readiness_scope: TwinProposalReadinessFoundationScope
+    readiness_items: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    proposal_readiness_posture: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    homeowner_goal_readiness: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    contractor_advisory_context_readiness: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    topology_readiness: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    missing_proposal_prerequisites: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    missing_product_spec_data: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    risk_provenance_blockers: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    professional_review_boundaries: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    unsafe_assumptions: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    deferred_proposal_generation_boundaries: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

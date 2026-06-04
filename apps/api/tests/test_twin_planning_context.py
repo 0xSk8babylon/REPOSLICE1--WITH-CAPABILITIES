@@ -91,6 +91,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_energy_goal_reasoning_view(db, "home_001")
 
+    def _proposal_readiness_foundation_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_proposal_readiness_foundation_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -3155,6 +3159,128 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual(
             sorted(item["reasoning_area"] for item in first["reasoning_items"]),
             [item["reasoning_area"] for item in first["reasoning_items"]],
+        )
+
+    def test_proposal_readiness_foundation_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/proposal-readiness-foundation",
+            paths,
+        )
+
+        view = self._proposal_readiness_foundation_view()
+        payload = view.dict()
+        scope = view.readiness_scope
+
+        self.assertEqual("proposal_readiness_foundation", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("contractor_scoped", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.proposal_readiness_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_energy_goal_reasoning)
+        self.assertTrue(scope.derived_from_contractor_facing_advisory)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("proposal readiness foundation view", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_proposal_readiness_foundation_has_no_forbidden_capability_flags(self):
+        scope = self._proposal_readiness_foundation_view().readiness_scope
+
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.pricing_present)
+        self.assertFalse(scope.quote_generation_present)
+        self.assertFalse(scope.package_generation_present)
+        self.assertFalse(scope.sales_copy_present)
+        self.assertFalse(scope.savings_payback_present)
+        self.assertFalse(scope.financing_logic_present)
+        self.assertFalse(scope.ranked_options_present)
+        self.assertFalse(scope.best_design_selection_present)
+        self.assertFalse(scope.product_recommendations_present)
+        self.assertFalse(scope.final_design_recommendations_present)
+        self.assertFalse(scope.contractor_crm_workflow_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_proposal_readiness_foundation_reports_allowed_readiness_areas(self):
+        view = self._proposal_readiness_foundation_view()
+
+        self.assertTrue(view.readiness_items)
+        self.assertTrue(view.proposal_readiness_posture)
+        self.assertTrue(view.homeowner_goal_readiness)
+        self.assertTrue(view.contractor_advisory_context_readiness)
+        self.assertTrue(view.topology_readiness)
+        self.assertTrue(view.missing_proposal_prerequisites)
+        self.assertTrue(view.missing_product_spec_data)
+        self.assertTrue(view.risk_provenance_blockers)
+        self.assertTrue(view.professional_review_boundaries)
+        self.assertTrue(view.unsafe_assumptions)
+        self.assertTrue(view.deferred_proposal_generation_boundaries)
+
+        areas = {item.readiness_area.value for item in view.readiness_items}
+        self.assertEqual(
+            {
+                "proposal_readiness_posture",
+                "homeowner_goal_readiness",
+                "contractor_advisory_context_readiness",
+                "topology_readiness",
+                "missing_proposal_prerequisites",
+                "missing_product_spec_data",
+                "risk_provenance_blockers",
+                "professional_review_boundaries",
+                "unsafe_assumptions",
+                "deferred_proposal_generation_boundaries",
+            },
+            areas,
+        )
+        for item in view.readiness_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(item.basis.derived_from or item.readiness_area.value == "deferred_proposal_generation_boundaries")
+            self.assertIn("energy_goal_reasoning", item.basis.source_views)
+
+    def test_proposal_readiness_foundation_preserves_trust_boundaries(self):
+        view = self._proposal_readiness_foundation_view()
+        limitation_text = " ".join(view.limitations)
+        payload_text = str(view.dict())
+
+        self.assertIn("readiness reporting only", limitation_text)
+        self.assertIn("without generating a proposal", limitation_text)
+        self.assertIn("does not generate a proposal", view.proposal_readiness_posture[0].statement)
+        self.assertIn("does not create contractor directives", view.contractor_advisory_context_readiness[0].statement)
+        self.assertIn("does not recommend, price, select, or package products", view.missing_product_spec_data[0].statement)
+        self.assertIn("proposal_generation", view.deferred_proposal_generation_boundaries)
+        self.assertIn("pricing", view.deferred_proposal_generation_boundaries)
+        self.assertIn("quote_generation", view.deferred_proposal_generation_boundaries)
+        self.assertNotIn("recommended_profile", payload_text)
+        self.assertNotIn("Advisor recommendation summary for", payload_text)
+        self.assertFalse(view.readiness_scope.proposal_generation_present)
+        self.assertFalse(view.readiness_scope.pricing_present)
+
+    def test_proposal_readiness_foundation_is_deterministic_for_same_inputs(self):
+        first = self._proposal_readiness_foundation_view().dict()
+        second = self._proposal_readiness_foundation_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_proposal_generation_boundaries"]),
+            first["deferred_proposal_generation_boundaries"],
+        )
+        self.assertEqual(
+            sorted(item["readiness_area"] for item in first["readiness_items"]),
+            [item["readiness_area"] for item in first["readiness_items"]],
         )
 
 
