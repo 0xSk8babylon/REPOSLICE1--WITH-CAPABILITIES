@@ -554,6 +554,12 @@ class TwinTrustProvenanceReadinessSummary(ORMModel):
     unsafe_assumption_metadata_field_names: List[str] = Field(default_factory=list)
     limitation_metadata_field_names: List[str] = Field(default_factory=list)
     deferred_boundary_metadata_field_names: List[str] = Field(default_factory=list)
+    normalized_gap_categories: List[str] = Field(default_factory=list)
+    normalized_source_field_paths: List[str] = Field(default_factory=list)
+    normalized_provenance_field_paths: List[str] = Field(default_factory=list)
+    normalized_readiness_field_paths: List[str] = Field(default_factory=list)
+    hardened_readiness_boundary: str = "advisory_metadata_only"
+    unsupported_capability_claims_absent: bool = True
     gap_notes: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
 
@@ -593,6 +599,11 @@ class TwinTrustProvenanceReadinessIndexEntry(ORMModel):
     source_phase: str
     source_endpoint_path: str
     summary: TwinTrustProvenanceReadinessSummary
+    normalized_gap_categories: List[str] = Field(default_factory=list)
+    normalized_source_field_paths: List[str] = Field(default_factory=list)
+    normalized_provenance_field_paths: List[str] = Field(default_factory=list)
+    normalized_readiness_field_paths: List[str] = Field(default_factory=list)
+    hardened_readiness_boundary: str = "advisory_metadata_only"
     gap_notes: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
 
@@ -610,6 +621,11 @@ class TwinTrustProvenanceReadinessIndexView(ORMModel):
     indexed_view_count: int = 0
     expected_view_count: int = 0
     missing_indexed_views: List[str] = Field(default_factory=list)
+    normalized_gap_categories: List[str] = Field(default_factory=list)
+    normalized_source_field_paths: List[str] = Field(default_factory=list)
+    normalized_provenance_field_paths: List[str] = Field(default_factory=list)
+    normalized_readiness_field_paths: List[str] = Field(default_factory=list)
+    hardened_readiness_boundary: str = "advisory_metadata_only"
     deferred_boundaries: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     compatibility_note: str

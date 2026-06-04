@@ -3320,6 +3320,36 @@ class TwinPlanningContextService:
                 )
         return sorted(paths)
 
+    def _phase4c_gap_categories(
+        self,
+        *,
+        confidence_paths: List[str],
+        missing_paths: List[str],
+        unsafe_paths: List[str],
+        limitation_paths: List[str],
+        deferred_paths: List[str],
+    ) -> List[str]:
+        categories = []
+        if confidence_paths:
+            categories.append("confidence")
+        if missing_paths:
+            categories.append("missing_data")
+        if unsafe_paths:
+            categories.append("unsafe_assumption")
+        if limitation_paths:
+            categories.append("limitation")
+        if deferred_paths:
+            categories.append("deferred_boundary")
+        return self._sorted_unique(categories)
+
+    def _phase4d_normalized_source_paths(
+        self,
+        *,
+        source_basis_paths: List[str],
+        source_view_paths: List[str],
+    ) -> List[str]:
+        return self._sorted_unique(source_basis_paths + source_view_paths)
+
     def _metadata_has_truthy_scope_flag(
         self,
         value: Any,
@@ -3367,6 +3397,7 @@ class TwinPlanningContextService:
     def _trust_provenance_readiness_summary(self, view: Any) -> TwinTrustProvenanceReadinessSummary:
         view_payload = view.dict(exclude_none=True)
         source_basis_paths = self._metadata_paths(view_payload, ["source_basis", "basis"])
+        source_view_paths = self._metadata_paths(view_payload, ["source_view"])
         provenance_paths = self._metadata_paths(view_payload, ["provenance", "source_trust"])
         readiness_paths = self._metadata_paths(
             view_payload,
@@ -3412,6 +3443,21 @@ class TwinPlanningContextService:
             unsafe_assumption_metadata_field_names=unsafe_paths,
             limitation_metadata_field_names=limitation_paths,
             deferred_boundary_metadata_field_names=deferred_paths,
+            normalized_gap_categories=self._phase4c_gap_categories(
+                confidence_paths=confidence_paths,
+                missing_paths=missing_paths,
+                unsafe_paths=unsafe_paths,
+                limitation_paths=limitation_paths,
+                deferred_paths=deferred_paths,
+            ),
+            normalized_source_field_paths=self._phase4d_normalized_source_paths(
+                source_basis_paths=source_basis_paths,
+                source_view_paths=source_view_paths,
+            ),
+            normalized_provenance_field_paths=provenance_paths,
+            normalized_readiness_field_paths=readiness_paths,
+            hardened_readiness_boundary="advisory_metadata_only",
+            unsupported_capability_claims_absent=True,
             gap_notes=self._phase4a_gap_notes(
                 view_payload=view_payload,
                 confidence_paths=confidence_paths,
@@ -11363,12 +11409,27 @@ class TwinPlanningContextService:
             source_phase=source_phase,
             source_endpoint_path=source_endpoint_path,
             summary=summary,
+            normalized_gap_categories=summary.normalized_gap_categories,
+            normalized_source_field_paths=summary.normalized_source_field_paths,
+            normalized_provenance_field_paths=summary.normalized_provenance_field_paths,
+            normalized_readiness_field_paths=summary.normalized_readiness_field_paths,
+            hardened_readiness_boundary=summary.hardened_readiness_boundary,
             gap_notes=summary.gap_notes,
             limitations=summary.limitations
             + [
                 "Index entry mirrors existing Phase 4A summary metadata only.",
             ],
         )
+
+    def _phase4_index_entry_values(
+        self,
+        entries: Iterable[TwinTrustProvenanceReadinessIndexEntry],
+        field_name: str,
+    ) -> List[str]:
+        values = []
+        for entry in entries:
+            values.extend(getattr(entry, field_name))
+        return self._sorted_unique(values)
 
     def _phase3_index_entries(
         self,
@@ -11634,6 +11695,23 @@ class TwinPlanningContextService:
             indexed_view_count=len(indexed_views),
             expected_view_count=expected_view_count,
             missing_indexed_views=missing_indexed_views,
+            normalized_gap_categories=self._phase4_index_entry_values(
+                indexed_views,
+                "normalized_gap_categories",
+            ),
+            normalized_source_field_paths=self._phase4_index_entry_values(
+                indexed_views,
+                "normalized_source_field_paths",
+            ),
+            normalized_provenance_field_paths=self._phase4_index_entry_values(
+                indexed_views,
+                "normalized_provenance_field_paths",
+            ),
+            normalized_readiness_field_paths=self._phase4_index_entry_values(
+                indexed_views,
+                "normalized_readiness_field_paths",
+            ),
+            hardened_readiness_boundary="advisory_metadata_only",
             deferred_boundaries=sorted(TRUST_PROVENANCE_READINESS_INDEX_DEFERRED_BOUNDARIES),
             limitations=TRUST_PROVENANCE_READINESS_INDEX_LIMITATIONS,
             compatibility_note=(

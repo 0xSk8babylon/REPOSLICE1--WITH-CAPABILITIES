@@ -153,6 +153,17 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
                 self.assertTrue(summary.confidence_metadata_field_names)
                 self.assertTrue(summary.limitation_metadata_field_names)
                 self.assertTrue(summary.deferred_boundary_metadata_field_names)
+                self.assertIn("confidence", summary.normalized_gap_categories)
+                self.assertIn("limitation", summary.normalized_gap_categories)
+                self.assertIn("deferred_boundary", summary.normalized_gap_categories)
+                self.assertTrue(summary.normalized_source_field_paths)
+                self.assertTrue(summary.normalized_provenance_field_paths)
+                self.assertTrue(summary.normalized_readiness_field_paths)
+                self.assertEqual(
+                    "advisory_metadata_only",
+                    summary.hardened_readiness_boundary,
+                )
+                self.assertTrue(summary.unsupported_capability_claims_absent)
 
     def test_phase3_trust_provenance_summary_preserves_boundaries(self):
         for view in self._phase3_derived_views():
@@ -167,6 +178,8 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
                 self.assertTrue(summary.permission_enforcement_remains_not_enforced)
                 self.assertIn("metadata visibility only", " ".join(summary.limitations))
                 self.assertIn("not capability", " ".join(summary.limitations))
+                self.assertEqual("advisory_metadata_only", summary.hardened_readiness_boundary)
+                self.assertTrue(summary.unsupported_capability_claims_absent)
 
                 for forbidden in [
                     "approved",
@@ -251,6 +264,36 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             self.assertEqual("not_enforced", entry.summary.permission_enforcement)
             self.assertTrue(entry.summary.permission_enforcement_remains_not_enforced)
             self.assertEqual(entry.summary.gap_notes, entry.gap_notes)
+            self.assertEqual(
+                entry.summary.normalized_gap_categories,
+                entry.normalized_gap_categories,
+            )
+            self.assertEqual(
+                entry.summary.normalized_source_field_paths,
+                entry.normalized_source_field_paths,
+            )
+            self.assertEqual(
+                entry.summary.normalized_provenance_field_paths,
+                entry.normalized_provenance_field_paths,
+            )
+            self.assertEqual(
+                entry.summary.normalized_readiness_field_paths,
+                entry.normalized_readiness_field_paths,
+            )
+            self.assertEqual("advisory_metadata_only", entry.hardened_readiness_boundary)
+
+        for category in [
+            "confidence",
+            "missing_data",
+            "unsafe_assumption",
+            "limitation",
+            "deferred_boundary",
+        ]:
+            self.assertIn(category, view.normalized_gap_categories)
+        self.assertTrue(view.normalized_source_field_paths)
+        self.assertTrue(view.normalized_provenance_field_paths)
+        self.assertTrue(view.normalized_readiness_field_paths)
+        self.assertEqual("advisory_metadata_only", view.hardened_readiness_boundary)
 
     def test_trust_provenance_readiness_index_preserves_hard_boundaries(self):
         view = self._trust_provenance_readiness_index_view()
@@ -292,6 +335,12 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             "operational command",
             "contractor ready",
             "ahj approved",
+            "manual approved",
+            "proposal ready",
+            "pricing ready",
+            "export ready",
+            "simulation ready",
+            "operational ready",
         ]:
             self.assertNotIn(phrase, response_text)
 
