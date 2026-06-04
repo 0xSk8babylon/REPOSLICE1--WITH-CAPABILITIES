@@ -99,6 +99,92 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_product_spec_readiness_view(db, "home_001")
 
+    def _phase3_derived_views(self):
+        return [
+            self._dependency_impact_view(),
+            self._dependency_reasoning_view(),
+            self._planning_intelligence_readiness_view(),
+            self._advisory_context_assembly_view(),
+            self._constraint_risk_reasoning_view(),
+            self._scenario_comparison_readiness_view(),
+            self._pre_recommendation_advisory_view(),
+            self._recommendation_eligibility_readiness_view(),
+            self._basic_advisory_recommendations_view(),
+            self._contractor_facing_advisory_view(),
+            self._homeowner_facing_advisory_view(),
+            self._energy_goal_reasoning_view(),
+            self._proposal_readiness_foundation_view(),
+            self._product_spec_readiness_view(),
+        ]
+
+    def test_phase3_views_expose_trust_provenance_readiness_summary(self):
+        for view in self._phase3_derived_views():
+            with self.subTest(view=view.view_name):
+                payload = view.dict()
+                summary = view.trust_provenance_readiness_summary
+
+                self.assertIn("trust_provenance_readiness_summary", payload)
+                self.assertIsNotNone(summary)
+                self.assertEqual(
+                    "phase_4a_trust_provenance_readiness_normalization",
+                    summary.summary_scope,
+                )
+                self.assertTrue(summary.normalization_only)
+                self.assertTrue(summary.request_time_derived_from_existing_response_fields)
+                self.assertTrue(summary.read_only_behavior_present)
+                self.assertTrue(summary.request_time_behavior_present)
+                self.assertTrue(summary.deterministic_behavior_present)
+                self.assertTrue(summary.home_id_scope_present)
+                self.assertTrue(summary.source_basis_present)
+                self.assertTrue(summary.provenance_basis_present)
+                self.assertTrue(summary.readiness_metadata_present)
+                self.assertTrue(summary.confidence_metadata_present)
+                self.assertTrue(summary.limitation_metadata_present)
+                self.assertTrue(summary.deferred_boundary_metadata_present)
+                self.assertIsInstance(summary.missing_data_metadata_present, bool)
+                self.assertIsInstance(summary.unsafe_assumption_metadata_present, bool)
+                self.assertTrue(summary.source_basis_field_names)
+                self.assertTrue(summary.provenance_basis_field_names)
+                self.assertTrue(summary.readiness_metadata_field_names)
+                self.assertTrue(summary.confidence_metadata_field_names)
+                self.assertTrue(summary.limitation_metadata_field_names)
+                self.assertTrue(summary.deferred_boundary_metadata_field_names)
+
+    def test_phase3_trust_provenance_summary_preserves_boundaries(self):
+        for view in self._phase3_derived_views():
+            with self.subTest(view=view.view_name):
+                payload = view.dict()
+                summary = view.trust_provenance_readiness_summary
+                summary_text = str(summary.dict()).lower()
+
+                self.assertNotIn("twin_id", payload)
+                self.assertEqual("not_enforced", view.permission_enforcement)
+                self.assertEqual("not_enforced", summary.permission_enforcement)
+                self.assertTrue(summary.permission_enforcement_remains_not_enforced)
+                self.assertIn("metadata visibility only", " ".join(summary.limitations))
+                self.assertIn("not capability", " ".join(summary.limitations))
+
+                for forbidden in [
+                    "approved",
+                    "approval",
+                    "pricing_present",
+                    "proposal_generation_present",
+                    "compatibility_engine_present",
+                    "export_present",
+                    "scenario_simulation_present",
+                    "operational_behavior_present",
+                    "field_verified",
+                    "ahj",
+                    "contractor_ready",
+                ]:
+                    self.assertNotIn(forbidden, summary_text)
+
+    def test_phase3_trust_provenance_summary_is_deterministic(self):
+        first = [view.dict()["trust_provenance_readiness_summary"] for view in self._phase3_derived_views()]
+        second = [view.dict()["trust_provenance_readiness_summary"] for view in self._phase3_derived_views()]
+
+        self.assertEqual(first, second)
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 

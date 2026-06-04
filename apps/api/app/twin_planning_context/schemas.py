@@ -528,6 +528,36 @@ class TwinDependencyMissingInputItem(ORMModel):
     limitations: List[str] = Field(default_factory=list)
 
 
+class TwinTrustProvenanceReadinessSummary(ORMModel):
+    summary_scope: str = "phase_4a_trust_provenance_readiness_normalization"
+    normalization_only: bool = True
+    request_time_derived_from_existing_response_fields: bool = True
+    read_only_behavior_present: bool
+    request_time_behavior_present: bool
+    deterministic_behavior_present: bool
+    home_id_scope_present: bool
+    source_basis_present: bool
+    provenance_basis_present: bool
+    readiness_metadata_present: bool
+    confidence_metadata_present: bool
+    missing_data_metadata_present: bool
+    unsafe_assumption_metadata_present: bool
+    limitation_metadata_present: bool
+    deferred_boundary_metadata_present: bool
+    permission_enforcement: str = "not_enforced"
+    permission_enforcement_remains_not_enforced: bool = True
+    source_basis_field_names: List[str] = Field(default_factory=list)
+    provenance_basis_field_names: List[str] = Field(default_factory=list)
+    readiness_metadata_field_names: List[str] = Field(default_factory=list)
+    confidence_metadata_field_names: List[str] = Field(default_factory=list)
+    missing_data_metadata_field_names: List[str] = Field(default_factory=list)
+    unsafe_assumption_metadata_field_names: List[str] = Field(default_factory=list)
+    limitation_metadata_field_names: List[str] = Field(default_factory=list)
+    deferred_boundary_metadata_field_names: List[str] = Field(default_factory=list)
+    gap_notes: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
 class TwinDependencyReasoningType(str, Enum):
     source_dependency = "source_dependency"
     topology_dependency = "topology_dependency"
@@ -599,6 +629,7 @@ class TwinDependencyReasoningView(ORMModel):
     confidence_posture: List[TwinDependencyReasoningItem] = Field(default_factory=list)
     deferred_capabilities: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -708,6 +739,7 @@ class TwinPlanningIntelligenceReadinessView(ORMModel):
     deferred_reasoning_boundaries: List[str] = Field(default_factory=list)
     confidence_posture: List[TwinPlanningIntelligenceReadinessItem] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -789,6 +821,7 @@ class TwinAdvisoryContextAssemblyView(ORMModel):
     advisory_input_readiness: List[TwinAdvisoryContextAssemblyItem] = Field(default_factory=list)
     deferred_advisory_output_boundaries: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -879,6 +912,7 @@ class TwinConstraintRiskReasoningView(ORMModel):
     professional_review_boundaries: List[TwinConstraintRiskReasoningItem] = Field(default_factory=list)
     deferred_capabilities: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -982,6 +1016,7 @@ class TwinScenarioComparisonReadinessView(ORMModel):
     confidence_posture: List[TwinScenarioComparisonReadinessItem] = Field(default_factory=list)
     deferred_scenario_boundaries: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1085,6 +1120,7 @@ class TwinPreRecommendationAdvisoryView(ORMModel):
     permission_readiness_basis: List[TwinPreRecommendationAdvisoryItem] = Field(default_factory=list)
     advisory_limitations: List[str] = Field(default_factory=list)
     deferred_recommendation_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1194,6 +1230,7 @@ class TwinRecommendationEligibilityReadinessView(ORMModel):
     unsafe_assumptions: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     deferred_recommendation_generation_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1305,6 +1342,7 @@ class TwinBasicAdvisoryRecommendationsView(ORMModel):
     proposal_generation_deferred: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     deferred_recommendation_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1419,6 +1457,7 @@ class TwinContractorFacingAdvisoryView(ORMModel):
     prerequisite_advisory_recommendations: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     deferred_contractor_workflow_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1528,6 +1567,7 @@ class TwinHomeownerFacingAdvisoryView(ORMModel):
     prerequisite_advisory_recommendations: List[TwinHomeownerFacingAdvisoryItem] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     deferred_homeowner_workflow_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1638,6 +1678,7 @@ class TwinEnergyGoalReasoningView(ORMModel):
     unsafe_assumptions: List[TwinEnergyGoalReasoningItem] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     deferred_goal_optimization_proposal_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1747,6 +1788,7 @@ class TwinProposalReadinessFoundationView(ORMModel):
     unsafe_assumptions: List[TwinProposalReadinessFoundationItem] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
     deferred_proposal_generation_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1854,6 +1896,7 @@ class TwinProductSpecReadinessView(ORMModel):
     limitations: List[str] = Field(default_factory=list)
     deferred_compatibility_engine_boundaries: List[str] = Field(default_factory=list)
     deferred_vendor_procurement_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 
@@ -1901,6 +1944,7 @@ class TwinDependencyImpactReadinessView(ORMModel):
     confidence_posture: List[TwinDependencyImpactPostureItem] = Field(default_factory=list)
     deferred_capabilities: List[str] = Field(default_factory=list)
     limitations: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
     compatibility_note: str
 
 

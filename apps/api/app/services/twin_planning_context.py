@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 from app.core.repository import repository
 from app.core.types import AuthorityLayer, DataClassification, DataOrigin
@@ -105,6 +105,7 @@ from app.twin_planning_context.schemas import (
     TwinScenarioComparisonReadinessItem,
     TwinScenarioComparisonReadinessScope,
     TwinScenarioComparisonReadinessView,
+    TwinTrustProvenanceReadinessSummary,
     TwinTopologyDeferredLifecycleDomain,
     TwinTopologyEdge,
     TwinTopologyMissingRelationshipIndicator,
@@ -3176,6 +3177,155 @@ class TwinPlanningContextService:
     def _sorted_unique(self, values: Iterable[Optional[str]]) -> List[str]:
         return sorted({value for value in values if value})
 
+    def _metadata_value_present(self, value: Any) -> bool:
+        if value is None:
+            return False
+        if isinstance(value, str):
+            return bool(value)
+        if isinstance(value, (list, tuple, set)):
+            return bool(value)
+        if isinstance(value, dict):
+            return bool(value)
+        return True
+
+    def _metadata_paths(
+        self,
+        value: Any,
+        field_tokens: Iterable[str],
+        *,
+        path: str = "",
+    ) -> List[str]:
+        tokens = tuple(field_tokens)
+        paths = set()
+        if isinstance(value, dict):
+            for key, child_value in value.items():
+                if key == "trust_provenance_readiness_summary":
+                    continue
+                child_path = f"{path}.{key}" if path else key
+                if any(token in key for token in tokens) and self._metadata_value_present(child_value):
+                    paths.add(child_path)
+                paths.update(
+                    self._metadata_paths(child_value, tokens, path=child_path)
+                )
+        elif isinstance(value, list):
+            list_path = f"{path}[]" if path else "[]"
+            for child_value in value:
+                paths.update(
+                    self._metadata_paths(child_value, tokens, path=list_path)
+                )
+        return sorted(paths)
+
+    def _metadata_has_truthy_scope_flag(
+        self,
+        value: Any,
+        field_name: str,
+    ) -> bool:
+        if isinstance(value, dict):
+            return any(
+                (key == field_name and child_value is True)
+                or self._metadata_has_truthy_scope_flag(child_value, field_name)
+                for key, child_value in value.items()
+                if key != "trust_provenance_readiness_summary"
+            )
+        if isinstance(value, list):
+            return any(
+                self._metadata_has_truthy_scope_flag(child_value, field_name)
+                for child_value in value
+            )
+        return False
+
+    def _phase4a_gap_notes(
+        self,
+        *,
+        view_payload: Dict[str, Any],
+        confidence_paths: List[str],
+        missing_paths: List[str],
+        unsafe_paths: List[str],
+        limitation_paths: List[str],
+        deferred_paths: List[str],
+    ) -> List[str]:
+        notes = []
+        if confidence_paths and "confidence_posture" not in view_payload:
+            notes.append("Confidence metadata is available through item-level or view-specific fields.")
+        if missing_paths and not any(key.startswith("missing") for key in view_payload):
+            notes.append("Missing-data metadata is available through item-level or view-specific fields.")
+        if unsafe_paths and "unsafe_assumptions" not in view_payload:
+            notes.append("Unsafe-assumption metadata is available through item-level fields.")
+        if "advisory_limitations" in view_payload and "limitations" not in view_payload:
+            notes.append("Limitation metadata uses advisory_limitations on this view.")
+        if deferred_paths and not any(key.startswith("deferred") for key in view_payload):
+            notes.append("Deferred-boundary metadata uses a view-specific capability field.")
+        if any("." in path or "[]" in path for path in confidence_paths + missing_paths + unsafe_paths):
+            notes.append("Some normalized metadata is present below top-level view fields.")
+        return self._sorted_unique(notes)
+
+    def _trust_provenance_readiness_summary(self, view: Any) -> TwinTrustProvenanceReadinessSummary:
+        view_payload = view.dict(exclude_none=True)
+        source_basis_paths = self._metadata_paths(view_payload, ["source_basis", "basis"])
+        provenance_paths = self._metadata_paths(view_payload, ["provenance", "source_trust"])
+        readiness_paths = self._metadata_paths(
+            view_payload,
+            ["readiness", "eligibility", "scope", "summary"],
+        )
+        confidence_paths = self._metadata_paths(view_payload, ["confidence"])
+        missing_paths = self._metadata_paths(view_payload, ["missing", "unknown"])
+        unsafe_paths = self._metadata_paths(view_payload, ["unsafe"])
+        limitation_paths = self._metadata_paths(view_payload, ["limitation"])
+        deferred_paths = self._metadata_paths(
+            view_payload,
+            ["deferred", "blocked_deferred"],
+        )
+        return TwinTrustProvenanceReadinessSummary(
+            read_only_behavior_present=self._metadata_has_truthy_scope_flag(view_payload, "read_only"),
+            request_time_behavior_present=self._metadata_has_truthy_scope_flag(view_payload, "request_time_only"),
+            deterministic_behavior_present=self._metadata_has_truthy_scope_flag(
+                view_payload,
+                "deterministic_for_same_inputs",
+            ),
+            home_id_scope_present=(
+                view_payload.get("anchor_type") == "home_id"
+                and bool(view_payload.get("home_id"))
+                and self._metadata_has_truthy_scope_flag(view_payload, "home_id_anchored")
+            ),
+            source_basis_present=bool(source_basis_paths),
+            provenance_basis_present=bool(provenance_paths),
+            readiness_metadata_present=bool(readiness_paths),
+            confidence_metadata_present=bool(confidence_paths),
+            missing_data_metadata_present=bool(missing_paths),
+            unsafe_assumption_metadata_present=bool(unsafe_paths),
+            limitation_metadata_present=bool(limitation_paths),
+            deferred_boundary_metadata_present=bool(deferred_paths),
+            permission_enforcement=view_payload.get("permission_enforcement", "not_enforced"),
+            permission_enforcement_remains_not_enforced=(
+                view_payload.get("permission_enforcement") == "not_enforced"
+            ),
+            source_basis_field_names=source_basis_paths,
+            provenance_basis_field_names=provenance_paths,
+            readiness_metadata_field_names=readiness_paths,
+            confidence_metadata_field_names=confidence_paths,
+            missing_data_metadata_field_names=missing_paths,
+            unsafe_assumption_metadata_field_names=unsafe_paths,
+            limitation_metadata_field_names=limitation_paths,
+            deferred_boundary_metadata_field_names=deferred_paths,
+            gap_notes=self._phase4a_gap_notes(
+                view_payload=view_payload,
+                confidence_paths=confidence_paths,
+                missing_paths=missing_paths,
+                unsafe_paths=unsafe_paths,
+                limitation_paths=limitation_paths,
+                deferred_paths=deferred_paths,
+            ),
+            limitations=[
+                "Phase 4A summary normalizes metadata visibility only.",
+                "Presence flags mean response metadata exists; they are not capability, review, enforcement, or execution claims.",
+                "This summary is derived request-time from existing response fields and does not replace view-specific basis, limitation, or boundary fields.",
+            ],
+        )
+
+    def _attach_trust_provenance_readiness_summary(self, view: Any) -> Any:
+        view.trust_provenance_readiness_summary = self._trust_provenance_readiness_summary(view)
+        return view
+
     def _dependency_warning_ref(self, warning: TwinPlanningDependencyWarning) -> str:
         return ":".join(
             [
@@ -3692,7 +3842,7 @@ class TwinPlanningContextService:
             limitations=DEPENDENCY_IMPACT_READINESS_LIMITATIONS,
         )
 
-        return TwinDependencyImpactReadinessView(
+        return self._attach_trust_provenance_readiness_summary(TwinDependencyImpactReadinessView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3A derived intelligence envelope built request-time from TwinPlanningContext "
@@ -3731,7 +3881,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, AI grounding, runtime projection, and current /api/* "
                 "contracts remain unchanged; this is an additive Phase 3A derived intelligence view."
             ),
-        )
+        ))
 
     def _dependency_reasoning_basis(
         self,
@@ -4238,7 +4388,7 @@ class TwinPlanningContextService:
             for dependency_type in TwinDependencyReasoningType
         }
 
-        return TwinDependencyReasoningView(
+        return self._attach_trust_provenance_readiness_summary(TwinDependencyReasoningView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3B dependency reasoning view built request-time from TwinPlanningContext, "
@@ -4274,7 +4424,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, dependency impact readiness, AI grounding, runtime projection, "
                 "and current /api/* contracts remain unchanged; this is an additive Phase 3B derived explanation view."
             ),
-        )
+        ))
 
     def _planning_intelligence_readiness_basis(
         self,
@@ -4868,7 +5018,7 @@ class TwinPlanningContextService:
             limitations=PLANNING_INTELLIGENCE_READINESS_LIMITATIONS,
         )
 
-        return TwinPlanningIntelligenceReadinessView(
+        return self._attach_trust_provenance_readiness_summary(TwinPlanningIntelligenceReadinessView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3C planning intelligence readiness inventory built request-time from "
@@ -4903,7 +5053,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, dependency impact readiness, dependency reasoning, "
                 "AI grounding, runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3C readiness inventory."
             ),
-        )
+        ))
 
     def _advisory_context_basis(
         self,
@@ -5358,7 +5508,7 @@ class TwinPlanningContextService:
             basis=source_basis,
         )
 
-        return TwinAdvisoryContextAssemblyView(
+        return self._attach_trust_provenance_readiness_summary(TwinAdvisoryContextAssemblyView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3D advisory context assembly view built request-time from TwinPlanningContext, "
@@ -5384,7 +5534,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A, Phase 3B, Phase 3C, AI grounding, "
                 "runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3D advisory input assembly view."
             ),
-        )
+        ))
 
     def _constraint_risk_basis(
         self,
@@ -5909,7 +6059,7 @@ class TwinPlanningContextService:
             key=self._constraint_risk_item_sort_key,
         )
 
-        return TwinConstraintRiskReasoningView(
+        return self._attach_trust_provenance_readiness_summary(TwinConstraintRiskReasoningView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3E constraint and risk reasoning view built request-time from existing TwinPlanningContext "
@@ -5958,7 +6108,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A, Phase 3B, Phase 3C, Phase 3D, AI grounding, "
                 "runtime projection, and current /api/* contracts remain unchanged; this is an additive Phase 3E constraint/risk explanation view."
             ),
-        )
+        ))
 
     def _scenario_comparison_readiness_basis(
         self,
@@ -6465,7 +6615,7 @@ class TwinPlanningContextService:
             for item in items
             for assumption in item.unsafe_assumptions
         )
-        return TwinScenarioComparisonReadinessView(
+        return self._attach_trust_provenance_readiness_summary(TwinScenarioComparisonReadinessView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3F scenario comparison readiness view built request-time from existing TwinPlanningContext, "
@@ -6518,7 +6668,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3E views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3F readiness view."
             ),
-        )
+        ))
 
     def _pre_recommendation_advisory_basis(
         self,
@@ -6941,7 +7091,7 @@ class TwinPlanningContextService:
             ],
             key=self._pre_recommendation_advisory_item_sort_key,
         )
-        return TwinPreRecommendationAdvisoryView(
+        return self._attach_trust_provenance_readiness_summary(TwinPreRecommendationAdvisoryView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3G pre-recommendation advisory view built request-time from existing TwinPlanningContext, "
@@ -6989,7 +7139,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3F views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3G advisory boundary view."
             ),
-        )
+        ))
 
     def _recommendation_eligibility_basis(
         self,
@@ -7562,7 +7712,7 @@ class TwinPlanningContextService:
             ],
             key=self._recommendation_eligibility_item_sort_key,
         )
-        return TwinRecommendationEligibilityReadinessView(
+        return self._attach_trust_provenance_readiness_summary(TwinRecommendationEligibilityReadinessView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3H recommendation eligibility readiness view built request-time from existing TwinPlanningContext, "
@@ -7613,7 +7763,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3G views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3H recommendation-readiness gate."
             ),
-        )
+        ))
 
     def _basic_advisory_recommendation_basis(
         self,
@@ -8160,7 +8310,7 @@ class TwinPlanningContextService:
             ],
             key=self._basic_advisory_recommendation_item_sort_key,
         )
-        return TwinBasicAdvisoryRecommendationsView(
+        return self._attach_trust_provenance_readiness_summary(TwinBasicAdvisoryRecommendationsView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3I basic advisory recommendations view built request-time from existing TwinPlanningContext, "
@@ -8239,7 +8389,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3H views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3I prerequisite/remediation recommendation view."
             ),
-        )
+        ))
 
     def _contractor_facing_advisory_basis(
         self,
@@ -8761,7 +8911,7 @@ class TwinPlanningContextService:
             ],
             key=self._contractor_facing_advisory_item_sort_key,
         )
-        return TwinContractorFacingAdvisoryView(
+        return self._attach_trust_provenance_readiness_summary(TwinContractorFacingAdvisoryView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3J contractor-facing advisory view built request-time from existing TwinPlanningContext, "
@@ -8822,7 +8972,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3I views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3J contractor-facing translation view."
             ),
-        )
+        ))
 
     def _homeowner_facing_advisory_basis(
         self,
@@ -9310,7 +9460,7 @@ class TwinPlanningContextService:
             ],
             key=self._homeowner_facing_advisory_item_sort_key,
         )
-        return TwinHomeownerFacingAdvisoryView(
+        return self._attach_trust_provenance_readiness_summary(TwinHomeownerFacingAdvisoryView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3K homeowner-facing advisory view built request-time from existing TwinPlanningContext, "
@@ -9368,7 +9518,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3I views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3K homeowner-facing translation view."
             ),
-        )
+        ))
 
     def _energy_goal_reasoning_basis(
         self,
@@ -9910,7 +10060,7 @@ class TwinPlanningContextService:
             ],
             key=self._energy_goal_reasoning_item_sort_key,
         )
-        return TwinEnergyGoalReasoningView(
+        return self._attach_trust_provenance_readiness_summary(TwinEnergyGoalReasoningView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3L energy goal reasoning view built request-time from existing TwinPlanningContext, "
@@ -9973,7 +10123,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3K views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3L energy goal reasoning view."
             ),
-        )
+        ))
 
     def _proposal_readiness_foundation_basis(
         self,
@@ -10488,7 +10638,7 @@ class TwinPlanningContextService:
             ],
             key=self._proposal_readiness_foundation_item_sort_key,
         )
-        return TwinProposalReadinessFoundationView(
+        return self._attach_trust_provenance_readiness_summary(TwinProposalReadinessFoundationView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3M proposal readiness foundation view built request-time from existing TwinPlanningContext, "
@@ -10537,7 +10687,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3L views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3M proposal readiness view."
             ),
-        )
+        ))
 
     def _product_spec_readiness_basis(
         self,
@@ -11041,7 +11191,7 @@ class TwinPlanningContextService:
             ],
             key=self._product_spec_readiness_item_sort_key,
         )
-        return TwinProductSpecReadinessView(
+        return self._attach_trust_provenance_readiness_summary(TwinProductSpecReadinessView(
             home_id=home_id,
             implementation_boundary=(
                 "Read-only Phase 3N product/spec readiness view built request-time from existing TwinPlanningContext, topology snapshot, "
@@ -11093,7 +11243,7 @@ class TwinPlanningContextService:
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3M views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3N product/spec readiness view."
             ),
-        )
+        ))
 
     def _runtime_role(self, role: TwinRuntimeParticipantRole) -> Optional[TwinRuntimeParticipantRole]:
         try:
