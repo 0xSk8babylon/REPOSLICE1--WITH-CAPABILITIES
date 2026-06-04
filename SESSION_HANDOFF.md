@@ -34,7 +34,7 @@
 - Phase 3M Proposal Readiness Foundation complete in `916a6f5`.
 - Phase 3N Product / Spec Intelligence Readiness complete in `39822c9`.
 - Phase 3O Phase 3 Closeout Stabilization complete as docs-only continuity work.
-- Phase 4 Trust / Provenance Maturity and Readiness Normalization is chartered as docs-only boundary definition. Phase 4 runtime implementation has not started.
+- Phase 4 Trust / Provenance Maturity and Readiness Normalization is complete through approved runtime slices 4A through 4E. Phase 4F through Phase 4H closeout is docs/continuity and read-only audit only.
 - Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Phase 2B Twin Runtime Expression is complete and stabilized for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
 - Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`.
@@ -54,7 +54,7 @@
 - Phase 3M Proposal Readiness Foundation is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored proposal-readiness view over existing `TwinPlanningContext`, topology snapshot, and Phase 3E through Phase 3L readiness/advisory/reasoning context.
 - Phase 3N Product / Spec Intelligence Readiness is complete for the approved boundary as an additive read-only, request-time, `home_id`-anchored product/spec readiness view over existing `TwinPlanningContext`, topology snapshot, and Phase 3E through Phase 3M readiness/advisory context.
 - Phase 3O Phase 3 Closeout Stabilization is complete as docs-only continuity work. It records Phase 3A through Phase 3N completion, derived-view assembly stabilization, all Phase 3 endpoints, latest recorded verification, deferred boundaries, and Phase 4 assessment-only readiness without adding runtime features or changing roadmap/doctrine.
-- Phase 4 charter defines the product purpose, first safe implementation candidate, allowed implementation categories, forbidden outputs, verification requirements, continuity requirements, and assessment-before-implementation rule. It does not approve app/runtime code, frontend, APIs, schemas, services, routes, tests, exports, permission enforcement, auth/security changes, persistence, migrations, graph behavior, `twin_id`, operational behavior, proposals, pricing, product selection, compatibility engines, economic reasoning, scenario simulation, marketplace behavior, or Phase 4 runtime implementation.
+- Phase 4 runtime work was implemented only after approved assessment-backed slices: Phase 4A per-view summaries in `7510e6a`, Phase 4B cross-view index endpoint in `c933748`, and Phase 4C through Phase 4E metadata normalization/language hardening in `79d1b47`.
 - Provider integrations, product catalogs, telemetry, utility APIs, DERMS/dispatch, Exchange, Ownership & Transfer, Registry, Identity, canonical Twin runtime identity, permission enforcement, scoped exports, and operational control remain unapproved.
 - `.github/` remains out of scope for this session.
 - Current doctrine now normalizes the Residential Energy Planner as the first application, the Residential Energy Twin as the core asset, Trusted Residential Energy Record as current positioning, Residential Infrastructure Registry as the long-term end state, and Residential Infrastructure Network as the long-term vision.
@@ -116,8 +116,13 @@
   - `fe524ac` `docs: record phase 3m proposal readiness foundation closeout`
   - `39822c9` `feat: add product spec readiness view`
   - `ca682b6` `docs: record phase 3n product spec readiness closeout`
-- Current charter checkpoint:
-  - Phase 4 is defined as Trust / Provenance Maturity and Readiness Normalization. Phase 3 is closed and serves as the source foundation. Phase 4 runtime implementation is not approved or started; the next safe action is assessment-only inventory of Phase 3 trust/provenance/readiness surfaces before Matt approves any implementation boundary.
+  - `aebd4e8` `docs: record phase 3 closeout stabilization`
+  - `c6ff1c7` `docs: define phase 4 boundary charter`
+  - `7510e6a` `feat: add phase 4a trust provenance readiness summaries`
+  - `c933748` `feat: add phase 4b trust provenance readiness index`
+  - `79d1b47` `feat: normalize phase 4 trust readiness metadata`
+- Current Phase 4 closeout checkpoint:
+  - Phase 4 is defined as Trust / Provenance Maturity and Readiness Normalization. Phase 3 is closed and serves as the source foundation. Phase 4A through Phase 4E runtime normalization is complete and committed. Phase 4F through Phase 4H closeout is docs/continuity only. The next phase and any additional Phase 4 runtime slice remain separate and unapproved until Matt approves them.
 
 ## Canonical Phase Structure
 
@@ -140,11 +145,11 @@
 - Phase 3M: Proposal Readiness Foundation - complete for the approved thirteenth runtime boundary in `916a6f5`.
 - Phase 3N: Product / Spec Intelligence Readiness - complete for the approved fourteenth runtime boundary in `39822c9`; broader Phase 3 remains deferred until Matt approves a new implementation boundary.
 - Phase 3O: Phase 3 Closeout Stabilization - complete as docs-only continuity closeout. Phase 3O is not Phase 4 planning implementation and does not add runtime behavior.
-- Phase 4: Trust / Provenance Maturity and Readiness Normalization - chartered as docs-only boundary definition. Phase 4 is not yet implemented.
+- Phase 4: Trust / Provenance Maturity and Readiness Normalization - complete through approved runtime slices 4A through 4E; Phase 4F through Phase 4H closeout is docs-only continuity work.
 
 ## What Changed Last
 
-- Phase 4 Trust / Provenance Maturity and Readiness Normalization charter completed as docs-only boundary definition.
+- Phase 4 Trust / Provenance Maturity and Readiness Normalization runtime normalization completed through approved slices 4A through 4E and is now in docs-only closeout.
 - Phase 3O Phase 3 Closeout Stabilization remains the Phase 3 closeout foundation.
 - Phase 3A through Phase 3N are recorded complete, and Phase 3 derived-view assembly stabilization is recorded complete.
 - All Phase 3 runtime endpoints are recorded:
@@ -162,10 +167,15 @@
   - `/api/twin-planning-context/homes/{home_id}/views/energy-goal-reasoning`
   - `/api/twin-planning-context/homes/{home_id}/views/proposal-readiness-foundation`
   - `/api/twin-planning-context/homes/{home_id}/views/product-spec-readiness`
-- Latest recorded backend verification remains the Phase 3N backend discovery run: `python3 -m unittest discover tests` passed with 129 tests. Phase 4 charter work did not rerun backend tests because it changed docs/continuity only.
-- Phase 4 readiness assessment is complete as read-only context; Phase 4 implementation has not started.
-- The next safe action is assessment-only inventory of Phase 3 trust/provenance/readiness surfaces before any Phase 4 implementation boundary is proposed for Matt approval.
-- No app/runtime code, schemas, services, routes, tests, migrations, persistence, frontend, exports, permission enforcement, auth/security behavior, graph engine, `twin_id`, pricing, proposal generation, product selection, compatibility engine, economic reasoning, scenario simulation, marketplace behavior, operational behavior, roadmap restructuring, or architecture doctrine rewrite changed.
+- Phase 4A added optional `trust_provenance_readiness_summary` metadata to all 14 Phase 3 derived views.
+- Phase 4B added `/api/twin-planning-context/homes/{home_id}/views/trust-provenance-readiness-index` as a read-only, request-time cross-view index over the 14 Phase 3 summaries.
+- Phase 4C normalized gap categories for confidence, missing data, unsafe assumptions, limitations, and deferred boundaries.
+- Phase 4D normalized source/provenance/readiness field-path metadata.
+- Phase 4E hardened readiness language with advisory-only metadata boundaries and prohibited-claim absence checks.
+- Latest recorded backend verification is Phase 4C through Phase 4E verification: `python3 -m unittest tests/test_twin_planning_context.py` passed with 125 tests, and `python3 -m unittest discover tests` passed with 136 tests. Git status was clean after the Phase 4C through Phase 4E runtime commit.
+- Phase 4F through Phase 4H closeout changes docs/continuity only and does not rerun backend tests unless Matt separately requests it.
+- No frontend, persistence, migrations, auth/security, exports, pricing, proposals, product selection, compatibility engine, scenario simulation, graph engine, `twin_id`, marketplace behavior, operational behavior, or push work was introduced by Phase 4.
+- No scoring, ranking, pass/fail verdicts, approval claims, verification claims, AHJ/manual approval claims, contractor readiness claims, pricing/proposal/compatibility/export/simulation/operational claims, or permission enforcement claims were introduced.
 - Product/design recommendations, recommendation ranking, best-option selection, scenario comparison execution, scenario intelligence, scenario simulation, what-if analysis, outcome calculation, calculated change analysis, option ordering, optimization, change propagation, stale-state persistence, recalculation, invalidation, final design guidance, proposal generation, contractor directives, homeowner directives, economic reasoning, utility readiness logic/reasoning, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph engine/database, exports, operational behavior, survivability/recharge modeling, compatibility engines, utility sharing, telemetry governance, ownership transfer, registry, marketplace, and canonical Twin runtime model remain deferred.
 
 ## Earlier Change
