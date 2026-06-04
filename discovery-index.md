@@ -73,6 +73,10 @@ Read these first:
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/homeowner-facing-advisory` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored homeowner-facing translation over existing `TwinPlanningContext`, topology snapshot, and Phase 3C through Phase 3I readiness/advisory/recommendation context. It translates existing context into homeowner-safe explanation language only.
   - Deferred: homeowner action directives, final design guidance, product recommendations, specific equipment recommendations, ranked options, best-option selection, scenario comparison, simulation, savings/payback, proposal generation, sales claims, contractor directives, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, and canonical Twin runtime model.
+- Phase 3L: Energy Goal Reasoning - complete for the approved twelfth runtime boundary in `492d492`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/energy-goal-reasoning` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored goal-to-context reasoning over existing `TwinPlanningContext`, topology snapshot, and Phase 3D through Phase 3K advisory/readiness/recommendation context. Goal-readiness means context readiness for goal reasoning; it does not mean design readiness, proposal readiness, approval, verification, or recommendation authority. Goal alignment is categorical and traceable, not numeric, ranked, optimized, or ordered by desirability.
+  - Deferred: product recommendations, final design recommendations, goal ranking, solution ranking, optimization, simulation, scenario comparison, savings/payback, proposal generation, contractor directives, homeowner directives, utility-readiness logic, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -102,6 +106,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-04-phase-3l-energy-goal-reasoning.md`
   - `docs/handoffs/2026-06-04-phase-3k-homeowner-facing-advisory.md`
   - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
   - `docs/handoffs/2026-06-04-phase-3-derived-view-assembly-stabilization.md`
@@ -218,6 +223,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3K Homeowner-Facing Advisory Logic:
     - `docs/handoffs/2026-06-04-phase-3k-homeowner-facing-advisory.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3L Energy Goal Reasoning:
+    - `docs/handoffs/2026-06-04-phase-3l-energy-goal-reasoning.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
