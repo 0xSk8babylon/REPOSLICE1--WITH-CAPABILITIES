@@ -69,6 +69,10 @@ Read these first:
   - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/contractor-facing-advisory` endpoint.
   - Current boundary: read-only, request-time, `home_id`-anchored contractor-facing translation over existing `TwinPlanningContext`, topology snapshot, and Phase 3C through Phase 3I readiness/advisory/recommendation context. It translates existing context into field-verification and install-readiness language only.
   - Deferred: contractor action directives, proposal generation, pricing, bid logic, product recommendations, final design recommendations, ranked options, best-option selection, optimization, simulation, scenario comparison, marketplace behavior, CRM workflows, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, and canonical Twin runtime model.
+- Phase 3K: Homeowner-Facing Advisory Logic - complete for the approved eleventh runtime boundary in `5814c18`.
+  - Completed: additive `/api/twin-planning-context/homes/{home_id}/views/homeowner-facing-advisory` endpoint.
+  - Current boundary: read-only, request-time, `home_id`-anchored homeowner-facing translation over existing `TwinPlanningContext`, topology snapshot, and Phase 3C through Phase 3I readiness/advisory/recommendation context. It translates existing context into homeowner-safe explanation language only.
+  - Deferred: homeowner action directives, final design guidance, product recommendations, specific equipment recommendations, ranked options, best-option selection, scenario comparison, simulation, savings/payback, proposal generation, sales claims, contractor directives, permission enforcement, auth, RBAC/ABAC, persistence, migrations, twin_id, graph database/engine, exports, operational behavior, and canonical Twin runtime model.
 
 ## Operational References By Task
 
@@ -98,6 +102,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - latest file in `docs/handoffs/`
+  - `docs/handoffs/2026-06-04-phase-3k-homeowner-facing-advisory.md`
   - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
   - `docs/handoffs/2026-06-04-phase-3-derived-view-assembly-stabilization.md`
   - `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`
@@ -207,6 +212,12 @@ Read these first:
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3J Contractor-Facing Advisory Logic:
     - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 3K Homeowner-Facing Advisory Logic:
+    - `docs/handoffs/2026-06-04-phase-3k-homeowner-facing-advisory.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
