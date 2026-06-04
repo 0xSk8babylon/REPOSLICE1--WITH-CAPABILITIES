@@ -79,6 +79,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_basic_advisory_recommendations_view(db, "home_001")
 
+    def _contractor_facing_advisory_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_contractor_facing_advisory_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -2775,6 +2779,128 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual(
             sorted(item["recommendation_category"] for item in first["recommendation_items"]),
             [item["recommendation_category"] for item in first["recommendation_items"]],
+        )
+
+    def test_contractor_facing_advisory_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/contractor-facing-advisory",
+            paths,
+        )
+
+        view = self._contractor_facing_advisory_view()
+        payload = view.dict()
+        scope = view.advisory_scope
+
+        self.assertEqual("contractor_facing_advisory", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("contractor_scoped", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.contractor_facing_translation_only)
+        self.assertTrue(scope.field_verification_and_install_readiness_language_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_basic_advisory_recommendations)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("contractor-facing advisory view", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_contractor_facing_advisory_has_no_forbidden_capability_flags(self):
+        scope = self._contractor_facing_advisory_view().advisory_scope
+
+        self.assertFalse(scope.contractor_action_directives_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.pricing_present)
+        self.assertFalse(scope.bid_logic_present)
+        self.assertFalse(scope.product_recommendations_present)
+        self.assertFalse(scope.final_design_recommendations_present)
+        self.assertFalse(scope.ranked_options_present)
+        self.assertFalse(scope.best_option_selection_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.simulation_present)
+        self.assertFalse(scope.scenario_comparison_present)
+        self.assertFalse(scope.marketplace_present)
+        self.assertFalse(scope.crm_workflow_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_contractor_facing_advisory_reports_allowed_translation_areas(self):
+        view = self._contractor_facing_advisory_view()
+
+        self.assertTrue(view.advisory_items)
+        self.assertTrue(view.contractor_visible_known_unknown_summary)
+        self.assertTrue(view.field_verification_needs)
+        self.assertTrue(view.install_readiness_signals)
+        self.assertTrue(view.missing_equipment_spec_information)
+        self.assertTrue(view.topology_verification_needs)
+        self.assertTrue(view.provenance_basis)
+        self.assertTrue(view.permission_readiness_metadata)
+        self.assertTrue(view.professional_review_boundaries)
+        self.assertTrue(view.prerequisite_advisory_recommendations)
+        self.assertTrue(view.deferred_contractor_workflow_boundaries)
+
+        areas = {item.advisory_area.value for item in view.advisory_items}
+        self.assertEqual(
+            {
+                "contractor_visible_known_unknown_summary",
+                "field_verification_needs",
+                "install_readiness_signals",
+                "missing_equipment_spec_information",
+                "topology_verification_needs",
+                "provenance_basis",
+                "permission_readiness_metadata",
+                "professional_review_boundaries",
+                "prerequisite_advisory_recommendations",
+                "deferred_contractor_workflow_boundaries",
+            },
+            areas,
+        )
+        for item in view.advisory_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(item.basis.derived_from or item.advisory_area.value == "deferred_contractor_workflow_boundaries")
+            self.assertIn("basic_advisory_recommendations", item.basis.source_views)
+
+    def test_contractor_facing_advisory_preserves_trust_boundaries(self):
+        view = self._contractor_facing_advisory_view()
+        limitation_text = " ".join(view.limitations)
+        payload_text = str(view.dict())
+
+        self.assertIn("audience translation only", limitation_text)
+        self.assertIn("does not direct contractor action", limitation_text)
+        self.assertIn("not authorization or enforcement", view.permission_readiness_metadata[0].statement)
+        self.assertIn("not field verification", view.provenance_basis[0].statement)
+        self.assertIn("not design advice or contractor directives", view.prerequisite_advisory_recommendations[0].statement)
+        self.assertIn("contractor_action_directives", view.deferred_contractor_workflow_boundaries)
+        self.assertIn("proposal_generation", view.deferred_contractor_workflow_boundaries)
+        self.assertNotIn("recommended_profile", payload_text)
+        self.assertNotIn("Advisor recommendation summary for", payload_text)
+        self.assertFalse(view.advisory_scope.proposal_generation_present)
+        self.assertFalse(view.advisory_scope.contractor_action_directives_present)
+
+    def test_contractor_facing_advisory_is_deterministic_for_same_inputs(self):
+        first = self._contractor_facing_advisory_view().dict()
+        second = self._contractor_facing_advisory_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_contractor_workflow_boundaries"]),
+            first["deferred_contractor_workflow_boundaries"],
+        )
+        self.assertEqual(
+            sorted(item["advisory_area"] for item in first["advisory_items"]),
+            [item["advisory_area"] for item in first["advisory_items"]],
         )
 
 

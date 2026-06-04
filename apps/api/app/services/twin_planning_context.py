@@ -19,6 +19,11 @@ from app.twin_planning_context.schemas import (
     TwinBasicAdvisoryRecommendationItem,
     TwinBasicAdvisoryRecommendationScope,
     TwinBasicAdvisoryRecommendationsView,
+    TwinContractorFacingAdvisoryArea,
+    TwinContractorFacingAdvisoryBasis,
+    TwinContractorFacingAdvisoryItem,
+    TwinContractorFacingAdvisoryScope,
+    TwinContractorFacingAdvisoryView,
     TwinConstraintRiskReasoningArea,
     TwinConstraintRiskReasoningItem,
     TwinConstraintRiskReasoningScope,
@@ -491,6 +496,38 @@ BASIC_ADVISORY_RECOMMENDATIONS_DEFERRED_BOUNDARIES = [
     "proposal_generation",
     "contractor_directives",
     "homeowner_directives",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "exports",
+    "operational_behavior",
+]
+
+CONTRACTOR_FACING_ADVISORY_LIMITATIONS = [
+    "Phase 3J contractor-facing advisory is audience translation only.",
+    "It translates existing advisory, readiness, risk, and prerequisite/remediation recommendation context into contractor-facing field-verification and install-readiness language.",
+    "It does not direct contractor action, generate proposals, generate pricing or bids, rank options, choose designs, recommend products, recommend final designs, optimize, simulate, compare scenarios, enforce permissions, export data, persist state, create graph behavior, create twin_id, or operate devices.",
+    "Permission readiness is metadata only and is not authorization or enforcement; provenance basis is source context only and is not verification.",
+]
+
+CONTRACTOR_FACING_ADVISORY_DEFERRED_BOUNDARIES = [
+    "contractor_action_directives",
+    "proposal_generation",
+    "pricing",
+    "bid_logic",
+    "product_recommendations",
+    "final_design_recommendations",
+    "ranked_options",
+    "best_option_selection",
+    "optimization",
+    "simulation",
+    "scenario_comparison",
+    "marketplace_behavior",
+    "crm_workflows",
     "permission_enforcement",
     "auth",
     "rbac_abac",
@@ -8053,6 +8090,589 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3H views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3I prerequisite/remediation recommendation view."
+            ),
+        )
+
+    def _contractor_facing_advisory_basis(
+        self,
+        *,
+        source_views: Optional[List[str]] = None,
+        source_section_keys: Optional[List[str]] = None,
+        known_refs: Optional[List[str]] = None,
+        unknown_refs: Optional[List[str]] = None,
+        field_verification_refs: Optional[List[str]] = None,
+        install_readiness_refs: Optional[List[str]] = None,
+        equipment_refs: Optional[List[str]] = None,
+        topology_refs: Optional[List[str]] = None,
+        provenance_refs: Optional[List[str]] = None,
+        permission_refs: Optional[List[str]] = None,
+        professional_boundary_refs: Optional[List[str]] = None,
+        prerequisite_recommendation_refs: Optional[List[str]] = None,
+        blocked_deferred_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinContractorFacingAdvisoryBasis:
+        return TwinContractorFacingAdvisoryBasis(
+            source_views=self._sorted_unique(
+                source_views
+                or [
+                    "twin_planning_context",
+                    "topology_snapshot",
+                    "planning_intelligence_readiness",
+                    "advisory_context_assembly",
+                    "constraint_risk_reasoning",
+                    "scenario_comparison_readiness",
+                    "pre_recommendation_advisory",
+                    "recommendation_eligibility_readiness",
+                    "basic_advisory_recommendations",
+                ]
+            ),
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            known_refs=self._sorted_unique(known_refs or []),
+            unknown_refs=self._sorted_unique(unknown_refs or []),
+            field_verification_refs=self._sorted_unique(field_verification_refs or []),
+            install_readiness_refs=self._sorted_unique(install_readiness_refs or []),
+            equipment_refs=self._sorted_unique(equipment_refs or []),
+            topology_refs=self._sorted_unique(topology_refs or []),
+            provenance_refs=self._sorted_unique(provenance_refs or []),
+            permission_refs=self._sorted_unique(permission_refs or []),
+            professional_boundary_refs=self._sorted_unique(professional_boundary_refs or []),
+            prerequisite_recommendation_refs=self._sorted_unique(prerequisite_recommendation_refs or []),
+            blocked_deferred_refs=self._sorted_unique(blocked_deferred_refs or []),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=CONTRACTOR_FACING_ADVISORY_LIMITATIONS,
+        )
+
+    def _contractor_facing_advisory_item(
+        self,
+        *,
+        advisory_area: TwinContractorFacingAdvisoryArea,
+        posture: str,
+        statement: str,
+        contractor_visible_knowns: Optional[List[str]] = None,
+        contractor_visible_unknowns: Optional[List[str]] = None,
+        field_verification_needs: Optional[List[str]] = None,
+        install_readiness_signals: Optional[List[str]] = None,
+        prerequisite_recommendation_refs: Optional[List[str]] = None,
+        blocked_deferred: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinContractorFacingAdvisoryBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinContractorFacingAdvisoryItem:
+        return TwinContractorFacingAdvisoryItem(
+            advisory_area=advisory_area,
+            posture=posture,
+            statement=statement,
+            contractor_visible_knowns=self._sorted_unique(contractor_visible_knowns or []),
+            contractor_visible_unknowns=self._sorted_unique(contractor_visible_unknowns or []),
+            field_verification_needs=self._sorted_unique(field_verification_needs or []),
+            install_readiness_signals=self._sorted_unique(install_readiness_signals or []),
+            prerequisite_recommendation_refs=self._sorted_unique(prerequisite_recommendation_refs or []),
+            blocked_deferred=self._sorted_unique(blocked_deferred or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or CONTRACTOR_FACING_ADVISORY_LIMITATIONS,
+        )
+
+    def _contractor_facing_advisory_item_sort_key(
+        self, item: TwinContractorFacingAdvisoryItem
+    ) -> str:
+        return item.advisory_area.value
+
+    def build_contractor_facing_advisory_view(
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
+        scenario_view: Optional[TwinScenarioComparisonReadinessView] = None,
+        pre_recommendation_view: Optional[TwinPreRecommendationAdvisoryView] = None,
+        eligibility_view: Optional[TwinRecommendationEligibilityReadinessView] = None,
+        basic_recommendations_view: Optional[TwinBasicAdvisoryRecommendationsView] = None,
+    ) -> Optional[TwinContractorFacingAdvisoryView]:
+        context = context or self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
+        if readiness_view is None:
+            return None
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
+        if advisory_view is None:
+            return None
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
+        if risk_view is None:
+            return None
+        scenario_view = scenario_view or self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
+        if scenario_view is None:
+            return None
+        pre_recommendation_view = pre_recommendation_view or self.build_pre_recommendation_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+        )
+        if pre_recommendation_view is None:
+            return None
+        eligibility_view = eligibility_view or self.build_recommendation_eligibility_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+        )
+        if eligibility_view is None:
+            return None
+        basic_recommendations_view = basic_recommendations_view or self.build_basic_advisory_recommendations_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+            eligibility_view=eligibility_view,
+        )
+        if basic_recommendations_view is None:
+            return None
+
+        source_section_keys = [section.section_key for section in context.sections]
+        known_refs = self._sorted_unique(
+            [f"section:{section.section_key}:records:{len(section.records)}" for section in context.sections]
+            + [
+                f"topology_nodes:{len(snapshot.nodes)}",
+                f"topology_edges:{len(snapshot.edges)}",
+                f"phase_3i_prerequisite_recommendations:{len(basic_recommendations_view.recommendation_items)}",
+            ]
+        )
+        unknown_refs = self._sorted_unique(
+            eligibility_view.missing_prerequisites
+            + pre_recommendation_view.missing_data_before_advice[0].missing_data
+            if pre_recommendation_view.missing_data_before_advice
+            else eligibility_view.missing_prerequisites
+        )
+        field_verification_refs = self._sorted_unique(
+            ref
+            for item in risk_view.field_verification_needs
+            for ref in item.missing_inputs + item.observed_constraint_refs
+        )
+        install_readiness_refs = self._sorted_unique(
+            ref
+            for item in risk_view.contractor_install_complexity_risks
+            for ref in item.observed_constraint_refs + item.missing_inputs
+        )
+        equipment_refs = self._sorted_unique(
+            eligibility_view.source_basis.equipment_refs
+            + [
+                ref
+                for item in risk_view.missing_equipment_specs
+                for ref in item.missing_inputs + item.observed_constraint_refs
+            ]
+        )
+        topology_refs = self._sorted_unique(
+            [f"topology_node:{node.entity_type}:{node.node_id}" for node in snapshot.nodes]
+            + [
+                f"topology_edge:{edge.source_node_id}->{edge.target_node_id}:{edge.relationship}"
+                for edge in snapshot.edges
+            ]
+        )
+        provenance_refs = eligibility_view.source_basis.provenance_refs
+        permission_refs = eligibility_view.source_basis.permission_refs
+        professional_boundary_refs = self._sorted_unique(
+            eligibility_view.source_basis.professional_boundary_refs
+            + [
+                boundary
+                for item in risk_view.professional_review_boundaries + risk_view.field_verification_needs
+                for boundary in item.professional_review_boundaries
+            ]
+        )
+        prerequisite_recommendation_refs = [
+            item.recommendation_category.value
+            for item in basic_recommendations_view.recommendation_items
+        ]
+        source_basis = self._contractor_facing_advisory_basis(
+            source_section_keys=source_section_keys,
+            known_refs=known_refs,
+            unknown_refs=unknown_refs,
+            field_verification_refs=field_verification_refs,
+            install_readiness_refs=install_readiness_refs,
+            equipment_refs=equipment_refs,
+            topology_refs=topology_refs,
+            provenance_refs=provenance_refs,
+            permission_refs=permission_refs,
+            professional_boundary_refs=professional_boundary_refs,
+            prerequisite_recommendation_refs=prerequisite_recommendation_refs,
+            blocked_deferred_refs=CONTRACTOR_FACING_ADVISORY_DEFERRED_BOUNDARIES,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinPlanningIntelligenceReadinessView",
+                "TwinAdvisoryContextAssemblyView",
+                "TwinConstraintRiskReasoningView",
+                "TwinScenarioComparisonReadinessView",
+                "TwinPreRecommendationAdvisoryView",
+                "TwinRecommendationEligibilityReadinessView",
+                "TwinBasicAdvisoryRecommendationsView",
+            ],
+        )
+        common_unsafe_assumptions = [
+            "Treating contractor-facing advisory translation as a contractor directive, bid, proposal, final design, or product recommendation would be unsafe.",
+        ]
+        known_unknown_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.contractor_visible_known_unknown_summary,
+            posture="contractor_scoping_context_only",
+            statement=(
+                "Contractor-visible known and unknown context is summarized from existing planning records and derived readiness views only."
+            ),
+            contractor_visible_knowns=known_refs,
+            contractor_visible_unknowns=unknown_refs,
+            blocked_deferred=CONTRACTOR_FACING_ADVISORY_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="known_unknown_summary_planning_only",
+            basis=self._contractor_facing_advisory_basis(
+                source_section_keys=source_section_keys,
+                known_refs=known_refs,
+                unknown_refs=unknown_refs,
+                derived_from=[
+                    "TwinPlanningContext.sections",
+                    "TwinRecommendationEligibilityReadinessView.missing_prerequisites",
+                    "TwinPreRecommendationAdvisoryView.missing_data_before_advice",
+                ],
+            ),
+        )
+        field_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.field_verification_needs,
+            posture="field_verification_needed_before_directing_work",
+            statement=(
+                "Field-verification needs are visible for contractor scoping context only; this view does not direct field work."
+            ),
+            contractor_visible_unknowns=field_verification_refs,
+            field_verification_needs=field_verification_refs,
+            blocked_deferred=["contractor_action_directives", "proposal_generation", "operational_behavior"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating field-verification need context as completed field verification would be unsafe."],
+            confidence_posture="field_verification_not_present",
+            basis=self._contractor_facing_advisory_basis(
+                field_verification_refs=field_verification_refs,
+                professional_boundary_refs=professional_boundary_refs,
+                derived_from=["TwinConstraintRiskReasoningView.field_verification_needs"],
+            ),
+        )
+        install_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.install_readiness_signals,
+            posture="install_readiness_context_planning_only",
+            statement=(
+                "Install-readiness signals are planning-only context from existing pathway and scenario fields, not an install plan."
+            ),
+            install_readiness_signals=install_readiness_refs,
+            field_verification_needs=["contractor_reviewed_scope", "field_surveyed_route"],
+            blocked_deferred=["contractor_action_directives", "proposal_generation", "pricing", "bid_logic"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating install-readiness signals as contractor scope or pricing logic would be unsafe."],
+            confidence_posture="install_readiness_context_present_not_reviewed",
+            basis=self._contractor_facing_advisory_basis(
+                install_readiness_refs=install_readiness_refs,
+                derived_from=["TwinConstraintRiskReasoningView.contractor_install_complexity_risks"],
+            ),
+        )
+        equipment_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.missing_equipment_spec_information,
+            posture="equipment_spec_information_incomplete",
+            statement=(
+                "Missing equipment/spec information is translated for contractor scoping context only and is not product recommendation logic."
+            ),
+            contractor_visible_unknowns=equipment_refs,
+            field_verification_needs=["source_backed_spec_sheet", "verified_equipment_spec_sources"],
+            prerequisite_recommendation_refs=[
+                TwinBasicAdvisoryRecommendationCategory.verify_equipment_spec_information.value,
+                TwinBasicAdvisoryRecommendationCategory.request_spec_sheet.value,
+            ],
+            blocked_deferred=["product_recommendations", "compatibility_engine", "final_design_recommendations"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating missing spec translation as product compatibility or product selection would be unsafe."],
+            confidence_posture="equipment_spec_prerequisites_visible",
+            basis=self._contractor_facing_advisory_basis(
+                equipment_refs=equipment_refs,
+                prerequisite_recommendation_refs=[
+                    TwinBasicAdvisoryRecommendationCategory.verify_equipment_spec_information.value,
+                    TwinBasicAdvisoryRecommendationCategory.request_spec_sheet.value,
+                ],
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.missing_equipment_specs",
+                    "TwinBasicAdvisoryRecommendationsView.verify_equipment_spec_information",
+                    "TwinBasicAdvisoryRecommendationsView.request_spec_sheet",
+                ],
+            ),
+        )
+        topology_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.topology_verification_needs,
+            posture="topology_verification_needed_before_directing_work",
+            statement=(
+                "Topology verification needs are visible for contractor scoping context only; topology is not field-verified by this view."
+            ),
+            contractor_visible_knowns=topology_refs,
+            contractor_visible_unknowns=field_verification_refs,
+            field_verification_needs=["field_verified_topology"],
+            prerequisite_recommendation_refs=[TwinBasicAdvisoryRecommendationCategory.verify_topology.value],
+            blocked_deferred=["final_design_recommendations", "proposal_generation", "operational_behavior"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating planning topology as contractor-verified topology would be unsafe."],
+            confidence_posture="topology_context_available_not_verified",
+            basis=self._contractor_facing_advisory_basis(
+                topology_refs=topology_refs,
+                field_verification_refs=field_verification_refs,
+                prerequisite_recommendation_refs=[TwinBasicAdvisoryRecommendationCategory.verify_topology.value],
+                derived_from=[
+                    "TwinTopologySnapshot.nodes",
+                    "TwinTopologySnapshot.edges",
+                    "TwinConstraintRiskReasoningView.incomplete_topology",
+                    "TwinBasicAdvisoryRecommendationsView.verify_topology",
+                ],
+            ),
+        )
+        provenance_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.provenance_basis,
+            posture="provenance_visible_not_verification",
+            statement=(
+                "Provenance basis is source context for contractor scoping only; provenance presence is not field verification."
+            ),
+            contractor_visible_knowns=provenance_refs,
+            contractor_visible_unknowns=["complete_field_level_provenance", "verification_workflow"],
+            blocked_deferred=["verification_workflow", "product_recommendations", "final_design_recommendations"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating provenance presence as verification would be unsafe."],
+            confidence_posture="provenance_context_visible_not_verified",
+            basis=self._contractor_facing_advisory_basis(
+                provenance_refs=provenance_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.provenance_sufficiency",
+                    "TwinPreRecommendationAdvisoryView.provenance_basis",
+                ],
+            ),
+            limitations=CONTRACTOR_FACING_ADVISORY_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+        permission_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.permission_readiness_metadata,
+            posture="permission_readiness_metadata_only",
+            statement=(
+                "Permission-readiness metadata is visible for contractor-facing advisory context only and is not authorization or enforcement."
+            ),
+            contractor_visible_knowns=permission_refs,
+            contractor_visible_unknowns=["active_permission_grants", "active_consent_artifacts"],
+            blocked_deferred=["permission_enforcement", "auth", "rbac_abac", "exports"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating permission-readiness metadata as authorization would be unsafe."],
+            confidence_posture="permission_metadata_only_not_authorization",
+            basis=self._contractor_facing_advisory_basis(
+                permission_refs=permission_refs,
+                derived_from=[
+                    "TwinRecommendationEligibilityReadinessView.permission_readiness_basis",
+                    "TwinPreRecommendationAdvisoryView.permission_readiness_basis",
+                ],
+            ),
+            limitations=CONTRACTOR_FACING_ADVISORY_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+        )
+        professional_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.professional_review_boundaries,
+            posture="professional_review_boundary_visible",
+            statement=(
+                "Professional-review boundaries are visible for contractor scoping context only and do not approve work."
+            ),
+            contractor_visible_unknowns=professional_boundary_refs,
+            field_verification_needs=["contractor_reviewed_scope", "engineer_review_artifact", "field_verification_artifact"],
+            blocked_deferred=["contractor_action_directives", "final_design_recommendations", "proposal_generation"],
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating professional-review boundaries as completed review would be unsafe."],
+            confidence_posture="professional_review_required_not_present",
+            basis=self._contractor_facing_advisory_basis(
+                professional_boundary_refs=professional_boundary_refs,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.professional_review_boundaries",
+                    "TwinRecommendationEligibilityReadinessView.professional_review_boundaries",
+                    "TwinPreRecommendationAdvisoryView.professional_verification_boundaries",
+                ],
+            ),
+        )
+        prerequisite_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.prerequisite_advisory_recommendations,
+            posture="phase_3i_prerequisite_remediation_only",
+            statement=(
+                "Phase 3I prerequisite/remediation recommendations are translated for contractor context only; they are not design advice or contractor directives."
+            ),
+            prerequisite_recommendation_refs=prerequisite_recommendation_refs,
+            contractor_visible_unknowns=basic_recommendations_view.source_basis.prerequisite_refs,
+            blocked_deferred=BASIC_ADVISORY_RECOMMENDATIONS_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions
+            + ["Treating prerequisite/remediation recommendations as contractor action directives would be unsafe."],
+            confidence_posture="prerequisite_recommendations_visible_not_design_advice",
+            basis=self._contractor_facing_advisory_basis(
+                prerequisite_recommendation_refs=prerequisite_recommendation_refs,
+                blocked_deferred_refs=BASIC_ADVISORY_RECOMMENDATIONS_DEFERRED_BOUNDARIES,
+                derived_from=["TwinBasicAdvisoryRecommendationsView.recommendation_items"],
+            ),
+        )
+        deferred_item = self._contractor_facing_advisory_item(
+            advisory_area=TwinContractorFacingAdvisoryArea.deferred_contractor_workflow_boundaries,
+            posture="contractor_workflows_deferred",
+            statement=(
+                "Contractor workflow behavior remains deferred; this view does not create proposals, bids, CRM tasks, exports, or directives."
+            ),
+            blocked_deferred=CONTRACTOR_FACING_ADVISORY_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=common_unsafe_assumptions,
+            confidence_posture="contractor_workflow_boundaries_preserved",
+            basis=source_basis,
+        )
+        items = sorted(
+            [
+                known_unknown_item,
+                field_item,
+                install_item,
+                equipment_item,
+                topology_item,
+                provenance_item,
+                permission_item,
+                professional_item,
+                prerequisite_item,
+                deferred_item,
+            ],
+            key=self._contractor_facing_advisory_item_sort_key,
+        )
+        return TwinContractorFacingAdvisoryView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3J contractor-facing advisory view built request-time from existing TwinPlanningContext, "
+                "topology snapshot, and approved Phase 3 readiness/advisory views; translates existing context into "
+                "contractor-facing field-verification and install-readiness language only, and does not direct contractor action, "
+                "generate proposals, generate pricing or bids, rank options, choose designs, recommend products, recommend final designs, "
+                "optimize, simulate, compare scenarios, create marketplace behavior, integrate CRM workflows, enforce permissions, export data, "
+                "persist state, create graph behavior, create twin_id, or operate devices."
+            ),
+            source_basis=source_basis,
+            advisory_scope=TwinContractorFacingAdvisoryScope(
+                limitations=CONTRACTOR_FACING_ADVISORY_LIMITATIONS,
+            ),
+            advisory_items=items,
+            contractor_visible_known_unknown_summary=[
+                item
+                for item in items
+                if item.advisory_area
+                == TwinContractorFacingAdvisoryArea.contractor_visible_known_unknown_summary
+            ],
+            field_verification_needs=[
+                item for item in items if item.advisory_area == TwinContractorFacingAdvisoryArea.field_verification_needs
+            ],
+            install_readiness_signals=[
+                item for item in items if item.advisory_area == TwinContractorFacingAdvisoryArea.install_readiness_signals
+            ],
+            missing_equipment_spec_information=[
+                item
+                for item in items
+                if item.advisory_area == TwinContractorFacingAdvisoryArea.missing_equipment_spec_information
+            ],
+            topology_verification_needs=[
+                item for item in items if item.advisory_area == TwinContractorFacingAdvisoryArea.topology_verification_needs
+            ],
+            provenance_basis=[
+                item for item in items if item.advisory_area == TwinContractorFacingAdvisoryArea.provenance_basis
+            ],
+            permission_readiness_metadata=[
+                item
+                for item in items
+                if item.advisory_area == TwinContractorFacingAdvisoryArea.permission_readiness_metadata
+            ],
+            professional_review_boundaries=[
+                item
+                for item in items
+                if item.advisory_area == TwinContractorFacingAdvisoryArea.professional_review_boundaries
+            ],
+            prerequisite_advisory_recommendations=[
+                item
+                for item in items
+                if item.advisory_area == TwinContractorFacingAdvisoryArea.prerequisite_advisory_recommendations
+            ],
+            limitations=CONTRACTOR_FACING_ADVISORY_LIMITATIONS,
+            deferred_contractor_workflow_boundaries=sorted(
+                CONTRACTOR_FACING_ADVISORY_DEFERRED_BOUNDARIES
+            ),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3I views, AI grounding, "
+                "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3J contractor-facing translation view."
             ),
         )
 

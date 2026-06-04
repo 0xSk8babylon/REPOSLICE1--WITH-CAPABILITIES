@@ -1308,6 +1308,120 @@ class TwinBasicAdvisoryRecommendationsView(ORMModel):
     compatibility_note: str
 
 
+class TwinContractorFacingAdvisoryArea(str, Enum):
+    contractor_visible_known_unknown_summary = "contractor_visible_known_unknown_summary"
+    field_verification_needs = "field_verification_needs"
+    install_readiness_signals = "install_readiness_signals"
+    missing_equipment_spec_information = "missing_equipment_spec_information"
+    topology_verification_needs = "topology_verification_needs"
+    provenance_basis = "provenance_basis"
+    permission_readiness_metadata = "permission_readiness_metadata"
+    professional_review_boundaries = "professional_review_boundaries"
+    prerequisite_advisory_recommendations = "prerequisite_advisory_recommendations"
+    deferred_contractor_workflow_boundaries = "deferred_contractor_workflow_boundaries"
+
+
+class TwinContractorFacingAdvisoryScope(ORMModel):
+    advisory_scope: str = "phase_3j_contractor_facing_advisory"
+    contractor_facing_translation_only: bool = True
+    field_verification_and_install_readiness_language_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_planning_intelligence_readiness: bool = True
+    derived_from_advisory_context_assembly: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    derived_from_scenario_comparison_readiness: bool = True
+    derived_from_pre_recommendation_advisory: bool = True
+    derived_from_recommendation_eligibility_readiness: bool = True
+    derived_from_basic_advisory_recommendations: bool = True
+    deterministic_for_same_inputs: bool = True
+    contractor_action_directives_present: bool = False
+    proposal_generation_present: bool = False
+    pricing_present: bool = False
+    bid_logic_present: bool = False
+    product_recommendations_present: bool = False
+    final_design_recommendations_present: bool = False
+    ranked_options_present: bool = False
+    best_option_selection_present: bool = False
+    optimization_present: bool = False
+    simulation_present: bool = False
+    scenario_comparison_present: bool = False
+    marketplace_present: bool = False
+    crm_workflow_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinContractorFacingAdvisoryBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    known_refs: List[str] = Field(default_factory=list)
+    unknown_refs: List[str] = Field(default_factory=list)
+    field_verification_refs: List[str] = Field(default_factory=list)
+    install_readiness_refs: List[str] = Field(default_factory=list)
+    equipment_refs: List[str] = Field(default_factory=list)
+    topology_refs: List[str] = Field(default_factory=list)
+    provenance_refs: List[str] = Field(default_factory=list)
+    permission_refs: List[str] = Field(default_factory=list)
+    professional_boundary_refs: List[str] = Field(default_factory=list)
+    prerequisite_recommendation_refs: List[str] = Field(default_factory=list)
+    blocked_deferred_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinContractorFacingAdvisoryItem(ORMModel):
+    advisory_area: TwinContractorFacingAdvisoryArea
+    posture: str
+    statement: str
+    contractor_visible_knowns: List[str] = Field(default_factory=list)
+    contractor_visible_unknowns: List[str] = Field(default_factory=list)
+    field_verification_needs: List[str] = Field(default_factory=list)
+    install_readiness_signals: List[str] = Field(default_factory=list)
+    prerequisite_recommendation_refs: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinContractorFacingAdvisoryBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinContractorFacingAdvisoryView(ORMModel):
+    view_name: str = "contractor_facing_advisory"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.contractor_scoped
+    implementation_boundary: str
+    source_basis: TwinContractorFacingAdvisoryBasis
+    advisory_scope: TwinContractorFacingAdvisoryScope
+    advisory_items: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    contractor_visible_known_unknown_summary: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    field_verification_needs: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    install_readiness_signals: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    missing_equipment_spec_information: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    topology_verification_needs: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    provenance_basis: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    permission_readiness_metadata: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    professional_review_boundaries: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    prerequisite_advisory_recommendations: List[TwinContractorFacingAdvisoryItem] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    deferred_contractor_workflow_boundaries: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True
