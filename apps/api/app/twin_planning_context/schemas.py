@@ -1088,6 +1088,115 @@ class TwinPreRecommendationAdvisoryView(ORMModel):
     compatibility_note: str
 
 
+class TwinRecommendationEligibilityArea(str, Enum):
+    topology_sufficiency = "topology_sufficiency"
+    equipment_spec_sufficiency = "equipment_spec_sufficiency"
+    load_data_sufficiency = "load_data_sufficiency"
+    provenance_sufficiency = "provenance_sufficiency"
+    permission_readiness_basis = "permission_readiness_basis"
+    professional_review_boundaries = "professional_review_boundaries"
+    scenario_readiness = "scenario_readiness"
+    pre_recommendation_boundary = "pre_recommendation_boundary"
+    derived_advisor_context = "derived_advisor_context"
+    deferred_recommendation_generation = "deferred_recommendation_generation"
+
+
+class TwinRecommendationEligibilityScope(ORMModel):
+    eligibility_scope: str = "phase_3h_recommendation_eligibility_readiness"
+    eligibility_readiness_gate_only: bool = True
+    readiness_posture_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_planning_intelligence_readiness: bool = True
+    derived_from_advisory_context_assembly: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    derived_from_scenario_comparison_readiness: bool = True
+    derived_from_pre_recommendation_advisory: bool = True
+    deterministic_for_same_inputs: bool = True
+    recommendations_generated: bool = False
+    advisor_profile_choice_present: bool = False
+    ranking_present: bool = False
+    best_option_selection_present: bool = False
+    optimization_present: bool = False
+    simulation_present: bool = False
+    scenario_comparison_present: bool = False
+    outcome_calculation_present: bool = False
+    proposal_generation_present: bool = False
+    economic_reasoning_present: bool = False
+    utility_readiness_reasoning_present: bool = False
+    contractor_directives_present: bool = False
+    homeowner_directives_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinRecommendationEligibilityBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    eligibility_category_refs: List[str] = Field(default_factory=list)
+    eligible_basis_refs: List[str] = Field(default_factory=list)
+    blocked_basis_refs: List[str] = Field(default_factory=list)
+    missing_prerequisite_refs: List[str] = Field(default_factory=list)
+    provenance_refs: List[str] = Field(default_factory=list)
+    topology_refs: List[str] = Field(default_factory=list)
+    equipment_refs: List[str] = Field(default_factory=list)
+    permission_refs: List[str] = Field(default_factory=list)
+    professional_boundary_refs: List[str] = Field(default_factory=list)
+    advisor_derived_context_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinRecommendationEligibilityItem(ORMModel):
+    eligibility_area: TwinRecommendationEligibilityArea
+    eligibility_posture: str
+    statement: str
+    eligible_for_future_recommendation: bool = False
+    eligible_basis: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    missing_prerequisites: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinRecommendationEligibilityBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinRecommendationEligibilityReadinessView(ORMModel):
+    view_name: str = "recommendation_eligibility_readiness"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinRecommendationEligibilityBasis
+    eligibility_scope: TwinRecommendationEligibilityScope
+    eligibility_items: List[TwinRecommendationEligibilityItem] = Field(default_factory=list)
+    eligible_for_future_recommendation: List[TwinRecommendationEligibilityItem] = Field(default_factory=list)
+    blocked_deferred_categories: List[TwinRecommendationEligibilityItem] = Field(default_factory=list)
+    missing_prerequisites: List[str] = Field(default_factory=list)
+    provenance_sufficiency: List[TwinRecommendationEligibilityItem] = Field(default_factory=list)
+    topology_sufficiency: List[TwinRecommendationEligibilityItem] = Field(default_factory=list)
+    equipment_spec_sufficiency: List[TwinRecommendationEligibilityItem] = Field(default_factory=list)
+    permission_readiness_basis: List[TwinRecommendationEligibilityItem] = Field(default_factory=list)
+    professional_review_boundaries: List[TwinRecommendationEligibilityItem] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    deferred_recommendation_generation_boundaries: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

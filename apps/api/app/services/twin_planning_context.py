@@ -48,6 +48,11 @@ from app.twin_planning_context.schemas import (
     TwinPlanningProvenanceGap,
     TwinPlanningProvenanceGapType,
     TwinPlanningRecordClassification,
+    TwinRecommendationEligibilityArea,
+    TwinRecommendationEligibilityBasis,
+    TwinRecommendationEligibilityItem,
+    TwinRecommendationEligibilityReadinessView,
+    TwinRecommendationEligibilityScope,
     TwinPermissionConsentArtifactPlaceholder,
     TwinPermissionHomeownerAuthorityMetadata,
     TwinPermissionReadinessAudience,
@@ -412,6 +417,39 @@ PRE_RECOMMENDATION_DEFERRED_BOUNDARIES = [
     "proposal_generation",
     "economic_reasoning",
     "utility_readiness_logic",
+    "contractor_directives",
+    "homeowner_directives",
+    "permission_enforcement",
+    "auth",
+    "rbac_abac",
+    "persistence",
+    "migrations",
+    "twin_id",
+    "graph_engine",
+    "exports",
+    "operational_behavior",
+]
+
+RECOMMENDATION_ELIGIBILITY_READINESS_LIMITATIONS = [
+    "Phase 3H recommendation eligibility readiness is a readiness gate only.",
+    "Eligibility means readiness posture only.",
+    "Eligibility is not permission, approval, engineering review, authority, or recommendation generation.",
+    "Existing advisor recommendation records may be treated only as existing derived-record context/provenance, not as current recommended outputs or choices.",
+    "This view does not generate recommendations, expose selected/recommended profiles, rank, choose a best option, optimize, simulate, compare scenarios, calculate outcomes, generate proposals, perform economic reasoning, perform utility-readiness reasoning, create directives, enforce permissions, export data, persist state, or operate devices.",
+]
+
+RECOMMENDATION_ELIGIBILITY_DEFERRED_BOUNDARIES = [
+    "recommendation_generation",
+    "advisor_profile_choice",
+    "recommendation_ranking",
+    "best_option_selection",
+    "optimization",
+    "simulation",
+    "scenario_comparison",
+    "outcome_calculation",
+    "proposal_generation",
+    "economic_reasoning",
+    "utility_readiness_reasoning",
     "contractor_directives",
     "homeowner_directives",
     "permission_enforcement",
@@ -6518,6 +6556,556 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3F views, AI grounding, "
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3G advisory boundary view."
+            ),
+        )
+
+    def _recommendation_eligibility_basis(
+        self,
+        *,
+        source_views: Optional[List[str]] = None,
+        source_section_keys: Optional[List[str]] = None,
+        eligibility_category_refs: Optional[List[str]] = None,
+        eligible_basis_refs: Optional[List[str]] = None,
+        blocked_basis_refs: Optional[List[str]] = None,
+        missing_prerequisite_refs: Optional[List[str]] = None,
+        provenance_refs: Optional[List[str]] = None,
+        topology_refs: Optional[List[str]] = None,
+        equipment_refs: Optional[List[str]] = None,
+        permission_refs: Optional[List[str]] = None,
+        professional_boundary_refs: Optional[List[str]] = None,
+        advisor_derived_context_refs: Optional[List[str]] = None,
+        derived_from: Optional[List[str]] = None,
+    ) -> TwinRecommendationEligibilityBasis:
+        return TwinRecommendationEligibilityBasis(
+            source_views=self._sorted_unique(
+                source_views
+                or [
+                    "twin_planning_context",
+                    "topology_snapshot",
+                    "planning_intelligence_readiness",
+                    "advisory_context_assembly",
+                    "constraint_risk_reasoning",
+                    "scenario_comparison_readiness",
+                    "pre_recommendation_advisory",
+                ]
+            ),
+            source_section_keys=self._sorted_unique(source_section_keys or []),
+            eligibility_category_refs=self._sorted_unique(eligibility_category_refs or []),
+            eligible_basis_refs=self._sorted_unique(eligible_basis_refs or []),
+            blocked_basis_refs=self._sorted_unique(blocked_basis_refs or []),
+            missing_prerequisite_refs=self._sorted_unique(missing_prerequisite_refs or []),
+            provenance_refs=self._sorted_unique(provenance_refs or []),
+            topology_refs=self._sorted_unique(topology_refs or []),
+            equipment_refs=self._sorted_unique(equipment_refs or []),
+            permission_refs=self._sorted_unique(permission_refs or []),
+            professional_boundary_refs=self._sorted_unique(professional_boundary_refs or []),
+            advisor_derived_context_refs=self._sorted_unique(advisor_derived_context_refs or []),
+            derived_from=self._sorted_unique(derived_from or []),
+            limitations=RECOMMENDATION_ELIGIBILITY_READINESS_LIMITATIONS,
+        )
+
+    def _recommendation_eligibility_item(
+        self,
+        *,
+        eligibility_area: TwinRecommendationEligibilityArea,
+        eligibility_posture: str,
+        statement: str,
+        eligible_for_future_recommendation: bool = False,
+        eligible_basis: Optional[List[str]] = None,
+        blocked_deferred: Optional[List[str]] = None,
+        missing_prerequisites: Optional[List[str]] = None,
+        unsafe_assumptions: Optional[List[str]] = None,
+        confidence_posture: str,
+        basis: TwinRecommendationEligibilityBasis,
+        limitations: Optional[List[str]] = None,
+    ) -> TwinRecommendationEligibilityItem:
+        return TwinRecommendationEligibilityItem(
+            eligibility_area=eligibility_area,
+            eligibility_posture=eligibility_posture,
+            statement=statement,
+            eligible_for_future_recommendation=eligible_for_future_recommendation,
+            eligible_basis=self._sorted_unique(eligible_basis or []),
+            blocked_deferred=self._sorted_unique(blocked_deferred or []),
+            missing_prerequisites=self._sorted_unique(missing_prerequisites or []),
+            unsafe_assumptions=self._sorted_unique(unsafe_assumptions or []),
+            confidence_posture=confidence_posture,
+            basis=basis,
+            limitations=limitations or RECOMMENDATION_ELIGIBILITY_READINESS_LIMITATIONS,
+        )
+
+    def _recommendation_eligibility_item_sort_key(
+        self, item: TwinRecommendationEligibilityItem
+    ) -> str:
+        return item.eligibility_area.value
+
+    def build_recommendation_eligibility_readiness_view(
+        self, db, home_id: str
+    ) -> Optional[TwinRecommendationEligibilityReadinessView]:
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        if snapshot is None:
+            return None
+        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        if readiness_view is None:
+            return None
+        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        if advisory_view is None:
+            return None
+        risk_view = self.build_constraint_risk_reasoning_view(db, home_id)
+        if risk_view is None:
+            return None
+        scenario_view = self.build_scenario_comparison_readiness_view(db, home_id)
+        if scenario_view is None:
+            return None
+        pre_recommendation_view = self.build_pre_recommendation_advisory_view(db, home_id)
+        if pre_recommendation_view is None:
+            return None
+
+        section_records = self._all_context_records_with_sections(context)
+        source_section_keys = [section.section_key for section in context.sections]
+        topology_refs = self._sorted_unique(
+            [f"topology_node:{node.entity_type}:{node.node_id}" for node in snapshot.nodes]
+            + [
+                f"topology_edge:{edge.source_node_id}->{edge.target_node_id}:{edge.relationship}"
+                for edge in snapshot.edges
+            ]
+        )
+        equipment_records = [
+            record
+            for _section_key, record in section_records
+            if record.entity_type in {"equipment_product", "design_equipment"}
+        ]
+        equipment_refs = self._sorted_unique(
+            f"{record.entity_type}:{record.entity_id or 'unknown'}" for record in equipment_records
+        )
+        missing_equipment_refs = self._sorted_unique(
+            f"{record.entity_type}:{record.entity_id or 'unknown'}:{field}"
+            for record in equipment_records
+            for field in record.missing_fields
+        )
+        load_refs = self._sorted_unique(
+            f"{record.entity_type}:{record.entity_id or 'unknown'}"
+            for _section_key, record in section_records
+            if record.entity_type == "load"
+        )
+        provenance_refs = self._sorted_unique(
+            self._provenance_gap_ref(gap)
+            for _section_key, record in section_records
+            for gap in record.provenance_gaps
+        )
+        permission_refs = self._sorted_unique(
+            [
+                f"context_permission:{context.permission_readiness.view_permission_alignment.permission_enforcement}"
+                if context.permission_readiness and context.permission_readiness.view_permission_alignment
+                else "context_permission:missing",
+                f"pre_recommendation_permission_items:{len(pre_recommendation_view.permission_readiness_basis)}",
+                f"scenario_permission_items:{len(scenario_view.permission_readiness_metadata)}",
+            ]
+        )
+        professional_boundaries = self._sorted_unique(
+            boundary
+            for risk_item in risk_view.constraint_risk_items
+            for boundary in risk_item.professional_review_boundaries
+        )
+        missing_prerequisites = self._sorted_unique(
+            missing_equipment_refs
+            + pre_recommendation_view.missing_data_before_advice[0].missing_data
+            + scenario_view.missing_prerequisites
+            + [
+                "active_permission_grants",
+                "active_consent_artifacts",
+                "permission_enforcement_layer",
+                "engineer_review_artifact",
+                "field_verification_artifact",
+                "complete_field_level_provenance",
+                "verified_equipment_spec_sources",
+            ]
+        )
+        unsafe_assumptions = self._sorted_unique(
+            list(pre_recommendation_view.unsafe_assumptions[0].unsafe_assumptions)
+            + list(scenario_view.unsafe_assumptions)
+            + [
+                "Treating eligibility readiness as permission, approval, engineering review, authority, or recommendation generation would be unsafe.",
+                "Treating existing advisor-derived records as current recommendation outputs or choices would be unsafe.",
+            ]
+        )
+        advisor_record_counts = Counter(
+            record.entity_type
+            for _section_key, record in section_records
+            if record.entity_type in {"advisor_recommendation_summary", "advisor_note"}
+        )
+        advisor_context_refs = self._sorted_unique(
+            [
+                f"existing_derived_advisor_context_records:{advisor_record_counts['advisor_recommendation_summary']}",
+                f"existing_advisory_note_records:{advisor_record_counts['advisor_note']}",
+            ]
+        )
+        category_refs = [area.value for area in TwinRecommendationEligibilityArea]
+        eligible_basis_refs = [
+            "topology_nodes_and_edges_available",
+            "pre_recommendation_boundary_explainable",
+            "derived_advisor_context_count_available",
+        ]
+        blocked_basis_refs = self._sorted_unique(
+            RECOMMENDATION_ELIGIBILITY_DEFERRED_BOUNDARIES
+            + [
+                "permission_metadata_only",
+                "professional_review_deferred",
+                "provenance_presence_not_verification",
+                "equipment_specs_incomplete",
+            ]
+        )
+        source_basis = self._recommendation_eligibility_basis(
+            source_section_keys=source_section_keys,
+            eligibility_category_refs=category_refs,
+            eligible_basis_refs=eligible_basis_refs,
+            blocked_basis_refs=blocked_basis_refs,
+            missing_prerequisite_refs=missing_prerequisites,
+            provenance_refs=provenance_refs,
+            topology_refs=topology_refs,
+            equipment_refs=equipment_refs,
+            permission_refs=permission_refs,
+            professional_boundary_refs=professional_boundaries,
+            advisor_derived_context_refs=advisor_context_refs,
+            derived_from=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinPlanningIntelligenceReadinessView",
+                "TwinAdvisoryContextAssemblyView",
+                "TwinConstraintRiskReasoningView",
+                "TwinScenarioComparisonReadinessView",
+                "TwinPreRecommendationAdvisoryView",
+            ],
+        )
+
+        topology_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.topology_sufficiency,
+            eligibility_posture="eligible_for_future_recommendation_readiness",
+            statement=(
+                "Topology sufficiency is eligible for future recommendation-readiness explanation because topology nodes and edges are available. "
+                "Eligibility means readiness posture only."
+            ),
+            eligible_for_future_recommendation=True,
+            eligible_basis=["topology_nodes_and_edges_available"],
+            blocked_deferred=["field_verification", "topology_promotion"],
+            missing_prerequisites=["field_verified_topology"],
+            unsafe_assumptions=[
+                "Treating topology sufficiency as field verification or design approval would be unsafe.",
+            ],
+            confidence_posture="topology_basis_available_not_verified",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.topology_sufficiency.value],
+                eligible_basis_refs=["topology_nodes_and_edges_available"],
+                blocked_basis_refs=["field_verification", "topology_promotion"],
+                missing_prerequisite_refs=["field_verified_topology"],
+                topology_refs=topology_refs,
+                derived_from=["TwinTopologySnapshot.nodes", "TwinTopologySnapshot.edges"],
+            ),
+        )
+        equipment_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.equipment_spec_sufficiency,
+            eligibility_posture="blocked/deferred",
+            statement=(
+                "Equipment/spec sufficiency remains blocked/deferred where specs, product provenance, or field verification are incomplete. "
+                "Eligibility means readiness posture only."
+            ),
+            eligible_basis=equipment_refs,
+            blocked_deferred=["compatibility_engine", "product_spec_verification", "recommendation_generation"],
+            missing_prerequisites=missing_equipment_refs
+            or ["complete_equipment_specs", "verified_equipment_spec_sources"],
+            unsafe_assumptions=[
+                "Treating available equipment records as verified compatibility basis would be unsafe.",
+            ],
+            confidence_posture="equipment_specs_incomplete",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.equipment_spec_sufficiency.value],
+                eligible_basis_refs=equipment_refs,
+                blocked_basis_refs=["compatibility_engine", "product_spec_verification"],
+                missing_prerequisite_refs=missing_equipment_refs
+                or ["complete_equipment_specs", "verified_equipment_spec_sources"],
+                equipment_refs=equipment_refs,
+                derived_from=["TwinPlanningContext.equipment_products", "TwinPlanningContext.design_equipment"],
+            ),
+        )
+        load_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.load_data_sufficiency,
+            eligibility_posture="blocked/deferred",
+            statement=(
+                "Load data sufficiency remains blocked/deferred for recommendation generation because available load facts are not professional verification or outcome basis. "
+                "Eligibility means readiness posture only."
+            ),
+            eligible_basis=load_refs,
+            blocked_deferred=["outcome_calculation", "professional_load_review", "recommendation_generation"],
+            missing_prerequisites=["professional_load_review", "field_verified_load_data"],
+            unsafe_assumptions=[
+                "Treating source-backed load entries as professional load review would be unsafe.",
+            ],
+            confidence_posture="load_context_available_not_verified",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.load_data_sufficiency.value],
+                eligible_basis_refs=load_refs,
+                blocked_basis_refs=["outcome_calculation", "professional_load_review"],
+                missing_prerequisite_refs=["professional_load_review", "field_verified_load_data"],
+                derived_from=["TwinPlanningContext.loads", "TwinConstraintRiskReasoningView.unsupported_load_data"],
+            ),
+        )
+        provenance_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.provenance_sufficiency,
+            eligibility_posture="blocked/deferred",
+            statement=(
+                "Provenance sufficiency is source visibility only; provenance presence is not verification. "
+                "Eligibility means readiness posture only."
+            ),
+            eligible_basis=provenance_refs,
+            blocked_deferred=["verification_workflow", "recommendation_generation"],
+            missing_prerequisites=["complete_field_level_provenance", "verification_workflow"],
+            unsafe_assumptions=[
+                "Treating provenance presence as verification would be unsafe.",
+            ],
+            confidence_posture="provenance_visible_not_verified",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.provenance_sufficiency.value],
+                eligible_basis_refs=provenance_refs,
+                blocked_basis_refs=["verification_workflow"],
+                missing_prerequisite_refs=["complete_field_level_provenance", "verification_workflow"],
+                provenance_refs=provenance_refs,
+                derived_from=["TwinPlanningContextRecord.provenance_gaps", "TwinPreRecommendationAdvisoryView.provenance_basis"],
+            ),
+            limitations=RECOMMENDATION_ELIGIBILITY_READINESS_LIMITATIONS + PROVENANCE_GAP_LIMITATIONS,
+        )
+        permission_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.permission_readiness_basis,
+            eligibility_posture="blocked/deferred",
+            statement=(
+                "Permission-readiness basis is metadata only and is not permission, authorization, or enforcement. "
+                "Eligibility means readiness posture only."
+            ),
+            eligible_basis=permission_refs,
+            blocked_deferred=["permission_enforcement", "auth", "rbac_abac", "exports"],
+            missing_prerequisites=[
+                "active_permission_grants",
+                "active_consent_artifacts",
+                "permission_enforcement_layer",
+            ],
+            unsafe_assumptions=[
+                "Treating permission-readiness metadata as authorization would be unsafe.",
+            ],
+            confidence_posture="permission_metadata_only_not_authorization",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.permission_readiness_basis.value],
+                eligible_basis_refs=permission_refs,
+                blocked_basis_refs=["permission_enforcement", "auth", "rbac_abac", "exports"],
+                missing_prerequisite_refs=[
+                    "active_permission_grants",
+                    "active_consent_artifacts",
+                    "permission_enforcement_layer",
+                ],
+                permission_refs=permission_refs,
+                derived_from=[
+                    "TwinPlanningContext.permission_readiness",
+                    "TwinPreRecommendationAdvisoryView.permission_readiness_basis",
+                    "TwinScenarioComparisonReadinessView.permission_readiness_metadata",
+                ],
+            ),
+            limitations=RECOMMENDATION_ELIGIBILITY_READINESS_LIMITATIONS + PERMISSION_READINESS_LIMITATIONS,
+        )
+        professional_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.professional_review_boundaries,
+            eligibility_posture="blocked/deferred",
+            statement=(
+                "Professional review remains deferred; eligibility is not engineering review, approval, authority, or recommendation generation."
+            ),
+            blocked_deferred=[
+                "engineer_review",
+                "contractor_review",
+                "field_verification",
+                "final_design_guidance",
+            ],
+            missing_prerequisites=[
+                "engineer_review_artifact",
+                "field_verification_artifact",
+                "contractor_reviewed_scope",
+            ],
+            unsafe_assumptions=[
+                "Treating this readiness gate as professional review would be unsafe.",
+            ],
+            confidence_posture="professional_review_not_present",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.professional_review_boundaries.value],
+                blocked_basis_refs=[
+                    "engineer_review",
+                    "contractor_review",
+                    "field_verification",
+                    "final_design_guidance",
+                ],
+                missing_prerequisite_refs=[
+                    "engineer_review_artifact",
+                    "field_verification_artifact",
+                    "contractor_reviewed_scope",
+                ],
+                professional_boundary_refs=professional_boundaries,
+                derived_from=[
+                    "TwinConstraintRiskReasoningView.professional_review_boundaries",
+                    "TwinPreRecommendationAdvisoryView.professional_verification_boundaries",
+                ],
+            ),
+        )
+        scenario_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.scenario_readiness,
+            eligibility_posture="blocked/deferred",
+            statement=(
+                "Scenario readiness may support future readiness explanation, but scenario comparison, outcomes, and what-if analysis remain blocked/deferred. "
+                "Eligibility means readiness posture only."
+            ),
+            eligible_basis=[item.readiness_area.value for item in scenario_view.readiness_items],
+            blocked_deferred=["scenario_comparison", "simulation", "what_if_analysis", "outcome_calculation"],
+            missing_prerequisites=scenario_view.missing_prerequisites,
+            unsafe_assumptions=[
+                "Treating scenario readiness as scenario comparison or outcome calculation would be unsafe.",
+            ],
+            confidence_posture="scenario_readiness_visible_not_executable",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.scenario_readiness.value],
+                eligible_basis_refs=[item.readiness_area.value for item in scenario_view.readiness_items],
+                blocked_basis_refs=["scenario_comparison", "simulation", "what_if_analysis", "outcome_calculation"],
+                missing_prerequisite_refs=scenario_view.missing_prerequisites,
+                derived_from=["TwinScenarioComparisonReadinessView.readiness_items"],
+            ),
+        )
+        pre_recommendation_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.pre_recommendation_boundary,
+            eligibility_posture="eligible_for_future_recommendation_readiness",
+            statement=(
+                "The pre-recommendation boundary is eligible for future recommendation-readiness explanation only. "
+                "Eligibility means readiness posture only."
+            ),
+            eligible_for_future_recommendation=True,
+            eligible_basis=[item.advisory_area.value for item in pre_recommendation_view.advisory_items],
+            blocked_deferred=PRE_RECOMMENDATION_DEFERRED_BOUNDARIES,
+            missing_prerequisites=missing_prerequisites,
+            unsafe_assumptions=[
+                "Treating pre-recommendation advisory explanation as recommendation output would be unsafe.",
+            ],
+            confidence_posture="pre_recommendation_boundary_visible",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.pre_recommendation_boundary.value],
+                eligible_basis_refs=[item.advisory_area.value for item in pre_recommendation_view.advisory_items],
+                blocked_basis_refs=PRE_RECOMMENDATION_DEFERRED_BOUNDARIES,
+                missing_prerequisite_refs=missing_prerequisites,
+                derived_from=["TwinPreRecommendationAdvisoryView.advisory_items"],
+            ),
+        )
+        advisor_context_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.derived_advisor_context,
+            eligibility_posture="eligible_for_future_recommendation_readiness",
+            statement=(
+                "Existing advisor recommendation records are counted only as existing derived-record context/provenance, not as current recommended outputs or choices. "
+                "Eligibility means readiness posture only."
+            ),
+            eligible_for_future_recommendation=True,
+            eligible_basis=advisor_context_refs,
+            blocked_deferred=["recommendation_generation", "advisor_profile_choice", "current_recommendation_output"],
+            unsafe_assumptions=[
+                "Treating existing advisor-derived context as a current recommendation or choice would be unsafe.",
+            ],
+            confidence_posture="derived_record_context_only",
+            basis=self._recommendation_eligibility_basis(
+                source_section_keys=source_section_keys,
+                eligibility_category_refs=[TwinRecommendationEligibilityArea.derived_advisor_context.value],
+                eligible_basis_refs=advisor_context_refs,
+                blocked_basis_refs=["recommendation_generation", "advisor_profile_choice", "current_recommendation_output"],
+                advisor_derived_context_refs=advisor_context_refs,
+                derived_from=["TwinPlanningContext.derived_intelligence.record_counts"],
+            ),
+        )
+        deferred_item = self._recommendation_eligibility_item(
+            eligibility_area=TwinRecommendationEligibilityArea.deferred_recommendation_generation,
+            eligibility_posture="blocked/deferred",
+            statement=(
+                "Recommendation generation remains blocked/deferred and is not implemented by this eligibility readiness view."
+            ),
+            blocked_deferred=RECOMMENDATION_ELIGIBILITY_DEFERRED_BOUNDARIES,
+            unsafe_assumptions=[
+                "Treating deferred recommendation generation as available runtime behavior would be unsafe.",
+            ],
+            confidence_posture="deferred_recommendation_generation_preserved",
+            basis=source_basis,
+        )
+        items = sorted(
+            [
+                topology_item,
+                equipment_item,
+                load_item,
+                provenance_item,
+                permission_item,
+                professional_item,
+                scenario_item,
+                pre_recommendation_item,
+                advisor_context_item,
+                deferred_item,
+            ],
+            key=self._recommendation_eligibility_item_sort_key,
+        )
+        return TwinRecommendationEligibilityReadinessView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 3H recommendation eligibility readiness view built request-time from existing TwinPlanningContext, "
+                "topology snapshot, and approved Phase 3 readiness/advisory views; answers whether fixed categories are eligible "
+                "for future recommendation-readiness posture, but does not generate recommendations, expose selected/recommended profiles, "
+                "rank, choose a best option, optimize, simulate, compare scenarios, calculate outcomes, generate proposals, perform economic "
+                "reasoning, perform utility-readiness reasoning, create directives, enforce permissions, export data, persist state, create graph behavior, or operate devices."
+            ),
+            source_basis=source_basis,
+            eligibility_scope=TwinRecommendationEligibilityScope(
+                limitations=RECOMMENDATION_ELIGIBILITY_READINESS_LIMITATIONS,
+            ),
+            eligibility_items=items,
+            eligible_for_future_recommendation=[
+                item for item in items if item.eligible_for_future_recommendation
+            ],
+            blocked_deferred_categories=[
+                item for item in items if item.eligibility_posture == "blocked/deferred"
+            ],
+            missing_prerequisites=missing_prerequisites,
+            provenance_sufficiency=[
+                item for item in items if item.eligibility_area == TwinRecommendationEligibilityArea.provenance_sufficiency
+            ],
+            topology_sufficiency=[
+                item for item in items if item.eligibility_area == TwinRecommendationEligibilityArea.topology_sufficiency
+            ],
+            equipment_spec_sufficiency=[
+                item
+                for item in items
+                if item.eligibility_area == TwinRecommendationEligibilityArea.equipment_spec_sufficiency
+            ],
+            permission_readiness_basis=[
+                item
+                for item in items
+                if item.eligibility_area == TwinRecommendationEligibilityArea.permission_readiness_basis
+            ],
+            professional_review_boundaries=[
+                item
+                for item in items
+                if item.eligibility_area == TwinRecommendationEligibilityArea.professional_review_boundaries
+            ],
+            unsafe_assumptions=unsafe_assumptions,
+            limitations=RECOMMENDATION_ELIGIBILITY_READINESS_LIMITATIONS,
+            deferred_recommendation_generation_boundaries=sorted(
+                RECOMMENDATION_ELIGIBILITY_DEFERRED_BOUNDARIES
+            ),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 3A through Phase 3G views, AI grounding, "
+                "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3H recommendation-readiness gate."
             ),
         )
 

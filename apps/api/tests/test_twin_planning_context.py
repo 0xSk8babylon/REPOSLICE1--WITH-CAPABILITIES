@@ -71,6 +71,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_pre_recommendation_advisory_view(db, "home_001")
 
+    def _recommendation_eligibility_readiness_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_recommendation_eligibility_readiness_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -2376,6 +2380,212 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("Engineer review remains deferred.", professional_item.professional_boundaries)
         self.assertFalse(view.advisory_scope.recommendations_generated)
         self.assertFalse(view.advisory_scope.permission_enforcement_present)
+
+    def test_recommendation_eligibility_readiness_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/recommendation-eligibility-readiness",
+            paths,
+        )
+
+        view = self._recommendation_eligibility_readiness_view()
+        payload = view.dict()
+        scope = view.eligibility_scope
+
+        self.assertEqual("recommendation_eligibility_readiness", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.eligibility_readiness_gate_only)
+        self.assertTrue(scope.readiness_posture_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_planning_intelligence_readiness)
+        self.assertTrue(scope.derived_from_advisory_context_assembly)
+        self.assertTrue(scope.derived_from_constraint_risk_reasoning)
+        self.assertTrue(scope.derived_from_scenario_comparison_readiness)
+        self.assertTrue(scope.derived_from_pre_recommendation_advisory)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("recommendation eligibility readiness view", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_recommendation_eligibility_readiness_has_no_forbidden_capability_flags(self):
+        scope = self._recommendation_eligibility_readiness_view().eligibility_scope
+
+        self.assertFalse(scope.recommendations_generated)
+        self.assertFalse(scope.advisor_profile_choice_present)
+        self.assertFalse(scope.ranking_present)
+        self.assertFalse(scope.best_option_selection_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.simulation_present)
+        self.assertFalse(scope.scenario_comparison_present)
+        self.assertFalse(scope.outcome_calculation_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.economic_reasoning_present)
+        self.assertFalse(scope.utility_readiness_reasoning_present)
+        self.assertFalse(scope.contractor_directives_present)
+        self.assertFalse(scope.homeowner_directives_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_recommendation_eligibility_readiness_reports_eligible_and_blocked_categories(self):
+        view = self._recommendation_eligibility_readiness_view()
+
+        self.assertTrue(view.eligibility_items)
+        self.assertTrue(view.eligible_for_future_recommendation)
+        self.assertTrue(view.blocked_deferred_categories)
+        self.assertTrue(view.missing_prerequisites)
+        self.assertTrue(view.provenance_sufficiency)
+        self.assertTrue(view.topology_sufficiency)
+        self.assertTrue(view.equipment_spec_sufficiency)
+        self.assertTrue(view.permission_readiness_basis)
+        self.assertTrue(view.professional_review_boundaries)
+        self.assertTrue(view.unsafe_assumptions)
+        self.assertTrue(view.deferred_recommendation_generation_boundaries)
+
+        areas = {item.eligibility_area.value for item in view.eligibility_items}
+        for area in [
+            "topology_sufficiency",
+            "equipment_spec_sufficiency",
+            "load_data_sufficiency",
+            "provenance_sufficiency",
+            "permission_readiness_basis",
+            "professional_review_boundaries",
+            "scenario_readiness",
+            "pre_recommendation_boundary",
+            "derived_advisor_context",
+            "deferred_recommendation_generation",
+        ]:
+            self.assertIn(area, areas)
+
+    def test_recommendation_eligibility_readiness_items_are_traceable(self):
+        view = self._recommendation_eligibility_readiness_view()
+
+        for source_view in [
+            "twin_planning_context",
+            "topology_snapshot",
+            "planning_intelligence_readiness",
+            "advisory_context_assembly",
+            "constraint_risk_reasoning",
+            "scenario_comparison_readiness",
+            "pre_recommendation_advisory",
+        ]:
+            self.assertIn(source_view, view.source_basis.source_views)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.eligibility_category_refs)
+        self.assertTrue(view.source_basis.eligible_basis_refs)
+        self.assertTrue(view.source_basis.blocked_basis_refs)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in view.eligibility_items:
+            self.assertTrue(item.statement)
+            self.assertTrue(item.eligibility_posture)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+            self.assertTrue(
+                item.eligible_basis
+                or item.blocked_deferred
+                or item.missing_prerequisites
+                or item.unsafe_assumptions
+            )
+            self.assertIn("twin_planning_context", item.basis.source_views)
+
+    def test_recommendation_eligibility_readiness_preserves_trust_boundaries(self):
+        view = self._recommendation_eligibility_readiness_view()
+        provenance_item = view.provenance_sufficiency[0]
+        permission_item = view.permission_readiness_basis[0]
+        professional_item = view.professional_review_boundaries[0]
+
+        limitation_text = " ".join(view.limitations)
+        self.assertIn("Eligibility means readiness posture only.", limitation_text)
+        self.assertIn(
+            "Eligibility is not permission, approval, engineering review, authority, or recommendation generation.",
+            limitation_text,
+        )
+        self.assertIn("not verification", provenance_item.statement)
+        self.assertIn("permission_enforcement_layer", permission_item.missing_prerequisites)
+        self.assertIn("metadata only", permission_item.statement)
+        self.assertIn("Professional review remains deferred", professional_item.statement)
+        self.assertFalse(view.eligibility_scope.recommendations_generated)
+        self.assertFalse(view.eligibility_scope.permission_enforcement_present)
+
+    def test_recommendation_eligibility_readiness_preserves_deferred_boundaries(self):
+        view = self._recommendation_eligibility_readiness_view()
+        deferred = set(view.deferred_recommendation_generation_boundaries)
+
+        for boundary in [
+            "recommendation_generation",
+            "advisor_profile_choice",
+            "recommendation_ranking",
+            "best_option_selection",
+            "optimization",
+            "simulation",
+            "scenario_comparison",
+            "outcome_calculation",
+            "proposal_generation",
+            "economic_reasoning",
+            "utility_readiness_reasoning",
+            "contractor_directives",
+            "homeowner_directives",
+            "permission_enforcement",
+            "auth",
+            "rbac_abac",
+            "persistence",
+            "migrations",
+            "twin_id",
+            "graph_engine",
+            "exports",
+            "operational_behavior",
+        ]:
+            self.assertIn(boundary, deferred)
+
+        boundary_text = " ".join(view.deferred_recommendation_generation_boundaries)
+        self.assertNotIn("selected", boundary_text)
+
+    def test_recommendation_eligibility_readiness_is_deterministic_for_same_inputs(self):
+        first = self._recommendation_eligibility_readiness_view().dict()
+        second = self._recommendation_eligibility_readiness_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_recommendation_generation_boundaries"]),
+            first["deferred_recommendation_generation_boundaries"],
+        )
+        self.assertEqual(
+            sorted(item["eligibility_area"] for item in first["eligibility_items"]),
+            [item["eligibility_area"] for item in first["eligibility_items"]],
+        )
+
+    def test_recommendation_eligibility_readiness_does_not_expose_current_recommendations(self):
+        view = self._recommendation_eligibility_readiness_view()
+        payload_text = str(view.dict())
+        advisor_item = next(
+            item
+            for item in view.eligibility_items
+            if item.eligibility_area.value == "derived_advisor_context"
+        )
+
+        self.assertIn(
+            "existing_derived_advisor_context_records",
+            " ".join(advisor_item.basis.advisor_derived_context_refs),
+        )
+        self.assertIn("not as current recommended outputs or choices", advisor_item.statement)
+        self.assertNotIn("recommended_profile", payload_text)
+        self.assertNotIn("Advisor recommendation summary for", payload_text)
+        self.assertFalse(view.eligibility_scope.recommendations_generated)
 
 
 if __name__ == "__main__":
