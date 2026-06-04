@@ -1197,6 +1197,117 @@ class TwinRecommendationEligibilityReadinessView(ORMModel):
     compatibility_note: str
 
 
+class TwinBasicAdvisoryRecommendationCategory(str, Enum):
+    collect_missing_data = "collect_missing_data"
+    verify_topology = "verify_topology"
+    verify_equipment_spec_information = "verify_equipment_spec_information"
+    request_spec_sheet = "request_spec_sheet"
+    contractor_review_required = "contractor_review_required"
+    professional_review_required = "professional_review_required"
+    cannot_recommend_yet_missing_prerequisites = "cannot_recommend_yet_missing_prerequisites"
+    permission_provenance_limitations_prevent_recommendation = (
+        "permission_provenance_limitations_prevent_recommendation"
+    )
+    scenario_comparison_not_ready = "scenario_comparison_not_ready"
+    proposal_generation_deferred = "proposal_generation_deferred"
+
+
+class TwinBasicAdvisoryRecommendationScope(ORMModel):
+    recommendation_scope: str = "phase_3i_basic_advisory_recommendations"
+    basic_advisory_recommendations_present: bool = True
+    prerequisite_remediation_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_planning_intelligence_readiness: bool = True
+    derived_from_advisory_context_assembly: bool = True
+    derived_from_constraint_risk_reasoning: bool = True
+    derived_from_scenario_comparison_readiness: bool = True
+    derived_from_pre_recommendation_advisory: bool = True
+    derived_from_recommendation_eligibility_readiness: bool = True
+    deterministic_for_same_inputs: bool = True
+    product_recommendations_present: bool = False
+    final_design_recommendations_present: bool = False
+    ranked_options_present: bool = False
+    best_option_selection_present: bool = False
+    optimization_present: bool = False
+    simulation_present: bool = False
+    scenario_comparison_present: bool = False
+    outcome_calculation_present: bool = False
+    proposal_generation_present: bool = False
+    economic_reasoning_present: bool = False
+    utility_readiness_reasoning_present: bool = False
+    contractor_directives_present: bool = False
+    homeowner_directives_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_present: bool = False
+    rbac_abac_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    export_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinBasicAdvisoryRecommendationBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_section_keys: List[str] = Field(default_factory=list)
+    recommendation_category_refs: List[str] = Field(default_factory=list)
+    prerequisite_refs: List[str] = Field(default_factory=list)
+    eligibility_refs: List[str] = Field(default_factory=list)
+    topology_refs: List[str] = Field(default_factory=list)
+    equipment_refs: List[str] = Field(default_factory=list)
+    provenance_refs: List[str] = Field(default_factory=list)
+    permission_refs: List[str] = Field(default_factory=list)
+    professional_boundary_refs: List[str] = Field(default_factory=list)
+    blocked_deferred_refs: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinBasicAdvisoryRecommendationItem(ORMModel):
+    recommendation_category: TwinBasicAdvisoryRecommendationCategory
+    recommendation_kind: str = "prerequisite_remediation"
+    recommendation_statement: str
+    allowed_recommendation: bool = True
+    prerequisite_refs: List[str] = Field(default_factory=list)
+    blocked_deferred: List[str] = Field(default_factory=list)
+    unsafe_assumptions: List[str] = Field(default_factory=list)
+    confidence_posture: str
+    basis: TwinBasicAdvisoryRecommendationBasis
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinBasicAdvisoryRecommendationsView(ORMModel):
+    view_name: str = "basic_advisory_recommendations"
+    home_id: str
+    anchor_type: str = "home_id"
+    permission_enforcement: str = "not_enforced"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.planning_private
+    implementation_boundary: str
+    source_basis: TwinBasicAdvisoryRecommendationBasis
+    recommendation_scope: TwinBasicAdvisoryRecommendationScope
+    recommendation_items: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    collect_missing_data: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    verify_topology: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    verify_equipment_spec_information: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    request_spec_sheet: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    contractor_review_required: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    professional_review_required: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    cannot_recommend_yet: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    permission_provenance_limitations: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    scenario_comparison_not_ready: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    proposal_generation_deferred: List[TwinBasicAdvisoryRecommendationItem] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    deferred_recommendation_boundaries: List[str] = Field(default_factory=list)
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

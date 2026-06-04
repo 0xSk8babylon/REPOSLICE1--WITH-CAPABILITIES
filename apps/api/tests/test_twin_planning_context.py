@@ -75,6 +75,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_recommendation_eligibility_readiness_view(db, "home_001")
 
+    def _basic_advisory_recommendations_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_basic_advisory_recommendations_view(db, "home_001")
+
     def test_context_composes_existing_home_scoped_records_without_twin_identity(self):
         context = self._context()
 
@@ -2586,6 +2590,192 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertNotIn("recommended_profile", payload_text)
         self.assertNotIn("Advisor recommendation summary for", payload_text)
         self.assertFalse(view.eligibility_scope.recommendations_generated)
+
+    def test_basic_advisory_recommendations_route_is_additive_and_read_only(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn(
+            "/api/twin-planning-context/homes/{home_id}/views/basic-advisory-recommendations",
+            paths,
+        )
+
+        view = self._basic_advisory_recommendations_view()
+        payload = view.dict()
+        scope = view.recommendation_scope
+
+        self.assertEqual("basic_advisory_recommendations", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.basic_advisory_recommendations_present)
+        self.assertTrue(scope.prerequisite_remediation_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_planning_intelligence_readiness)
+        self.assertTrue(scope.derived_from_advisory_context_assembly)
+        self.assertTrue(scope.derived_from_constraint_risk_reasoning)
+        self.assertTrue(scope.derived_from_scenario_comparison_readiness)
+        self.assertTrue(scope.derived_from_pre_recommendation_advisory)
+        self.assertTrue(scope.derived_from_recommendation_eligibility_readiness)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertIn("basic advisory recommendations view", view.implementation_boundary)
+        self.assertIn("contracts remain unchanged", view.compatibility_note)
+
+    def test_basic_advisory_recommendations_has_no_forbidden_capability_flags(self):
+        scope = self._basic_advisory_recommendations_view().recommendation_scope
+
+        self.assertFalse(scope.product_recommendations_present)
+        self.assertFalse(scope.final_design_recommendations_present)
+        self.assertFalse(scope.ranked_options_present)
+        self.assertFalse(scope.best_option_selection_present)
+        self.assertFalse(scope.optimization_present)
+        self.assertFalse(scope.simulation_present)
+        self.assertFalse(scope.scenario_comparison_present)
+        self.assertFalse(scope.outcome_calculation_present)
+        self.assertFalse(scope.proposal_generation_present)
+        self.assertFalse(scope.economic_reasoning_present)
+        self.assertFalse(scope.utility_readiness_reasoning_present)
+        self.assertFalse(scope.contractor_directives_present)
+        self.assertFalse(scope.homeowner_directives_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.auth_present)
+        self.assertFalse(scope.rbac_abac_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.twin_id_present)
+        self.assertFalse(scope.graph_engine_present)
+        self.assertFalse(scope.export_present)
+        self.assertFalse(scope.operational_behavior_present)
+
+    def test_basic_advisory_recommendations_reports_only_allowed_categories(self):
+        view = self._basic_advisory_recommendations_view()
+
+        self.assertTrue(view.recommendation_items)
+        self.assertTrue(view.collect_missing_data)
+        self.assertTrue(view.verify_topology)
+        self.assertTrue(view.verify_equipment_spec_information)
+        self.assertTrue(view.request_spec_sheet)
+        self.assertTrue(view.contractor_review_required)
+        self.assertTrue(view.professional_review_required)
+        self.assertTrue(view.cannot_recommend_yet)
+        self.assertTrue(view.permission_provenance_limitations)
+        self.assertTrue(view.scenario_comparison_not_ready)
+        self.assertTrue(view.proposal_generation_deferred)
+
+        categories = {item.recommendation_category.value for item in view.recommendation_items}
+        self.assertEqual(
+            {
+                "collect_missing_data",
+                "verify_topology",
+                "verify_equipment_spec_information",
+                "request_spec_sheet",
+                "contractor_review_required",
+                "professional_review_required",
+                "cannot_recommend_yet_missing_prerequisites",
+                "permission_provenance_limitations_prevent_recommendation",
+                "scenario_comparison_not_ready",
+                "proposal_generation_deferred",
+            },
+            categories,
+        )
+        for item in view.recommendation_items:
+            self.assertEqual("prerequisite_remediation", item.recommendation_kind)
+            self.assertTrue(item.allowed_recommendation)
+
+    def test_basic_advisory_recommendations_items_are_traceable(self):
+        view = self._basic_advisory_recommendations_view()
+
+        for source_view in [
+            "twin_planning_context",
+            "topology_snapshot",
+            "planning_intelligence_readiness",
+            "advisory_context_assembly",
+            "constraint_risk_reasoning",
+            "scenario_comparison_readiness",
+            "pre_recommendation_advisory",
+            "recommendation_eligibility_readiness",
+        ]:
+            self.assertIn(source_view, view.source_basis.source_views)
+        self.assertTrue(view.source_basis.source_section_keys)
+        self.assertTrue(view.source_basis.recommendation_category_refs)
+        self.assertTrue(view.source_basis.prerequisite_refs)
+        self.assertTrue(view.source_basis.eligibility_refs)
+        self.assertTrue(view.source_basis.blocked_deferred_refs)
+        self.assertTrue(view.source_basis.derived_from)
+
+        for item in view.recommendation_items:
+            self.assertTrue(item.recommendation_statement)
+            self.assertTrue(item.prerequisite_refs or item.blocked_deferred)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.limitations)
+            self.assertIn("twin_planning_context", item.basis.source_views)
+
+    def test_basic_advisory_recommendations_preserve_trust_boundaries(self):
+        view = self._basic_advisory_recommendations_view()
+        limitation_text = " ".join(view.limitations)
+        payload_text = str(view.dict())
+
+        self.assertIn("prerequisite/remediation recommendations only", limitation_text)
+        self.assertIn("do not choose products", limitation_text)
+        self.assertIn("not a contractor directive", view.contractor_review_required[0].recommendation_statement)
+        self.assertIn("Cannot recommend products", view.cannot_recommend_yet[0].recommendation_statement)
+        self.assertIn("Scenario comparison is not ready yet", view.scenario_comparison_not_ready[0].recommendation_statement)
+        self.assertIn("Proposal generation remains deferred", view.proposal_generation_deferred[0].recommendation_statement)
+        self.assertNotIn("recommended_profile", payload_text)
+        self.assertNotIn("Advisor recommendation summary for", payload_text)
+        self.assertFalse(view.recommendation_scope.final_design_recommendations_present)
+        self.assertFalse(view.recommendation_scope.proposal_generation_present)
+
+    def test_basic_advisory_recommendations_preserve_deferred_boundaries(self):
+        view = self._basic_advisory_recommendations_view()
+        deferred = set(view.deferred_recommendation_boundaries)
+
+        for boundary in [
+            "product_recommendations",
+            "final_design_recommendations",
+            "ranked_options",
+            "best_option_selection",
+            "optimization",
+            "scenario_comparison_execution",
+            "scenario_intelligence",
+            "simulation",
+            "what_if_analysis",
+            "outcome_calculation",
+            "economic_reasoning",
+            "utility_readiness_reasoning",
+            "proposal_generation",
+            "contractor_directives",
+            "homeowner_directives",
+            "permission_enforcement",
+            "auth",
+            "rbac_abac",
+            "persistence",
+            "migrations",
+            "twin_id",
+            "graph_engine",
+            "exports",
+            "operational_behavior",
+        ]:
+            self.assertIn(boundary, deferred)
+
+    def test_basic_advisory_recommendations_is_deterministic_for_same_inputs(self):
+        first = self._basic_advisory_recommendations_view().dict()
+        second = self._basic_advisory_recommendations_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            sorted(first["deferred_recommendation_boundaries"]),
+            first["deferred_recommendation_boundaries"],
+        )
+        self.assertEqual(
+            sorted(item["recommendation_category"] for item in first["recommendation_items"]),
+            [item["recommendation_category"] for item in first["recommendation_items"]],
+        )
 
 
 if __name__ == "__main__":
