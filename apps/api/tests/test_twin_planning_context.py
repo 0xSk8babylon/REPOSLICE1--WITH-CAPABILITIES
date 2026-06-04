@@ -11,6 +11,7 @@ from app.core.database import database_path, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.seed.runtime import reset_and_reseed  # noqa: E402
 from app.services.contractor_context import contractor_context_service  # noqa: E402
+from app.services.planning_exchange import planning_exchange_service  # noqa: E402
 from app.services.twin_planning_context import twin_planning_context_service  # noqa: E402
 
 
@@ -115,6 +116,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
     def _contractor_install_complexity_view(self):
         with Session(engine) as db:
             return contractor_context_service.build_install_complexity_view(db, "home_001")
+
+    def _planning_exchange_object_view(self):
+        with Session(engine) as db:
+            return planning_exchange_service.build_planning_exchange_object(db, "home_001")
 
     def _phase3_derived_views(self):
         return [
@@ -3443,6 +3448,176 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             self.assertTrue(signal.source_or_basis)
             self.assertTrue(signal.provenance.source_views)
             self.assertTrue(signal.provenance.derived_from)
+
+    def test_planning_exchange_route_is_additive_read_only_and_non_authoritative(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn("/api/planning-exchange/homes/{home_id}", paths)
+
+        view = self._planning_exchange_object_view()
+        payload = view.dict()
+        scope = view.exchange_scope
+
+        self.assertEqual("planning_exchange_object", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("contractor_scoped", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_package_not_source_of_truth)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertTrue(scope.additive_only)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.write_endpoints_present)
+        self.assertFalse(scope.exports_present)
+        self.assertFalse(scope.pdf_generation_present)
+        self.assertFalse(scope.share_links_present)
+        self.assertFalse(scope.auth_security_changes_present)
+        self.assertFalse(scope.contractor_accounts_present)
+        self.assertFalse(scope.source_of_truth_mutation_present)
+        self.assertFalse(scope.final_electrical_design_claims_present)
+
+    def test_planning_exchange_packages_existing_phase_5_context(self):
+        view = self._planning_exchange_object_view()
+
+        self.assertTrue(view.homeowner_intent_goals)
+        self.assertTrue(view.home_site_planning_context)
+        self.assertTrue(view.known_electrical_equipment_summary)
+        self.assertTrue(view.proposed_system_context)
+        self.assertTrue(view.contractor_safe_planning_context)
+        self.assertEqual(19, len(view.confirmation_gates))
+        self.assertTrue(view.install_complexity_uncertainty_signals)
+        self.assertTrue(view.provenance_trust_basis)
+        self.assertTrue(view.missing_information)
+        self.assertTrue(view.required_verifiers)
+        self.assertTrue(view.review_prompts)
+        self.assertIn("ContractorPlanningContextView", view.source_basis.source_views)
+        self.assertIn("ContractorConfirmationGateProjectionView", view.source_basis.source_views)
+        self.assertIn("ContractorInstallComplexityView", view.source_basis.source_views)
+        self.assertFalse(view.raw_source_payloads_embedded)
+        self.assertIn("contractor_context_item_ids", view.source_payload_refs)
+        self.assertIn("confirmation_gate_ids", view.source_payload_refs)
+        self.assertIn("install_complexity_signal_ids", view.source_payload_refs)
+
+    def test_planning_exchange_preserves_non_authoritative_trust_boundaries(self):
+        view = self._planning_exchange_object_view()
+        payload_text = str(view.dict()).lower()
+
+        self.assertIn("Read-only Phase 6 planning exchange object", view.implementation_boundary)
+        self.assertTrue(view.exchange_scope.derived_package_not_source_of_truth)
+        self.assertIn("not a source of truth", view.limitations[1])
+        self.assertIn("not_enforced", view.permission_enforcement)
+        self.assertIn("permission_enforcement", view.deferred_boundaries)
+        for category in [
+            "app_derived",
+            "contractor_safe_projection",
+            "missing_unknown",
+        ]:
+            self.assertIn(category, [item.value for item in view.source_basis.trust_categories])
+        for forbidden in [
+            "code compliant",
+            "nec compliant",
+            "approved installation",
+            "field verification completed",
+            "permission enforced",
+            "final wire size is",
+            "final conduit size is",
+            "final breaker size is",
+            "disconnect requirement is",
+            "contractor ready",
+            "estimate ready",
+            "proposal ready",
+        ]:
+            self.assertNotIn(forbidden, payload_text)
+
+    def test_planning_exchange_is_deterministic_for_same_inputs(self):
+        first = self._planning_exchange_object_view().dict()
+        second = self._planning_exchange_object_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])
+
+    def test_planning_exchange_maps_section_source_and_trust_boundaries(self):
+        view = self._planning_exchange_object_view()
+        mappings = {mapping.section_key: mapping for mapping in view.section_mappings}
+
+        self.assertEqual(
+            {
+                "homeowner_intent_goals",
+                "home_site_planning_context",
+                "known_electrical_equipment_summary",
+                "proposed_system_context",
+                "contractor_safe_planning_context",
+                "confirmation_gates",
+                "install_complexity_uncertainty_signals",
+                "provenance_trust_basis",
+                "missing_information",
+                "manufacturer_required_future",
+                "ahj_utility_dependent_future",
+            },
+            set(mappings),
+        )
+        self.assertEqual("homeowner_provided", mappings["homeowner_intent_goals"].trust_category.value)
+        self.assertEqual("contractor_safe_projection", mappings["contractor_safe_planning_context"].trust_category.value)
+        self.assertEqual("app_derived", mappings["confirmation_gates"].trust_category.value)
+        self.assertEqual("missing_unknown", mappings["missing_information"].trust_category.value)
+        self.assertEqual("manufacturer_required_future", mappings["manufacturer_required_future"].trust_category.value)
+        self.assertEqual("ahj_utility_dependent_future", mappings["ahj_utility_dependent_future"].trust_category.value)
+
+        for category in [
+            "homeowner_provided",
+            "app_derived",
+            "contractor_safe_projection",
+            "manufacturer_required_future",
+            "ahj_utility_dependent_future",
+            "missing_unknown",
+        ]:
+            self.assertIn(category, [item.value for item in view.source_basis.trust_categories])
+
+        for mapping in view.section_mappings:
+            self.assertTrue(mapping.source_view)
+            self.assertTrue(mapping.source_fields)
+            self.assertTrue(mapping.source_or_basis)
+            self.assertTrue(mapping.limitations)
+
+    def test_planning_exchange_readiness_summary_is_review_posture_only(self):
+        view = self._planning_exchange_object_view()
+        summary = view.readiness_summary
+        payload_text = str(view.dict()).lower()
+
+        self.assertIsNotNone(summary)
+        self.assertEqual("review_limited_by_missing_information", summary.overall_posture.value)
+        self.assertEqual("participant_review", summary.participant_review.readiness_area)
+        self.assertEqual("contractor_review", summary.contractor_review.readiness_area)
+        self.assertEqual("estimate_readiness_input_review", summary.estimate_readiness.readiness_area)
+        self.assertEqual("proposal_option_input_review", summary.proposal_option_readiness.readiness_area)
+        self.assertEqual("contractor_review_required", summary.contractor_review.posture.value)
+        self.assertEqual("not_ready_for_estimate_input", summary.estimate_readiness.posture.value)
+        self.assertEqual("not_ready_for_proposal_option_input", summary.proposal_option_readiness.posture.value)
+        self.assertTrue(summary.contractor_review.blockers)
+        self.assertTrue(summary.estimate_readiness.blockers)
+        self.assertTrue(summary.proposal_option_readiness.blockers)
+        self.assertIn("planning-review posture only", summary.non_authoritative_note)
+        self.assertIn("not authorization", summary.non_authoritative_note)
+        self.assertIn("final design readiness", summary.non_authoritative_note)
+
+        for forbidden in [
+            "estimate ready",
+            "proposal ready",
+            "design approved",
+            "approved design",
+            "field verification completed",
+            "permission enforced",
+            "final wire size is",
+            "final conduit size is",
+            "final breaker size is",
+            "disconnect requirement is",
+        ]:
+            self.assertNotIn(forbidden, payload_text)
 
     def test_contractor_install_complexity_preserves_electrical_boundary(self):
         view = self._contractor_install_complexity_view()

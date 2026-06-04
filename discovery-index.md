@@ -107,8 +107,18 @@ Read these first:
   - Commit message: `feat: add contractor participant read-only foundations`. Final status after commit was clean; no push was run.
   - Runtime endpoints: `GET /api/contractor-context/homes/{home_id}`, `GET /api/contractor-context/homes/{home_id}/confirmation-gates`, and `GET /api/contractor-context/homes/{home_id}/install-complexity`.
   - Current boundary: Phase 5B through Phase 5D runtime foundations are read-only, request-time, deterministic, contractor-safe, provenance-preserving, permission-readiness-aware, and `home_id` anchored. Phase 5E is docs-only future contractor observation doctrine and does not implement observation intake.
-  - Next boundary: Phase 6 should start as planning only unless separately approved. If continuing within Phase 5 first, Phase 5F should stay read-only contractor review summary/readiness hardening over existing Phase 5B-D views.
+  - Next boundary: Phase 6 is complete through docs-only Phase 6F continuity closeout in the working tree. Phase 7 should start as planning only unless separately approved.
   - Deferred: persistence, migrations, auth/security changes, permission enforcement, contractor accounts, write endpoints, source-of-truth mutation, frontend work, exports, marketplace features, bidding, contractor ranking, CRM integration, payments, pricing, proposals, product recommendations, compatibility engines, scenario simulation, graph behavior, `twin_id`, operational behavior, final wire sizing, final conduit sizing, final breaker sizing, disconnect requirement claims, NEC-compliant installation design claims, AHJ/utility approval, field-verification approval, git push, and production deployment.
+- Phase 6A through Phase 6E: Planning Exchange Object - complete in the working tree and not yet staged or committed.
+  - Charter: `docs/phase-6-planning-exchange-object.md`
+  - Closeout handoff: `docs/handoffs/2026-06-04-phase-6-planning-exchange-object-closeout.md`
+  - Product purpose: package existing planning context and Phase 5 contractor-context views into one read-only derived planning artifact for controlled participant review without making the package authoritative, mutable, persisted, exported, or final-design-bearing.
+  - Runtime endpoint: `GET /api/planning-exchange/homes/{home_id}`.
+  - Runtime files: `apps/api/app/planning_exchange/__init__.py`, `apps/api/app/planning_exchange/schemas.py`, `apps/api/app/planning_exchange/router.py`, `apps/api/app/services/planning_exchange.py`, `apps/api/app/main.py`, and `apps/api/tests/test_twin_planning_context.py`.
+  - Completed scope: Phase 6A docs-only charter, Phase 6B read-only schema, Phase 6C exchange package endpoint, Phase 6D source/trust boundary mapping, and Phase 6E planning-review readiness summary.
+  - Verification: focused backend tests passed with `142 tests OK`; full backend discovery passed with `153 tests OK`.
+  - Current boundary: Planning Exchange Object is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, `home_id` anchored, and composed from existing `TwinPlanningContext` plus Phase 5B-D contractor-context outputs. It is not a new source of truth.
+  - Deferred: persistence, migrations, write endpoints, exports/PDFs/share links, auth/security changes, permission enforcement, frontend work, contractor accounts, source-of-truth mutation, marketplace/bidding, contractor ranking, CRM integration, payments, pricing/proposals, product recommendations, compatibility engines, scenario simulation, graph behavior, `twin_id`, operational behavior, final wire sizing, final conduit sizing, final breaker sizing, disconnect requirement claims, NEC/code-compliant installation design claims, AHJ/utility approval, field-verification approval, git push, and production deployment.
 
 ## Operational References By Task
 
@@ -143,6 +153,8 @@ Read these first:
   - `docs/handoffs/2026-06-04-phase-4-charter.md`
   - `docs/phase-5-contractor-participant-foundation.md`
   - `docs/handoffs/2026-06-04-phase-5a-contractor-participant-charter.md`
+  - `docs/phase-6-planning-exchange-object.md`
+  - `docs/handoffs/2026-06-04-phase-6-planning-exchange-object-closeout.md`
   - `docs/handoffs/2026-06-04-phase-3o-phase-3-closeout-stabilization.md`
   - `docs/handoffs/2026-06-04-phase-3n-product-spec-readiness.md`
   - `docs/handoffs/2026-06-04-phase-3m-proposal-readiness-foundation.md`
@@ -254,6 +266,14 @@ Read these first:
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 6 Planning Exchange Object:
+    - `docs/phase-6-planning-exchange-object.md`
+    - `docs/handoffs/2026-06-04-phase-6-planning-exchange-object-closeout.md`
+    - `apps/api/app/planning_exchange/router.py`
+    - `apps/api/app/planning_exchange/schemas.py`
+    - `apps/api/app/services/planning_exchange.py`
+    - `apps/api/app/main.py`
     - `apps/api/tests/test_twin_planning_context.py`
   - Phase 3J Contractor-Facing Advisory Logic:
     - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`

@@ -47,6 +47,7 @@
 - `GET /api/design-advisor/summary/{design_id}`
 - `GET /api/ai-context/design/{design_id}`
 - `GET /api/estimates/placeholder`
+- `GET /api/planning-exchange/homes/{home_id}`
 
 ## Current Write Contracts
 
@@ -97,6 +98,9 @@
   - now returns additive `provenance_summary` metadata on each pathway record
 - `GET /api/estimates/placeholder`
   - now returns additive authority/classification/derivation/limitation metadata clarifying that estimate generation remains deferred
+- `GET /api/planning-exchange/homes/{home_id}`
+  - additive read-only, request-time, deterministic Planning Exchange Object over existing planning context and Phase 5 contractor-context views
+  - response is a derived package for participant planning review only, not a persisted source of truth, export, share link, permission-enforced view, proposal, estimate, final electrical sizing output, or final design claim
 
 ## Scoped View-Model Mapping Notes
 

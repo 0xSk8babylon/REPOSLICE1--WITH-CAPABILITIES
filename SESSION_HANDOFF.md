@@ -36,6 +36,7 @@
 - Phase 3O Phase 3 Closeout Stabilization complete as docs-only continuity work.
 - Phase 4 Trust / Provenance Maturity and Readiness Normalization is complete and closed out in `74448241f955d6a5b98ff09d0c2ddf6edb117dbd`.
 - Phase 5A through Phase 5E Contractor Participant Foundation is complete and locally committed in `f616e9ac9e4d2a2b763d692a5135245d57eb6407` (`feat: add contractor participant read-only foundations`). Final status after commit was clean, and no push was run. Phase 5 runtime work remains read-only, request-time, deterministic, `home_id` anchored, provenance-bearing, contractor-safe, and non-authoritative.
+- Phase 6A through Phase 6E Planning Exchange Object is complete in the working tree and not yet staged or committed. Phase 6 adds `GET /api/planning-exchange/homes/{home_id}` as an additive read-only, request-time, deterministic, provenance-bearing, non-authoritative, `home_id`-anchored package over existing planning context and Phase 5 contractor-context outputs. Focused backend tests passed with `142 tests OK`; full backend discovery passed with `153 tests OK`; no push was run.
 - Dependency Impact Propagation milestone approved by Matt for docs-only commit in this session.
 - Phase 2B Twin Runtime Expression is complete and stabilized for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations.
 - Phase 2C Topology + Lifecycle Intelligence Foundations are complete for the approved foundation scope: Topology Snapshot Foundation in `0c5bf23`, Lifecycle Readiness Foundation in `0d62693`, and Topology Relationship Coverage Foundation in `d56dbd6`.
@@ -126,6 +127,8 @@
   - Phase 4 is defined as Trust / Provenance Maturity and Readiness Normalization. Phase 3 is closed and serves as the source foundation. Phase 4A through Phase 4E runtime normalization is complete and committed. Phase 4 closeout is committed in `74448241f955d6a5b98ff09d0c2ddf6edb117dbd`.
 - Current Phase 5 checkpoint:
   - Phase 5 is defined as Contractor Participant Foundation. Phase 5A through Phase 5E is complete and locally committed in `f616e9ac9e4d2a2b763d692a5135245d57eb6407`; no push was run. Phase 5A is docs-only charter work defining the contractor participant role, contractor-safe visibility model, read-only mutability boundary, trust/provenance boundaries, confirmation gate lifecycle, install complexity categories, future contractor observation doctrine, forbidden scope, verification requirements, and approved Phase 5B through Phase 5D runtime boundaries. Phase 5B through Phase 5D add read-only derived contractor-context endpoints. Phase 5E documents future contractor observation doctrine only. No Phase 5 write endpoint, persistence, migration, auth/security change, permission enforcement, contractor account, frontend, export, marketplace/CRM/payment behavior, source-of-truth mutation, or final electrical sizing/design claim is approved or implemented.
+- Current Phase 6 checkpoint:
+  - Phase 6 is defined as Planning Exchange Object. Phase 6A through Phase 6E is complete in the working tree and not yet staged or committed; no push was run. Phase 6A adds `docs/phase-6-planning-exchange-object.md` as the docs-only charter. Phase 6B through Phase 6E add a read-only derived planning exchange package at `GET /api/planning-exchange/homes/{home_id}` that composes existing planning context plus Phase 5B contractor planning context, Phase 5C confirmation gates, and Phase 5D install complexity signals. Runtime files changed are `apps/api/app/planning_exchange/__init__.py`, `apps/api/app/planning_exchange/schemas.py`, `apps/api/app/planning_exchange/router.py`, `apps/api/app/services/planning_exchange.py`, `apps/api/app/main.py`, and `apps/api/tests/test_twin_planning_context.py`. The endpoint is additive, `home_id` anchored, request-time derived, deterministic, provenance-bearing, non-authoritative, and not a source of truth. No persistence, migrations, write endpoints, exports/PDFs/share links, auth/security changes, permission enforcement, frontend work, pricing/proposals, final electrical sizing, final design claims, `twin_id`, graph behavior, marketplace/CRM/payment behavior, or operational behavior was introduced. Verification passed: focused backend tests `142 tests OK`; full backend discovery `153 tests OK`.
 
 ## Canonical Phase Structure
 
@@ -154,8 +157,25 @@
 - Phase 5C: Confirmation Gate Projection - complete in the working tree as a read-only derived 19-gate readiness projection.
 - Phase 5D: Install Complexity Signals - complete in the working tree as read-only derived uncertainty and review-burden signals.
 - Phase 5E: Contractor Observation Doctrine - complete in the working tree as docs-only future append-only observation doctrine.
+- Phase 6A: Planning Exchange Object Charter - complete in the working tree as docs-only boundary work.
+- Phase 6B: Read-only Exchange Object Schema - complete in the working tree as an additive backend response contract.
+- Phase 6C: Exchange Package Endpoint - complete in the working tree as `GET /api/planning-exchange/homes/{home_id}`.
+- Phase 6D: Exchange Provenance / Trust Boundary Mapping - complete in the working tree as section-level source/trust mapping.
+- Phase 6E: Exchange Readiness Summary - complete in the working tree as planning-review readiness posture only.
 
 ## What Changed Last
+
+- Phase 6A through Phase 6E Planning Exchange Object was implemented in the working tree and is not yet staged or committed.
+- Added `docs/phase-6-planning-exchange-object.md`.
+- Added backend read-only planning-exchange package, schemas, router, and service.
+- Updated `apps/api/app/main.py` to include the planning-exchange router under `/api`.
+- Updated `apps/api/tests/test_twin_planning_context.py` with focused coverage for the exchange route, Phase 5 composition, non-authoritative trust boundaries, deterministic same-input/same-output behavior, section-level source/trust mapping, and planning-review readiness summary.
+- Phase 6C adds backend read-only derived `GET /api/planning-exchange/homes/{home_id}`.
+- Phase 6D maps section sources/trust categories: homeowner-provided, app-derived, contractor-safe projection, manufacturer-required future, AHJ/utility-dependent future, and missing/unknown.
+- Phase 6E adds readiness summary for participant review, contractor review, estimate-readiness input review, and proposal-option input review. Readiness is planning-review posture only and is not authorization, approval, verification, estimate readiness certification, proposal readiness certification, or final design readiness.
+- Verification passed: `python3 -m unittest tests/test_twin_planning_context.py` with `142 tests OK`, and `python3 -m unittest discover tests` with `153 tests OK`.
+- No frontend, persistence, migration, auth/security, permission enforcement, write endpoint, contractor account, marketplace, CRM, payment, pricing/proposal, final electrical sizing, final design claim, export/PDF/share link, `twin_id`, graph, operational behavior, push, or source-of-truth mutation work has been performed during Phase 6A through Phase 6E.
+- Phase 6F closeout changes docs/continuity only and does not change runtime.
 
 - Phase 5A through Phase 5E Contractor Participant Foundation was locally committed in `f616e9ac9e4d2a2b763d692a5135245d57eb6407` with commit message `feat: add contractor participant read-only foundations`.
 - Final status after commit was clean, and no push was run.
