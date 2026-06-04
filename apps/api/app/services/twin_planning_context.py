@@ -3440,12 +3440,17 @@ class TwinPlanningContextService:
         return items
 
     def build_dependency_impact_readiness_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
     ) -> Optional[TwinDependencyImpactReadinessView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
 
@@ -3934,15 +3939,26 @@ class TwinPlanningContextService:
         return items
 
     def build_dependency_reasoning_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
     ) -> Optional[TwinDependencyReasoningView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
-        impact_view = self.build_dependency_impact_readiness_view(db, home_id)
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
         if impact_view is None:
             return None
 
@@ -4556,18 +4572,36 @@ class TwinPlanningContextService:
         )
 
     def build_planning_intelligence_readiness_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
     ) -> Optional[TwinPlanningIntelligenceReadinessView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
-        impact_view = self.build_dependency_impact_readiness_view(db, home_id)
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
         if impact_view is None:
             return None
-        reasoning_view = self.build_dependency_reasoning_view(db, home_id)
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
         if reasoning_view is None:
             return None
 
@@ -4872,21 +4906,47 @@ class TwinPlanningContextService:
         )
 
     def build_advisory_context_assembly_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
     ) -> Optional[TwinAdvisoryContextAssemblyView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
-        impact_view = self.build_dependency_impact_readiness_view(db, home_id)
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
         if impact_view is None:
             return None
-        reasoning_view = self.build_dependency_reasoning_view(db, home_id)
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
         if reasoning_view is None:
             return None
-        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
         if readiness_view is None:
             return None
 
@@ -5208,24 +5268,59 @@ class TwinPlanningContextService:
         return item.risk_area.value
 
     def build_constraint_risk_reasoning_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
     ) -> Optional[TwinConstraintRiskReasoningView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
-        impact_view = self.build_dependency_impact_readiness_view(db, home_id)
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
         if impact_view is None:
             return None
-        reasoning_view = self.build_dependency_reasoning_view(db, home_id)
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
         if reasoning_view is None:
             return None
-        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
         if readiness_view is None:
             return None
-        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
         if advisory_view is None:
             return None
 
@@ -5782,21 +5877,72 @@ class TwinPlanningContextService:
         return f"{gap.gap_type.value}:{gap.entity_type}:{gap.entity_id or 'unknown'}:{field_name}"
 
     def build_scenario_comparison_readiness_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
     ) -> Optional[TwinScenarioComparisonReadinessView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
-        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
         if readiness_view is None:
             return None
-        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
         if advisory_view is None:
             return None
-        risk_view = self.build_constraint_risk_reasoning_view(db, home_id)
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
         if risk_view is None:
             return None
 
@@ -6264,24 +6410,86 @@ class TwinPlanningContextService:
         return item.advisory_area.value
 
     def build_pre_recommendation_advisory_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
+        scenario_view: Optional[TwinScenarioComparisonReadinessView] = None,
     ) -> Optional[TwinPreRecommendationAdvisoryView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
-        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
         if readiness_view is None:
             return None
-        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
         if advisory_view is None:
             return None
-        risk_view = self.build_constraint_risk_reasoning_view(db, home_id)
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
         if risk_view is None:
             return None
-        scenario_view = self.build_scenario_comparison_readiness_view(db, home_id)
+        scenario_view = scenario_view or self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
         if scenario_view is None:
             return None
 
@@ -6678,27 +6886,101 @@ class TwinPlanningContextService:
         return item.eligibility_area.value
 
     def build_recommendation_eligibility_readiness_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
+        scenario_view: Optional[TwinScenarioComparisonReadinessView] = None,
+        pre_recommendation_view: Optional[TwinPreRecommendationAdvisoryView] = None,
     ) -> Optional[TwinRecommendationEligibilityReadinessView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
-        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
         if readiness_view is None:
             return None
-        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
         if advisory_view is None:
             return None
-        risk_view = self.build_constraint_risk_reasoning_view(db, home_id)
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
         if risk_view is None:
             return None
-        scenario_view = self.build_scenario_comparison_readiness_view(db, home_id)
+        scenario_view = scenario_view or self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
         if scenario_view is None:
             return None
-        pre_recommendation_view = self.build_pre_recommendation_advisory_view(db, home_id)
+        pre_recommendation_view = pre_recommendation_view or self.build_pre_recommendation_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+        )
         if pre_recommendation_view is None:
             return None
 
@@ -7221,30 +7503,117 @@ class TwinPlanningContextService:
         return item.recommendation_category.value
 
     def build_basic_advisory_recommendations_view(
-        self, db, home_id: str
+        self,
+        db,
+        home_id: str,
+        *,
+        context: Optional[TwinPlanningContext] = None,
+        snapshot: Optional[TwinTopologySnapshot] = None,
+        impact_view: Optional[TwinDependencyImpactReadinessView] = None,
+        reasoning_view: Optional[TwinDependencyReasoningView] = None,
+        readiness_view: Optional[TwinPlanningIntelligenceReadinessView] = None,
+        advisory_view: Optional[TwinAdvisoryContextAssemblyView] = None,
+        risk_view: Optional[TwinConstraintRiskReasoningView] = None,
+        scenario_view: Optional[TwinScenarioComparisonReadinessView] = None,
+        pre_recommendation_view: Optional[TwinPreRecommendationAdvisoryView] = None,
+        eligibility_view: Optional[TwinRecommendationEligibilityReadinessView] = None,
     ) -> Optional[TwinBasicAdvisoryRecommendationsView]:
-        context = self.build(db, home_id)
+        context = context or self.build(db, home_id)
         if context is None:
             return None
-        snapshot = self.build_topology_snapshot_view(db, home_id)
+        snapshot = snapshot or self.build_topology_snapshot_view(db, home_id)
         if snapshot is None:
             return None
-        readiness_view = self.build_planning_intelligence_readiness_view(db, home_id)
+        impact_view = impact_view or self.build_dependency_impact_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+        )
+        if impact_view is None:
+            return None
+        reasoning_view = reasoning_view or self.build_dependency_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+        )
+        if reasoning_view is None:
+            return None
+        readiness_view = readiness_view or self.build_planning_intelligence_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+        )
         if readiness_view is None:
             return None
-        advisory_view = self.build_advisory_context_assembly_view(db, home_id)
+        advisory_view = advisory_view or self.build_advisory_context_assembly_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+        )
         if advisory_view is None:
             return None
-        risk_view = self.build_constraint_risk_reasoning_view(db, home_id)
+        risk_view = risk_view or self.build_constraint_risk_reasoning_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+        )
         if risk_view is None:
             return None
-        scenario_view = self.build_scenario_comparison_readiness_view(db, home_id)
+        scenario_view = scenario_view or self.build_scenario_comparison_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+        )
         if scenario_view is None:
             return None
-        pre_recommendation_view = self.build_pre_recommendation_advisory_view(db, home_id)
+        pre_recommendation_view = pre_recommendation_view or self.build_pre_recommendation_advisory_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+        )
         if pre_recommendation_view is None:
             return None
-        eligibility_view = self.build_recommendation_eligibility_readiness_view(db, home_id)
+        eligibility_view = eligibility_view or self.build_recommendation_eligibility_readiness_view(
+            db,
+            home_id,
+            context=context,
+            snapshot=snapshot,
+            impact_view=impact_view,
+            reasoning_view=reasoning_view,
+            readiness_view=readiness_view,
+            advisory_view=advisory_view,
+            risk_view=risk_view,
+            scenario_view=scenario_view,
+            pre_recommendation_view=pre_recommendation_view,
+        )
         if eligibility_view is None:
             return None
 
