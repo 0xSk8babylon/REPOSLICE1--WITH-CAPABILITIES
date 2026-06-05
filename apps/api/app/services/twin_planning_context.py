@@ -112,6 +112,16 @@ from app.twin_planning_context.schemas import (
     TwinSharedCompatibilityStatus,
     TwinSharedCompatibilitySummary,
     TwinSharedCompatibilityView,
+    TwinTopologyTakeoffAudienceInterpretation,
+    TwinTopologyTakeoffBasis,
+    TwinTopologyTakeoffCostBasis,
+    TwinTopologyTakeoffCostBasisStatus,
+    TwinTopologyTakeoffLineCategory,
+    TwinTopologyTakeoffLineItem,
+    TwinTopologyTakeoffQuantityBasis,
+    TwinTopologyTakeoffScope,
+    TwinTopologyTakeoffSummary,
+    TwinTopologyTakeoffView,
     TwinTrustProvenanceReadinessIndexEntry,
     TwinTrustProvenanceReadinessIndexScope,
     TwinTrustProvenanceReadinessIndexView,
@@ -815,6 +825,123 @@ SHARED_COMPATIBILITY_PATH_SPECS = [
         "Existing panel reuse path",
         ["panel_context", "spare_spaces"],
         ["overcurrent_protection_reviewed", "contractor_final_review_completed"],
+    ),
+]
+
+TOPOLOGY_TAKEOFF_LIMITATIONS = [
+    "Phase 8 topology takeoff is a read-only planning-grade material/scope view only.",
+    "Line items identify topology-driven scope categories likely implicated by current planning context.",
+    "Quantities are basis signals only and are not final material quantities, final wire sizes, final conduit sizes, final breaker sizes, final disconnect/OCPD requirements, or permit-ready design.",
+    "Cost basis is unavailable unless source-backed pricing is explicitly present; this view does not calculate final estimates, bids, proposals, savings, payback, or cost guarantees.",
+    "Every line requires contractor, manufacturer, and/or AHJ review before use in a contractor estimate, bill of materials, or electrical design.",
+]
+
+TOPOLOGY_TAKEOFF_DEFERRED_BOUNDARIES = [
+    "auth_security_changes",
+    "contractor_approved_bom",
+    "contractor_estimate",
+    "exact_breaker_sizing",
+    "exact_conduit_sizing",
+    "exact_wire_sizing",
+    "exports",
+    "field_verification",
+    "final_bill_of_materials",
+    "final_design_outputs",
+    "final_disconnect_ocpd_approval",
+    "final_estimate",
+    "graph_engine",
+    "migrations",
+    "nec_compliance_claims",
+    "operational_behavior",
+    "permission_enforcement",
+    "permit_ready_design",
+    "persistence",
+    "pricing",
+    "proposal_generation",
+    "takeoff_persistence",
+    "twin_id",
+    "utility_ahj_approval",
+    "write_endpoints",
+]
+
+TOPOLOGY_TAKEOFF_CATEGORY_SPECS = [
+    (
+        TwinTopologyTakeoffLineCategory.pv_source_circuit_array_side,
+        "PV source circuit / array-side scope",
+        ["solar_equipment", "pv_location", "pv_pathway"],
+        ["product_specs_verified", "nameplate_ratings_verified", "conduit_routing_path_confirmed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.inverter_power_electronics,
+        "Inverter / microinverter / power electronics scope",
+        ["inverter_equipment", "power_electronics_location"],
+        ["product_specs_verified", "nameplate_ratings_verified", "manufacturer_install_manual_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.battery_ess,
+        "Battery / ESS scope",
+        ["battery_equipment", "battery_location"],
+        ["product_specs_verified", "nameplate_ratings_verified", "manufacturer_install_manual_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.backup_interface_gateway_transfer,
+        "Backup interface / gateway / transfer equipment scope",
+        ["battery_equipment", "generator_equipment", "backup_loads", "shared_compatibility:pv_battery_partial_backup"],
+        ["manufacturer_install_manual_reviewed", "disconnect_requirements_reviewed", "overcurrent_protection_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.generator_integration,
+        "Generator integration scope",
+        ["generator_equipment", "generator_location", "generator_pathway"],
+        ["product_specs_verified", "nameplate_ratings_verified", "utility_ahj_requirements_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.panel_subpanel_load_center,
+        "Panel / subpanel / load center scope",
+        ["panel_context", "backup_loads"],
+        ["circuit_purpose_confirmed", "load_current_assumptions_confirmed", "overcurrent_protection_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.conduit_raceway_pathway,
+        "Conduit / raceway pathway scope",
+        ["pathway_distance", "pv_pathway", "generator_pathway"],
+        ["distance_measurements_confirmed", "conduit_routing_path_confirmed", "raceway_type_confirmed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.conductor_circuit_placeholder,
+        "Conductor / circuit placeholder scope",
+        ["pathway_distance", "panel_context", "backup_loads"],
+        ["conductor_material_confirmed", "current_carrying_conductors_confirmed", "derating_factors_applied"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.disconnect_ocpd_placeholder,
+        "Disconnect / OCPD placeholder scope",
+        ["solar_equipment", "battery_equipment", "generator_equipment", "panel_context"],
+        ["disconnect_requirements_reviewed", "overcurrent_protection_reviewed", "utility_ahj_requirements_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.monitoring_communications,
+        "Monitoring / communications scope",
+        ["inverter_equipment", "battery_equipment", "generator_equipment"],
+        ["product_specs_verified", "manufacturer_install_manual_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.labeling_signage_placeholder,
+        "Labeling / signage placeholder scope",
+        ["solar_equipment", "battery_equipment", "generator_equipment", "panel_context"],
+        ["labeling_signage_requirements_reviewed", "utility_ahj_requirements_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.grounding_bonding_placeholder,
+        "Grounding / bonding placeholder scope",
+        ["solar_equipment", "battery_equipment", "generator_equipment", "panel_context"],
+        ["grounding_bonding_reviewed", "utility_ahj_requirements_reviewed"],
+    ),
+    (
+        TwinTopologyTakeoffLineCategory.routing_trenching_structural_mounting,
+        "Trenching / routing / structural / mounting scope",
+        ["roof_location", "trench_pathway", "pathway_distance"],
+        ["distance_measurements_confirmed", "indoor_outdoor_wet_location_confirmed", "conduit_routing_path_confirmed"],
     ),
 ]
 
@@ -12131,6 +12258,736 @@ class TwinPlanningContextService:
             compatibility_note=(
                 "Existing TwinPlanningContext, topology snapshot, Phase 5 contractor-context, and Phase 6 planning-exchange "
                 "routes remain unchanged; this is an additive Phase 7A shared compatibility GET view."
+            ),
+        )
+        return self._attach_trust_provenance_readiness_summary(view)
+
+    def _topology_takeoff_context_evidence(
+        self,
+        context: TwinPlanningContext,
+        snapshot: TwinTopologySnapshot,
+        shared_compatibility: TwinSharedCompatibilityView,
+    ) -> Dict[str, List[str]]:
+        evidence: Dict[str, List[str]] = {
+            "backup_loads": [],
+            "battery_equipment": [],
+            "battery_location": [],
+            "generator_equipment": [],
+            "generator_location": [],
+            "generator_pathway": [],
+            "inverter_equipment": [],
+            "panel_context": [],
+            "pathway_distance": [],
+            "power_electronics_location": [],
+            "pv_location": [],
+            "pv_pathway": [],
+            "roof_location": [],
+            "solar_equipment": [],
+            "trench_pathway": [],
+        }
+        product_type_by_id: Dict[str, str] = {}
+        location_type_by_id: Dict[str, str] = {}
+        location_ref_by_id: Dict[str, str] = {}
+        product_ref_by_id: Dict[str, str] = {}
+
+        for section in context.sections:
+            for record in section.records:
+                record_ref = self._record_ref(section.section_key, record)
+                payload = record.record or {}
+                if record.entity_type == "equipment_product":
+                    product_type = str(payload.get("product_type", "")).lower()
+                    if record.entity_id:
+                        product_type_by_id[record.entity_id] = product_type
+                        product_ref_by_id[record.entity_id] = record_ref
+                    if product_type == "solar_panel":
+                        evidence["solar_equipment"].append(record_ref)
+                    if "inverter" in product_type:
+                        evidence["inverter_equipment"].append(record_ref)
+                    if product_type == "battery":
+                        evidence["battery_equipment"].append(record_ref)
+                    if product_type == "generator":
+                        evidence["generator_equipment"].append(record_ref)
+                if record.entity_type == "equipment_location":
+                    location_type = str(payload.get("location_type", "")).lower()
+                    if record.entity_id:
+                        location_type_by_id[record.entity_id] = location_type
+                        location_ref_by_id[record.entity_id] = record_ref
+                    if location_type == "roof":
+                        evidence["roof_location"].append(record_ref)
+                        evidence["pv_location"].append(record_ref)
+                    if location_type == "battery_area":
+                        evidence["battery_location"].append(record_ref)
+                        evidence["power_electronics_location"].append(record_ref)
+                    if location_type == "generator_pad":
+                        evidence["generator_location"].append(record_ref)
+                if record.entity_type == "electrical_panel":
+                    evidence["panel_context"].append(record_ref)
+                if record.entity_type == "load":
+                    backup_priority = str(payload.get("backup_priority", "")).lower()
+                    if backup_priority in {"essential", "preferred"}:
+                        evidence["backup_loads"].append(record_ref)
+                if record.entity_type == "estimated_pathway":
+                    evidence["pathway_distance"].append(record_ref)
+                    route_type = str(payload.get("route_type", "")).lower()
+                    source_location = str(payload.get("source_location", "")).lower()
+                    destination_location = str(payload.get("destination_location", "")).lower()
+                    if "roof" in source_location or "battery" in destination_location:
+                        evidence["pv_pathway"].append(record_ref)
+                    if "generator" in destination_location:
+                        evidence["generator_pathway"].append(record_ref)
+                    if "trench" in route_type:
+                        evidence["trench_pathway"].append(record_ref)
+
+        for section in context.sections:
+            for record in section.records:
+                if record.entity_type != "design_equipment":
+                    continue
+                record_ref = self._record_ref(section.section_key, record)
+                payload = record.record or {}
+                product_id = payload.get("product_id")
+                location_id = payload.get("location_id")
+                product_type = product_type_by_id.get(str(product_id), "")
+                location_type = location_type_by_id.get(str(location_id), "")
+                refs = [record_ref, product_ref_by_id.get(str(product_id)), location_ref_by_id.get(str(location_id))]
+                if product_type == "solar_panel":
+                    evidence["solar_equipment"].extend(refs)
+                    if location_type == "roof":
+                        evidence["pv_location"].append(location_ref_by_id.get(str(location_id)))
+                if "inverter" in product_type:
+                    evidence["inverter_equipment"].extend(refs)
+                    if location_type:
+                        evidence["power_electronics_location"].append(location_ref_by_id.get(str(location_id)))
+                if product_type == "battery":
+                    evidence["battery_equipment"].extend(refs)
+                    if location_type == "battery_area":
+                        evidence["battery_location"].append(location_ref_by_id.get(str(location_id)))
+                if product_type == "generator":
+                    evidence["generator_equipment"].extend(refs)
+                    if location_type == "generator_pad":
+                        evidence["generator_location"].append(location_ref_by_id.get(str(location_id)))
+
+        for path in shared_compatibility.compatibility_paths:
+            if path.status.value in {"compatible", "likely_compatible", "requires_contractor_confirmation", "blocked"}:
+                evidence.setdefault(f"shared_compatibility:{path.path_key}", []).append(
+                    f"shared_compatibility:{path.path_key}"
+                )
+
+        return {
+            key: self._sorted_unique(values)
+            for key, values in evidence.items()
+        }
+
+    def _topology_takeoff_quantity_hints(self, context: TwinPlanningContext) -> Dict[str, Dict[str, object]]:
+        product_type_by_id: Dict[str, str] = {}
+        for section in context.sections:
+            for record in section.records:
+                if record.entity_type == "equipment_product" and record.entity_id:
+                    product_type_by_id[record.entity_id] = str((record.record or {}).get("product_type", "")).lower()
+
+        hints: Dict[str, Dict[str, object]] = {
+            "battery_equipment": {"value": 0.0, "refs": [], "unit": "recorded_design_equipment_count"},
+            "generator_equipment": {"value": 0.0, "refs": [], "unit": "recorded_design_equipment_count"},
+            "inverter_equipment": {"value": 0.0, "refs": [], "unit": "recorded_design_equipment_count"},
+            "panel_context": {"value": 0.0, "refs": [], "unit": "recorded_panel_count"},
+            "pathway_distance": {"value": 0.0, "refs": [], "unit": "estimated_pathway_feet"},
+            "solar_equipment": {"value": 0.0, "refs": [], "unit": "recorded_design_equipment_count"},
+        }
+        for section in context.sections:
+            for record in section.records:
+                record_ref = self._record_ref(section.section_key, record)
+                payload = record.record or {}
+                if record.entity_type == "design_equipment":
+                    product_type = product_type_by_id.get(str(payload.get("product_id")), "")
+                    quantity = payload.get("quantity")
+                    if not isinstance(quantity, (int, float)):
+                        continue
+                    if product_type == "solar_panel":
+                        key = "solar_equipment"
+                    elif "inverter" in product_type:
+                        key = "inverter_equipment"
+                    elif product_type == "battery":
+                        key = "battery_equipment"
+                    elif product_type == "generator":
+                        key = "generator_equipment"
+                    else:
+                        continue
+                    hints[key]["value"] = float(hints[key]["value"]) + float(quantity)
+                    hints[key]["refs"].append(record_ref)
+                if record.entity_type == "electrical_panel":
+                    hints["panel_context"]["value"] = float(hints["panel_context"]["value"]) + 1.0
+                    hints["panel_context"]["refs"].append(record_ref)
+                if record.entity_type == "estimated_pathway":
+                    distance = payload.get("estimated_distance_ft")
+                    if isinstance(distance, (int, float)):
+                        hints["pathway_distance"]["value"] = float(hints["pathway_distance"]["value"]) + float(distance)
+                        hints["pathway_distance"]["refs"].append(record_ref)
+        return hints
+
+    def _topology_takeoff_basis(
+        self,
+        *,
+        source_refs: Optional[List[str]] = None,
+        source_ref_categories: Optional[Dict[str, List[str]]] = None,
+        topology_refs: Optional[List[str]] = None,
+        compatibility_path_refs: Optional[List[str]] = None,
+        confirmation_gate_refs: Optional[List[str]] = None,
+        install_complexity_signal_refs: Optional[List[str]] = None,
+        exchange_section_refs: Optional[List[str]] = None,
+        missing_information_refs: Optional[List[str]] = None,
+        basis_quality: str = "request_time_derived_from_existing_topology_context",
+        basis_notes: Optional[List[str]] = None,
+    ) -> TwinTopologyTakeoffBasis:
+        return TwinTopologyTakeoffBasis(
+            source_views=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "TwinSharedCompatibilityView",
+                "ContractorConfirmationGateProjectionView",
+                "ContractorInstallComplexityView",
+                "PlanningExchangeObjectView",
+            ],
+            source_fields=[
+                "TwinPlanningContext.sections",
+                "TwinTopologySnapshot.nodes",
+                "TwinTopologySnapshot.edges",
+                "TwinSharedCompatibilityView.compatibility_paths",
+                "ContractorConfirmationGateProjectionView.gates",
+                "ContractorInstallComplexityView.signals",
+                "PlanningExchangeObjectView.section_mappings",
+                "PlanningExchangeObjectView.missing_information",
+            ],
+            source_refs=self._sorted_unique(source_refs or []),
+            source_ref_categories={
+                key: self._sorted_unique(values)
+                for key, values in (source_ref_categories or {}).items()
+                if values
+            },
+            topology_refs=self._sorted_unique(topology_refs or []),
+            compatibility_path_refs=self._sorted_unique(compatibility_path_refs or []),
+            confirmation_gate_refs=self._sorted_unique(confirmation_gate_refs or []),
+            install_complexity_signal_refs=self._sorted_unique(install_complexity_signal_refs or []),
+            exchange_section_refs=self._sorted_unique(exchange_section_refs or []),
+            missing_information_refs=self._sorted_unique(missing_information_refs or []),
+            basis_quality=basis_quality,
+            request_time_derived=True,
+            verified_fact_claim_present=False,
+            basis_notes=self._sorted_unique(
+                basis_notes
+                or [
+                    "Basis is assembled from existing request-time planning and topology views.",
+                    "Basis references are not field verification, contractor confirmation, AHJ approval, utility approval, pricing, or final material quantities.",
+                ]
+            ),
+            derived_from=[
+                "existing_home_id_anchored_twin_planning_context",
+                "phase_2c_topology_snapshot",
+                "phase_5_confirmation_gate_projection",
+                "phase_5_install_complexity_signals",
+                "phase_6_planning_exchange_object",
+                "phase_7_shared_compatibility_view",
+            ],
+            limitations=TOPOLOGY_TAKEOFF_LIMITATIONS,
+        )
+
+    def _topology_takeoff_quantity_basis(
+        self,
+        category: TwinTopologyTakeoffLineCategory,
+        quantity_hints: Dict[str, Dict[str, object]],
+    ) -> TwinTopologyTakeoffQuantityBasis:
+        hint_key_by_category = {
+            TwinTopologyTakeoffLineCategory.battery_ess: "battery_equipment",
+            TwinTopologyTakeoffLineCategory.generator_integration: "generator_equipment",
+            TwinTopologyTakeoffLineCategory.inverter_power_electronics: "inverter_equipment",
+            TwinTopologyTakeoffLineCategory.panel_subpanel_load_center: "panel_context",
+            TwinTopologyTakeoffLineCategory.pv_source_circuit_array_side: "solar_equipment",
+            TwinTopologyTakeoffLineCategory.conduit_raceway_pathway: "pathway_distance",
+            TwinTopologyTakeoffLineCategory.routing_trenching_structural_mounting: "pathway_distance",
+        }
+        hint_key = hint_key_by_category.get(category)
+        hint = quantity_hints.get(hint_key or "", {})
+        value = hint.get("value")
+        refs = self._sorted_unique(hint.get("refs", []) if isinstance(hint.get("refs"), list) else [])
+        if isinstance(value, (int, float)) and value > 0:
+            if hint_key == "pathway_distance":
+                return TwinTopologyTakeoffQuantityBasis(
+                    quantity_basis_status="estimated_pathway_distance_available_not_route_takeoff",
+                    quantity_value=float(value),
+                    quantity_unit="ft",
+                    quantity_label="sum_of_recorded_estimated_pathway_distances",
+                    quantity_refs=refs,
+                    missing_quantity_inputs=[
+                        "field_measured_route",
+                        "raceway_type",
+                        "fittings_count",
+                        "routing_conditions",
+                    ],
+                    notes=[
+                        "Distance is an existing pathway planning estimate only.",
+                        "Distance is not a conduit, raceway, trenching, conductor, or fittings quantity.",
+                    ],
+                    limitations=TOPOLOGY_TAKEOFF_LIMITATIONS,
+                )
+            return TwinTopologyTakeoffQuantityBasis(
+                quantity_basis_status="recorded_design_or_panel_count_available_not_material_count",
+                quantity_value=float(value),
+                quantity_unit=str(hint.get("unit") or "recorded_count"),
+                quantity_label="recorded_planning_context_count",
+                quantity_refs=refs,
+                missing_quantity_inputs=[
+                    "field_verified_equipment_count",
+                    "manufacturer_install_requirements",
+                    "contractor_material_count",
+                ],
+                notes=[
+                    "Quantity is a recorded planning count only.",
+                    "Quantity is not a final material takeoff count or procurement quantity.",
+                ],
+                limitations=TOPOLOGY_TAKEOFF_LIMITATIONS,
+            )
+        return TwinTopologyTakeoffQuantityBasis(
+            quantity_basis_status="missing_final_quantity_basis",
+            quantity_label="requires_contractor_or_manufacturer_quantity_basis",
+            quantity_refs=[],
+            missing_quantity_inputs=[
+                "field_verified_topology",
+                "site_measurements",
+                "manufacturer_install_requirements",
+                "contractor_material_count",
+            ],
+            notes=[
+                "Current topology context can identify this scope category but cannot quantify final materials.",
+            ],
+            limitations=TOPOLOGY_TAKEOFF_LIMITATIONS,
+        )
+
+    def _topology_takeoff_cost_basis(
+        self,
+        *,
+        source_refs: Optional[List[str]] = None,
+    ) -> TwinTopologyTakeoffCostBasis:
+        return TwinTopologyTakeoffCostBasis(
+            cost_basis_status=TwinTopologyTakeoffCostBasisStatus.unavailable_requires_contractor_pricing,
+            amount_present=False,
+            cost_range_present=False,
+            total_present=False,
+            currency=None,
+            source_refs=self._sorted_unique(source_refs or []),
+            missing_cost_inputs=[
+                "contractor_pricing",
+                "verified_material_quantities",
+                "manufacturer_requirements",
+                "site_conditions",
+                "labor_scope",
+                "AHJ_or_utility_requirements",
+            ],
+            cost_notes=[
+                "No source-backed material or labor pricing is available in this topology takeoff view.",
+                "Existing placeholder estimate fields are not reused as contractor pricing or final estimate totals.",
+            ],
+            limitations=TOPOLOGY_TAKEOFF_LIMITATIONS,
+        )
+
+    def _topology_takeoff_audience_interpretation(
+        self,
+        *,
+        audience: str,
+        label: Optional[str] = None,
+        line_count: Optional[int] = None,
+        missing_information: Optional[List[str]] = None,
+        required_confirmations: Optional[List[str]] = None,
+    ) -> TwinTopologyTakeoffAudienceInterpretation:
+        missing = self._sorted_unique(missing_information or [])
+        confirmations = self._sorted_unique(required_confirmations or [])
+        if label and audience == "homeowner":
+            summary = (
+                f"{label} is a planning-grade scope category derived from current topology context. "
+                "It is not a final estimate, final bill of materials, or permit-ready design."
+            )
+            hidden = [
+                "final conductor sizing",
+                "final conduit sizing",
+                "final breaker sizing",
+                "final disconnect/OCPD decisions",
+                "contractor pricing",
+            ]
+        elif label:
+            summary = (
+                f"{label} is contractor-facing review metadata for scoping preparation only. "
+                "Confirm topology, quantities, specs, route conditions, and authority requirements before estimate or design use."
+            )
+            hidden = [
+                "completed contractor review",
+                "permit-ready bill of materials",
+                "final electrical design",
+            ]
+        elif audience == "homeowner":
+            summary = (
+                f"Topology takeoff currently identifies {line_count or 0} planning-grade scope categories. "
+                "Missing information blocks accurate estimates and final material lists."
+            )
+            hidden = [
+                "contractor-only design decisions",
+                "final electrical sizing",
+                "pricing and proposal generation",
+            ]
+        else:
+            summary = (
+                f"Topology takeoff exposes {line_count or 0} scope categories with basis refs, quantity-basis posture, "
+                "cost-basis gaps, and confirmation gates for contractor review preparation."
+            )
+            hidden = [
+                "authority approval",
+                "field verification completion",
+                "final estimate or BOM approval",
+            ]
+        return TwinTopologyTakeoffAudienceInterpretation(
+            audience=audience,
+            interpretation_scope=(
+                "homeowner_safe_planning_takeoff_summary"
+                if audience == "homeowner"
+                else "contractor_facing_takeoff_review_metadata"
+            ),
+            summary=summary,
+            safe_to_show=True,
+            next_verification_steps=self._sorted_unique(
+                confirmations
+                + [
+                    "contractor_review_required",
+                    "manufacturer_requirements_reviewed",
+                    "field_verified_topology",
+                ]
+            ),
+            hidden_or_deferred_details=self._sorted_unique(hidden),
+            assumptions=[
+                "Interpretation is derived from the same topology takeoff object.",
+                "Audience interpretation metadata does not enforce permissions, sharing, exports, or authorization.",
+            ],
+            limitations=TOPOLOGY_TAKEOFF_LIMITATIONS
+            + [
+                "Audience interpretation is wording metadata only, not a separate permissioned view.",
+                "No auth, sharing, export, or permission enforcement is implemented.",
+            ]
+            + missing,
+        )
+
+    def _topology_takeoff_line_item(
+        self,
+        *,
+        category: TwinTopologyTakeoffLineCategory,
+        label: str,
+        required_features: List[str],
+        required_gate_ids: List[str],
+        evidence: Dict[str, List[str]],
+        gate_ids: List[str],
+        blocked_gate_refs: List[str],
+        quantity_hints: Dict[str, Dict[str, object]],
+        topology_refs: List[str],
+        compatibility_path_refs: List[str],
+        install_complexity_signal_refs: List[str],
+        exchange_section_refs: List[str],
+    ) -> Optional[TwinTopologyTakeoffLineItem]:
+        source_ref_categories = {
+            feature: evidence.get(feature, [])
+            for feature in required_features
+            if evidence.get(feature)
+        }
+        source_refs = [
+            ref
+            for refs in source_ref_categories.values()
+            for ref in refs
+        ]
+        gate_refs = [
+            gate_id
+            for gate_id in required_gate_ids
+            if gate_id in gate_ids
+        ]
+        if not source_refs and not gate_refs:
+            return None
+
+        missing_features = [
+            f"missing_feature:{feature}"
+            for feature in required_features
+            if not evidence.get(feature)
+        ]
+        quantity_basis = self._topology_takeoff_quantity_basis(category, quantity_hints)
+        cost_basis = self._topology_takeoff_cost_basis(source_refs=source_refs)
+        missing_information = self._sorted_unique(
+            missing_features
+            + quantity_basis.missing_quantity_inputs
+            + cost_basis.missing_cost_inputs
+        )
+        blockers = self._sorted_unique(
+            [
+                gate_ref
+                for gate_ref in gate_refs
+                if gate_ref in blocked_gate_refs
+            ]
+            + (
+                ["missing_final_quantity_basis"]
+                if quantity_basis.quantity_basis_status == "missing_final_quantity_basis"
+                else []
+            )
+            + ["cost_basis_unavailable_requires_contractor_pricing"]
+        )
+        basis = self._topology_takeoff_basis(
+            source_refs=source_refs,
+            source_ref_categories=source_ref_categories,
+            topology_refs=topology_refs,
+            compatibility_path_refs=compatibility_path_refs,
+            confirmation_gate_refs=gate_refs,
+            install_complexity_signal_refs=install_complexity_signal_refs,
+            exchange_section_refs=exchange_section_refs,
+            missing_information_refs=missing_information,
+            basis_quality=(
+                "topology_supported_scope_with_quantity_basis"
+                if quantity_basis.quantity_value is not None
+                else "topology_supported_scope_missing_quantity_basis"
+            ),
+            basis_notes=[
+                "Line item is emitted because current topology/planning context implicates this material or scope category.",
+                "Line item is not a final material list, contractor estimate, or electrical design decision.",
+                "Quantity and cost basis are intentionally separated from scope presence.",
+            ],
+        )
+        uncertainty = (
+            "planning_scope_with_recorded_quantity_signal_not_final_material_count"
+            if quantity_basis.quantity_value is not None
+            else "planning_scope_identified_quantity_missing"
+        )
+        reason = (
+            f"{label} is present because current topology context includes source refs "
+            f"{', '.join(source_refs[:4]) or 'confirmation-gate evidence'}."
+        )
+        return TwinTopologyTakeoffLineItem(
+            line_id=f"topology_takeoff:{category.value}",
+            category=category,
+            label=label,
+            reason=reason,
+            basis=basis,
+            quantity_basis=quantity_basis,
+            cost_basis=cost_basis,
+            uncertainty=uncertainty,
+            missing_information=missing_information,
+            blockers=blockers,
+            required_confirmations=gate_refs,
+            contractor_confirmation_gates=gate_refs,
+            homeowner_safe_interpretation=self._topology_takeoff_audience_interpretation(
+                audience="homeowner",
+                label=label,
+                missing_information=missing_information,
+                required_confirmations=gate_refs,
+            ),
+            contractor_facing_interpretation=self._topology_takeoff_audience_interpretation(
+                audience="contractor",
+                label=label,
+                missing_information=missing_information,
+                required_confirmations=gate_refs,
+            ),
+            assumptions=[
+                "Scope category presence is derived from current topology/planning evidence only.",
+                "Placeholder line categories require contractor/manufacturer/AHJ confirmation before estimate or design use.",
+                "No market pricing, vendor pricing, final quantities, or final electrical sizing are inferred.",
+            ],
+            limitations=TOPOLOGY_TAKEOFF_LIMITATIONS,
+        )
+
+    def _topology_takeoff_summary(
+        self,
+        line_items: List[TwinTopologyTakeoffLineItem],
+        *,
+        missing_information: List[str],
+        blockers: List[str],
+        confirmation_gates: List[str],
+    ) -> TwinTopologyTakeoffSummary:
+        category_counts = Counter(item.category.value for item in line_items)
+        line_ids_by_category: Dict[str, List[str]] = {}
+        for item in line_items:
+            line_ids_by_category.setdefault(item.category.value, []).append(item.line_id)
+        return TwinTopologyTakeoffSummary(
+            total_line_items=len(line_items),
+            category_counts=dict(sorted(category_counts.items())),
+            line_ids_by_category={
+                key: self._sorted_unique(values)
+                for key, values in sorted(line_ids_by_category.items())
+            },
+            lines_with_quantity_basis_count=sum(
+                1 for item in line_items if item.quantity_basis.quantity_value is not None
+            ),
+            lines_missing_quantity_basis_count=sum(
+                1 for item in line_items if item.quantity_basis.quantity_value is None
+            ),
+            lines_with_cost_basis_count=0,
+            lines_requiring_contractor_pricing_count=len(line_items),
+            missing_information_count=len(self._sorted_unique(missing_information)),
+            blocker_count=len(self._sorted_unique(blockers)),
+            confirmation_gate_count=len(self._sorted_unique(confirmation_gates)),
+            summary_boundary_note=(
+                "Summary counts are planning-grade takeoff rollups only. They are not final estimates, final bills of materials, "
+                "contractor-approved scope, final design guidance, permit-ready material lists, or pricing totals."
+            ),
+        )
+
+    def build_topology_takeoff_view(
+        self,
+        db,
+        home_id: str,
+    ) -> Optional[TwinTopologyTakeoffView]:
+        from app.services.contractor_context import contractor_context_service
+        from app.services.planning_exchange import planning_exchange_service
+
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        shared_compatibility = self.build_shared_compatibility_view(db, home_id)
+        confirmation_gates = contractor_context_service.build_confirmation_gate_projection(db, home_id)
+        install_complexity = contractor_context_service.build_install_complexity_view(db, home_id)
+        exchange_object = planning_exchange_service.build_planning_exchange_object(db, home_id)
+        if (
+            snapshot is None
+            or shared_compatibility is None
+            or confirmation_gates is None
+            or install_complexity is None
+            or exchange_object is None
+        ):
+            return None
+
+        evidence = self._topology_takeoff_context_evidence(context, snapshot, shared_compatibility)
+        quantity_hints = self._topology_takeoff_quantity_hints(context)
+        gate_ids = [gate.gate_id for gate in confirmation_gates.gates]
+        blocked_gate_refs = [
+            gate.gate_id
+            for gate in confirmation_gates.gates
+            if gate.status == "ahj_or_utility_dependent" or gate.blocker_level == "blocked"
+        ]
+        topology_refs = self._sorted_unique(
+            [node.node_id for node in snapshot.nodes]
+            + [edge.edge_id for edge in snapshot.edges]
+        )
+        compatibility_path_refs = [path.path_key for path in shared_compatibility.compatibility_paths]
+        install_complexity_signal_refs = [
+            signal.signal_id
+            for signal in install_complexity.signals
+            if signal.category in {"material_takeoff_uncertainty", "routing_path_uncertainty", "field_verification_burden"}
+        ]
+        exchange_section_refs = [mapping.section_key for mapping in exchange_object.section_mappings]
+        line_items = [
+            item
+            for item in [
+                self._topology_takeoff_line_item(
+                    category=category,
+                    label=label,
+                    required_features=required_features,
+                    required_gate_ids=required_gate_ids,
+                    evidence=evidence,
+                    gate_ids=gate_ids,
+                    blocked_gate_refs=blocked_gate_refs,
+                    quantity_hints=quantity_hints,
+                    topology_refs=topology_refs,
+                    compatibility_path_refs=compatibility_path_refs,
+                    install_complexity_signal_refs=install_complexity_signal_refs,
+                    exchange_section_refs=exchange_section_refs,
+                )
+                for category, label, required_features, required_gate_ids in TOPOLOGY_TAKEOFF_CATEGORY_SPECS
+            ]
+            if item is not None
+        ]
+        missing_information = self._sorted_unique(
+            [
+                missing
+                for item in line_items
+                for missing in item.missing_information
+            ]
+            + shared_compatibility.missing_information
+            + [
+                missing
+                for item in exchange_object.missing_information
+                for missing in item.missing_inputs
+            ]
+        )
+        blockers = self._sorted_unique(
+            [
+                blocker
+                for item in line_items
+                for blocker in item.blockers
+            ]
+            + shared_compatibility.blockers
+        )
+        required_confirmations = self._sorted_unique(
+            [
+                confirmation
+                for item in line_items
+                for confirmation in item.required_confirmations
+            ]
+        )
+        topology_basis = self._topology_takeoff_basis(
+            source_refs=[
+                ref
+                for refs in evidence.values()
+                for ref in refs
+            ],
+            source_ref_categories=evidence,
+            topology_refs=topology_refs,
+            compatibility_path_refs=compatibility_path_refs,
+            confirmation_gate_refs=gate_ids,
+            install_complexity_signal_refs=install_complexity_signal_refs,
+            exchange_section_refs=exchange_section_refs,
+            missing_information_refs=missing_information,
+            basis_quality="view_level_rollup_from_existing_topology_takeoff_inputs",
+            basis_notes=[
+                "Top-level basis includes all known topology, compatibility, contractor-gate, install-complexity, and planning-exchange refs used by the view.",
+                "Top-level basis is sufficient for planning-grade scope discovery only, not final material quantification or pricing.",
+            ],
+        )
+        takeoff_summary = self._topology_takeoff_summary(
+            line_items,
+            missing_information=missing_information,
+            blockers=blockers,
+            confirmation_gates=required_confirmations,
+        )
+        view = TwinTopologyTakeoffView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 8 topology takeoff view built request-time from existing TwinPlanningContext, topology snapshot, "
+                "Phase 7 shared compatibility, Phase 5 contractor gates/install complexity, and Phase 6 planning exchange metadata. "
+                "It identifies planning-grade material/scope categories and cost-basis gaps only; it does not persist takeoff data, "
+                "write data, enforce permissions, export data, create twin_id, generate proposals, calculate prices or totals, "
+                "produce final estimates or contractor-approved bills of materials, calculate final wire/conduit/breaker sizing, "
+                "approve disconnect/OCPD requirements, produce permit-ready design, or imply NEC/AHJ/utility/contractor approval."
+            ),
+            takeoff_scope=TwinTopologyTakeoffScope(limitations=TOPOLOGY_TAKEOFF_LIMITATIONS),
+            topology_basis=topology_basis,
+            takeoff_summary=takeoff_summary,
+            line_items=line_items,
+            missing_information=missing_information,
+            blockers=blockers,
+            uncertainty=self._sorted_unique([item.uncertainty for item in line_items]),
+            required_confirmations=required_confirmations,
+            contractor_confirmation_gates=required_confirmations,
+            cost_basis=self._topology_takeoff_cost_basis(source_refs=topology_basis.source_refs),
+            homeowner_interpretation=self._topology_takeoff_audience_interpretation(
+                audience="homeowner",
+                line_count=len(line_items),
+                missing_information=missing_information,
+                required_confirmations=required_confirmations,
+            ),
+            contractor_interpretation=self._topology_takeoff_audience_interpretation(
+                audience="contractor",
+                line_count=len(line_items),
+                missing_information=missing_information,
+                required_confirmations=required_confirmations,
+            ),
+            provenance_basis=topology_basis,
+            assumptions=[
+                "Structured planning records and existing derived topology views are authoritative over generated text.",
+                "Line items are included only as planning-grade scope categories supported by current topology/planning context.",
+                "Missing quantities, missing pricing, and confirmation gates block accurate estimates and final material lists.",
+            ],
+            limitations=TOPOLOGY_TAKEOFF_LIMITATIONS,
+            deferred_boundaries=sorted(TOPOLOGY_TAKEOFF_DEFERRED_BOUNDARIES),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 7 shared compatibility, Phase 5 contractor-context, "
+                "Phase 6 planning-exchange, and existing /api/takeoffs/* routes remain unchanged; this is an additive Phase 8 GET view."
             ),
         )
         return self._attach_trust_provenance_readiness_summary(view)

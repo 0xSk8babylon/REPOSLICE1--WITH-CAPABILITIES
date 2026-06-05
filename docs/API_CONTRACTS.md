@@ -48,6 +48,7 @@
 - `GET /api/ai-context/design/{design_id}`
 - `GET /api/estimates/placeholder`
 - `GET /api/planning-exchange/homes/{home_id}`
+- `GET /api/twin-planning-context/homes/{home_id}/views/topology-takeoff`
 
 ## Current Write Contracts
 
@@ -106,6 +107,11 @@
   - response classifies planning/install paths as compatible, likely compatible, blocked, unknown, or requiring contractor confirmation with per-path reason, basis/provenance, basis-quality metadata, missing information where relevant, blockers, assumptions, required site/product verification gates, and contractor confirmation gates
   - response includes top-level summary rollups plus homeowner-safe and contractor-facing interpretation metadata; these are metadata only, not permissioned views, exports, auth, sharing, or enforcement
   - response is planning classification only, not a final design output, full compatibility engine, recommendation ranking, permission-enforced export, contractor confirmation, field verification, permit-ready design, AHJ/utility approval, final wire/conduit/breaker sizing, final disconnect/OCPD approval, proposal, price, or operational behavior
+- `GET /api/twin-planning-context/homes/{home_id}/views/topology-takeoff`
+  - additive read-only, request-time, deterministic Phase 8 topology takeoff view over existing `TwinPlanningContext`, topology snapshot, Phase 7 shared compatibility, Phase 5 contractor gates/signals, and the Phase 6 Planning Exchange Object
+  - response emits planning-grade topology-driven material/scope categories with per-line reason, traceable basis/provenance, basis-quality metadata, quantity-basis posture, cost-basis-unavailable metadata, uncertainty, missing information, blockers, required confirmations, and contractor confirmation gates
+  - response includes top-level takeoff summary rollups plus homeowner-safe and contractor-facing interpretation metadata; these are metadata only, not permissioned views, exports, auth, sharing, or enforcement
+  - response is planning-grade scope discovery only, not a persisted takeoff, final contractor estimate, final bill of materials, contractor-approved BOM, final engineered design, NEC/code-compliant material list, permit-ready design, AHJ/utility approval, field verification, exact wire/conduit/breaker sizing, final disconnect/OCPD approval, proposal, price, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 

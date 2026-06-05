@@ -125,6 +125,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return twin_planning_context_service.build_shared_compatibility_view(db, "home_001")
 
+    def _topology_takeoff_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_topology_takeoff_view(db, "home_001")
+
     def _phase3_derived_views(self):
         return [
             self._dependency_impact_view(),
@@ -3840,6 +3844,221 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
     def test_shared_compatibility_is_deterministic_for_same_inputs(self):
         first = self._shared_compatibility_view().dict()
         second = self._shared_compatibility_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])
+
+    def test_topology_takeoff_route_is_additive_read_only_and_non_authoritative(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn("/api/twin-planning-context/homes/{home_id}/views/topology-takeoff", paths)
+
+        view = self._topology_takeoff_view()
+        payload = view.dict()
+        scope = view.takeoff_scope
+
+        self.assertEqual("topology_takeoff", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("request_time_derived_not_persisted", view.generated_at)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("permission_readiness_metadata_only", view.permission_scope)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("contractor_scoped", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.planning_grade_takeoff_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_snapshot)
+        self.assertTrue(scope.derived_from_shared_compatibility)
+        self.assertTrue(scope.derived_from_contractor_context)
+        self.assertTrue(scope.derived_from_planning_exchange_object)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertFalse(scope.final_estimate_present)
+        self.assertFalse(scope.final_bill_of_materials_present)
+        self.assertFalse(scope.final_electrical_design_present)
+        self.assertFalse(scope.exact_wire_sizing_present)
+        self.assertFalse(scope.exact_conduit_sizing_present)
+        self.assertFalse(scope.exact_breaker_sizing_present)
+        self.assertFalse(scope.final_disconnect_ocpd_approval_present)
+        self.assertFalse(scope.permit_ready_claim_present)
+        self.assertFalse(scope.contractor_approved_bom_claim_present)
+        self.assertFalse(scope.nec_compliance_claim_present)
+        self.assertFalse(scope.pricing_present)
+        self.assertFalse(scope.totals_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertIsNotNone(view.takeoff_summary)
+        self.assertTrue(view.line_items)
+        self.assertEqual(len(view.line_items), view.takeoff_summary.total_line_items)
+        self.assertEqual("homeowner", view.homeowner_interpretation.audience)
+        self.assertEqual("contractor", view.contractor_interpretation.audience)
+        self.assertIn("homeowner_safe_planning_takeoff_summary", view.homeowner_interpretation.interpretation_scope)
+        self.assertIn("contractor_facing_takeoff_review_metadata", view.contractor_interpretation.interpretation_scope)
+
+    def test_topology_takeoff_derives_material_scope_categories_from_topology(self):
+        view = self._topology_takeoff_view()
+        categories = {item.category.value for item in view.line_items}
+
+        self.assertTrue(
+            {
+                "pv_source_circuit_array_side",
+                "inverter_power_electronics",
+                "battery_ess",
+                "backup_interface_gateway_transfer",
+                "generator_integration",
+                "panel_subpanel_load_center",
+                "conduit_raceway_pathway",
+                "conductor_circuit_placeholder",
+                "disconnect_ocpd_placeholder",
+                "monitoring_communications",
+                "labeling_signage_placeholder",
+                "grounding_bonding_placeholder",
+                "routing_trenching_structural_mounting",
+            }.issubset(categories)
+        )
+        self.assertEqual(len(view.line_items), sum(view.takeoff_summary.category_counts.values()))
+        self.assertIn("pv_source_circuit_array_side", view.takeoff_summary.line_ids_by_category)
+        self.assertGreater(view.takeoff_summary.lines_with_quantity_basis_count, 0)
+        self.assertGreater(view.takeoff_summary.lines_missing_quantity_basis_count, 0)
+        self.assertEqual(0, view.takeoff_summary.lines_with_cost_basis_count)
+        self.assertEqual(
+            len(view.line_items),
+            view.takeoff_summary.lines_requiring_contractor_pricing_count,
+        )
+
+    def test_topology_takeoff_line_items_preserve_basis_quality_and_provenance(self):
+        view = self._topology_takeoff_view()
+
+        self.assertIn("TwinPlanningContext", view.topology_basis.source_views)
+        self.assertIn("TwinTopologySnapshot", view.topology_basis.source_views)
+        self.assertIn("TwinSharedCompatibilityView", view.topology_basis.source_views)
+        self.assertIn("ContractorConfirmationGateProjectionView", view.topology_basis.source_views)
+        self.assertTrue(view.provenance_basis.source_refs)
+        self.assertTrue(view.provenance_basis.topology_refs)
+        self.assertTrue(view.provenance_basis.compatibility_path_refs)
+        self.assertTrue(view.provenance_basis.confirmation_gate_refs)
+        self.assertTrue(view.provenance_basis.install_complexity_signal_refs)
+        self.assertTrue(view.provenance_basis.exchange_section_refs)
+        self.assertEqual("view_level_rollup_from_existing_topology_takeoff_inputs", view.provenance_basis.basis_quality)
+        self.assertTrue(view.provenance_basis.request_time_derived)
+        self.assertFalse(view.provenance_basis.verified_fact_claim_present)
+        self.assertIsNotNone(view.trust_provenance_readiness_summary)
+
+        for item in view.line_items:
+            self.assertTrue(item.line_id.startswith("topology_takeoff:"))
+            self.assertTrue(item.reason)
+            self.assertTrue(item.basis.source_views)
+            self.assertTrue(item.basis.source_refs)
+            self.assertTrue(item.basis.source_ref_categories)
+            self.assertTrue(item.basis.topology_refs)
+            self.assertTrue(item.basis.compatibility_path_refs)
+            self.assertTrue(item.basis.confirmation_gate_refs)
+            self.assertTrue(item.basis.derived_from)
+            self.assertTrue(item.basis.basis_quality)
+            self.assertTrue(item.basis.request_time_derived)
+            self.assertFalse(item.basis.verified_fact_claim_present)
+            self.assertTrue(item.quantity_basis.quantity_basis_status)
+            self.assertFalse(item.quantity_basis.final_quantity_claim_present)
+            self.assertEqual(
+                "unavailable_requires_contractor_pricing",
+                item.cost_basis.cost_basis_status.value,
+            )
+            self.assertFalse(item.cost_basis.amount_present)
+            self.assertFalse(item.cost_basis.total_present)
+            self.assertTrue(item.cost_basis.missing_cost_inputs)
+            self.assertTrue(item.missing_information)
+            self.assertTrue(item.required_confirmations)
+            self.assertEqual(item.required_confirmations, item.contractor_confirmation_gates)
+            self.assertEqual("homeowner", item.homeowner_safe_interpretation.audience)
+            self.assertEqual("contractor", item.contractor_facing_interpretation.audience)
+
+    def test_topology_takeoff_surfaces_missing_information_blockers_and_confirmations(self):
+        view = self._topology_takeoff_view()
+
+        self.assertIn("contractor_pricing", view.missing_information)
+        self.assertIn("verified_material_quantities", view.missing_information)
+        self.assertIn("field_verified_topology", view.missing_information)
+        self.assertIn("cost_basis_unavailable_requires_contractor_pricing", view.blockers)
+        self.assertIn("utility_ahj_requirements_reviewed", view.required_confirmations)
+        self.assertIn("conductor_material_confirmed", view.required_confirmations)
+        self.assertIn("raceway_type_confirmed", view.required_confirmations)
+        self.assertIn("grounding_bonding_reviewed", view.required_confirmations)
+        self.assertIn("labeling_signage_requirements_reviewed", view.required_confirmations)
+        self.assertEqual(sorted(view.required_confirmations), sorted(view.contractor_confirmation_gates))
+        self.assertGreater(view.takeoff_summary.missing_information_count, 0)
+        self.assertGreater(view.takeoff_summary.blocker_count, 0)
+        self.assertGreater(view.takeoff_summary.confirmation_gate_count, 0)
+        self.assertEqual(
+            "not_calculated_requires_contractor_pricing",
+            view.takeoff_summary.cost_total_status,
+        )
+        self.assertEqual(
+            "unavailable_requires_contractor_pricing",
+            view.cost_basis.cost_basis_status.value,
+        )
+        self.assertFalse(view.cost_basis.amount_present)
+        self.assertFalse(view.cost_basis.cost_range_present)
+        self.assertFalse(view.cost_basis.total_present)
+
+    def test_topology_takeoff_preserves_homeowner_and_contractor_interpretation_boundaries(self):
+        view = self._topology_takeoff_view()
+
+        self.assertIn("planning-grade scope categories", view.homeowner_interpretation.summary)
+        self.assertIn("scope categories with basis refs", view.contractor_interpretation.summary)
+        self.assertIn("field_verified_topology", view.homeowner_interpretation.next_verification_steps)
+        self.assertIn("manufacturer_requirements_reviewed", view.contractor_interpretation.next_verification_steps)
+        self.assertIn("final electrical sizing", view.homeowner_interpretation.hidden_or_deferred_details)
+        self.assertIn("final estimate or BOM approval", view.contractor_interpretation.hidden_or_deferred_details)
+
+        for item in view.line_items:
+            self.assertIn("planning-grade scope category", item.homeowner_safe_interpretation.summary)
+            self.assertIn("contractor-facing review metadata", item.contractor_facing_interpretation.summary)
+            self.assertIn("contractor_pricing", item.homeowner_safe_interpretation.limitations)
+
+    def test_topology_takeoff_preserves_final_estimate_and_design_boundary(self):
+        view = self._topology_takeoff_view()
+        payload_text = str(view.dict()).lower()
+
+        self.assertIn("topology takeoff view", view.implementation_boundary)
+        self.assertIn("planning-grade material/scope categories", view.implementation_boundary)
+        self.assertIn("does not persist takeoff data", view.implementation_boundary)
+        for boundary in [
+            "final_estimate",
+            "final_bill_of_materials",
+            "contractor_approved_bom",
+            "exact_wire_sizing",
+            "exact_conduit_sizing",
+            "exact_breaker_sizing",
+            "final_disconnect_ocpd_approval",
+            "permit_ready_design",
+            "nec_compliance_claims",
+            "pricing",
+            "permission_enforcement",
+            "migrations",
+            "write_endpoints",
+        ]:
+            self.assertIn(boundary, view.deferred_boundaries)
+        for forbidden in [
+            "exact estimate",
+            "contractor-approved bom",
+            "nec-compliant sizing",
+            "guaranteed cost",
+            "final wire size is",
+            "final conduit size is",
+            "final breaker size is",
+            "disconnect requirement is",
+            "ahj approved",
+            "utility approved",
+            "contractor confirmed",
+        ]:
+            self.assertNotIn(forbidden, payload_text)
+
+    def test_topology_takeoff_is_deterministic_for_same_inputs(self):
+        first = self._topology_takeoff_view().dict()
+        second = self._topology_takeoff_view().dict()
 
         self.assertEqual(first, second)
         self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])

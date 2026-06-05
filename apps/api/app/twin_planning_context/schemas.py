@@ -2110,6 +2110,184 @@ class TwinSharedCompatibilityView(ORMModel):
     compatibility_note: str
 
 
+class TwinTopologyTakeoffLineCategory(str, Enum):
+    pv_source_circuit_array_side = "pv_source_circuit_array_side"
+    inverter_power_electronics = "inverter_power_electronics"
+    battery_ess = "battery_ess"
+    backup_interface_gateway_transfer = "backup_interface_gateway_transfer"
+    generator_integration = "generator_integration"
+    panel_subpanel_load_center = "panel_subpanel_load_center"
+    conduit_raceway_pathway = "conduit_raceway_pathway"
+    conductor_circuit_placeholder = "conductor_circuit_placeholder"
+    disconnect_ocpd_placeholder = "disconnect_ocpd_placeholder"
+    monitoring_communications = "monitoring_communications"
+    labeling_signage_placeholder = "labeling_signage_placeholder"
+    grounding_bonding_placeholder = "grounding_bonding_placeholder"
+    routing_trenching_structural_mounting = "routing_trenching_structural_mounting"
+
+
+class TwinTopologyTakeoffCostBasisStatus(str, Enum):
+    unavailable_requires_contractor_pricing = "unavailable_requires_contractor_pricing"
+    placeholder_only_not_pricing = "placeholder_only_not_pricing"
+
+
+class TwinTopologyTakeoffScope(ORMModel):
+    scope_name: str = "phase_8_topology_takeoff_material_cost_engine"
+    planning_grade_takeoff_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_snapshot: bool = True
+    derived_from_shared_compatibility: bool = True
+    derived_from_contractor_context: bool = True
+    derived_from_planning_exchange_object: bool = True
+    deterministic_for_same_inputs: bool = True
+    persistence_present: bool = False
+    migrations_present: bool = False
+    final_estimate_present: bool = False
+    final_bill_of_materials_present: bool = False
+    final_electrical_design_present: bool = False
+    exact_wire_sizing_present: bool = False
+    exact_conduit_sizing_present: bool = False
+    exact_breaker_sizing_present: bool = False
+    final_disconnect_ocpd_approval_present: bool = False
+    permit_ready_claim_present: bool = False
+    contractor_approved_bom_claim_present: bool = False
+    nec_compliance_claim_present: bool = False
+    pricing_present: bool = False
+    totals_present: bool = False
+    proposal_generation_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_security_changes_present: bool = False
+    export_present: bool = False
+    graph_engine_present: bool = False
+    twin_id_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyTakeoffBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_fields: List[str] = Field(default_factory=list)
+    source_refs: List[str] = Field(default_factory=list)
+    source_ref_categories: Dict[str, List[str]] = Field(default_factory=dict)
+    topology_refs: List[str] = Field(default_factory=list)
+    compatibility_path_refs: List[str] = Field(default_factory=list)
+    confirmation_gate_refs: List[str] = Field(default_factory=list)
+    install_complexity_signal_refs: List[str] = Field(default_factory=list)
+    exchange_section_refs: List[str] = Field(default_factory=list)
+    missing_information_refs: List[str] = Field(default_factory=list)
+    basis_quality: str = "request_time_derived_from_existing_topology_context"
+    request_time_derived: bool = True
+    verified_fact_claim_present: bool = False
+    basis_notes: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyTakeoffQuantityBasis(ORMModel):
+    quantity_basis_status: str
+    quantity_value: Optional[float] = None
+    quantity_unit: Optional[str] = None
+    quantity_label: str
+    quantity_refs: List[str] = Field(default_factory=list)
+    missing_quantity_inputs: List[str] = Field(default_factory=list)
+    final_quantity_claim_present: bool = False
+    notes: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyTakeoffCostBasis(ORMModel):
+    cost_basis_status: TwinTopologyTakeoffCostBasisStatus = (
+        TwinTopologyTakeoffCostBasisStatus.unavailable_requires_contractor_pricing
+    )
+    amount_present: bool = False
+    cost_range_present: bool = False
+    total_present: bool = False
+    currency: Optional[str] = None
+    source_refs: List[str] = Field(default_factory=list)
+    missing_cost_inputs: List[str] = Field(default_factory=list)
+    cost_notes: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyTakeoffAudienceInterpretation(ORMModel):
+    audience: str
+    interpretation_scope: str
+    summary: str
+    safe_to_show: bool = True
+    next_verification_steps: List[str] = Field(default_factory=list)
+    hidden_or_deferred_details: List[str] = Field(default_factory=list)
+    assumptions: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyTakeoffLineItem(ORMModel):
+    line_id: str
+    category: TwinTopologyTakeoffLineCategory
+    label: str
+    scope_kind: str = "topology_driven_material_or_scope_category"
+    reason: str
+    basis: TwinTopologyTakeoffBasis
+    quantity_basis: TwinTopologyTakeoffQuantityBasis
+    cost_basis: TwinTopologyTakeoffCostBasis
+    uncertainty: str
+    missing_information: List[str] = Field(default_factory=list)
+    blockers: List[str] = Field(default_factory=list)
+    required_confirmations: List[str] = Field(default_factory=list)
+    contractor_confirmation_gates: List[str] = Field(default_factory=list)
+    homeowner_safe_interpretation: TwinTopologyTakeoffAudienceInterpretation
+    contractor_facing_interpretation: TwinTopologyTakeoffAudienceInterpretation
+    assumptions: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinTopologyTakeoffSummary(ORMModel):
+    total_line_items: int = 0
+    category_counts: Dict[str, int] = Field(default_factory=dict)
+    line_ids_by_category: Dict[str, List[str]] = Field(default_factory=dict)
+    lines_with_quantity_basis_count: int = 0
+    lines_missing_quantity_basis_count: int = 0
+    lines_with_cost_basis_count: int = 0
+    lines_requiring_contractor_pricing_count: int = 0
+    missing_information_count: int = 0
+    blocker_count: int = 0
+    confirmation_gate_count: int = 0
+    cost_total_status: str = "not_calculated_requires_contractor_pricing"
+    summary_boundary_note: str
+
+
+class TwinTopologyTakeoffView(ORMModel):
+    view_name: str = "topology_takeoff"
+    home_id: str
+    anchor_type: str = "home_id"
+    generated_at: str = "request_time_derived_not_persisted"
+    permission_enforcement: str = "not_enforced"
+    permission_scope: str = "permission_readiness_metadata_only"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.contractor_scoped
+    implementation_boundary: str
+    takeoff_scope: TwinTopologyTakeoffScope
+    topology_basis: TwinTopologyTakeoffBasis
+    takeoff_summary: TwinTopologyTakeoffSummary
+    line_items: List[TwinTopologyTakeoffLineItem] = Field(default_factory=list)
+    missing_information: List[str] = Field(default_factory=list)
+    blockers: List[str] = Field(default_factory=list)
+    uncertainty: List[str] = Field(default_factory=list)
+    required_confirmations: List[str] = Field(default_factory=list)
+    contractor_confirmation_gates: List[str] = Field(default_factory=list)
+    cost_basis: TwinTopologyTakeoffCostBasis
+    homeowner_interpretation: TwinTopologyTakeoffAudienceInterpretation
+    contractor_interpretation: TwinTopologyTakeoffAudienceInterpretation
+    provenance_basis: TwinTopologyTakeoffBasis
+    assumptions: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    deferred_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True

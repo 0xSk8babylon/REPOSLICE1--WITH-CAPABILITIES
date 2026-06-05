@@ -107,7 +107,7 @@ Read these first:
   - Commit message: `feat: add contractor participant read-only foundations`. Final status after commit was clean; no push was run.
   - Runtime endpoints: `GET /api/contractor-context/homes/{home_id}`, `GET /api/contractor-context/homes/{home_id}/confirmation-gates`, and `GET /api/contractor-context/homes/{home_id}/install-complexity`.
   - Current boundary: Phase 5B through Phase 5D runtime foundations are read-only, request-time, deterministic, contractor-safe, provenance-preserving, permission-readiness-aware, and `home_id` anchored. Phase 5E is docs-only future contractor observation doctrine and does not implement observation intake.
-  - Next boundary: Phase 6 is complete and locally committed. Phase 7 is complete in the working tree as the read-only shared compatibility and install-path view; future work should not start Phase 8 unless Matt explicitly approves it.
+  - Next boundary: Phase 6 is complete and locally committed. Phase 7 is complete and locally committed in `7941469`. Phase 8 is complete in the working tree as the read-only topology takeoff and material/scope-category view; future work should not start Phase 9 unless Matt explicitly approves it.
   - Deferred: persistence, migrations, auth/security changes, permission enforcement, contractor accounts, write endpoints, source-of-truth mutation, frontend work, exports, marketplace features, bidding, contractor ranking, CRM integration, payments, pricing, proposals, product recommendations, compatibility engines, scenario simulation, graph behavior, `twin_id`, operational behavior, final wire sizing, final conduit sizing, final breaker sizing, disconnect requirement claims, NEC-compliant installation design claims, AHJ/utility approval, field-verification approval, git push, and production deployment.
 - Phase 6A through Phase 6E: Planning Exchange Object - complete and locally committed in `837d3ae`.
   - Charter: `docs/phase-6-planning-exchange-object.md`
@@ -119,7 +119,7 @@ Read these first:
   - Verification: focused backend tests passed with `142 tests OK`; full backend discovery passed with `153 tests OK`.
   - Current boundary: Planning Exchange Object is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, `home_id` anchored, and composed from existing `TwinPlanningContext` plus Phase 5B-D contractor-context outputs. It is not a new source of truth.
   - Deferred: persistence, migrations, write endpoints, exports/PDFs/share links, auth/security changes, permission enforcement, frontend work, contractor accounts, source-of-truth mutation, marketplace/bidding, contractor ranking, CRM integration, payments, pricing/proposals, product recommendations, compatibility engines, scenario simulation, graph behavior, `twin_id`, operational behavior, final wire sizing, final conduit sizing, final breaker sizing, disconnect requirement claims, NEC/code-compliant installation design claims, AHJ/utility approval, field-verification approval, git push, and production deployment.
-- Phase 7: Shared Compatibility & Install Path View - complete in the working tree and not yet staged or committed.
+- Phase 7: Shared Compatibility & Install Path View - complete and locally committed in `7941469`.
   - Handoff: `docs/handoffs/2026-06-05-phase-7a-shared-compatibility-view.md`
   - Closeout handoff: `docs/handoffs/2026-06-05-phase-7-shared-compatibility-install-path-view-closeout.md`
   - Runtime endpoint: `GET /api/twin-planning-context/homes/{home_id}/views/shared-compatibility`.
@@ -128,6 +128,14 @@ Read these first:
   - Verification: focused Phase 7 tests passed with `6 tests OK`; full twin planning context backend tests passed with `148 tests OK`; `git diff --check` passed.
   - Current boundary: Shared compatibility is an additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, `home_id`-anchored planning/install-path classifier over existing `TwinPlanningContext`, topology/readiness outputs, Phase 5 contractor gates/signals, and the Phase 6 Planning Exchange Object. It is not a final design, full compatibility engine, recommendation ranking, permissioned export, source of truth, contractor confirmation, AHJ/utility approval, field verification, or permit-ready artifact.
   - Deferred: persistence, migrations, write endpoints, exports/PDFs/share links, auth/security changes, permission enforcement, frontend work, pricing/proposals, product recommendations, scenario engine expansion, graph behavior, `twin_id`, operational behavior, final wire sizing, final conduit sizing, final breaker sizing, final disconnect/OCPD approval, permit-ready design, AHJ/utility approval, field-verification approval, git push, and production deployment.
+- Phase 8: Topology Takeoff & Material Cost Engine - complete in the working tree and not yet staged or committed.
+  - Handoff: `docs/handoffs/2026-06-05-phase-8-topology-takeoff-material-cost-engine-closeout.md`
+  - Runtime endpoint: `GET /api/twin-planning-context/homes/{home_id}/views/topology-takeoff`.
+  - Runtime files: `apps/api/app/twin_planning_context/schemas.py`, `apps/api/app/twin_planning_context/router.py`, `apps/api/app/services/twin_planning_context.py`, and `apps/api/tests/test_twin_planning_context.py`.
+  - Completed scope: backend read-only schemas, backend read-only route, request-time deterministic topology takeoff derivation, line-level basis/provenance, quantity-basis posture, cost-basis-unavailable metadata, missing-info/blocker reporting, homeowner-safe and contractor-facing interpretation metadata, focused tests, relevant Phase 7 regression, and continuity updates.
+  - Verification: focused Phase 8 tests passed with `7 tests OK`; focused Phase 7 regression tests passed with `6 tests OK`; full twin planning context backend tests passed with `155 tests OK`.
+  - Current boundary: Topology takeoff is an additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, `home_id`-anchored planning-grade material/scope-category view over existing `TwinPlanningContext`, topology snapshot, Phase 7 shared compatibility, Phase 5 contractor-context outputs, and the Phase 6 Planning Exchange Object. It is not a persisted takeoff, final contractor estimate, final bill of materials, final electrical design, contractor-approved BOM, NEC/code-compliant material list, permit-ready artifact, AHJ/utility approval, or field verification.
+  - Deferred: persistence, migrations, write endpoints, auth/security changes, permission enforcement, frontend work, exports, pricing/proposals, final estimates, final bills of materials, final wire sizing, final conduit sizing, final breaker sizing, final disconnect/OCPD approval, permit-ready design, AHJ/utility approval, field-verification approval, git push, and production deployment.
 
 ## Operational References By Task
 
@@ -287,6 +295,12 @@ Read these first:
   - Phase 7 Shared Compatibility View:
     - `docs/handoffs/2026-06-05-phase-7a-shared-compatibility-view.md`
     - `docs/handoffs/2026-06-05-phase-7-shared-compatibility-install-path-view-closeout.md`
+    - `apps/api/app/twin_planning_context/router.py`
+    - `apps/api/app/twin_planning_context/schemas.py`
+    - `apps/api/app/services/twin_planning_context.py`
+    - `apps/api/tests/test_twin_planning_context.py`
+  - Phase 8 Topology Takeoff & Material Cost Engine:
+    - `docs/handoffs/2026-06-05-phase-8-topology-takeoff-material-cost-engine-closeout.md`
     - `apps/api/app/twin_planning_context/router.py`
     - `apps/api/app/twin_planning_context/schemas.py`
     - `apps/api/app/services/twin_planning_context.py`

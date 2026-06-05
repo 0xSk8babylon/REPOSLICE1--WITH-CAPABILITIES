@@ -2,10 +2,10 @@
 
 ## Summary
 
-Phase 7 Shared Compatibility & Install Path View is complete in the working tree.
+Phase 7 Shared Compatibility & Install Path View is complete and locally committed in `7941469` (`feat: add shared compatibility install path view`).
 
 - Runtime endpoint: `GET /api/twin-planning-context/homes/{home_id}/views/shared-compatibility`
-- Commit status: not staged and not committed
+- Commit status: locally committed in `7941469`
 - Push status: no push was run
 - Focused Phase 7 verification: `6 tests`, `OK`
 - Full twin planning context verification: `148 tests`, `OK`
@@ -84,15 +84,8 @@ Homeowner and contractor interpretation fields are metadata only. They are not a
 - `python3 -m unittest tests.test_twin_planning_context.TwinPlanningContextServiceTests.test_shared_compatibility_route_is_additive_read_only_and_non_authoritative tests.test_twin_planning_context.TwinPlanningContextServiceTests.test_shared_compatibility_classifies_required_install_paths tests.test_twin_planning_context.TwinPlanningContextServiceTests.test_shared_compatibility_paths_preserve_basis_missing_info_and_confirmation_gates tests.test_twin_planning_context.TwinPlanningContextServiceTests.test_shared_compatibility_missing_info_and_gates_remain_review_requirements tests.test_twin_planning_context.TwinPlanningContextServiceTests.test_shared_compatibility_preserves_final_design_boundary tests.test_twin_planning_context.TwinPlanningContextServiceTests.test_shared_compatibility_is_deterministic_for_same_inputs` passed with `6 tests`, `OK`.
 - `python3 -m unittest tests/test_twin_planning_context.py` passed with `148 tests`, `OK`.
 - `git diff --check` passed.
-- `git status --short` showed Phase 7 working-tree changes only; no staging or commit was performed.
+- Phase 7 was later locally committed in `7941469`; no push was performed.
 
 ## Recommended Next Boundary
 
-Do not start Phase 8 without Matt approval.
-
-Next safe owner-controlled action is review, then optional local commit if Matt says `approve commit`.
-
-Recommended commit message:
-
-`feat: add shared compatibility install path view`
-
+Phase 8 was approved separately by Matt and implemented as a new additive backend-only boundary after this Phase 7 baseline.
