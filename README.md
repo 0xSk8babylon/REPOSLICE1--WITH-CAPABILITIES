@@ -148,7 +148,7 @@ Equivalent preflight helper:
 bash scripts/check_session_report_email_env.sh
 ```
 
-If any required variable is missing, stop and do not claim email delivery is available. Never print `RESEND_API_KEY`, never modify or stage `.env`, and use only the existing session-report scripts. Full checklist: `docs/session-report-email.md`.
+If any required variable is missing, stop and do not claim email delivery is available. Never print `RESEND_API_KEY`, never modify or stage `.env`, and use only the existing session-report scripts. Full checklist: `docs/session-report-email.md`. Long-running closeout skill: `docs/skills/session-closeout-stabilization-email.md`.
 
 Example command:
 

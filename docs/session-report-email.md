@@ -6,6 +6,8 @@ Session-report email delivery is ops-only. It uses the existing scripts under `s
 
 When Matt asks for "email when done", "send report", "send session report", or similar, Codex must run the active-shell preflight from the planner root before attempting delivery.
 
+For long-running session closeout behavior, use the operational skill checklist in `docs/skills/session-closeout-stabilization-email.md`.
+
 ## Required Preflight
 
 Run exactly:

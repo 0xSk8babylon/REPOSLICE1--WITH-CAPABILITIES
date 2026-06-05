@@ -192,6 +192,7 @@ Read these first:
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
   - `docs/session-report-email.md` when Matt asks for "email when done", "send report", or session-report email delivery
+  - `docs/skills/session-closeout-stabilization-email.md` when Matt asks for "email when done", "send closeout report", "stabilization email", "session-closeout stabilization", "email the final status", or "email after commit"
   - latest file in `docs/handoffs/`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
