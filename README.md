@@ -116,6 +116,31 @@ PYTHONPATH=.vendor python3 -m app.seed.cli reseed
 
 You can also remove `apps/api/data/residential_energy_planner.sqlite3` and restart the backend.
 
+## Ops Session Report Email
+
+Manual session closeout reports can be sent through Resend with the ops-only script in `scripts/`.
+This is not a product email feature and is not wired into the FastAPI app or frontend.
+
+Required environment variables:
+
+```bash
+export RESEND_API_KEY="re_..."
+export SESSION_REPORT_EMAIL_FROM="Agent <agent@yourdomain.example>"
+export SESSION_REPORT_EMAIL_TO="matt@example.com"
+```
+
+Example command:
+
+```bash
+python3 scripts/send_session_report.py docs/handoffs/2026-06-05-example-closeout.md
+```
+
+Optional subject override:
+
+```bash
+python3 scripts/send_session_report.py SESSION_HANDOFF.md --subject "Session closeout report"
+```
+
 ## Migrations
 
 - Alembic is now scaffolded for the backend in `apps/api/alembic.ini` and `apps/api/migrations/`.
