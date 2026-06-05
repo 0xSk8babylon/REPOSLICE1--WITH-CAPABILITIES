@@ -129,6 +129,27 @@ export SESSION_REPORT_EMAIL_FROM="Agent <agent@yourdomain.example>"
 export SESSION_REPORT_EMAIL_TO="matt@example.com"
 ```
 
+Before sending, load `.env` in the active shell and verify delivery variables without printing the API key:
+
+```bash
+cd ~/residential-energy-planner
+set -a
+source .env
+set +a
+
+echo "FROM=$SESSION_REPORT_EMAIL_FROM"
+echo "TO=$SESSION_REPORT_EMAIL_TO"
+test -n "$RESEND_API_KEY" && echo "RESEND_API_KEY is loaded" || echo "RESEND_API_KEY is missing"
+```
+
+Equivalent preflight helper:
+
+```bash
+bash scripts/check_session_report_email_env.sh
+```
+
+If any required variable is missing, stop and do not claim email delivery is available. Never print `RESEND_API_KEY`, never modify or stage `.env`, and use only the existing session-report scripts. Full checklist: `docs/session-report-email.md`.
+
 Example command:
 
 ```bash

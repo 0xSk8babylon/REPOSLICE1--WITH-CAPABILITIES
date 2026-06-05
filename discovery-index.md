@@ -181,6 +181,7 @@ Read these first:
   - `docs/continuity/LEAN_RESTORE_WORKFLOW.md`
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
+  - `docs/session-report-email.md` when Matt asks for "email when done", "send report", or session-report email delivery
   - latest file in `docs/handoffs/`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
