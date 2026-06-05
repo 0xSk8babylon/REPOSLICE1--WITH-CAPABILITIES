@@ -49,6 +49,7 @@
 - `GET /api/estimates/placeholder`
 - `GET /api/planning-exchange/homes/{home_id}`
 - `GET /api/twin-planning-context/homes/{home_id}/views/topology-takeoff`
+- `GET /api/estimate-readiness/homes/{home_id}`
 
 ## Current Write Contracts
 
@@ -112,6 +113,11 @@
   - response emits planning-grade topology-driven material/scope categories with per-line reason, traceable basis/provenance, basis-quality metadata, quantity-basis posture, cost-basis-unavailable metadata, uncertainty, missing information, blockers, required confirmations, and contractor confirmation gates
   - response includes top-level takeoff summary rollups plus homeowner-safe and contractor-facing interpretation metadata; these are metadata only, not permissioned views, exports, auth, sharing, or enforcement
   - response is planning-grade scope discovery only, not a persisted takeoff, final contractor estimate, final bill of materials, contractor-approved BOM, final engineered design, NEC/code-compliant material list, permit-ready design, AHJ/utility approval, field verification, exact wire/conduit/breaker sizing, final disconnect/OCPD approval, proposal, price, or operational behavior
+- `GET /api/estimate-readiness/homes/{home_id}`
+  - additive read-only, request-time, deterministic Phase 9 estimate readiness view over existing `TwinPlanningContext`, Phase 5 confirmation gates, Phase 7 shared compatibility, Phase 8 topology takeoff, and existing scenario records
+  - response includes `overall_status`, `scenario_statuses`, versioned 19-gate `confirmation_gates`, blocker records, missing inputs, homeowner-safe summary, contractor-facing summary, `estimate_allowed`, `contractor_review_required`, confidence level, source basis, and deferred-boundary metadata
+  - confirmation gates are readiness metadata only; gate status is not persisted confirmation, contractor completion, field verification, engineering approval, AHJ approval, utility approval, or final design authority
+  - response is pre-estimate readiness classification only, not a final estimate, proposal, quote, bid, final bill of materials, contractor-approved scope, pricing source, permit-ready design, AHJ/utility approval, field verification, exact wire/conduit/breaker sizing, final disconnect/OCPD approval, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 

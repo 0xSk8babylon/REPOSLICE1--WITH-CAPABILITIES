@@ -13,6 +13,7 @@ from app.design_advisor.router import router as design_advisor_router
 from app.designs.router import router as designs_router
 from app.equipment.router import router as equipment_router
 from app.estimates.router import router as estimates_router
+from app.estimate_readiness.router import router as estimate_readiness_router
 from app.homes.router import router as homes_router
 from app.loads.router import router as loads_router
 from app.panels.router import router as panels_router
@@ -91,4 +92,5 @@ for router in [
 api_router.include_router(twin_planning_context_router)
 api_router.include_router(contractor_context_router)
 api_router.include_router(planning_exchange_router)
+api_router.include_router(estimate_readiness_router)
 app.include_router(api_router)
