@@ -50,6 +50,7 @@
 - `GET /api/planning-exchange/homes/{home_id}`
 - `GET /api/twin-planning-context/homes/{home_id}/views/topology-takeoff`
 - `GET /api/estimate-readiness/homes/{home_id}`
+- `GET /api/proposal-option-sets/homes/{home_id}`
 
 ## Current Write Contracts
 
@@ -118,6 +119,11 @@
   - response includes `overall_status`, `scenario_statuses`, versioned 19-gate `confirmation_gates`, blocker records, missing inputs, homeowner-safe summary, contractor-facing summary, `estimate_allowed`, `contractor_review_required`, confidence level, source basis, and deferred-boundary metadata
   - confirmation gates are readiness metadata only; gate status is not persisted confirmation, contractor completion, field verification, engineering approval, AHJ approval, utility approval, or final design authority
   - response is pre-estimate readiness classification only, not a final estimate, proposal, quote, bid, final bill of materials, contractor-approved scope, pricing source, permit-ready design, AHJ/utility approval, field verification, exact wire/conduit/breaker sizing, final disconnect/OCPD approval, or operational behavior
+- `GET /api/proposal-option-sets/homes/{home_id}`
+  - additive read-only, request-time, deterministic Phase 10 proposal option-set readiness view over Phase 3M proposal readiness, Phase 6 planning exchange, Phase 9-carried shared compatibility and topology takeoff refs, Phase 9 estimate readiness, and existing scenario/design records
+  - response includes option candidates, scenario/design/source basis, homeowner-safe summaries, contractor-facing review notes, blockers, missing inputs, confirmation gates, dependencies, assumptions, deferred boundaries, confidence level, and explicit capability-boundary flags
+  - Phase 9 scenario readiness remains home-level metadata, so Phase 10 candidates inherit that limitation rather than claiming scenario-specific estimate/proposal readiness
+  - response is proposal-option readiness metadata only, not pricing, quote/bid logic, final proposal generation, final estimate, final design, permission enforcement, approval claims, final electrical sizing, persistence, migrations, write behavior, frontend behavior, exports, CRM, email automation, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 

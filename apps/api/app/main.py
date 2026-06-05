@@ -18,6 +18,7 @@ from app.homes.router import router as homes_router
 from app.loads.router import router as loads_router
 from app.panels.router import router as panels_router
 from app.planning_exchange.router import router as planning_exchange_router
+from app.proposal_option_sets.router import router as proposal_option_sets_router
 from app.planning.router import (
     design_goal_presets_router,
     estimated_pathways_router,
@@ -93,4 +94,5 @@ api_router.include_router(twin_planning_context_router)
 api_router.include_router(contractor_context_router)
 api_router.include_router(planning_exchange_router)
 api_router.include_router(estimate_readiness_router)
+api_router.include_router(proposal_option_sets_router)
 app.include_router(api_router)
