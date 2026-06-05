@@ -51,6 +51,7 @@
 - `GET /api/twin-planning-context/homes/{home_id}/views/topology-takeoff`
 - `GET /api/estimate-readiness/homes/{home_id}`
 - `GET /api/proposal-option-sets/homes/{home_id}`
+- `GET /api/contractor-workflow/homes/{home_id}/readiness`
 
 ## Current Write Contracts
 
@@ -124,6 +125,12 @@
   - response includes option candidates, scenario/design/source basis, homeowner-safe summaries, contractor-facing review notes, blockers, missing inputs, confirmation gates, dependencies, assumptions, deferred boundaries, confidence level, and explicit capability-boundary flags
   - Phase 9 scenario readiness remains home-level metadata, so Phase 10 candidates inherit that limitation rather than claiming scenario-specific estimate/proposal readiness
   - response is proposal-option readiness metadata only, not pricing, quote/bid logic, final proposal generation, final estimate, final design, permission enforcement, approval claims, final electrical sizing, persistence, migrations, write behavior, frontend behavior, exports, CRM, email automation, or operational behavior
+- `GET /api/contractor-workflow/homes/{home_id}/readiness`
+  - additive read-only, request-time, deterministic Phase 11 contractor workflow readiness projection over existing Phase 5 contractor-context views, Phase 6 planning exchange, Phase 9 estimate readiness, and Phase 10 proposal option sets
+  - Phase 7 shared-compatibility and Phase 8 topology-takeoff basis is carried only where already surfaced through existing Phase 9 and Phase 10 source contracts
+  - response organizes readiness lanes for planning review, missing-input review, confirmation-gate review, option-candidate review, and proposal-prep blocked/deferred
+  - response preserves blockers, missing inputs, confirmation gates, option-candidate refs, dependencies, assumptions, deferred boundaries, homeowner-safe summary, contractor-facing readiness prompts, and source/provenance basis
+  - response is contractor workflow readiness projection only, not true contractor-owned persisted workflow state, not a contractor account, not assignment/acceptance/completion/approval tracking, not permission enforcement, not pricing, not bids/quotes, not final proposal, not final estimate, not final design, not CRM automation, not product-runtime email automation, not export behavior, not external service behavior, and not operational behavior
 
 ## Scoped View-Model Mapping Notes
 

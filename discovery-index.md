@@ -107,7 +107,7 @@ Read these first:
   - Commit message: `feat: add contractor participant read-only foundations`. Final status after commit was clean; no push was run.
   - Runtime endpoints: `GET /api/contractor-context/homes/{home_id}`, `GET /api/contractor-context/homes/{home_id}/confirmation-gates`, and `GET /api/contractor-context/homes/{home_id}/install-complexity`.
   - Current boundary: Phase 5B through Phase 5D runtime foundations are read-only, request-time, deterministic, contractor-safe, provenance-preserving, permission-readiness-aware, and `home_id` anchored. Phase 5E is docs-only future contractor observation doctrine and does not implement observation intake.
-  - Next boundary: Phase 6 is complete and locally committed. Phase 7 is complete and locally committed in `7941469`. Phase 8 is complete and locally committed in `1058277`. Phase 9 is complete and locally committed in `9f20dce`. Phase 10 is implemented in the working tree as the read-only proposal option-set readiness view; future work should not start Phase 11 unless Matt explicitly approves it.
+  - Next boundary: Phase 6 is complete and locally committed. Phase 7 is complete and locally committed in `7941469`. Phase 8 is complete and locally committed in `1058277`. Phase 9 is complete and locally committed in `9f20dce`. Phase 10 is complete and locally committed in `bb15b6a` as the read-only proposal option-set readiness view; future work should not start Phase 11 unless Matt explicitly approves it.
   - Deferred: persistence, migrations, auth/security changes, permission enforcement, contractor accounts, write endpoints, source-of-truth mutation, frontend work, exports, marketplace features, bidding, contractor ranking, CRM integration, payments, pricing, proposals, product recommendations, compatibility engines, scenario simulation, graph behavior, `twin_id`, operational behavior, final wire sizing, final conduit sizing, final breaker sizing, disconnect requirement claims, NEC-compliant installation design claims, AHJ/utility approval, field-verification approval, git push, and production deployment.
 - Phase 6A through Phase 6E: Planning Exchange Object - complete and locally committed in `837d3ae`.
   - Charter: `docs/phase-6-planning-exchange-object.md`
@@ -144,7 +144,7 @@ Read these first:
   - Verification: focused Phase 9 tests passed with `7 tests OK`; existing twin planning context backend tests passed with `155 tests OK`.
   - Current boundary: Estimate readiness is an additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, `home_id`-anchored confirmation-gate and blocker-classification view over existing `TwinPlanningContext`, Phase 5 confirmation gates, Phase 7 shared compatibility, Phase 8 topology takeoff, and existing scenario records. It is not an estimate engine, proposal generator, final pricing source, contractor approval, field verification, permit-ready artifact, AHJ/utility approval, or final electrical design output.
   - Deferred: persistence, migrations, write endpoints, auth/security changes, permission enforcement, frontend work, exports, pricing/proposals, proposal generation, final estimates, final bills of materials, contractor-approved scope, final wire sizing, final conduit sizing, final breaker sizing, final disconnect/OCPD approval, permit-ready design, AHJ/utility approval, field-verification approval, git push, and production deployment.
-- Phase 10: Proposal Option Sets - implemented in the working tree and not yet staged or committed.
+- Phase 10: Proposal Option Sets - complete and locally committed in `bb15b6a`.
   - Handoff: `docs/handoffs/2026-06-05-phase-10-proposal-option-sets-closeout.md`
   - Runtime endpoint: `GET /api/proposal-option-sets/homes/{home_id}`.
   - Runtime files: `apps/api/app/proposal_option_sets/__init__.py`, `apps/api/app/proposal_option_sets/schemas.py`, `apps/api/app/proposal_option_sets/router.py`, `apps/api/app/services/proposal_option_sets.py`, `apps/api/app/main.py`, and `apps/api/tests/test_proposal_option_sets.py`.
@@ -153,6 +153,16 @@ Read these first:
   - Current boundary: Proposal option sets are additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, and `home_id` anchored over Phase 3M proposal readiness, Phase 6 planning exchange, Phase 9-carried shared compatibility and topology takeoff refs, Phase 9 estimate readiness, and existing scenario/design records. They are not pricing, quote/bid logic, final proposal generation, final estimates, final designs, permission enforcement, approval claims, final electrical sizing, CRM, exports, email automation, or source-of-truth mutation.
   - Caveat: Phase 9 scenario readiness remains home-level metadata, so Phase 10 candidates inherit that limitation rather than claiming scenario-specific estimate/proposal readiness.
   - Deferred: persistence, migrations, write endpoints, auth/security changes, permission enforcement, frontend work, exports, CRM, email automation, pricing, quote/bid logic, final proposal generation, final estimates, final designs, approval claims, final wire/conduit/breaker/disconnect sizing, `twin_id`, graph behavior, operational behavior, git push, and production deployment.
+- Phase 11: Contractor Workflow Readiness - implemented in the working tree and not yet staged or committed.
+  - Handoff: `docs/handoffs/2026-06-05-phase-11-contractor-workflow-readiness-closeout.md`
+  - Runtime endpoint: `GET /api/contractor-workflow/homes/{home_id}/readiness`.
+  - Runtime files: `apps/api/app/contractor_workflow/__init__.py`, `apps/api/app/contractor_workflow/schemas.py`, `apps/api/app/contractor_workflow/router.py`, `apps/api/app/services/contractor_workflow.py`, `apps/api/app/main.py`, and `apps/api/tests/test_contractor_workflow.py`.
+  - Completed scope: backend read-only schemas, backend read-only route, request-time deterministic contractor workflow readiness projection, five fixed readiness lanes, Phase 5/6/9/10 source composition, Phase 7/8 basis carry-through only where already surfaced through existing contracts, homeowner-safe summary, contractor-facing readiness prompts, forbidden-boundary flags, focused tests, and continuity updates.
+  - Verification: `git diff --check` passed; `bash scripts/check_session_report_email_env.sh` passed; focused Phase 11 tests passed with `8 tests OK` in about 141s. `pytest` is unavailable; full backend unittest discovery previously timed out at 900s with passing dots only.
+  - Current boundary: Contractor workflow readiness is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, and `home_id` anchored over Phase 5 contractor context, Phase 6 planning exchange, Phase 9 estimate readiness, and Phase 10 proposal option sets. It opens the Contractor-Owned Workflow Layer as contractor-facing workflow readiness projection only, not true contractor-owned persisted workflow state.
+  - Readiness lanes: planning review, missing-input review, confirmation-gate review, option-candidate review, and proposal-prep blocked/deferred.
+  - Risk: focused tests are slow because the endpoint composes expensive existing derived-view stacks; full backend discovery is too slow under the current cap.
+  - Deferred: POST/PATCH/DELETE, persistence, migrations, contractor-owned state, contractor accounts, auth/security changes, permission enforcement, approvals, pricing, bids, quotes, final proposal, final estimate, final design, CRM automation, product-runtime email automation, exports, external services/secrets, Phase 12+ behavior, `twin_id`, graph behavior, operational behavior, git push, and production deployment.
 
 ## Operational References By Task
 
@@ -330,6 +340,20 @@ Read these first:
     - `apps/api/app/services/estimate_readiness.py`
     - `apps/api/app/main.py`
     - `apps/api/tests/test_estimate_readiness.py`
+  - Phase 10 Proposal Option Sets:
+    - `docs/handoffs/2026-06-05-phase-10-proposal-option-sets-closeout.md`
+    - `apps/api/app/proposal_option_sets/router.py`
+    - `apps/api/app/proposal_option_sets/schemas.py`
+    - `apps/api/app/services/proposal_option_sets.py`
+    - `apps/api/app/main.py`
+    - `apps/api/tests/test_proposal_option_sets.py`
+  - Phase 11 Contractor Workflow Readiness:
+    - `docs/handoffs/2026-06-05-phase-11-contractor-workflow-readiness-closeout.md`
+    - `apps/api/app/contractor_workflow/router.py`
+    - `apps/api/app/contractor_workflow/schemas.py`
+    - `apps/api/app/services/contractor_workflow.py`
+    - `apps/api/app/main.py`
+    - `apps/api/tests/test_contractor_workflow.py`
   - Phase 3J Contractor-Facing Advisory Logic:
     - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
     - `apps/api/app/twin_planning_context/router.py`
