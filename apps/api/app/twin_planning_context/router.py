@@ -24,6 +24,7 @@ from app.twin_planning_context.schemas import (
     TwinRuntimeParticipantRole,
     TwinRuntimeProjectionView,
     TwinScenarioComparisonReadinessView,
+    TwinSharedCompatibilityView,
     TwinTopologySnapshot,
     TwinTrustProvenanceReadinessIndexView,
 )
@@ -219,6 +220,17 @@ def get_product_spec_readiness_view(home_id: str, db: Session = Depends(get_db))
 )
 def get_trust_provenance_readiness_index_view(home_id: str, db: Session = Depends(get_db)):
     view = twin_planning_context_service.build_trust_provenance_readiness_index_view(db, home_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="Home not found")
+    return view
+
+
+@router.get(
+    "/homes/{home_id}/views/shared-compatibility",
+    response_model=TwinSharedCompatibilityView,
+)
+def get_shared_compatibility_view(home_id: str, db: Session = Depends(get_db)):
+    view = twin_planning_context_service.build_shared_compatibility_view(db, home_id)
     if view is None:
         raise HTTPException(status_code=404, detail="Home not found")
     return view

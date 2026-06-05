@@ -121,6 +121,10 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         with Session(engine) as db:
             return planning_exchange_service.build_planning_exchange_object(db, "home_001")
 
+    def _shared_compatibility_view(self):
+        with Session(engine) as db:
+            return twin_planning_context_service.build_shared_compatibility_view(db, "home_001")
+
     def _phase3_derived_views(self):
         return [
             self._dependency_impact_view(),
@@ -3618,6 +3622,227 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             "disconnect requirement is",
         ]:
             self.assertNotIn(forbidden, payload_text)
+
+    def test_shared_compatibility_route_is_additive_read_only_and_non_authoritative(self):
+        paths = {getattr(route, "path", None) for route in app.routes}
+        self.assertIn("/api/twin-planning-context/homes/{home_id}/views/shared-compatibility", paths)
+
+        view = self._shared_compatibility_view()
+        payload = view.dict()
+        scope = view.compatibility_scope
+
+        self.assertEqual("shared_compatibility", view.view_name)
+        self.assertEqual("home_001", view.home_id)
+        self.assertEqual("home_id", view.anchor_type)
+        self.assertEqual("request_time_derived_not_persisted", view.generated_at)
+        self.assertEqual("not_enforced", view.permission_enforcement)
+        self.assertEqual("permission_readiness_metadata_only", view.permission_scope)
+        self.assertEqual("derived", view.authority_layer.value)
+        self.assertEqual("contractor_scoped", view.data_classification.value)
+        self.assertNotIn("twin_id", payload)
+        self.assertTrue(scope.classification_only)
+        self.assertTrue(scope.read_only)
+        self.assertTrue(scope.request_time_only)
+        self.assertTrue(scope.home_id_anchored)
+        self.assertTrue(scope.derived_from_existing_twin_context)
+        self.assertTrue(scope.derived_from_topology_readiness)
+        self.assertTrue(scope.derived_from_contractor_context)
+        self.assertTrue(scope.derived_from_planning_exchange_object)
+        self.assertTrue(scope.deterministic_for_same_inputs)
+        self.assertFalse(scope.compatibility_engine_present)
+        self.assertFalse(scope.final_electrical_design_present)
+        self.assertFalse(scope.final_wire_sizing_present)
+        self.assertFalse(scope.final_conduit_sizing_present)
+        self.assertFalse(scope.final_breaker_sizing_present)
+        self.assertFalse(scope.final_disconnect_ocpd_approval_present)
+        self.assertFalse(scope.permit_ready_design_claim_present)
+        self.assertFalse(scope.ahj_approval_claim_present)
+        self.assertFalse(scope.utility_approval_claim_present)
+        self.assertFalse(scope.field_verification_claim_present)
+        self.assertFalse(scope.contractor_confirmation_completed_claim_present)
+        self.assertFalse(scope.permission_enforcement_present)
+        self.assertFalse(scope.persistence_present)
+        self.assertFalse(scope.migrations_present)
+        self.assertIsNotNone(view.summary)
+        self.assertEqual(10, view.summary.total_paths)
+        self.assertIn("planning-only rollups", view.summary.summary_boundary_note)
+        self.assertEqual("homeowner", view.homeowner_interpretation.audience)
+        self.assertEqual("contractor", view.contractor_interpretation.audience)
+        self.assertIn("homeowner_safe_planning_summary", view.homeowner_interpretation.interpretation_scope)
+        self.assertIn("contractor_facing_review_metadata", view.contractor_interpretation.interpretation_scope)
+
+    def test_shared_compatibility_classifies_required_install_paths(self):
+        view = self._shared_compatibility_view()
+        path_by_key = {path.path_key: path for path in view.compatibility_paths}
+
+        self.assertEqual(
+            {
+                "pv_only",
+                "pv_battery",
+                "pv_battery_partial_backup",
+                "pv_battery_whole_home_backup",
+                "pv_generator_interlock",
+                "pv_generator_battery",
+                "critical_loads_subpanel",
+                "service_upgrade_likely",
+                "load_management",
+                "existing_panel_reuse",
+            },
+            set(path_by_key),
+        )
+        self.assertEqual("compatible", path_by_key["existing_panel_reuse"].status.value)
+        self.assertEqual("likely_compatible", path_by_key["pv_only"].status.value)
+        self.assertEqual("requires_contractor_confirmation", path_by_key["pv_battery"].status.value)
+        self.assertEqual(
+            "requires_contractor_confirmation",
+            path_by_key["pv_battery_partial_backup"].status.value,
+        )
+        self.assertEqual("blocked", path_by_key["pv_battery_whole_home_backup"].status.value)
+        self.assertEqual("blocked", path_by_key["pv_generator_interlock"].status.value)
+        self.assertEqual("unknown", path_by_key["service_upgrade_likely"].status.value)
+        self.assertEqual("unknown", path_by_key["load_management"].status.value)
+
+        self.assertTrue(view.blocked_paths)
+        self.assertTrue(view.uncertain_paths)
+        self.assertTrue(view.required_confirmations)
+        self.assertTrue(view.contractor_confirmation_gates)
+        self.assertTrue(view.assumptions)
+        self.assertTrue(view.missing_information)
+        self.assertEqual(
+            len(view.compatibility_paths),
+            sum(view.summary.status_counts.values()),
+        )
+        self.assertEqual(
+            sorted(path.path_key for path in view.blocked_paths),
+            view.summary.blocked_path_keys,
+        )
+        self.assertEqual(
+            sorted(
+                path.path_key
+                for path in view.compatibility_paths
+                if path.status.value == "requires_contractor_confirmation"
+            ),
+            view.summary.confirmation_required_path_keys,
+        )
+        self.assertEqual(
+            sorted(set(view.required_confirmations)),
+            sorted(view.contractor_confirmation_gates),
+        )
+
+    def test_shared_compatibility_paths_preserve_basis_missing_info_and_confirmation_gates(self):
+        view = self._shared_compatibility_view()
+
+        self.assertIn("TwinPlanningContext", view.source_basis.source_views)
+        self.assertIn("TwinTopologySnapshot", view.source_basis.source_views)
+        self.assertIn("ContractorConfirmationGateProjectionView", view.source_basis.source_views)
+        self.assertIn("ContractorInstallComplexityView", view.source_basis.source_views)
+        self.assertIn("PlanningExchangeObjectView", view.source_basis.source_views)
+        self.assertTrue(view.provenance_basis.source_refs)
+        self.assertTrue(view.provenance_basis.confirmation_gate_refs)
+        self.assertTrue(view.provenance_basis.install_complexity_signal_refs)
+        self.assertTrue(view.provenance_basis.exchange_section_refs)
+        self.assertTrue(view.provenance_basis.source_ref_categories)
+        self.assertEqual("view_level_request_time_rollup_from_existing_planning_views", view.provenance_basis.basis_quality)
+        self.assertTrue(view.provenance_basis.request_time_derived)
+        self.assertFalse(view.provenance_basis.verified_fact_claim_present)
+        self.assertTrue(view.provenance_basis.basis_notes)
+        self.assertIsNotNone(view.trust_provenance_readiness_summary)
+
+        for path in view.compatibility_paths:
+            self.assertTrue(path.status.value)
+            self.assertTrue(path.reason)
+            self.assertTrue(path.basis.source_views)
+            self.assertTrue(path.basis.derived_from)
+            self.assertTrue(path.basis.basis_quality)
+            self.assertTrue(path.basis.request_time_derived)
+            self.assertFalse(path.basis.verified_fact_claim_present)
+            self.assertTrue(path.basis.basis_notes)
+            self.assertTrue(path.basis.confirmation_gate_refs)
+            self.assertTrue(path.required_confirmations)
+            self.assertEqual(path.required_confirmations, path.contractor_confirmation_gates)
+            self.assertTrue(path.required_site_product_verifications)
+            self.assertTrue(path.confidence_posture)
+            self.assertTrue(path.assumptions)
+            self.assertIsNotNone(path.homeowner_safe_interpretation)
+            self.assertIsNotNone(path.contractor_facing_interpretation)
+            self.assertEqual("homeowner", path.homeowner_safe_interpretation.audience)
+            self.assertEqual("contractor", path.contractor_facing_interpretation.audience)
+            self.assertTrue(path.limitations)
+            if path.status.value == "unknown":
+                self.assertTrue(path.missing_information)
+            if path.status.value == "blocked":
+                self.assertTrue(path.blockers)
+
+    def test_shared_compatibility_missing_info_and_gates_remain_review_requirements(self):
+        view = self._shared_compatibility_view()
+        path_by_key = {path.path_key: path for path in view.compatibility_paths}
+
+        self.assertIn("utility_ahj_requirements_reviewed", view.required_confirmations)
+        self.assertIn("product_specs_verified", view.required_confirmations)
+        self.assertIn("nameplate_ratings_verified", view.required_confirmations)
+        self.assertIn("manufacturer_install_manual_reviewed", view.required_confirmations)
+        self.assertIn("load_current_assumptions_confirmed", view.required_confirmations)
+        self.assertIn("disconnect_requirements_reviewed", view.required_confirmations)
+        self.assertIn("overcurrent_protection_reviewed", view.required_confirmations)
+        self.assertIn("missing_feature:service_upgrade", path_by_key["service_upgrade_likely"].missing_information)
+        self.assertIn("missing_feature:load_management", path_by_key["load_management"].missing_information)
+        self.assertTrue(path_by_key["pv_battery_whole_home_backup"].blockers)
+        self.assertTrue(path_by_key["pv_generator_interlock"].blockers)
+        for path in view.compatibility_paths:
+            self.assertEqual(
+                sorted(path.required_confirmations),
+                sorted(path.contractor_confirmation_gates),
+            )
+            self.assertIn(
+                "Confirmation gates are review requirements",
+                " ".join(path.basis.basis_notes),
+            )
+
+    def test_shared_compatibility_preserves_final_design_boundary(self):
+        view = self._shared_compatibility_view()
+        payload_text = str(view.dict()).lower()
+
+        self.assertIn("shared compatibility view", view.implementation_boundary)
+        self.assertIn("classifies planning/install paths only", view.implementation_boundary)
+        self.assertIn("not_enforced", view.permission_enforcement)
+        for boundary in [
+            "compatibility_engine",
+            "final_wire_sizing",
+            "final_conduit_sizing",
+            "final_breaker_sizing",
+            "final_disconnect_ocpd_approval",
+            "permit_ready_design",
+            "permission_enforcement",
+            "persistence",
+            "migrations",
+            "write_endpoints",
+        ]:
+            self.assertIn(boundary, view.deferred_boundaries)
+        for forbidden in [
+            "code compliant",
+            "nec compliant",
+            "approved installation",
+            "field verification completed",
+            "permission enforced",
+            "final wire size is",
+            "final conduit size is",
+            "final breaker size is",
+            "disconnect requirement is",
+            "permit ready",
+            "ahj approved",
+            "utility approved",
+            "contractor confirmed",
+            "best path",
+            "ranked path",
+        ]:
+            self.assertNotIn(forbidden, payload_text)
+
+    def test_shared_compatibility_is_deterministic_for_same_inputs(self):
+        first = self._shared_compatibility_view().dict()
+        second = self._shared_compatibility_view().dict()
+
+        self.assertEqual(first, second)
+        self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])
 
     def test_contractor_install_complexity_preserves_electrical_boundary(self):
         view = self._contractor_install_complexity_view()

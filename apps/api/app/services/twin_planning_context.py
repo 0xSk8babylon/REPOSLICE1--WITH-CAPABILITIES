@@ -105,6 +105,13 @@ from app.twin_planning_context.schemas import (
     TwinScenarioComparisonReadinessItem,
     TwinScenarioComparisonReadinessScope,
     TwinScenarioComparisonReadinessView,
+    TwinSharedCompatibilityAudienceInterpretation,
+    TwinSharedCompatibilityBasis,
+    TwinSharedCompatibilityPath,
+    TwinSharedCompatibilityScope,
+    TwinSharedCompatibilityStatus,
+    TwinSharedCompatibilitySummary,
+    TwinSharedCompatibilityView,
     TwinTrustProvenanceReadinessIndexEntry,
     TwinTrustProvenanceReadinessIndexScope,
     TwinTrustProvenanceReadinessIndexView,
@@ -718,6 +725,97 @@ TRUST_PROVENANCE_READINESS_INDEX_DEFERRED_BOUNDARIES = [
     "graph_engine",
     "twin_id",
     "marketplace_behavior",
+]
+
+SHARED_COMPATIBILITY_LIMITATIONS = [
+    "Phase 7A shared compatibility view is a read-only planning/install-path classification only.",
+    "Statuses describe what appears compatible, blocked, uncertain, or confirmation-required from current planning data.",
+    "The view does not produce final electrical design, final wire sizing, final conduit sizing, final breaker sizing, final disconnect/OCPD approval, permit-ready design, AHJ approval, utility approval, field verification, proposals, pricing, exports, permission enforcement, or operational behavior.",
+    "Contractor confirmation gates are review prompts only and do not mean confirmation has been completed.",
+]
+
+SHARED_COMPATIBILITY_DEFERRED_BOUNDARIES = [
+    "auth_security_changes",
+    "compatibility_engine",
+    "contractor_confirmation_completion",
+    "exports",
+    "field_verification",
+    "final_breaker_sizing",
+    "final_conduit_sizing",
+    "final_design_outputs",
+    "final_disconnect_ocpd_approval",
+    "final_wire_sizing",
+    "graph_engine",
+    "migrations",
+    "operational_behavior",
+    "permission_enforcement",
+    "permit_ready_design",
+    "persistence",
+    "pricing",
+    "proposal_generation",
+    "recommendation_ranking",
+    "scenario_engine_expansion",
+    "twin_id",
+    "utility_ahj_approval",
+    "write_endpoints",
+]
+
+SHARED_COMPATIBILITY_PATH_SPECS = [
+    ("pv_only", "PV only", ["solar"], ["product_specs_verified", "nameplate_ratings_verified"]),
+    (
+        "pv_battery",
+        "PV + battery",
+        ["solar", "battery"],
+        ["product_specs_verified", "nameplate_ratings_verified", "manufacturer_install_manual_reviewed"],
+    ),
+    (
+        "pv_battery_partial_backup",
+        "PV + battery + partial backup",
+        ["solar", "battery", "essential_loads"],
+        ["circuit_purpose_confirmed", "load_current_assumptions_confirmed", "overcurrent_protection_reviewed"],
+    ),
+    (
+        "pv_battery_whole_home_backup",
+        "PV + battery + whole-home backup",
+        ["solar", "battery", "whole_home_backup"],
+        ["load_current_assumptions_confirmed", "utility_ahj_requirements_reviewed", "contractor_final_review_completed"],
+    ),
+    (
+        "pv_generator_interlock",
+        "PV + generator interlock",
+        ["solar", "generator", "transfer_strategy"],
+        ["utility_ahj_requirements_reviewed", "disconnect_requirements_reviewed", "grounding_bonding_reviewed"],
+    ),
+    (
+        "pv_generator_battery",
+        "PV + generator + battery",
+        ["solar", "battery", "generator"],
+        ["manufacturer_install_manual_reviewed", "utility_ahj_requirements_reviewed", "contractor_final_review_completed"],
+    ),
+    (
+        "critical_loads_subpanel",
+        "Critical loads subpanel path",
+        ["essential_loads", "panel_context"],
+        ["circuit_purpose_confirmed", "load_current_assumptions_confirmed", "contractor_final_review_completed"],
+    ),
+    (
+        "service_upgrade_likely",
+        "Service upgrade likely path",
+        ["service_upgrade"],
+        ["utility_ahj_requirements_reviewed", "overcurrent_protection_reviewed"],
+    ),
+    (
+        "load_management",
+        "Load management path",
+        ["preferred_loads", "load_management"],
+        ["circuit_purpose_confirmed", "load_current_assumptions_confirmed"],
+    ),
+    (
+        "existing_panel_reuse",
+        "Existing panel reuse path",
+        ["panel_context", "spare_spaces"],
+        ["overcurrent_protection_reviewed", "contractor_final_review_completed"],
+    ),
 ]
 
 PHASE_3_DERIVED_VIEW_INDEX_SPECS = [
@@ -11395,6 +11493,647 @@ class TwinPlanningContextService:
                 "runtime view foundations, and current /api/* contracts remain unchanged; this is an additive Phase 3N product/spec readiness view."
             ),
         ))
+
+    def _record_ref(self, section_key: str, record: TwinPlanningContextRecord) -> str:
+        return f"{section_key}:{record.entity_type}:{record.entity_id or record.label}"
+
+    def _shared_compatibility_context_evidence(
+        self,
+        context: TwinPlanningContext,
+    ) -> Dict[str, List[str]]:
+        evidence: Dict[str, List[str]] = {
+            "battery": [],
+            "essential_loads": [],
+            "generator": [],
+            "gateway_or_transfer": [],
+            "load_management": [],
+            "panel_context": [],
+            "preferred_loads": [],
+            "service_upgrade": [],
+            "solar": [],
+            "spare_spaces": [],
+            "whole_home_backup": [],
+        }
+        for section in context.sections:
+            for record in section.records:
+                record_ref = self._record_ref(section.section_key, record)
+                payload = record.record or {}
+                product_type = str(payload.get("product_type", "")).lower()
+                role = str(payload.get("role_in_system", "")).lower()
+                design_goal = str(payload.get("design_goal", "")).lower()
+                architecture_type = str(payload.get("architecture_type", "")).lower()
+                backup_priority = str(payload.get("backup_priority", "")).lower()
+
+                if "solar" in product_type or "solar" in role:
+                    evidence["solar"].append(record_ref)
+                if "battery" in product_type or "battery" in role or "storage" in role:
+                    evidence["battery"].append(record_ref)
+                if "generator" in product_type or "generator" in role:
+                    evidence["generator"].append(record_ref)
+                if (
+                    "gateway" in product_type
+                    or "transfer" in role
+                    or "interlock" in role
+                    or "gateway" in role
+                ):
+                    evidence["gateway_or_transfer"].append(record_ref)
+                if "smart_panel" in product_type or "load_management" in role:
+                    evidence["load_management"].append(record_ref)
+                if backup_priority == "essential":
+                    evidence["essential_loads"].append(record_ref)
+                if backup_priority == "preferred":
+                    evidence["preferred_loads"].append(record_ref)
+                if record.entity_type == "electrical_panel":
+                    evidence["panel_context"].append(record_ref)
+                    spaces = payload.get("breaker_spaces_available")
+                    if isinstance(spaces, int) and spaces > 0:
+                        evidence["spare_spaces"].append(record_ref)
+                if record.entity_type == "home":
+                    service_size = payload.get("service_size")
+                    if isinstance(service_size, int) and service_size < 200:
+                        evidence["service_upgrade"].append(record_ref)
+                if "whole_home" in design_goal or "whole_home" in architecture_type:
+                    evidence["whole_home_backup"].append(record_ref)
+        return {
+            key: self._sorted_unique(values)
+            for key, values in evidence.items()
+        }
+
+    def _shared_compatibility_basis(
+        self,
+        *,
+        source_refs: Optional[List[str]] = None,
+        source_ref_categories: Optional[Dict[str, List[str]]] = None,
+        topology_refs: Optional[List[str]] = None,
+        readiness_refs: Optional[List[str]] = None,
+        confirmation_gate_refs: Optional[List[str]] = None,
+        install_complexity_signal_refs: Optional[List[str]] = None,
+        exchange_section_refs: Optional[List[str]] = None,
+        missing_information_refs: Optional[List[str]] = None,
+        basis_quality: str = "request_time_derived_from_existing_context",
+        basis_notes: Optional[List[str]] = None,
+    ) -> TwinSharedCompatibilityBasis:
+        return TwinSharedCompatibilityBasis(
+            source_views=[
+                "TwinPlanningContext",
+                "TwinTopologySnapshot",
+                "ContractorConfirmationGateProjectionView",
+                "ContractorInstallComplexityView",
+                "PlanningExchangeObjectView",
+            ],
+            source_fields=[
+                "TwinPlanningContext.sections",
+                "TwinTopologySnapshot.lifecycle_readiness_hints",
+                "TwinTopologySnapshot.missing_readiness_indicators",
+                "ContractorConfirmationGateProjectionView.gates",
+                "ContractorInstallComplexityView.signals",
+                "PlanningExchangeObjectView.section_mappings",
+                "PlanningExchangeObjectView.missing_information",
+            ],
+            source_refs=self._sorted_unique(source_refs or []),
+            source_ref_categories={
+                key: self._sorted_unique(values)
+                for key, values in (source_ref_categories or {}).items()
+                if values
+            },
+            topology_refs=self._sorted_unique(topology_refs or []),
+            readiness_refs=self._sorted_unique(readiness_refs or []),
+            confirmation_gate_refs=self._sorted_unique(confirmation_gate_refs or []),
+            install_complexity_signal_refs=self._sorted_unique(install_complexity_signal_refs or []),
+            exchange_section_refs=self._sorted_unique(exchange_section_refs or []),
+            missing_information_refs=self._sorted_unique(missing_information_refs or []),
+            basis_quality=basis_quality,
+            request_time_derived=True,
+            verified_fact_claim_present=False,
+            basis_notes=self._sorted_unique(
+                basis_notes
+                or [
+                    "Basis is assembled from existing request-time planning views.",
+                    "Basis references are not field verification, contractor confirmation, AHJ approval, or utility approval.",
+                ]
+            ),
+            derived_from=[
+                "existing_home_id_anchored_twin_planning_context",
+                "phase_2c_topology_readiness_outputs",
+                "phase_5_confirmation_gate_projection",
+                "phase_5_install_complexity_signals",
+                "phase_6_planning_exchange_object",
+            ],
+            limitations=SHARED_COMPATIBILITY_LIMITATIONS,
+        )
+
+    def _shared_compatibility_status(
+        self,
+        *,
+        path_key: str,
+        present_features: List[str],
+        missing_features: List[str],
+        gate_refs: List[str],
+        blocked_gate_refs: List[str],
+    ) -> TwinSharedCompatibilityStatus:
+        if path_key in {"pv_battery_whole_home_backup", "pv_generator_interlock"} and blocked_gate_refs:
+            return TwinSharedCompatibilityStatus.blocked
+        if path_key == "pv_only" and not missing_features:
+            return TwinSharedCompatibilityStatus.likely_compatible
+        if path_key == "service_upgrade_likely":
+            return TwinSharedCompatibilityStatus.unknown
+        if path_key == "load_management" and missing_features:
+            return TwinSharedCompatibilityStatus.unknown
+        if path_key == "existing_panel_reuse" and not missing_features:
+            return TwinSharedCompatibilityStatus.compatible
+        if not missing_features and gate_refs:
+            return TwinSharedCompatibilityStatus.requires_contractor_confirmation
+        if present_features and missing_features:
+            return TwinSharedCompatibilityStatus.likely_compatible
+        return TwinSharedCompatibilityStatus.unknown
+
+    def _shared_compatibility_reason(
+        self,
+        *,
+        path_label: str,
+        status: TwinSharedCompatibilityStatus,
+        missing_features: List[str],
+        blocked_gate_refs: List[str],
+    ) -> str:
+        if status == TwinSharedCompatibilityStatus.compatible:
+            return (
+                f"{path_label} has current planning evidence for the required path ingredients, but it still remains "
+                "planning-only and subject to contractor confirmation before design use."
+            )
+        if status == TwinSharedCompatibilityStatus.likely_compatible:
+            return (
+                f"{path_label} has partial current planning evidence, but missing information prevents a stronger "
+                "compatibility classification."
+            )
+        if status == TwinSharedCompatibilityStatus.blocked:
+            return (
+                f"{path_label} is blocked in this view because authority-dependent or final-review gates remain unresolved: "
+                f"{', '.join(blocked_gate_refs)}."
+            )
+        if status == TwinSharedCompatibilityStatus.requires_contractor_confirmation:
+            return (
+                f"{path_label} has relevant planning evidence but depends on contractor, professional, AHJ, utility, "
+                "or field confirmation before it can be used for design work."
+            )
+        return (
+            f"{path_label} cannot be classified from current planning data without assuming missing inputs: "
+            f"{', '.join(missing_features)}."
+        )
+
+    def _shared_compatibility_path_status_groups(
+        self,
+        paths: List[TwinSharedCompatibilityPath],
+    ) -> Dict[str, List[str]]:
+        groups = {
+            status.value: []
+            for status in TwinSharedCompatibilityStatus
+        }
+        for path in paths:
+            groups[path.status.value].append(path.path_key)
+        return {
+            status: self._sorted_unique(path_keys)
+            for status, path_keys in groups.items()
+        }
+
+    def _shared_compatibility_audience_interpretation(
+        self,
+        *,
+        audience: str,
+        path_label: Optional[str] = None,
+        status: Optional[TwinSharedCompatibilityStatus] = None,
+        missing_information: Optional[List[str]] = None,
+        required_confirmations: Optional[List[str]] = None,
+        blockers: Optional[List[str]] = None,
+        paths: Optional[List[TwinSharedCompatibilityPath]] = None,
+    ) -> TwinSharedCompatibilityAudienceInterpretation:
+        missing = self._sorted_unique(missing_information or [])
+        confirmations = self._sorted_unique(required_confirmations or [])
+        blocker_refs = self._sorted_unique(blockers or [])
+        status_groups = self._shared_compatibility_path_status_groups(paths or [])
+        if path_label and status:
+            if audience == "homeowner":
+                summary = (
+                    f"{path_label} currently appears as {status.value}; this is planning-only and needs the listed "
+                    "contractor or authority review before design decisions."
+                )
+                next_steps = [
+                    "Ask a contractor to review the listed confirmation gates.",
+                    "Resolve missing information before treating this path as design-ready.",
+                ]
+            else:
+                summary = (
+                    f"{path_label} is classified as {status.value} from current planning context, missing inputs, "
+                    "and confirmation gates."
+                )
+                next_steps = [
+                    "Review open confirmation gates as review topics only.",
+                    "Validate source-backed specs, nameplates, site conditions, routing, load assumptions, and authority requirements before design use.",
+                ]
+        elif audience == "homeowner":
+            summary = (
+                "Shared compatibility summarizes which paths appear possible, uncertain, blocked, or contractor-review dependent from current planning data."
+            )
+            next_steps = [
+                "Use the summary to prepare contractor questions.",
+                "Do not treat any path as approved or field-verified until qualified review is complete.",
+            ]
+        else:
+            summary = (
+                "Shared compatibility groups install paths by planning-only status and exposes basis, missing inputs, blockers, and confirmation gates for review preparation."
+            )
+            next_steps = [
+                "Review confirmation gates before relying on any path for scoping.",
+                "Treat AHJ/utility, product, nameplate, routing, load, disconnect/OCPD, and field conditions as unresolved review dependencies.",
+            ]
+        return TwinSharedCompatibilityAudienceInterpretation(
+            audience=audience,
+            interpretation_scope=(
+                "homeowner_safe_planning_summary"
+                if audience == "homeowner"
+                else "contractor_facing_review_metadata"
+            ),
+            summary=summary,
+            path_status_groups=status_groups,
+            next_verification_steps=self._sorted_unique(next_steps + confirmations),
+            assumptions=[
+                "Interpretation is derived from the same shared compatibility object.",
+                "Interpretation metadata does not enforce roles, permissions, sharing, exports, or authorization.",
+            ],
+            limitations=SHARED_COMPATIBILITY_LIMITATIONS
+            + [
+                "Audience interpretation is wording metadata only, not a separate permissioned view.",
+                "No auth, sharing, export, or permission enforcement is implemented.",
+            ],
+        )
+
+    def _shared_compatibility_summary(
+        self,
+        paths: List[TwinSharedCompatibilityPath],
+        *,
+        missing_information: List[str],
+        required_confirmations: List[str],
+        contractor_confirmation_gates: List[str],
+    ) -> TwinSharedCompatibilitySummary:
+        status_counts = Counter(path.status.value for path in paths)
+        path_keys_by_status = {
+            status: [
+                path.path_key
+                for path in paths
+                if path.status == status
+            ]
+            for status in TwinSharedCompatibilityStatus
+        }
+        blocked_or_uncertain = (
+            path_keys_by_status[TwinSharedCompatibilityStatus.blocked]
+            + path_keys_by_status[TwinSharedCompatibilityStatus.unknown]
+            + path_keys_by_status[TwinSharedCompatibilityStatus.requires_contractor_confirmation]
+        )
+        return TwinSharedCompatibilitySummary(
+            total_paths=len(paths),
+            status_counts={
+                status.value: status_counts.get(status.value, 0)
+                for status in TwinSharedCompatibilityStatus
+            },
+            compatible_path_keys=self._sorted_unique(path_keys_by_status[TwinSharedCompatibilityStatus.compatible]),
+            likely_compatible_path_keys=self._sorted_unique(
+                path_keys_by_status[TwinSharedCompatibilityStatus.likely_compatible]
+            ),
+            blocked_path_keys=self._sorted_unique(path_keys_by_status[TwinSharedCompatibilityStatus.blocked]),
+            unknown_path_keys=self._sorted_unique(path_keys_by_status[TwinSharedCompatibilityStatus.unknown]),
+            confirmation_required_path_keys=self._sorted_unique(
+                path_keys_by_status[TwinSharedCompatibilityStatus.requires_contractor_confirmation]
+            ),
+            blocked_or_uncertain_path_keys=self._sorted_unique(blocked_or_uncertain),
+            missing_information_count=len(self._sorted_unique(missing_information)),
+            required_confirmation_count=len(self._sorted_unique(required_confirmations)),
+            contractor_confirmation_gate_count=len(self._sorted_unique(contractor_confirmation_gates)),
+            summary_boundary_note=(
+                "Summary counts are planning-only rollups and are not ranking, approval, readiness certification, "
+                "field verification, permit readiness, or final design guidance."
+            ),
+        )
+
+    def _shared_compatibility_path(
+        self,
+        *,
+        path_key: str,
+        path_label: str,
+        required_features: List[str],
+        required_gate_ids: List[str],
+        evidence: Dict[str, List[str]],
+        gate_by_id: Dict[str, object],
+        blocked_gate_refs: List[str],
+        complexity_signal_refs: List[str],
+        exchange_section_refs: List[str],
+        global_missing_information: List[str],
+        topology_refs: List[str],
+        readiness_refs: List[str],
+    ) -> TwinSharedCompatibilityPath:
+        present_features = [
+            feature
+            for feature in required_features
+            if evidence.get(feature)
+        ]
+        missing_features = [
+            feature
+            for feature in required_features
+            if not evidence.get(feature)
+        ]
+        source_refs = [
+            ref
+            for feature in required_features
+            for ref in evidence.get(feature, [])
+        ]
+        source_ref_categories = {
+            feature: evidence.get(feature, [])
+            for feature in required_features
+            if evidence.get(feature)
+        }
+        gate_refs = [
+            gate_id
+            for gate_id in required_gate_ids
+            if gate_id in gate_by_id
+        ]
+        path_blocked_gate_refs = [
+            gate_id
+            for gate_id in gate_refs
+            if gate_id in blocked_gate_refs
+        ]
+        missing_information = self._sorted_unique(
+            [f"missing_feature:{feature}" for feature in missing_features]
+        )
+        blockers = self._sorted_unique(
+            path_blocked_gate_refs
+            + (
+                missing_information
+                if path_key in {"service_upgrade_likely", "load_management"}
+                else []
+            )
+        )
+        required_site_product_verifications = self._sorted_unique(
+            gate_refs
+            + [
+                "product_specs_verified",
+                "nameplate_ratings_verified",
+                "manufacturer_install_manual_reviewed",
+                "load_current_assumptions_confirmed",
+                "conduit_routing_path_confirmed",
+                "disconnect_requirements_reviewed",
+                "overcurrent_protection_reviewed",
+                "utility_ahj_requirements_reviewed",
+            ]
+        )
+        status = self._shared_compatibility_status(
+            path_key=path_key,
+            present_features=present_features,
+            missing_features=missing_features,
+            gate_refs=gate_refs,
+            blocked_gate_refs=path_blocked_gate_refs,
+        )
+        basis = self._shared_compatibility_basis(
+            source_refs=source_refs,
+            source_ref_categories=source_ref_categories,
+            topology_refs=topology_refs,
+            readiness_refs=readiness_refs,
+            confirmation_gate_refs=gate_refs,
+            install_complexity_signal_refs=complexity_signal_refs,
+            exchange_section_refs=exchange_section_refs,
+            missing_information_refs=missing_information,
+            basis_quality=(
+                "current_planning_evidence_with_confirmation_gates"
+                if source_refs
+                else "missing_or_unknown_planning_evidence"
+            ),
+            basis_notes=[
+                "Path basis uses current planning records only where feature evidence exists.",
+                "Missing feature refs are surfaced as missing information and do not become inferred compatibility facts.",
+                "Confirmation gates are review requirements, not completed contractor confirmations.",
+            ],
+        )
+        reason = self._shared_compatibility_reason(
+            path_label=path_label,
+            status=status,
+            missing_features=missing_features,
+            blocked_gate_refs=path_blocked_gate_refs,
+        )
+        return TwinSharedCompatibilityPath(
+            path_key=path_key,
+            path_label=path_label,
+            status=status,
+            reason=reason,
+            basis=basis,
+            missing_information=missing_information,
+            blockers=blockers,
+            required_confirmations=gate_refs,
+            contractor_confirmation_gates=gate_refs,
+            required_site_product_verifications=required_site_product_verifications,
+            confidence_posture=(
+                "planning_evidence_with_open_confirmation_gates"
+                if source_refs
+                else "unknown_until_missing_information_is_resolved"
+            ),
+            assumptions=[
+                "Planning evidence is derived from current recorded context and request-time derived views only.",
+                "Missing feature labels are assumptions-not-allowed markers, not inferred facts.",
+                "Path status is not final design guidance, approval, or a contractor directive.",
+            ],
+            homeowner_safe_interpretation=self._shared_compatibility_audience_interpretation(
+                audience="homeowner",
+                path_label=path_label,
+                status=status,
+                missing_information=missing_information,
+                required_confirmations=gate_refs,
+                blockers=blockers,
+            ),
+            contractor_facing_interpretation=self._shared_compatibility_audience_interpretation(
+                audience="contractor",
+                path_label=path_label,
+                status=status,
+                missing_information=missing_information,
+                required_confirmations=gate_refs,
+                blockers=blockers,
+            ),
+            limitations=SHARED_COMPATIBILITY_LIMITATIONS,
+        )
+
+    def build_shared_compatibility_view(
+        self,
+        db,
+        home_id: str,
+    ) -> Optional[TwinSharedCompatibilityView]:
+        from app.services.contractor_context import contractor_context_service
+        from app.services.planning_exchange import planning_exchange_service
+
+        context = self.build(db, home_id)
+        if context is None:
+            return None
+        snapshot = self.build_topology_snapshot_view(db, home_id)
+        confirmation_gates = contractor_context_service.build_confirmation_gate_projection(db, home_id)
+        install_complexity = contractor_context_service.build_install_complexity_view(db, home_id)
+        exchange_object = planning_exchange_service.build_planning_exchange_object(db, home_id)
+        if snapshot is None or confirmation_gates is None or install_complexity is None or exchange_object is None:
+            return None
+
+        evidence = self._shared_compatibility_context_evidence(context)
+        gate_by_id = {gate.gate_id: gate for gate in confirmation_gates.gates}
+        blocked_gate_refs = [
+            gate.gate_id
+            for gate in confirmation_gates.gates
+            if gate.status == "ahj_or_utility_dependent" or gate.blocker_level == "blocked"
+        ]
+        complexity_signal_refs = [
+            signal.signal_id
+            for signal in install_complexity.signals
+            if signal.severity in {"high", "blocked", "unknown"}
+        ]
+        exchange_section_refs = [mapping.section_key for mapping in exchange_object.section_mappings]
+        global_missing_information = self._sorted_unique(
+            [
+                missing
+                for item in exchange_object.missing_information
+                for missing in item.missing_inputs
+            ]
+        )
+        topology_refs = self._sorted_unique(
+            [node.node_id for node in snapshot.nodes]
+            + [edge.edge_id for edge in snapshot.edges]
+        )
+        readiness_refs = self._sorted_unique(
+            [hint.lifecycle_domain.value for hint in snapshot.lifecycle_readiness_hints]
+            + [indicator.indicator for indicator in snapshot.missing_readiness_indicators]
+            + [indicator.indicator for indicator in snapshot.missing_relationship_indicators]
+        )
+        paths = [
+            self._shared_compatibility_path(
+                path_key=path_key,
+                path_label=path_label,
+                required_features=required_features,
+                required_gate_ids=required_gate_ids,
+                evidence=evidence,
+                gate_by_id=gate_by_id,
+                blocked_gate_refs=blocked_gate_refs,
+                complexity_signal_refs=complexity_signal_refs,
+                exchange_section_refs=exchange_section_refs,
+                global_missing_information=global_missing_information,
+                topology_refs=topology_refs,
+                readiness_refs=readiness_refs,
+            )
+            for path_key, path_label, required_features, required_gate_ids in SHARED_COMPATIBILITY_PATH_SPECS
+        ]
+        source_basis = self._shared_compatibility_basis(
+            source_refs=[
+                ref
+                for refs in evidence.values()
+                for ref in refs
+            ],
+            source_ref_categories=evidence,
+            topology_refs=topology_refs,
+            readiness_refs=readiness_refs,
+            confirmation_gate_refs=[gate.gate_id for gate in confirmation_gates.gates],
+            install_complexity_signal_refs=[signal.signal_id for signal in install_complexity.signals],
+            exchange_section_refs=exchange_section_refs,
+            missing_information_refs=global_missing_information,
+            basis_quality="view_level_request_time_rollup_from_existing_planning_views",
+            basis_notes=[
+                "Top-level basis includes all known feature evidence, topology/readiness refs, confirmation gates, install complexity signals, and exchange sections used by the view.",
+                "Top-level missing information may include broad provenance/readiness gaps inherited from existing planning views.",
+                "Path-level missing information remains narrower and only includes missing path ingredients.",
+            ],
+        )
+        required_confirmations = self._sorted_unique(
+            [
+                confirmation
+                for path in paths
+                for confirmation in path.required_confirmations
+            ]
+        )
+        contractor_confirmation_gates = self._sorted_unique(
+            [
+                gate
+                for path in paths
+                for gate in path.contractor_confirmation_gates
+            ]
+        )
+        missing_information = self._sorted_unique(
+            [
+                missing
+                for path in paths
+                for missing in path.missing_information
+            ]
+            + global_missing_information
+        )
+        blockers = self._sorted_unique(
+            [
+                blocker
+                for path in paths
+                for blocker in path.blockers
+            ]
+        )
+        summary = self._shared_compatibility_summary(
+            paths,
+            missing_information=missing_information,
+            required_confirmations=required_confirmations,
+            contractor_confirmation_gates=contractor_confirmation_gates,
+        )
+        view = TwinSharedCompatibilityView(
+            home_id=home_id,
+            implementation_boundary=(
+                "Read-only Phase 7A shared compatibility view built request-time from existing TwinPlanningContext, "
+                "topology/readiness outputs, Phase 5 contractor confirmation gates and install complexity signals, and "
+                "Phase 6 planning exchange object metadata. It classifies planning/install paths only; it does not persist "
+                "state, write data, enforce permissions, export data, create twin_id, rewrite graph behavior, generate "
+                "proposals, price work, rank paths, recommend a final design, calculate final wire/conduit/breaker sizing, "
+                "approve disconnect/OCPD requirements, produce permit-ready design, confirm field verification, or imply "
+                "AHJ/utility/contractor approval."
+            ),
+            compatibility_scope=TwinSharedCompatibilityScope(limitations=SHARED_COMPATIBILITY_LIMITATIONS),
+            source_basis=source_basis,
+            summary=summary,
+            compatibility_paths=paths,
+            blocked_paths=[
+                path for path in paths if path.status == TwinSharedCompatibilityStatus.blocked
+            ],
+            uncertain_paths=[
+                path
+                for path in paths
+                if path.status
+                in {
+                    TwinSharedCompatibilityStatus.unknown,
+                    TwinSharedCompatibilityStatus.requires_contractor_confirmation,
+                }
+            ],
+            required_confirmations=required_confirmations,
+            contractor_confirmation_gates=contractor_confirmation_gates,
+            assumptions=[
+                "Structured planning records and existing derived views are authoritative over generated text.",
+                "Compatibility status is derived from known/missing planning ingredients and existing contractor review gates.",
+                "Unknown and missing inputs are surfaced instead of inferred.",
+            ],
+            missing_information=missing_information,
+            blockers=blockers,
+            homeowner_interpretation=self._shared_compatibility_audience_interpretation(
+                audience="homeowner",
+                missing_information=missing_information,
+                required_confirmations=required_confirmations,
+                blockers=blockers,
+                paths=paths,
+            ),
+            contractor_interpretation=self._shared_compatibility_audience_interpretation(
+                audience="contractor",
+                missing_information=missing_information,
+                required_confirmations=required_confirmations,
+                blockers=blockers,
+                paths=paths,
+            ),
+            provenance_basis=source_basis,
+            limitations=SHARED_COMPATIBILITY_LIMITATIONS,
+            deferred_boundaries=sorted(SHARED_COMPATIBILITY_DEFERRED_BOUNDARIES),
+            compatibility_note=(
+                "Existing TwinPlanningContext, topology snapshot, Phase 5 contractor-context, and Phase 6 planning-exchange "
+                "routes remain unchanged; this is an additive Phase 7A shared compatibility GET view."
+            ),
+        )
+        return self._attach_trust_provenance_readiness_summary(view)
 
     def _trust_provenance_readiness_index_entry(
         self,

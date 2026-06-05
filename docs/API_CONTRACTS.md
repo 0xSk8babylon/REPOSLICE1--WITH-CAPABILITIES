@@ -101,6 +101,11 @@
 - `GET /api/planning-exchange/homes/{home_id}`
   - additive read-only, request-time, deterministic Planning Exchange Object over existing planning context and Phase 5 contractor-context views
   - response is a derived package for participant planning review only, not a persisted source of truth, export, share link, permission-enforced view, proposal, estimate, final electrical sizing output, or final design claim
+- `GET /api/twin-planning-context/homes/{home_id}/views/shared-compatibility`
+  - additive read-only, request-time, deterministic Phase 7 shared compatibility view over existing `TwinPlanningContext`, topology/readiness outputs, Phase 5 contractor gates/signals, and the Phase 6 Planning Exchange Object
+  - response classifies planning/install paths as compatible, likely compatible, blocked, unknown, or requiring contractor confirmation with per-path reason, basis/provenance, basis-quality metadata, missing information where relevant, blockers, assumptions, required site/product verification gates, and contractor confirmation gates
+  - response includes top-level summary rollups plus homeowner-safe and contractor-facing interpretation metadata; these are metadata only, not permissioned views, exports, auth, sharing, or enforcement
+  - response is planning classification only, not a final design output, full compatibility engine, recommendation ranking, permission-enforced export, contractor confirmation, field verification, permit-ready design, AHJ/utility approval, final wire/conduit/breaker sizing, final disconnect/OCPD approval, proposal, price, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 

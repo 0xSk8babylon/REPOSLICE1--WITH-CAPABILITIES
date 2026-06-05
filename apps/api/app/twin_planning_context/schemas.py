@@ -1973,6 +1973,143 @@ class TwinProductSpecReadinessView(ORMModel):
     compatibility_note: str
 
 
+class TwinSharedCompatibilityStatus(str, Enum):
+    compatible = "compatible"
+    likely_compatible = "likely_compatible"
+    blocked = "blocked"
+    unknown = "unknown"
+    requires_contractor_confirmation = "requires_contractor_confirmation"
+
+
+class TwinSharedCompatibilityScope(ORMModel):
+    scope_name: str = "phase_7a_shared_compatibility_view"
+    classification_only: bool = True
+    read_only: bool = True
+    request_time_only: bool = True
+    home_id_anchored: bool = True
+    derived_from_existing_twin_context: bool = True
+    derived_from_topology_readiness: bool = True
+    derived_from_contractor_context: bool = True
+    derived_from_planning_exchange_object: bool = True
+    deterministic_for_same_inputs: bool = True
+    compatibility_engine_present: bool = False
+    final_electrical_design_present: bool = False
+    final_wire_sizing_present: bool = False
+    final_conduit_sizing_present: bool = False
+    final_breaker_sizing_present: bool = False
+    final_disconnect_ocpd_approval_present: bool = False
+    permit_ready_design_claim_present: bool = False
+    ahj_approval_claim_present: bool = False
+    utility_approval_claim_present: bool = False
+    field_verification_claim_present: bool = False
+    contractor_confirmation_completed_claim_present: bool = False
+    recommendations_present: bool = False
+    ranking_present: bool = False
+    pricing_present: bool = False
+    proposal_generation_present: bool = False
+    export_present: bool = False
+    permission_enforcement_present: bool = False
+    auth_security_changes_present: bool = False
+    persistence_present: bool = False
+    migrations_present: bool = False
+    twin_id_present: bool = False
+    graph_engine_present: bool = False
+    operational_behavior_present: bool = False
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinSharedCompatibilityBasis(ORMModel):
+    source_views: List[str] = Field(default_factory=list)
+    source_fields: List[str] = Field(default_factory=list)
+    source_refs: List[str] = Field(default_factory=list)
+    source_ref_categories: Dict[str, List[str]] = Field(default_factory=dict)
+    topology_refs: List[str] = Field(default_factory=list)
+    readiness_refs: List[str] = Field(default_factory=list)
+    confirmation_gate_refs: List[str] = Field(default_factory=list)
+    install_complexity_signal_refs: List[str] = Field(default_factory=list)
+    exchange_section_refs: List[str] = Field(default_factory=list)
+    missing_information_refs: List[str] = Field(default_factory=list)
+    basis_quality: str = "request_time_derived_from_existing_context"
+    request_time_derived: bool = True
+    verified_fact_claim_present: bool = False
+    basis_notes: List[str] = Field(default_factory=list)
+    derived_from: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinSharedCompatibilityAudienceInterpretation(ORMModel):
+    audience: str
+    interpretation_scope: str
+    summary: str
+    path_status_groups: Dict[str, List[str]] = Field(default_factory=dict)
+    next_verification_steps: List[str] = Field(default_factory=list)
+    assumptions: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinSharedCompatibilitySummary(ORMModel):
+    total_paths: int = 0
+    status_counts: Dict[str, int] = Field(default_factory=dict)
+    compatible_path_keys: List[str] = Field(default_factory=list)
+    likely_compatible_path_keys: List[str] = Field(default_factory=list)
+    blocked_path_keys: List[str] = Field(default_factory=list)
+    unknown_path_keys: List[str] = Field(default_factory=list)
+    confirmation_required_path_keys: List[str] = Field(default_factory=list)
+    blocked_or_uncertain_path_keys: List[str] = Field(default_factory=list)
+    missing_information_count: int = 0
+    required_confirmation_count: int = 0
+    contractor_confirmation_gate_count: int = 0
+    summary_boundary_note: str
+
+
+class TwinSharedCompatibilityPath(ORMModel):
+    path_key: str
+    path_label: str
+    status: TwinSharedCompatibilityStatus
+    reason: str
+    basis: TwinSharedCompatibilityBasis
+    missing_information: List[str] = Field(default_factory=list)
+    blockers: List[str] = Field(default_factory=list)
+    required_confirmations: List[str] = Field(default_factory=list)
+    contractor_confirmation_gates: List[str] = Field(default_factory=list)
+    required_site_product_verifications: List[str] = Field(default_factory=list)
+    confidence_posture: str = "planning_only_not_verified"
+    assumptions: List[str] = Field(default_factory=list)
+    homeowner_safe_interpretation: Optional[TwinSharedCompatibilityAudienceInterpretation] = None
+    contractor_facing_interpretation: Optional[TwinSharedCompatibilityAudienceInterpretation] = None
+    limitations: List[str] = Field(default_factory=list)
+
+
+class TwinSharedCompatibilityView(ORMModel):
+    view_name: str = "shared_compatibility"
+    home_id: str
+    anchor_type: str = "home_id"
+    generated_at: str = "request_time_derived_not_persisted"
+    permission_enforcement: str = "not_enforced"
+    permission_scope: str = "permission_readiness_metadata_only"
+    authority_layer: AuthorityLayer = AuthorityLayer.derived
+    data_classification: DataClassification = DataClassification.contractor_scoped
+    implementation_boundary: str
+    compatibility_scope: TwinSharedCompatibilityScope
+    source_basis: TwinSharedCompatibilityBasis
+    summary: TwinSharedCompatibilitySummary
+    compatibility_paths: List[TwinSharedCompatibilityPath] = Field(default_factory=list)
+    blocked_paths: List[TwinSharedCompatibilityPath] = Field(default_factory=list)
+    uncertain_paths: List[TwinSharedCompatibilityPath] = Field(default_factory=list)
+    required_confirmations: List[str] = Field(default_factory=list)
+    contractor_confirmation_gates: List[str] = Field(default_factory=list)
+    assumptions: List[str] = Field(default_factory=list)
+    missing_information: List[str] = Field(default_factory=list)
+    blockers: List[str] = Field(default_factory=list)
+    homeowner_interpretation: TwinSharedCompatibilityAudienceInterpretation
+    contractor_interpretation: TwinSharedCompatibilityAudienceInterpretation
+    provenance_basis: TwinSharedCompatibilityBasis
+    limitations: List[str] = Field(default_factory=list)
+    deferred_boundaries: List[str] = Field(default_factory=list)
+    trust_provenance_readiness_summary: Optional[TwinTrustProvenanceReadinessSummary] = None
+    compatibility_note: str
+
+
 class TwinDependencyImpactReadinessSummary(ORMModel):
     readiness_scope: str = "phase_3a_dependency_impact_readiness"
     descriptive_only: bool = True
