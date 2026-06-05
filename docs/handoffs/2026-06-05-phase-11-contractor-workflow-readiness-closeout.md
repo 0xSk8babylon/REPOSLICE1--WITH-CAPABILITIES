@@ -2,7 +2,7 @@
 
 ## Summary
 
-Phase 11A through Phase 11F is implemented in the working tree as an additive read-only backend/API slice.
+Phase 11A through Phase 11I is complete and locally committed in `544c3a0` (`feat: add phase 11 contractor workflow readiness`) as an additive read-only backend/API slice. No push was approved or run.
 
 Added `GET /api/contractor-workflow/homes/{home_id}/readiness` to organize existing contractor-facing planning context into contractor workflow readiness lanes. This opens the Contractor-Owned Workflow Layer as contractor-facing workflow readiness projection only. It is not true contractor-owned persisted workflow state.
 
@@ -68,12 +68,12 @@ Phase 11 does not add POST/PATCH/DELETE, persistence, migrations, contractor-own
 
 - Focused Phase 11 tests are slow because the endpoint composes expensive existing derived-view stacks.
 - Full backend discovery is too slow under the current 900s cap.
-- Phase 11 is not committed yet, and the working tree also contains separate session-report email preflight changes.
+- Phase 11 is locally committed in `544c3a0`; separate session-report email preflight and closeout-email docs are committed in `8bdf57e` and `ef4efc3`.
 
 ## Decisions Needed From Matt
 
-- Whether to stage Phase 11 and session-report email preflight as two separate commits with hunk staging for `discovery-index.md`.
-- Whether to run a longer full backend test window before commit.
+- Whether to start Phase 12 after this continuity repair.
+- Whether to run a longer full backend test window before future runtime work.
 
 ## Next Safe Boundary
 

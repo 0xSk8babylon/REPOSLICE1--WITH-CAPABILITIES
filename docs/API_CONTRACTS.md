@@ -52,6 +52,7 @@
 - `GET /api/estimate-readiness/homes/{home_id}`
 - `GET /api/proposal-option-sets/homes/{home_id}`
 - `GET /api/contractor-workflow/homes/{home_id}/readiness`
+- `GET /api/product-preferences/homes/{home_id}`
 
 ## Current Write Contracts
 
@@ -131,6 +132,12 @@
   - response organizes readiness lanes for planning review, missing-input review, confirmation-gate review, option-candidate review, and proposal-prep blocked/deferred
   - response preserves blockers, missing inputs, confirmation gates, option-candidate refs, dependencies, assumptions, deferred boundaries, homeowner-safe summary, contractor-facing readiness prompts, and source/provenance basis
   - response is contractor workflow readiness projection only, not true contractor-owned persisted workflow state, not a contractor account, not assignment/acceptance/completion/approval tracking, not permission enforcement, not pricing, not bids/quotes, not final proposal, not final estimate, not final design, not CRM automation, not product-runtime email automation, not export behavior, not external service behavior, and not operational behavior
+- `GET /api/product-preferences/homes/{home_id}`
+  - additive read-only, request-time, deterministic Phase 12 product preference and install-logic guidance view over existing Phase 7 shared compatibility, Phase 8 topology takeoff, Phase 9 estimate readiness, and Phase 10 proposal option-set outputs
+  - direct Phase 11 workflow rebuild is intentionally not used in runtime composition because it is expensive and unnecessary for Phase 12 category derivation
+  - response includes fixed product/install categories, planning direction, install-logic review notes, homeowner-safe explanations, contractor-facing review prompts, blockers, missing inputs, confirmation gates, assumptions, deferred boundaries, explicit capability-boundary flags, and source/provenance basis
+  - unsupported categories remain source-limited with explicit missing inputs rather than inferred preferences
+  - response is product preference/install-logic guidance metadata only, not a final product recommendation, product ranking, best-option selection, pricing, live inventory, distributor quote, procurement, purchase link, payment, final BOM, final electrical design, manufacturer certification, warranty claim, CRM handoff, runtime email automation, frontend behavior, persistence, migrations, write behavior, auth/security behavior, permission enforcement, external service behavior, export behavior, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 
