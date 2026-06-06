@@ -475,6 +475,10 @@ a {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.42);
 }
 
 .intelligence-grid {
@@ -487,6 +491,7 @@ a {
   display: grid;
   gap: 16px;
   align-content: start;
+  min-width: 0;
 }
 
 .intelligence-card p {
@@ -507,7 +512,7 @@ a {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
-  align-items: end;
+  align-items: start;
 }
 
 .home-selector-copy {
@@ -517,6 +522,10 @@ a {
 
 .home-selector-control {
   min-width: min(320px, 100%);
+}
+
+.home-selector-control select {
+  width: 100%;
 }
 
 .home-selector-meta {
@@ -587,9 +596,13 @@ a {
   margin-top: 6px;
 }
 
+.mini-list li {
+  line-height: 1.4;
+}
+
 .contractor-review-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
 }
 
@@ -638,6 +651,7 @@ a {
   background: rgba(215, 239, 231, 0.42);
   color: var(--muted);
   font-size: 0.82rem;
+  line-height: 1.25;
 }
 
 .review-chip strong {

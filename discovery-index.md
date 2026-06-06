@@ -172,15 +172,15 @@ Read these first:
   - Current boundary: Product preferences are additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, and `home_id` anchored over existing Phase 7 through Phase 10 source outputs. Direct Phase 11 workflow rebuild is intentionally not used because it is expensive and unnecessary for Phase 12 category derivation.
   - Product/install categories: PV modules, inverter topology, microinverter/string/hybrid direction, AC-coupled vs DC-coupled battery direction, partial-home vs whole-home backup direction, gateway/transfer equipment implications, backup loads panel implications, monitoring/controls, EV charger readiness, main service panel/subpanel implications, aesthetic preference, and contractor-preferred product family.
   - Deferred: final product recommendations, product ranking, best-option selection, pricing, live inventory, distributor quotes, procurement, purchase links, payments, final BOM, final electrical design, manufacturer certification, warranty claims, CRM handoff, runtime email automation, frontend work, persistence, migrations, write endpoints, auth/security changes, permission enforcement, external services/secrets, git push, `twin_id`, graph behavior, operational behavior, and production deployment.
-- Phase 13: Post-Install Retention & CRM Handoff - implemented in the working tree and not staged or committed.
+- Phase 13: Post-Install Retention & CRM Handoff - complete and locally committed in `d2a2a98`.
   - Handoff: `docs/handoffs/2026-06-05-phase-13-post-install-retention-crm-handoff-closeout.md`
   - Runtime endpoints: `GET /api/post-install/homes/{home_id}` and `GET /api/crm-handoff/homes/{home_id}`.
   - Runtime files: `apps/api/app/post_install/__init__.py`, `apps/api/app/post_install/schemas.py`, `apps/api/app/post_install/router.py`, `apps/api/app/services/post_install.py`, `apps/api/app/crm_handoff/__init__.py`, `apps/api/app/crm_handoff/schemas.py`, `apps/api/app/crm_handoff/router.py`, `apps/api/app/services/crm_handoff.py`, `apps/api/app/main.py`, and `apps/api/tests/test_phase13_post_install_crm.py`.
   - Completed scope: backend read-only schemas, backend read-only routes, request-time deterministic post-install retention readiness, fixed retention opportunity categories, request-time lifecycle event detection, manual CRM handoff object projection, false forbidden-boundary flags, source/provenance basis, focused tests, and continuity/API docs closeout.
-  - Verification so far: `py_compile` passed; focused Phase 13 tests passed with `6 tests OK` in `0.694s`. Final verification is pending.
+  - Verification: `py_compile` passed; focused Phase 13 tests passed with `6 tests OK` in `0.694s`; closeout verification passed before commit.
   - Current boundary: Phase 13 is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, and `home_id` anchored over Phase 11 contractor workflow readiness and Phase 12 product preference metadata. Phase 9/10 refs are carried only where existing Phase 11/12 source contracts already surface them.
   - Deferred: external CRM integration, CRM writes, CRM record creation, email/drip campaign product behavior, task creation, sales scoring, lead scoring, ranking, best upsell logic, push behavior, persistence, migrations, write endpoints, auth/security changes, permission enforcement, frontend work, exports, pricing, proposal generation, external services/secrets, git push, `twin_id`, graph behavior, operational behavior, and production deployment.
-- Phase 14: Energy Passport - implemented in the working tree and not staged or committed.
+- Phase 14: Energy Passport - complete and locally committed in `840e4ad`.
   - Handoff: `docs/handoffs/2026-06-06-phase-14-energy-passport-closeout.md`
   - Runtime endpoint: `GET /api/energy-passport/homes/{home_id}`.
   - Runtime files: `apps/api/app/energy_passport/__init__.py`, `apps/api/app/energy_passport/schemas.py`, `apps/api/app/energy_passport/router.py`, `apps/api/app/services/energy_passport.py`, `apps/api/app/main.py`, and `apps/api/tests/test_energy_passport.py`.
@@ -188,14 +188,21 @@ Read these first:
   - Verification: Gate 14A compile/import passed; focused Phase 14 tests passed with `7 tests OK`; adjacent Phase 13 + Phase 14 regression passed with `13 tests OK`; `git diff --check` passed.
   - Current boundary: Phase 14 is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, homeowner-safe, and `home_id` anchored over existing Phase 6 through Phase 13 source surfaces where available.
   - Deferred: persistence, migrations, write endpoints, auth/security changes, permission enforcement, external integrations, CRM writes, MLS/title/escrow/deed/legal transfer logic, warranty validation, permit validation, payoff calculation, lien/title/UCC search, appraisal, underwriting, tax-credit or financial conclusions, deploy, git push, `twin_id`, graph behavior, operational behavior, and production deployment.
-- Phase 15: Program Intelligence & Grid Edge Readiness - implemented in the working tree and not committed.
+- Phase 15: Program Intelligence & Grid Edge Readiness - complete and locally committed in `01fd231`.
   - Handoff: `docs/handoffs/2026-06-05-phase-15-program-intelligence-closeout.md`
   - Runtime endpoint: `GET /api/program-intelligence/homes/{home_id}`.
   - Runtime files: `apps/api/app/program_intelligence/__init__.py`, `apps/api/app/program_intelligence/schemas.py`, `apps/api/app/program_intelligence/router.py`, `apps/api/app/services/program_intelligence.py`, `apps/api/app/main.py`, and `apps/api/tests/test_program_intelligence.py`.
   - Completed scope: backend read-only schemas, backend read-only route, request-time deterministic program intelligence summary, fixed awareness categories, grid-edge readiness indicators, missing-input/blocker/confirmation-gate degradation, homeowner-safe summaries, contractor/program review prompts, explicit false hard-stop boundary flags, source/provenance basis, focused tests, and continuity/API docs closeout.
   - Verification: `py_compile` passed; focused Phase 15 tests passed with `6 tests OK`; `git diff --check` passed.
   - Current boundary: Phase 15 is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, and `home_id` anchored over existing `TwinPlanningContext` records.
-  - Deferred: persistence, migrations, writes, background jobs, external API calls, auth/security changes, permission enforcement, enrollment workflows, rebate calculations, incentive calculations, tariff optimization, utility dispatch, device control, demand response execution, grid-services execution, billing logic, pricing logic, proposal generation, CRM integration, email automation, exports, pushes, git commit, and production deployment.
+  - Deferred: persistence, migrations, writes, background jobs, external API calls, auth/security changes, permission enforcement, enrollment workflows, rebate calculations, incentive calculations, tariff optimization, utility dispatch, device control, demand response execution, grid-services execution, billing logic, pricing logic, proposal generation, CRM integration, email automation, exports, pushes, and production deployment.
+- Phase 16: UI / UX Layer - complete through the current read-only dashboard slice.
+  - Doctrine: `docs/doctrine/phase-16-ui-ux-layer-doctrine.md`
+  - Closeout handoff: `docs/handoffs/2026-06-06-phase-16-ui-ux-layer-closeout.md`
+  - Frontend route: existing Dashboard route (`/`) in `apps/web/src/pages/DashboardPage.jsx`.
+  - Completed scope: read-only planning intelligence dashboard over existing backend intelligence, selected-home context using existing home list contracts, homeowner-safe cards, contractor review panels, trust-boundary labels, loading/error/empty/degraded states, and scoped demo polish.
+  - Verification: `git diff --check` and `npm run web:build` are the required Phase 16 closeout checks; no frontend lint/typecheck/test scripts currently exist.
+  - Current boundary: Phase 16 is frontend presentation only. It does not add backend contracts, backend runtime behavior, auth, writes, persistence, migrations, deployment config, external services, product ingestion, pricing/savings/ROI claims, final quote/proposal/design/estimate logic, approval claims, or push behavior.
 
 ## Operational References By Task
 
@@ -395,6 +402,12 @@ Read these first:
     - `apps/api/app/services/program_intelligence.py`
     - `apps/api/app/main.py`
     - `apps/api/tests/test_program_intelligence.py`
+  - Phase 16 UI / UX Layer:
+    - `docs/doctrine/phase-16-ui-ux-layer-doctrine.md`
+    - `docs/handoffs/2026-06-06-phase-16-ui-ux-layer-closeout.md`
+    - `apps/web/src/pages/DashboardPage.jsx`
+    - `apps/web/src/styles/global.css`
+    - `apps/web/src/lib/api.js`
   - Phase 3J Contractor-Facing Advisory Logic:
     - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
     - `apps/api/app/twin_planning_context/router.py`

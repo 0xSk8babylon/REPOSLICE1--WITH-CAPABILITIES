@@ -368,7 +368,7 @@ export function DashboardPage() {
       </PageSection>
       <PageSection
         title="Planning Intelligence"
-        description="A first read-only slice over backend planning intelligence. These are derived, request-time planning signals for review, not final decisions."
+        description="A read-only dashboard slice over backend planning intelligence. These are derived, request-time planning signals for review, not final decisions."
       >
         <div className="intelligence-boundary-strip">
           {TRUST_BOUNDARY_LABELS.map((label) => (
@@ -539,8 +539,8 @@ export function DashboardPage() {
               </div>
               <div className="contractor-review-intro">
                 <p>
-                  This read-only dashboard organizes backend planning signals for review. It does not approve scope,
-                  pricing, design, utility participation, permits, or interconnection.
+                  This read-only dashboard organizes backend planning signals for contractor review. It does not
+                  approve scope, pricing, design, utility participation, permits, or interconnection.
                 </p>
                 <div className="review-chip-row">
                   <ReviewChip label="View" value="Derived" />
