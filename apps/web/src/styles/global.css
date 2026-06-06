@@ -503,6 +503,39 @@ a {
     linear-gradient(145deg, rgba(215, 239, 231, 0.62), rgba(255, 250, 242, 0.78));
 }
 
+.home-selector-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.home-selector-copy {
+  margin: 0;
+  color: var(--muted);
+}
+
+.home-selector-control {
+  min-width: min(320px, 100%);
+}
+
+.home-selector-meta {
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 250, 242, 0.58);
+}
+
+.home-selector-meta span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .intelligence-metric-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -558,6 +591,58 @@ a {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+}
+
+.contractor-review-intro {
+  display: grid;
+  gap: 12px;
+}
+
+.review-detail-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.5);
+}
+
+.review-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.review-detail-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.review-chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.review-chip {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  max-width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(215, 239, 231, 0.42);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.review-chip strong {
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 .workspace-legend {
@@ -897,6 +982,7 @@ a {
   .hero,
   .stat-grid,
   .card-grid,
+  .home-selector-panel,
   .intelligence-grid,
   .intelligence-metric-grid,
   .contractor-review-grid,

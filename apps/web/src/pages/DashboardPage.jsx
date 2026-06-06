@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { EmptyState, ErrorState, LoadingState } from "../components/AsyncState";
 import { Badge } from "../components/Badge";
 import { PageSection } from "../components/PageSection";
@@ -42,6 +44,9 @@ function normalizeListItem(item) {
   if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") {
     return String(item);
   }
+  if (item.gate_name) return `${item.gate_name}: ${formatLabel(item.status || "needs_confirmation")}`;
+  if (item.category && item.status) return `${formatLabel(item.category)}: ${formatLabel(item.status)}`;
+  if (item.contractor_program_review_prompt) return item.contractor_program_review_prompt;
   if (item.homeowner_explanation) return item.homeowner_explanation;
   if (item.contractor_notes) return item.contractor_notes;
   if (item.contractor_review_note) return item.contractor_review_note;
@@ -49,9 +54,19 @@ function normalizeListItem(item) {
   return "Additional review detail reported by backend.";
 }
 
+function asArray(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
 function firstItems(items = [], count = 3) {
-  const sourceItems = Array.isArray(items) ? items : [items];
+  const sourceItems = asArray(items);
   return sourceItems.map(normalizeListItem).filter(Boolean).slice(0, count);
+}
+
+function homeDisplayLabel(home) {
+  if (!home) return "No home context";
+  return [home.name, home.city, home.state].filter(Boolean).join(" - ") || home.id || "Unnamed home";
 }
 
 function IntelligenceStateCard({ title, children, data, error, loading }) {
@@ -114,7 +129,80 @@ function MiniList({ title, items, emptyLabel = "No items reported." }) {
   );
 }
 
+function HomeContextSelector({ homes, selectedHome, onSelectHomeId }) {
+  const homesForSelection = selectedHome && homes.length === 0 ? [selectedHome] : homes;
+  const hasMultipleHomes = homesForSelection.length > 1;
+
+  return (
+    <article className="panel home-selector-panel">
+      <div>
+        <div className="panel-header">
+          <h3>Home context selector</h3>
+          <Badge tone="info">Read-only dashboard state</Badge>
+        </div>
+        <p className="home-selector-copy">
+          Select which existing home anchors the planning intelligence cards. This only changes the displayed
+          dashboard context and does not write, approve, or persist planning data.
+        </p>
+      </div>
+      {hasMultipleHomes ? (
+        <label className="field home-selector-control">
+          <span>Dashboard home context</span>
+          <select value={selectedHome?.id || ""} onChange={(event) => onSelectHomeId(event.target.value)}>
+            {homesForSelection.map((home) => (
+              <option key={home.id} value={home.id}>
+                {homeDisplayLabel(home)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <div className="home-selector-meta">
+          <span>Single home context</span>
+          <strong>{homeDisplayLabel(selectedHome)}</strong>
+        </div>
+      )}
+    </article>
+  );
+}
+
+function ReviewChip({ label, value }) {
+  return (
+    <span className="review-chip">
+      {label}: <strong>{value}</strong>
+    </span>
+  );
+}
+
+function ReviewDetailCard({ title, badge, tone = "info", summary, metrics = [], lists = [] }) {
+  return (
+    <div className="review-detail-card">
+      <div className="review-detail-header">
+        <strong>{title}</strong>
+        {badge ? <Badge tone={tone}>{badge}</Badge> : null}
+      </div>
+      {summary ? <p>{summary}</p> : null}
+      {metrics.length ? (
+        <div className="review-chip-row">
+          {metrics.map((metric) => (
+            <ReviewChip key={metric.label} label={metric.label} value={metric.value} />
+          ))}
+        </div>
+      ) : null}
+      {lists.map((list) => (
+        <MiniList
+          key={list.title}
+          title={list.title}
+          items={list.items}
+          emptyLabel={list.emptyLabel}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function DashboardPage() {
+  const [selectedHomeId, setSelectedHomeId] = useState("");
   const homeQuery = useApiQuery("home", api.getHome);
   const allHomesQuery = useApiQuery("homes-all", api.getAllHomes);
   const loadsQuery = useApiQuery("loads-summary", api.getLoadSummary);
@@ -123,28 +211,30 @@ export function DashboardPage() {
   const scenariosQuery = useApiQuery("scenarios", api.getScenarios);
 
   const allHomes = Array.isArray(allHomesQuery.data) ? allHomesQuery.data : [];
-  const selectedHome = allHomes[0] || homeQuery.data || null;
-  const selectedHomeId = selectedHome?.id || null;
+  const selectableHomes = allHomes.length ? allHomes : homeQuery.data ? [homeQuery.data] : [];
+  const selectedHome =
+    selectableHomes.find((home) => home?.id === selectedHomeId) || selectableHomes[0] || null;
+  const activeHomeId = selectedHome?.id || null;
 
   const estimateReadinessQuery = useApiQuery(
-    `estimate-readiness-${selectedHomeId || "none"}`,
-    () => api.getEstimateReadiness(selectedHomeId),
-    { enabled: Boolean(selectedHomeId) },
+    `estimate-readiness-${activeHomeId || "none"}`,
+    () => api.getEstimateReadiness(activeHomeId),
+    { enabled: Boolean(activeHomeId) },
   );
   const proposalOptionSetsQuery = useApiQuery(
-    `proposal-option-sets-${selectedHomeId || "none"}`,
-    () => api.getProposalOptionSets(selectedHomeId),
-    { enabled: Boolean(selectedHomeId) },
+    `proposal-option-sets-${activeHomeId || "none"}`,
+    () => api.getProposalOptionSets(activeHomeId),
+    { enabled: Boolean(activeHomeId) },
   );
   const energyPassportQuery = useApiQuery(
-    `energy-passport-${selectedHomeId || "none"}`,
-    () => api.getEnergyPassport(selectedHomeId),
-    { enabled: Boolean(selectedHomeId) },
+    `energy-passport-${activeHomeId || "none"}`,
+    () => api.getEnergyPassport(activeHomeId),
+    { enabled: Boolean(activeHomeId) },
   );
   const programIntelligenceQuery = useApiQuery(
-    `program-intelligence-${selectedHomeId || "none"}`,
-    () => api.getProgramIntelligence(selectedHomeId),
-    { enabled: Boolean(selectedHomeId) },
+    `program-intelligence-${activeHomeId || "none"}`,
+    () => api.getProgramIntelligence(activeHomeId),
+    { enabled: Boolean(activeHomeId) },
   );
 
   const isLoading =
@@ -168,7 +258,7 @@ export function DashboardPage() {
   const products = productsQuery.data || [];
   const scenarios = scenariosQuery.data || [];
   const noHomes = !isLoading && !homeContextError && allHomes.length === 0 && !selectedHome;
-  const noSelectedHome = !isLoading && !error && allHomes.length > 0 && !selectedHomeId;
+  const noSelectedHome = !isLoading && !error && selectableHomes.length > 0 && !activeHomeId;
 
   const intelligenceQueries = [
     estimateReadinessQuery,
@@ -180,7 +270,7 @@ export function DashboardPage() {
   const intelligenceErrors = intelligenceQueries.filter((query) => query.error);
   const intelligenceDataCount = intelligenceQueries.filter((query) => query.data).length;
   const intelligencePartial =
-    Boolean(selectedHomeId) &&
+    Boolean(activeHomeId) &&
     !intelligenceLoading &&
     (intelligenceErrors.length > 0 || intelligenceDataCount < intelligenceQueries.length);
 
@@ -188,6 +278,33 @@ export function DashboardPage() {
   const proposalOptionSets = proposalOptionSetsQuery.data;
   const energyPassport = energyPassportQuery.data;
   const programIntelligence = programIntelligenceQuery.data;
+  const estimateSummary = estimateReadiness?.readiness_summary;
+  const proposalSummary = proposalOptionSets?.summary;
+  const programSummary = programIntelligence?.summary;
+  const transferReadiness = energyPassport?.transfer_readiness;
+  const openEstimateGates = asArray(estimateReadiness?.confirmation_gates).filter(
+    (gate) => String(gate?.status || "").toLowerCase() !== "confirmed",
+  );
+  const estimateReviewNotes = [
+    estimateReadiness?.contractor_summary,
+    ...asArray(estimateReadiness?.blockers).map((blocker) => blocker?.contractor_notes),
+  ];
+  const proposalReviewNotes = [
+    proposalOptionSets?.contractor_summary,
+    ...asArray(proposalOptionSets?.option_candidates).flatMap((candidate) =>
+      asArray(candidate?.contractor_review_notes),
+    ),
+  ];
+  const programReviewPrompts = [
+    ...asArray(programIntelligence?.interpretation?.contractor_program_review_prompts),
+    ...asArray(programIntelligence?.interpretation?.verification_recommendations),
+  ];
+  const combinedMissingInputs = [
+    ...asArray(estimateReadiness?.missing_inputs),
+    ...asArray(proposalOptionSets?.missing_inputs),
+    ...asArray(programIntelligence?.missing_inputs),
+    ...asArray(transferReadiness?.missing_transfer_inputs),
+  ];
 
   return (
     <>
@@ -199,7 +316,11 @@ export function DashboardPage() {
         {error ? <ErrorState error={error} label="Unable to load dashboard summary." /> : null}
         {!isLoading && !error && selectedHome ? (
           <div className="stat-grid">
-            <StatCard label="Homes in workspace" value={String(allHomes.length || 1)} detail={selectedHome.name} />
+            <StatCard
+              label="Homes in workspace"
+              value={String(selectableHomes.length || 1)}
+              detail={selectedHome.name}
+            />
             <StatCard
               label="Structures modeled"
               value={String(selectedHome.buildings?.length || 0)}
@@ -235,10 +356,11 @@ export function DashboardPage() {
               <p>Service size: {selectedHome.service_size ? `${selectedHome.service_size}A` : "Unknown"}</p>
             </article>
             <article className="panel">
-              <h3>Current planning signals</h3>
+              <h3>Workspace planning signals</h3>
               <p>Total running load: {loadSummary?.total_running_watts || 0} W</p>
               <p>Total surge load: {loadSummary?.total_surge_watts || 0} W</p>
               <p>Scenarios available: {scenarios.length}</p>
+              <p>Home-specific planning intelligence appears in the selected-home view below.</p>
             </article>
           </div>
         ) : null}
@@ -258,6 +380,13 @@ export function DashboardPage() {
         {error ? <ErrorState error={error} label="Backend unavailable for dashboard context." /> : null}
         {noHomes ? <EmptyState label="No homes are available for planning intelligence yet." /> : null}
         {noSelectedHome ? <EmptyState label="No selected home context is available for this read-only view." /> : null}
+        {!isLoading && !error && selectedHome ? (
+          <HomeContextSelector
+            homes={selectableHomes}
+            selectedHome={selectedHome}
+            onSelectHomeId={setSelectedHomeId}
+          />
+        ) : null}
         {intelligencePartial ? (
           <div className="state-card warning-panel">
             This view is based on available planning inputs. Some planning context is incomplete or unavailable, so
@@ -265,7 +394,7 @@ export function DashboardPage() {
           </div>
         ) : null}
 
-        {selectedHomeId ? (
+        {activeHomeId ? (
           <div className="intelligence-grid">
             <article className="panel intelligence-card intelligence-card-context">
               <div className="panel-header">
@@ -408,33 +537,86 @@ export function DashboardPage() {
                 <h3>Contractor review summary</h3>
                 <Badge tone="warning">Needs confirmation</Badge>
               </div>
-              <p>
-                This read-only dashboard organizes backend planning signals for review. It does not approve scope,
-                pricing, design, utility participation, permits, or interconnection.
-              </p>
+              <div className="contractor-review-intro">
+                <p>
+                  This read-only dashboard organizes backend planning signals for review. It does not approve scope,
+                  pricing, design, utility participation, permits, or interconnection.
+                </p>
+                <div className="review-chip-row">
+                  <ReviewChip label="View" value="Derived" />
+                  <ReviewChip label="Authority" value="Non-final" />
+                  <ReviewChip label="Action" value="Contractor review needed" />
+                </div>
+              </div>
               <div className="contractor-review-grid">
-                <MiniList
-                  title="Estimate review"
-                  items={[
-                    estimateReadiness?.contractor_summary,
-                    ...(estimateReadiness?.blockers || []).map((blocker) => blocker.contractor_notes),
+                <ReviewDetailCard
+                  title="Estimate gates"
+                  badge={formatLabel(estimateReadiness?.overall_status)}
+                  tone={statusTone(estimateReadiness?.overall_status)}
+                  summary={estimateReadiness?.contractor_summary}
+                  metrics={[
+                    { label: "Open blockers", value: String(estimateSummary?.blocker_count ?? 0) },
+                    { label: "Pending gates", value: String(estimateSummary?.pending_gate_count ?? 0) },
+                    { label: "Missing inputs", value: String(estimateSummary?.missing_input_count ?? 0) },
                   ]}
-                  emptyLabel="No estimate review notes reported."
-                />
-                <MiniList
-                  title="Proposal review"
-                  items={[
-                    proposalOptionSets?.contractor_summary,
-                    ...(proposalOptionSets?.option_candidates || []).flatMap(
-                      (candidate) => candidate.contractor_review_notes || [],
-                    ),
+                  lists={[
+                    {
+                      title: "Open confirmation gates",
+                      items: openEstimateGates,
+                      emptyLabel: "No open estimate gates reported.",
+                    },
+                    {
+                      title: "Estimate review notes",
+                      items: estimateReviewNotes,
+                      emptyLabel: "No estimate review notes reported.",
+                    },
                   ]}
-                  emptyLabel="No proposal review notes reported."
                 />
-                <MiniList
-                  title="Program review"
-                  items={programIntelligence?.interpretation?.contractor_program_review_prompts}
-                  emptyLabel="No program review prompts reported."
+                <ReviewDetailCard
+                  title="Proposal option review"
+                  badge={formatLabel(proposalSummary?.overall_status)}
+                  tone={statusTone(proposalSummary?.overall_status)}
+                  summary={proposalOptionSets?.contractor_summary}
+                  metrics={[
+                    { label: "Candidates", value: String(proposalSummary?.option_candidate_count ?? 0) },
+                    { label: "Review needed", value: String(proposalSummary?.candidates_requiring_review_count ?? 0) },
+                    { label: "Open gates", value: String(proposalSummary?.confirmation_gate_count ?? 0) },
+                  ]}
+                  lists={[
+                    {
+                      title: "Proposal review notes",
+                      items: proposalReviewNotes,
+                      emptyLabel: "No proposal review notes reported.",
+                    },
+                    {
+                      title: "Proposal blockers",
+                      items: proposalOptionSets?.blockers,
+                      emptyLabel: "No proposal blockers reported.",
+                    },
+                  ]}
+                />
+                <ReviewDetailCard
+                  title="Program and install review prompts"
+                  badge={formatLabel(programSummary?.overall_status)}
+                  tone={statusTone(programSummary?.overall_status)}
+                  summary={programIntelligence?.interpretation?.homeowner_safe_summary}
+                  metrics={[
+                    { label: "Program signals", value: String(programSummary?.program_awareness_count ?? 0) },
+                    { label: "Grid signals", value: String(programSummary?.grid_edge_readiness_count ?? 0) },
+                    { label: "Verification gates", value: String(programSummary?.confirmation_gate_count ?? 0) },
+                  ]}
+                  lists={[
+                    {
+                      title: "Contractor prompts",
+                      items: programReviewPrompts,
+                      emptyLabel: "No program review prompts reported.",
+                    },
+                    {
+                      title: "Missing input watchlist",
+                      items: combinedMissingInputs,
+                      emptyLabel: "No missing inputs reported across loaded dashboard endpoints.",
+                    },
+                  ]}
                 />
               </div>
             </article>
