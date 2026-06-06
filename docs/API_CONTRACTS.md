@@ -53,6 +53,8 @@
 - `GET /api/proposal-option-sets/homes/{home_id}`
 - `GET /api/contractor-workflow/homes/{home_id}/readiness`
 - `GET /api/product-preferences/homes/{home_id}`
+- `GET /api/post-install/homes/{home_id}`
+- `GET /api/crm-handoff/homes/{home_id}`
 
 ## Current Write Contracts
 
@@ -138,6 +140,15 @@
   - response includes fixed product/install categories, planning direction, install-logic review notes, homeowner-safe explanations, contractor-facing review prompts, blockers, missing inputs, confirmation gates, assumptions, deferred boundaries, explicit capability-boundary flags, and source/provenance basis
   - unsupported categories remain source-limited with explicit missing inputs rather than inferred preferences
   - response is product preference/install-logic guidance metadata only, not a final product recommendation, product ranking, best-option selection, pricing, live inventory, distributor quote, procurement, purchase link, payment, final BOM, final electrical design, manufacturer certification, warranty claim, CRM handoff, runtime email automation, frontend behavior, persistence, migrations, write behavior, auth/security behavior, permission enforcement, external service behavior, export behavior, or operational behavior
+- `GET /api/post-install/homes/{home_id}`
+  - additive read-only, request-time, deterministic Phase 13 post-install retention readiness view over existing Phase 11 contractor workflow readiness and Phase 12 product preference metadata, carrying Phase 9/10 references only where those source contracts already surface them
+  - response includes post-install scope flags, retention opportunities, request-time lifecycle event detections, blockers, missing inputs, confirmation gates, follow-up readiness notes, homeowner-safe summary, contractor-facing summary, assumptions, limitations, deferred boundaries, and source/provenance basis
+  - lifecycle events are request-time detections only; they are not persisted events, installation records, task records, CRM activities, field verification, contractor approval, or source-of-truth changes
+  - response is manual follow-up readiness metadata only, not CRM integration, CRM writes, email/drip campaign behavior, task creation, sales scoring, lead scoring, ranking, best upsell logic, push behavior, pricing, proposal generation, persistence, migrations, auth/security behavior, permission enforcement, external service behavior, frontend behavior, export behavior, or operational behavior
+- `GET /api/crm-handoff/homes/{home_id}`
+  - additive read-only, request-time, deterministic Phase 13 CRM handoff object over the Phase 13 post-install retention view
+  - response includes a deterministic manual handoff object id, fixed handoff fields, lifecycle event refs, retention opportunity refs, missing inputs, blocker refs, confirmation gates, manual review summary, homeowner-safe summary, contractor review summary, assumptions, limitations, deferred boundaries, explicit capability-boundary flags, and source/provenance basis
+  - response is a handoff-shaped object for manual review only; it is not an external CRM integration, CRM sync, CRM write, CRM record creation, task creation, email/drip campaign behavior, lead scoring, sales scoring, ranking, best upsell logic, push behavior, persistence, migration, write behavior, auth/security behavior, permission enforcement, external service behavior, frontend behavior, export behavior, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 
