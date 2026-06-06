@@ -111,4 +111,8 @@ export const api = {
   getDesignAdvisor: (designId) => request(apiPath(`/design-advisor/summary/${designId}`)),
   getAIContext: (designId) => request(apiPath(`/ai-context/design/${designId}`)),
   getEstimatePlaceholder: () => request(apiPath("/estimates/placeholder")),
+  getEstimateReadiness: (homeId) => request(apiPath(`/estimate-readiness/homes/${homeId}`)),
+  getProposalOptionSets: (homeId) => request(apiPath(`/proposal-option-sets/homes/${homeId}`)),
+  getEnergyPassport: (homeId) => request(apiPath(`/energy-passport/homes/${homeId}`)),
+  getProgramIntelligence: (homeId) => request(apiPath(`/program-intelligence/homes/${homeId}`)),
 };

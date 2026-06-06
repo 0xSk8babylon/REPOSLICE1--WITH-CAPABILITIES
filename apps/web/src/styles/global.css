@@ -471,6 +471,95 @@ a {
   flex-wrap: wrap;
 }
 
+.intelligence-boundary-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.intelligence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.intelligence-card {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.intelligence-card p {
+  margin: 0;
+}
+
+.intelligence-card-context,
+.intelligence-card-wide {
+  grid-column: 1 / -1;
+}
+
+.intelligence-card-context {
+  background:
+    linear-gradient(145deg, rgba(215, 239, 231, 0.62), rgba(255, 250, 242, 0.78));
+}
+
+.intelligence-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.intelligence-metric {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 250, 242, 0.58);
+}
+
+.intelligence-metric span,
+.intelligence-metric small,
+.mini-list small {
+  color: var(--muted);
+}
+
+.intelligence-metric span {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.intelligence-metric strong {
+  overflow-wrap: anywhere;
+}
+
+.mini-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 250, 242, 0.45);
+  border: 1px solid var(--line);
+}
+
+.mini-list ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.mini-list li + li {
+  margin-top: 6px;
+}
+
+.contractor-review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .workspace-legend {
   display: grid;
   gap: 10px;
@@ -808,6 +897,9 @@ a {
   .hero,
   .stat-grid,
   .card-grid,
+  .intelligence-grid,
+  .intelligence-metric-grid,
+  .contractor-review-grid,
   .score-grid,
   .form-grid,
   .architecture-map,
