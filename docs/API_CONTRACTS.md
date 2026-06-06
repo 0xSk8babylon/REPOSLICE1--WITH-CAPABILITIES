@@ -55,6 +55,7 @@
 - `GET /api/product-preferences/homes/{home_id}`
 - `GET /api/post-install/homes/{home_id}`
 - `GET /api/crm-handoff/homes/{home_id}`
+- `GET /api/energy-passport/homes/{home_id}`
 
 ## Current Write Contracts
 
@@ -149,6 +150,11 @@
   - additive read-only, request-time, deterministic Phase 13 CRM handoff object over the Phase 13 post-install retention view
   - response includes a deterministic manual handoff object id, fixed handoff fields, lifecycle event refs, retention opportunity refs, missing inputs, blocker refs, confirmation gates, manual review summary, homeowner-safe summary, contractor review summary, assumptions, limitations, deferred boundaries, explicit capability-boundary flags, and source/provenance basis
   - response is a handoff-shaped object for manual review only; it is not an external CRM integration, CRM sync, CRM write, CRM record creation, task creation, email/drip campaign behavior, lead scoring, sales scoring, ranking, best upsell logic, push behavior, persistence, migration, write behavior, auth/security behavior, permission enforcement, external service behavior, frontend behavior, export behavior, or operational behavior
+- `GET /api/energy-passport/homes/{home_id}`
+  - additive read-only, request-time, deterministic Phase 14 Energy Passport summary over existing Phase 6 through Phase 13 source surfaces where available
+  - response includes explicit scope and capability-boundary flags, safe system statuses for solar PV, battery storage, backup/generator, panel/load management, EV readiness, and utility/program context, system financial obligation review metadata, supported financing structures, transfer relevance flags, documents needed, transfer readiness, missing transfer inputs, confirmation needs, buyer-safe and contractor-safe summaries, planning history summary, post-install context, ownership context, future upgrade context, assumptions, limitations, deferred boundaries, and source/provenance basis
+  - unknown or needs-confirmation ownership/financing inputs degrade transfer readiness; readiness metadata is deterministic and non-authoritative
+  - response is an Energy Passport summary for homeowner-safe review only, not persistence, migration, write behavior, auth/security behavior, permission enforcement, external integration, CRM write, legal/title/escrow/deed transfer logic, contract validation, warranty validation, permit validation, payoff calculation, lien/title/UCC search, appraisal, underwriting, tax-credit or financial conclusion, deploy, push, export behavior, frontend behavior, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 

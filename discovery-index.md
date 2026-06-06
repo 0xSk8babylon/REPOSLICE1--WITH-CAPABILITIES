@@ -180,6 +180,14 @@ Read these first:
   - Verification so far: `py_compile` passed; focused Phase 13 tests passed with `6 tests OK` in `0.694s`. Final verification is pending.
   - Current boundary: Phase 13 is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, and `home_id` anchored over Phase 11 contractor workflow readiness and Phase 12 product preference metadata. Phase 9/10 refs are carried only where existing Phase 11/12 source contracts already surface them.
   - Deferred: external CRM integration, CRM writes, CRM record creation, email/drip campaign product behavior, task creation, sales scoring, lead scoring, ranking, best upsell logic, push behavior, persistence, migrations, write endpoints, auth/security changes, permission enforcement, frontend work, exports, pricing, proposal generation, external services/secrets, git push, `twin_id`, graph behavior, operational behavior, and production deployment.
+- Phase 14: Energy Passport - implemented in the working tree and not staged or committed.
+  - Handoff: `docs/handoffs/2026-06-06-phase-14-energy-passport-closeout.md`
+  - Runtime endpoint: `GET /api/energy-passport/homes/{home_id}`.
+  - Runtime files: `apps/api/app/energy_passport/__init__.py`, `apps/api/app/energy_passport/schemas.py`, `apps/api/app/energy_passport/router.py`, `apps/api/app/services/energy_passport.py`, `apps/api/app/main.py`, and `apps/api/tests/test_energy_passport.py`.
+  - Completed scope: backend read-only schemas, backend read-only route, request-time deterministic Energy Passport summary, safe system statuses, system financial obligation metadata, supported financing/transfer vocabulary, transfer-readiness degradation for unknown ownership/financing inputs, buyer-safe and contractor-safe summaries, planning history/post-install/ownership/future-upgrade context, explicit false forbidden-boundary flags, source/provenance basis, focused tests, and continuity/API docs closeout.
+  - Verification: Gate 14A compile/import passed; focused Phase 14 tests passed with `7 tests OK`; adjacent Phase 13 + Phase 14 regression passed with `13 tests OK`; `git diff --check` passed.
+  - Current boundary: Phase 14 is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, homeowner-safe, and `home_id` anchored over existing Phase 6 through Phase 13 source surfaces where available.
+  - Deferred: persistence, migrations, write endpoints, auth/security changes, permission enforcement, external integrations, CRM writes, MLS/title/escrow/deed/legal transfer logic, warranty validation, permit validation, payoff calculation, lien/title/UCC search, appraisal, underwriting, tax-credit or financial conclusions, deploy, git push, `twin_id`, graph behavior, operational behavior, and production deployment.
 
 ## Operational References By Task
 

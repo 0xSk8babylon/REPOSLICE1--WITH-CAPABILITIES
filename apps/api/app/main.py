@@ -13,6 +13,7 @@ from app.core.database import db_session
 from app.crm_handoff.router import router as crm_handoff_router
 from app.design_advisor.router import router as design_advisor_router
 from app.designs.router import router as designs_router
+from app.energy_passport.router import router as energy_passport_router
 from app.equipment.router import router as equipment_router
 from app.estimates.router import router as estimates_router
 from app.estimate_readiness.router import router as estimate_readiness_router
@@ -103,4 +104,5 @@ api_router.include_router(proposal_option_sets_router)
 api_router.include_router(product_preferences_router)
 api_router.include_router(post_install_router)
 api_router.include_router(crm_handoff_router)
+api_router.include_router(energy_passport_router)
 app.include_router(api_router)
