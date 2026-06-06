@@ -6,6 +6,8 @@ Session-report email delivery is ops-only. It uses the existing scripts under `s
 
 When Matt asks for "email when done", "send report", "send session report", or similar, Codex must run the active-shell preflight from the planner root before attempting delivery.
 
+Network access is approved only for the final session-report send command that uses the existing helper after preflight passes. Do not use network for package installs, external services, browsing, deploys, pushes, or unrelated commands.
+
 For long-running session closeout behavior, use the operational skill checklist in `docs/skills/session-closeout-stabilization-email.md`.
 
 ## Required Preflight
@@ -48,3 +50,5 @@ After preflight passes, send an existing report artifact with:
 ```bash
 python3 scripts/send_session_report.py <report-file> --subject "<subject>"
 ```
+
+If escalation is required because the send command needs network access, request it only for the existing helper command and only for final session-report delivery.

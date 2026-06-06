@@ -18,6 +18,8 @@ Use it when Matt asks for any final session report email, including:
 
 If the session includes an email report request, Codex must not stop at implementation closeout. Codex must send a final stabilization report after final verification and/or commit actions are complete, unless Matt explicitly cancels the email request.
 
+Network access is allowed only for the final email send that uses the existing session-report helper after the preflight passes. Do not use network for package installs, external services, browsing, deploys, pushes, or unrelated commands.
+
 ## Required Sequence
 
 1. Complete the requested implementation, documentation, commit, or stabilization work.
@@ -63,6 +65,7 @@ If Matt did not specify a report artifact, use the final closeout, handoff, or s
 - Never add product runtime email automation.
 - Never change Resend sender, domain, or recipient settings unless Matt explicitly approves.
 - Use existing repo session-report tooling only.
+- Request network escalation only for the existing final session-report helper command when delivery requires it.
 - If network approval is needed, request it clearly.
 - If email fails, report the exact non-secret failure reason and do not claim email was sent.
 - If email succeeds, record the message id if returned.
