@@ -56,6 +56,7 @@
 - `GET /api/post-install/homes/{home_id}`
 - `GET /api/crm-handoff/homes/{home_id}`
 - `GET /api/energy-passport/homes/{home_id}`
+- `GET /api/program-intelligence/homes/{home_id}`
 
 ## Current Write Contracts
 
@@ -155,6 +156,11 @@
   - response includes explicit scope and capability-boundary flags, safe system statuses for solar PV, battery storage, backup/generator, panel/load management, EV readiness, and utility/program context, system financial obligation review metadata, supported financing structures, transfer relevance flags, documents needed, transfer readiness, missing transfer inputs, confirmation needs, buyer-safe and contractor-safe summaries, planning history summary, post-install context, ownership context, future upgrade context, assumptions, limitations, deferred boundaries, and source/provenance basis
   - unknown or needs-confirmation ownership/financing inputs degrade transfer readiness; readiness metadata is deterministic and non-authoritative
   - response is an Energy Passport summary for homeowner-safe review only, not persistence, migration, write behavior, auth/security behavior, permission enforcement, external integration, CRM write, legal/title/escrow/deed transfer logic, contract validation, warranty validation, permit validation, payoff calculation, lien/title/UCC search, appraisal, underwriting, tax-credit or financial conclusion, deploy, push, export behavior, frontend behavior, or operational behavior
+- `GET /api/program-intelligence/homes/{home_id}`
+  - additive read-only, request-time, deterministic Phase 15 Program Intelligence & Grid Edge Readiness view over existing `TwinPlanningContext` records
+  - response includes explicit scope and capability-boundary flags, utility context awareness, program categories, incentive awareness, demand response awareness, VPP awareness, TOU awareness, interconnection awareness, battery participation readiness, load-shifting readiness, backup-planning readiness, smart-panel readiness, EV coordination readiness, DER aggregation readiness, missing inputs, blockers, confirmation gates, assumptions, dependencies, homeowner-safe summaries, contractor/program review prompts, verification recommendations, do-not-assume statements, and source/provenance basis
+  - unknown utility, rate-plan, battery configuration, export status, interconnection status, equipment compatibility, and program jurisdiction inputs degrade the response through missing inputs, blockers, and confirmation gates rather than inference
+  - response is program/grid-edge awareness metadata only, not persistence, migration, write behavior, background jobs, external API calls, auth/security behavior, permission enforcement, eligibility determination, enrollment workflow, rebate calculation, incentive calculation, tariff optimization, utility dispatch, device control, demand response execution, grid-services execution, billing logic, pricing logic, proposal generation, CRM integration, email automation, export behavior, push behavior, frontend behavior, interconnection approval, utility approval, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 

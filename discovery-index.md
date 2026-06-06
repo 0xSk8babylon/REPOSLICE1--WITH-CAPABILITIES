@@ -188,6 +188,14 @@ Read these first:
   - Verification: Gate 14A compile/import passed; focused Phase 14 tests passed with `7 tests OK`; adjacent Phase 13 + Phase 14 regression passed with `13 tests OK`; `git diff --check` passed.
   - Current boundary: Phase 14 is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, homeowner-safe, and `home_id` anchored over existing Phase 6 through Phase 13 source surfaces where available.
   - Deferred: persistence, migrations, write endpoints, auth/security changes, permission enforcement, external integrations, CRM writes, MLS/title/escrow/deed/legal transfer logic, warranty validation, permit validation, payoff calculation, lien/title/UCC search, appraisal, underwriting, tax-credit or financial conclusions, deploy, git push, `twin_id`, graph behavior, operational behavior, and production deployment.
+- Phase 15: Program Intelligence & Grid Edge Readiness - implemented in the working tree and not committed.
+  - Handoff: `docs/handoffs/2026-06-05-phase-15-program-intelligence-closeout.md`
+  - Runtime endpoint: `GET /api/program-intelligence/homes/{home_id}`.
+  - Runtime files: `apps/api/app/program_intelligence/__init__.py`, `apps/api/app/program_intelligence/schemas.py`, `apps/api/app/program_intelligence/router.py`, `apps/api/app/services/program_intelligence.py`, `apps/api/app/main.py`, and `apps/api/tests/test_program_intelligence.py`.
+  - Completed scope: backend read-only schemas, backend read-only route, request-time deterministic program intelligence summary, fixed awareness categories, grid-edge readiness indicators, missing-input/blocker/confirmation-gate degradation, homeowner-safe summaries, contractor/program review prompts, explicit false hard-stop boundary flags, source/provenance basis, focused tests, and continuity/API docs closeout.
+  - Verification: `py_compile` passed; focused Phase 15 tests passed with `6 tests OK`; `git diff --check` passed.
+  - Current boundary: Phase 15 is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, and `home_id` anchored over existing `TwinPlanningContext` records.
+  - Deferred: persistence, migrations, writes, background jobs, external API calls, auth/security changes, permission enforcement, enrollment workflows, rebate calculations, incentive calculations, tariff optimization, utility dispatch, device control, demand response execution, grid-services execution, billing logic, pricing logic, proposal generation, CRM integration, email automation, exports, pushes, git commit, and production deployment.
 
 ## Operational References By Task
 
@@ -380,6 +388,13 @@ Read these first:
     - `apps/api/app/services/contractor_workflow.py`
     - `apps/api/app/main.py`
     - `apps/api/tests/test_contractor_workflow.py`
+  - Phase 15 Program Intelligence & Grid Edge Readiness:
+    - `docs/handoffs/2026-06-05-phase-15-program-intelligence-closeout.md`
+    - `apps/api/app/program_intelligence/router.py`
+    - `apps/api/app/program_intelligence/schemas.py`
+    - `apps/api/app/services/program_intelligence.py`
+    - `apps/api/app/main.py`
+    - `apps/api/tests/test_program_intelligence.py`
   - Phase 3J Contractor-Facing Advisory Logic:
     - `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
     - `apps/api/app/twin_planning_context/router.py`
