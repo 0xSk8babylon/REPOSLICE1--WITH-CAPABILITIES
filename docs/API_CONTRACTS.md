@@ -58,14 +58,6 @@
 - `GET /api/energy-passport/homes/{home_id}`
 - `GET /api/program-intelligence/homes/{home_id}`
 
-## Current Frontend Consumption Notes
-
-- Phase 16 Dashboard consumes existing GET contracts only.
-- The Dashboard route uses `GET /api/homes` and `GET /api/homes/all` for read-only home context and selected-home presentation state.
-- The Dashboard route uses existing workspace summary contracts such as `GET /api/loads/summary`, `GET /api/designs`, `GET /api/product-library`, and `GET /api/scenarios` as workspace-level context, not selected-home filtered intelligence.
-- The Dashboard route uses `GET /api/estimate-readiness/homes/{home_id}`, `GET /api/proposal-option-sets/homes/{home_id}`, `GET /api/energy-passport/homes/{home_id}`, and `GET /api/program-intelligence/homes/{home_id}` for home-anchored planning intelligence cards.
-- Phase 16 frontend behavior is presentation-only. It does not change backend response contracts, add backend endpoints, infer approvals, persist selected home state, create writes, create auth/permission enforcement, generate final quote/proposal/design/estimate logic, or add pricing/savings/ROI claims.
-
 ## Current Write Contracts
 
 - `POST/PATCH /api/accounts`
