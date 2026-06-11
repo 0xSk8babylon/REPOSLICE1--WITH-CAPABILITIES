@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from sqlalchemy import select
@@ -136,9 +137,15 @@ def _backfill_demo_entity_provenance_rows(db: Session):
         db.commit()
 
 
+def _golden_home_test_mode() -> bool:
+    """Golden-home fixtures must not be contaminated by demo backfill rows."""
+    return os.environ.get("GOLDEN_HOME_TEST", "").lower() == "true"
+
+
 def seed_database(db: Session, force: bool = False):
     if not force and db.scalars(select(models.Home.id)).first():
-        _backfill_global_rule_provenance_rows(db)
+        if not _golden_home_test_mode():
+            _backfill_global_rule_provenance_rows(db)
         if _is_demo_seed_dataset(db):
             _backfill_demo_entity_provenance_rows(db)
         scenario_revision_service.ensure_revisions_for_existing_scenarios(db)
