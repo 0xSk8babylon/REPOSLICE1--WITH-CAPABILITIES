@@ -132,13 +132,35 @@ class PlanType(str, Enum):
     contractor_team = "contractor_team"
 
 
-class DataOrigin(str, Enum):
+class FactLifecycleState(str, Enum):
+    """Canonical lifecycle/trust vocabulary for planning facts.
+
+    This is the single vocabulary for both ``data_origin`` (how a record
+    entered the system / how it should be badged) and provenance
+    ``trust_state`` (how much a recorded fact can be trusted). States are
+    ordered roughly from least to most trustworthy, with ``expired`` as the
+    explicit end-of-life state.
+
+    ``SourceDocument.verification_status`` remains a separate document-level
+    axis (see ``VerificationStatus`` and ``VERIFICATION_STATUS_TO_LIFECYCLE``).
+    """
+
     demo_seed = "demo_seed"
-    user_created = "user_created"
-    imported = "imported"
-    verified = "verified"
-    derived_estimate = "derived_estimate"
     placeholder = "placeholder"
+    claimed = "claimed"
+    user_created = "user_created"
+    derived_estimate = "derived_estimate"
+    imported = "imported"
+    photo_verified = "photo_verified"
+    contractor_verified = "contractor_verified"
+    verified = "verified"
+    expired = "expired"
+
+
+# Backward-compatible alias: every existing ``data_origin: DataOrigin`` and
+# ``trust_state: DataOrigin`` annotation now resolves to the canonical fact
+# lifecycle vocabulary (stored string values are unchanged).
+DataOrigin = FactLifecycleState
 
 
 class SourceDocumentType(str, Enum):
@@ -153,11 +175,30 @@ class SourceDocumentType(str, Enum):
 
 
 class VerificationStatus(str, Enum):
+    """Verification state of a source document (document axis).
+
+    Distinct from ``FactLifecycleState``: a document's verification describes
+    the document itself, while the lifecycle state describes a recorded fact.
+    Stored values are preserved as-is; use the crosswalk below when an engine
+    needs to fold document verification into the fact lifecycle vocabulary.
+    """
+
     unverified = "unverified"
     user_entered = "user_entered"
     imported = "imported"
     manufacturer_verified = "manufacturer_verified"
     deprecated = "deprecated"
+
+
+# Crosswalk from document verification status to the canonical fact
+# lifecycle vocabulary, for engines that reason over a single axis.
+VERIFICATION_STATUS_TO_LIFECYCLE = {
+    VerificationStatus.unverified: FactLifecycleState.claimed,
+    VerificationStatus.user_entered: FactLifecycleState.user_created,
+    VerificationStatus.imported: FactLifecycleState.imported,
+    VerificationStatus.manufacturer_verified: FactLifecycleState.verified,
+    VerificationStatus.deprecated: FactLifecycleState.expired,
+}
 
 
 class ConfidenceLevel(str, Enum):

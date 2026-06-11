@@ -30,7 +30,7 @@ class InstallComplexityService:
         return {
             "design_id": design_id,
             "install_complexity_score": score,
-            "status": "derived_estimate",
+            "status": DataOrigin.derived_estimate.value,
             "basis": "Planning heuristic based on detached structures, trenching assumptions, ecosystem mixing, and routing visibility. It is not a field-validated install assessment.",
             "data_origin": DataOrigin.derived_estimate,
         }

@@ -6,6 +6,7 @@ from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.core.types import FactLifecycleState
 
 
 class TimestampMixin:
@@ -24,7 +25,9 @@ class Account(Base, TimestampMixin):
     role: Mapped[str] = mapped_column(String)
     subscription_status: Mapped[str] = mapped_column(String)
     plan_type: Mapped[str] = mapped_column(String)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     homes: Mapped[List["Home"]] = relationship("Home", back_populates="account")
 
@@ -44,7 +47,9 @@ class Home(Base, TimestampMixin):
     utility_provider: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     service_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     account: Mapped[Optional["Account"]] = relationship("Account", back_populates="homes")
     buildings: Mapped[List["BuildingStructure"]] = relationship(
@@ -77,7 +82,9 @@ class BuildingStructure(Base, TimestampMixin):
     type: Mapped[str] = mapped_column(String)
     approximate_distance_from_main_service: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     home: Mapped["Home"] = relationship("Home", back_populates="buildings")
     panels: Mapped[List["ElectricalPanel"]] = relationship("ElectricalPanel", back_populates="building")
@@ -100,7 +107,9 @@ class ElectricalPanel(Base, TimestampMixin):
     breaker_spaces_available: Mapped[int] = mapped_column(Integer)
     indoor_outdoor: Mapped[str] = mapped_column(String)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     home: Mapped["Home"] = relationship("Home", back_populates="panels")
     building: Mapped["BuildingStructure"] = relationship("BuildingStructure", back_populates="panels")
@@ -120,7 +129,9 @@ class Load(Base, TimestampMixin):
     backup_priority: Mapped[str] = mapped_column(String)
     phase_type: Mapped[str] = mapped_column(String)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     home: Mapped["Home"] = relationship("Home", back_populates="loads")
     building: Mapped["BuildingStructure"] = relationship("BuildingStructure", back_populates="loads")
@@ -137,7 +148,9 @@ class EquipmentProduct(Base, TimestampMixin):
     specs: Mapped[dict] = mapped_column(JSON)
     documentation_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     design_equipment: Mapped[List["DesignEquipment"]] = relationship(
         "DesignEquipment", back_populates="product"
@@ -154,7 +167,9 @@ class EquipmentLocation(Base, TimestampMixin):
     location_type: Mapped[str] = mapped_column(String)
     approximate_coordinates: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     home: Mapped["Home"] = relationship("Home", back_populates="equipment_locations")
     building: Mapped["BuildingStructure"] = relationship(
@@ -175,7 +190,9 @@ class EnergySystemDesign(Base, TimestampMixin):
     architecture_type: Mapped[str] = mapped_column(String)
     status: Mapped[str] = mapped_column(String)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     home: Mapped["Home"] = relationship("Home", back_populates="designs")
     equipment: Mapped[List["DesignEquipment"]] = relationship(
@@ -203,7 +220,9 @@ class DesignEquipment(Base, TimestampMixin):
     location_id: Mapped[Optional[str]] = mapped_column(ForeignKey("equipment_locations.id"), nullable=True)
     role_in_system: Mapped[str] = mapped_column(String)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     design: Mapped["EnergySystemDesign"] = relationship("EnergySystemDesign", back_populates="equipment")
     product: Mapped["EquipmentProduct"] = relationship("EquipmentProduct", back_populates="design_equipment")
@@ -224,7 +243,9 @@ class CompatibilityIssue(Base, TimestampMixin):
     possible_solutions: Mapped[List] = mapped_column(JSON)
     tradeoff: Mapped[str] = mapped_column(Text)
     related_equipment_ids: Mapped[List] = mapped_column(JSON)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     design: Mapped["EnergySystemDesign"] = relationship(
         "EnergySystemDesign", back_populates="compatibility_issues"
@@ -244,7 +265,9 @@ class Scenario(Base, TimestampMixin):
     install_complexity_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     backup_capability_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     home: Mapped["Home"] = relationship("Home", back_populates="scenarios")
     design: Mapped["EnergySystemDesign"] = relationship("EnergySystemDesign", back_populates="scenarios")
@@ -270,7 +293,9 @@ class ScenarioRevision(Base, TimestampMixin):
     recommended_profile_snapshot: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     planning_summary: Mapped[str] = mapped_column(Text)
     planning_state_snapshot: Mapped[dict] = mapped_column(JSON)
-    data_origin: Mapped[str] = mapped_column(String, default="derived_estimate", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.derived_estimate.value, index=True
+    )
 
     scenario: Mapped["Scenario"] = relationship("Scenario", back_populates="revisions")
     parent_revision: Mapped[Optional["ScenarioRevision"]] = relationship(
@@ -286,7 +311,9 @@ class TakeoffRequest(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String)
     requested_by: Mapped[str] = mapped_column(String)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     design: Mapped["EnergySystemDesign"] = relationship("EnergySystemDesign", back_populates="takeoff_requests")
     line_items: Mapped[List["TakeoffLineItem"]] = relationship(
@@ -307,7 +334,9 @@ class TakeoffLineItem(Base, TimestampMixin):
     total_cost_placeholder: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     assumptions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     takeoff_request: Mapped["TakeoffRequest"] = relationship("TakeoffRequest", back_populates="line_items")
 
@@ -332,7 +361,9 @@ class EstimatedPathway(Base, TimestampMixin):
     estimated_monthly_savings_placeholder: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     resilience_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
     home: Mapped["Home"] = relationship("Home", back_populates="estimated_pathways")
     design: Mapped[Optional["EnergySystemDesign"]] = relationship(
@@ -353,7 +384,9 @@ class LoadTemplate(Base, TimestampMixin):
     backup_priority: Mapped[str] = mapped_column(String)
     phase_type: Mapped[str] = mapped_column(String)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
 
 class DesignGoalPreset(Base, TimestampMixin):
@@ -365,7 +398,9 @@ class DesignGoalPreset(Base, TimestampMixin):
     architecture_type: Mapped[str] = mapped_column(String)
     summary: Mapped[str] = mapped_column(Text)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
 
 class SourceDocument(Base, TimestampMixin):
@@ -383,7 +418,9 @@ class SourceDocument(Base, TimestampMixin):
     retrieved_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     verification_status: Mapped[str] = mapped_column(String, index=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    data_origin: Mapped[str] = mapped_column(String, default="user_created", index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
 
 
 class DataProvenance(Base, TimestampMixin):

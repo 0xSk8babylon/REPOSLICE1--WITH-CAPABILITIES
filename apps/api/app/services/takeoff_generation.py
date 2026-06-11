@@ -1,5 +1,5 @@
 from app.core.repository import repository
-from app.core.types import DataOrigin
+from app.core.types import DataOrigin, FactLifecycleState
 from app.services.provenance import provenance_service
 from app.takeoffs.schemas import TakeoffLineItem, TakeoffRequest
 
@@ -41,7 +41,7 @@ class TakeoffGenerationService:
                     provenance_summary={
                         "basis": "Takeoff could not be derived because no design record was found.",
                         "source_types": ["calculation"],
-                        "trust_states": ["derived_estimate"],
+                        "trust_states": [FactLifecycleState.derived_estimate.value],
                         "rule_keys": [],
                     },
                 ),
@@ -123,7 +123,7 @@ class TakeoffGenerationService:
                 provenance_summary={
                     "basis": "Takeoff request is assembled transiently from current design composition.",
                     "source_types": ["calculation", "internal_rule"],
-                    "trust_states": ["derived_estimate"],
+                    "trust_states": [FactLifecycleState.derived_estimate.value],
                     "rule_keys": ["takeoff.design_composition_v1"],
                     "notes": ["Derived takeoff snapshots remain intentionally transient in this phase."],
                 },

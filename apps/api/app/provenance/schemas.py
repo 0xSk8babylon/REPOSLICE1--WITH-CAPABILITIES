@@ -9,6 +9,7 @@ from app.core.types import (
     ConfidenceLevel,
     DataClassification,
     DataOrigin,
+    FactLifecycleState,
     SourceDocumentType,
     VerificationStatus,
 )
@@ -58,7 +59,7 @@ class DataProvenanceBase(ORMModel):
     field_name: str
     source_document_id: Optional[str] = None
     source_type: SourceDocumentType
-    trust_state: DataOrigin
+    trust_state: FactLifecycleState
     value_snapshot: Optional[Any] = None
     confidence_level: ConfidenceLevel
     verified_at: Optional[datetime] = None
@@ -78,7 +79,7 @@ class DataProvenanceCreate(DataProvenanceBase):
 class DataProvenanceUpdate(ORMModel):
     source_document_id: Optional[str] = None
     source_type: Optional[SourceDocumentType] = None
-    trust_state: Optional[DataOrigin] = None
+    trust_state: Optional[FactLifecycleState] = None
     value_snapshot: Optional[Any] = None
     confidence_level: Optional[ConfidenceLevel] = None
     verified_at: Optional[datetime] = None
@@ -90,7 +91,7 @@ class RuleProvenanceBase(ORMModel):
     rule_name: str
     source_type: SourceDocumentType
     source_document_id: Optional[str] = None
-    trust_state: DataOrigin
+    trust_state: FactLifecycleState
     description: str
     notes: Optional[str] = None
 
@@ -109,7 +110,7 @@ class RuleProvenanceUpdate(ORMModel):
     rule_name: Optional[str] = None
     source_type: Optional[SourceDocumentType] = None
     source_document_id: Optional[str] = None
-    trust_state: Optional[DataOrigin] = None
+    trust_state: Optional[FactLifecycleState] = None
     description: Optional[str] = None
     notes: Optional[str] = None
 

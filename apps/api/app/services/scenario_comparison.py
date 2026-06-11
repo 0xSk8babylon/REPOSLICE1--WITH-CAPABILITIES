@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from app.core.types import FactLifecycleState
 from app.scenarios.schemas import Scenario
 from app.services.design_analysis import design_analysis_service
 from app.services.design_completeness import design_completeness_service
@@ -51,7 +52,7 @@ class ScenarioComparisonService:
                 scenario.backup_capability_score,
             ]
         ):
-            trust_states.add("placeholder")
+            trust_states.add(FactLifecycleState.placeholder.value)
             unverified_fields.update(
                 {
                     field
@@ -98,7 +99,7 @@ class ScenarioComparisonService:
         )
         if rule_records:
             source_types.add("internal_rule")
-            trust_states.add("derived_estimate")
+            trust_states.add(FactLifecycleState.derived_estimate.value)
             source_document_ids.update(
                 record.source_document_id for record in rule_records if record.source_document_id
             )
@@ -159,7 +160,7 @@ class ScenarioComparisonService:
             warnings.append("One or more linked pathways remain low confidence.")
         if analysis["missing_location_assignments"]:
             warnings.append("Some assigned design equipment still has no siting location.")
-        if "placeholder" in lineage_summary["trust_states"]:
+        if FactLifecycleState.placeholder.value in lineage_summary["trust_states"]:
             warnings.append("Scenario scoring and cost fields still include placeholders.")
         if not lineage_summary["source_document_ids"]:
             warnings.append("No source documents are linked directly to this scenario summary yet.")

@@ -1,6 +1,7 @@
 from typing import Dict, Iterable, List, Optional
 
 from app.core.repository import repository
+from app.core.types import FactLifecycleState, VerificationStatus
 from app.provenance.schemas import ProvenanceSummary, SourceDocument
 
 
@@ -27,11 +28,17 @@ class ProvenanceService:
             {
                 record.field_name
                 for record in records
-                if record.trust_state in {"placeholder", "demo_seed", "derived_estimate"}
+                if record.trust_state
+                in {
+                    FactLifecycleState.placeholder.value,
+                    FactLifecycleState.demo_seed.value,
+                    FactLifecycleState.derived_estimate.value,
+                }
                 or (
                     record.source_document_id
                     and document_map.get(record.source_document_id)
-                    and document_map[record.source_document_id].verification_status != "manufacturer_verified"
+                    and document_map[record.source_document_id].verification_status
+                    != VerificationStatus.manufacturer_verified.value
                 )
             }
         )
@@ -127,7 +134,8 @@ class ProvenanceService:
             "data_classification": "planning_private",
             "derivation_type": "deterministic_rule",
             "source_types": ["calculation", "internal_rule"] + (summary.source_types if summary else []),
-            "trust_states": ["derived_estimate"] + (summary.trust_states if summary else []),
+            "trust_states": [FactLifecycleState.derived_estimate.value]
+            + (summary.trust_states if summary else []),
             "rule_keys": [record.rule_key for record in rule_records],
             "source_document_ids": summary.source_document_ids if summary else [],
             "limitations": [
@@ -148,7 +156,7 @@ class ProvenanceService:
         rule_documents_map: Optional[Dict[str, List[object]]] = None,
     ) -> Dict[str, object]:
         rule_keys = [related_rule_key] if related_rule_key else []
-        if issue.data_origin == "derived_estimate" and related_rule_key is None:
+        if issue.data_origin == FactLifecycleState.derived_estimate.value and related_rule_key is None:
             rule_keys = ["advisor.derived_planning_issue"]
         normalized_rule_keys = sorted(set(rule_keys))
         if rule_documents_map is not None:
@@ -190,7 +198,7 @@ class ProvenanceService:
             "data_classification": "planning_private",
             "derivation_type": "deterministic_rule",
             "source_types": ["internal_rule"],
-            "trust_states": ["derived_estimate"],
+            "trust_states": [FactLifecycleState.derived_estimate.value],
             "rule_keys": persisted_rule_keys,
             "limitations": [
                 "Recommendation profiles are advisory planning outputs and do not create canonical site facts or operational authority.",
@@ -236,7 +244,7 @@ class ProvenanceService:
             "data_classification": "planning_private",
             "derivation_type": "deterministic_rule",
             "confidence_level": confidence_level,
-            "trust_state": "derived_estimate",
+            "trust_state": FactLifecycleState.derived_estimate.value,
             "rule_keys": persisted_rule_keys,
             "input_signals": input_signals,
             "estimated_inputs": estimated_inputs,

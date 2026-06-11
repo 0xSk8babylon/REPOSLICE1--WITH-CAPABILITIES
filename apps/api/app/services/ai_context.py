@@ -1,7 +1,7 @@
 from app.compatibility_rules.schemas import CompatibilityIssue
 from app.core.repository import repository
 from app.core.schemas import ViewBoundaryMetadata
-from app.core.types import ApiViewAudience, AuthorityLayer, DataClassification
+from app.core.types import ApiViewAudience, AuthorityLayer, DataClassification, FactLifecycleState
 from app.designs.schemas import EnergySystemDesign
 from app.equipment.schemas import EquipmentProduct
 from app.homes.schemas import Home
@@ -181,7 +181,12 @@ class AIContextService:
             "placeholder_assumptions": [
                 record.field_name
                 for record in provenance_records
-                if record.trust_state in {"placeholder", "demo_seed", "derived_estimate"}
+                if record.trust_state
+                in {
+                    FactLifecycleState.placeholder.value,
+                    FactLifecycleState.demo_seed.value,
+                    FactLifecycleState.derived_estimate.value,
+                }
             ],
             "grounding_warnings": [
                 "Placeholder and derived planning outputs must not be presented as verified engineering facts.",

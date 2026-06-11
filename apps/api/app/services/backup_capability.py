@@ -30,7 +30,7 @@ class BackupCapabilityService:
         return {
             "design_id": design_id,
             "backup_capability_score": score,
-            "status": "derived_estimate",
+            "status": DataOrigin.derived_estimate.value,
             "basis": "Planning heuristic based on backup load tagging, assigned backup architecture, and transfer/control strategy. It does not model runtime, surge sequencing, or engineering constraints.",
             "data_origin": DataOrigin.derived_estimate,
         }

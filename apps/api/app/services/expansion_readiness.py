@@ -30,7 +30,7 @@ class ExpansionReadinessService:
         return {
             "design_id": design_id,
             "future_expansion_score": score,
-            "status": "derived_estimate",
+            "status": DataOrigin.derived_estimate.value,
             "basis": "Planning heuristic based on spare panel capacity, pathways, and modular equipment signals. It does not confirm future code, service, or site suitability.",
             "data_origin": DataOrigin.derived_estimate,
         }

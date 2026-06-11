@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import Base, SessionLocal, database_path, engine
 from app.core import models
+from app.core.types import FactLifecycleState
 from app.seed.sample_data import (
     DEMO_ACCOUNT,
     SAMPLE_COMPATIBILITY_ISSUES,
@@ -37,7 +38,7 @@ PROVENANCE_ENTITY_MODELS = {
 
 def _with_demo_origin(record):
     enriched = dict(record)
-    enriched.setdefault("data_origin", "demo_seed")
+    enriched.setdefault("data_origin", FactLifecycleState.demo_seed.value)
     return enriched
 
 
@@ -50,7 +51,10 @@ def _is_demo_seed_dataset(db: Session) -> bool:
     demo_home = db.get(models.Home, DEMO_SEED_HOME_ID)
     if demo_account is None or demo_home is None:
         return False
-    return demo_account.data_origin == "demo_seed" and demo_home.data_origin == "demo_seed"
+    return (
+        demo_account.data_origin == FactLifecycleState.demo_seed.value
+        and demo_home.data_origin == FactLifecycleState.demo_seed.value
+    )
 
 
 def _existing_entity_ids(db: Session):
@@ -62,7 +66,7 @@ def _existing_entity_ids(db: Session):
 
 def _with_global_rule_origin(record):
     enriched = dict(record)
-    enriched.setdefault("data_origin", "imported")
+    enriched.setdefault("data_origin", FactLifecycleState.imported.value)
     return enriched
 
 
