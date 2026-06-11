@@ -1,29 +1,17 @@
-import os
 import unittest
-from pathlib import Path
 
-os.environ.setdefault("DATA_DIR", "/tmp/residential-energy-planner-tests")
-os.environ.setdefault("DATABASE_FILE", "twin_planning_context_test.sqlite3")
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 from sqlalchemy.orm import Session  # noqa: E402
 
-from app.core.database import database_path, engine  # noqa: E402
+from app.core.database import engine  # noqa: E402
 from app.main import app  # noqa: E402
-from app.seed.runtime import reset_and_reseed  # noqa: E402
 from app.services.contractor_context import contractor_context_service  # noqa: E402
 from app.services.planning_exchange import planning_exchange_service  # noqa: E402
 from app.services.twin_planning_context import twin_planning_context_service  # noqa: E402
 
 
 class TwinPlanningContextServiceTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        db_path = Path(database_path())
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        if db_path.exists():
-            db_path.unlink()
-        reset_and_reseed()
-
     def setUp(self):
         reset_and_reseed()
 

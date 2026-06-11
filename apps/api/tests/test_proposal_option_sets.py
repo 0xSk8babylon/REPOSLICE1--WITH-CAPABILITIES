@@ -1,27 +1,18 @@
-import os
 import unittest
-from pathlib import Path
 
-os.environ.setdefault("DATA_DIR", "/tmp/residential-energy-planner-tests")
-os.environ.setdefault("DATABASE_FILE", "phase10_proposal_option_sets_test.sqlite3")
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 from sqlalchemy import text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
-from app.core.database import Base, database_path, engine  # noqa: E402
+from app.core.database import Base, engine  # noqa: E402
 from app.main import app  # noqa: E402
-from app.seed.runtime import reset_and_reseed  # noqa: E402
 from app.services.proposal_option_sets import proposal_option_sets_service  # noqa: E402
 
 
 class ProposalOptionSetsServiceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        db_path = Path(database_path())
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        engine.dispose()
-        if db_path.exists():
-            db_path.unlink()
         reset_and_reseed()
         with Session(engine) as db:
             cls.cached_view = proposal_option_sets_service.build_home_proposal_option_sets(db, "home_001")

@@ -1,11 +1,9 @@
 import json
-import os
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-os.environ.setdefault("DATA_DIR", "/tmp/residential-energy-planner-tests")
-os.environ.setdefault("DATABASE_FILE", "phase15_program_intelligence_test.sqlite3")
+import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
 
 from app.main import app  # noqa: E402
 from app.program_intelligence.router import get_program_intelligence  # noqa: E402

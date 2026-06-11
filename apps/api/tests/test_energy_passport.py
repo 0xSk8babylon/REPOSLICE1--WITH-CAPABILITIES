@@ -1,10 +1,8 @@
-import os
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-os.environ.setdefault("DATA_DIR", "/tmp/residential-energy-planner-tests")
-os.environ.setdefault("DATABASE_FILE", "phase14_energy_passport_test.sqlite3")
+import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
 
 from app.energy_passport.router import get_energy_passport  # noqa: E402
 from app.energy_passport.schemas import (  # noqa: E402

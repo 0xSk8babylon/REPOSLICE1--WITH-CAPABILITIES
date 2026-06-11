@@ -1,15 +1,12 @@
-import os
 import unittest
-from pathlib import Path
 from types import SimpleNamespace
 
-os.environ.setdefault("DATA_DIR", "/tmp/residential-energy-planner-tests")
-os.environ.setdefault("DATABASE_FILE", "phase9_estimate_readiness_test.sqlite3")
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 from sqlalchemy import text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
-from app.core.database import Base, database_path, engine  # noqa: E402
+from app.core.database import Base, engine  # noqa: E402
 from app.estimate_readiness.schemas import (  # noqa: E402
     EstimateBlockerCategory,
     EstimateConfirmationGateStatus,
@@ -17,18 +14,12 @@ from app.estimate_readiness.schemas import (  # noqa: E402
     EstimateReadinessStatus,
 )
 from app.main import app  # noqa: E402
-from app.seed.runtime import reset_and_reseed  # noqa: E402
 from app.services.estimate_readiness import estimate_readiness_service  # noqa: E402
 
 
 class EstimateReadinessServiceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        db_path = Path(database_path())
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        engine.dispose()
-        if db_path.exists():
-            db_path.unlink()
         reset_and_reseed()
         with Session(engine) as db:
             cls.cached_view = estimate_readiness_service.build_home_estimate_readiness(db, "home_001")

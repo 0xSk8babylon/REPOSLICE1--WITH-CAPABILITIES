@@ -1,29 +1,20 @@
-import os
 import unittest
-from pathlib import Path
 from unittest.mock import patch
 
-os.environ.setdefault("DATA_DIR", "/tmp/residential-energy-planner-tests")
-os.environ.setdefault("DATABASE_FILE", "phase11_contractor_workflow_test.sqlite3")
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 from sqlalchemy import text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.contractor_workflow.router import get_contractor_workflow_readiness  # noqa: E402
-from app.core.database import Base, database_path, engine  # noqa: E402
+from app.core.database import Base, engine  # noqa: E402
 from app.main import app  # noqa: E402
-from app.seed.runtime import reset_and_reseed  # noqa: E402
 from app.services.contractor_workflow import contractor_workflow_service  # noqa: E402
 
 
 class ContractorWorkflowReadinessServiceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        db_path = Path(database_path())
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        engine.dispose()
-        if db_path.exists():
-            db_path.unlink()
         reset_and_reseed()
         with Session(engine) as db:
             cls.counts_before_initial_build = {
