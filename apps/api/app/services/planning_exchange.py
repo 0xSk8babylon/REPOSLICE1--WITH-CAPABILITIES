@@ -149,11 +149,25 @@ class PlanningExchangeService:
             limitations=PLANNING_EXCHANGE_LIMITATIONS,
         )
 
-    def build_planning_exchange_object(self, db, home_id: str) -> Optional[PlanningExchangeObjectView]:
+    def build_planning_exchange_object(
+        self,
+        db,
+        home_id: str,
+        contractor_context=None,
+        confirmation_gates=None,
+        install_complexity=None,
+    ) -> Optional[PlanningExchangeObjectView]:
         context = twin_planning_context_service.build(db, home_id)
-        contractor_context = contractor_context_service.build_contractor_planning_context(db, home_id)
-        confirmation_gates = contractor_context_service.build_confirmation_gate_projection(db, home_id)
-        install_complexity = contractor_context_service.build_install_complexity_view(db, home_id)
+        if contractor_context is None:
+            contractor_context = contractor_context_service.build_contractor_planning_context(db, home_id)
+        if confirmation_gates is None:
+            confirmation_gates = contractor_context_service.build_confirmation_gate_projection(
+                db, home_id, contractor_context=contractor_context
+            )
+        if install_complexity is None:
+            install_complexity = contractor_context_service.build_install_complexity_view(
+                db, home_id, contractor_context=contractor_context, gate_projection=confirmation_gates
+            )
 
         if context is None or contractor_context is None or confirmation_gates is None or install_complexity is None:
             return None

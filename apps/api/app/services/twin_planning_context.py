@@ -1,3 +1,4 @@
+import functools
 from collections import Counter
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -1461,6 +1462,57 @@ RUNTIME_FIELD_ALLOWLIST = {
         },
     },
 }
+
+
+def _freeze_metadata_value(value: Any):
+    """Convert a view payload into a hashable (cacheable) nested tuple form.
+
+    ``("d", ...)`` wraps dict items, ``("l", ...)`` wraps list/tuple/set items,
+    and ``("v", ...)`` wraps scalar leaves, so the cached walker below can
+    distinguish node kinds without re-checking runtime types.
+    """
+    if isinstance(value, dict):
+        return ("d", tuple((key, _freeze_metadata_value(child)) for key, child in value.items()))
+    if isinstance(value, (list, tuple, set)):
+        return ("l", tuple(_freeze_metadata_value(child) for child in value))
+    return ("v", value)
+
+
+def _frozen_metadata_value_present(frozen) -> bool:
+    kind, payload = frozen
+    if kind == "v":
+        if payload is None:
+            return False
+        if isinstance(payload, str):
+            return bool(payload)
+        return True
+    return bool(payload)
+
+
+@functools.lru_cache(maxsize=262144)
+def _frozen_metadata_paths(frozen, tokens: tuple) -> tuple:
+    """Metadata paths for a frozen subtree, relative to the subtree root.
+
+    Caching on the frozen subtree means identical sub-structures (repeated
+    scope blocks, limitation lists, record boilerplate) are walked once per
+    token set instead of once per occurrence, which collapses the previously
+    pathological recursive walk over large view payloads.
+    """
+    kind, children = frozen
+    paths = set()
+    if kind == "d":
+        for key, child in children:
+            if key == "trust_provenance_readiness_summary":
+                continue
+            if any(token in key for token in tokens) and _frozen_metadata_value_present(child):
+                paths.add(key)
+            for rel in _frozen_metadata_paths(child, tokens):
+                paths.add(key + rel if rel.startswith("[]") else f"{key}.{rel}")
+    elif kind == "l":
+        for child in children:
+            for rel in _frozen_metadata_paths(child, tokens):
+                paths.add("[]" + rel if rel.startswith("[]") else f"[].{rel}")
+    return tuple(sorted(paths))
 
 
 class TwinPlanningContextService:
@@ -3526,24 +3578,12 @@ class TwinPlanningContextService:
         path: str = "",
     ) -> List[str]:
         tokens = tuple(field_tokens)
-        paths = set()
-        if isinstance(value, dict):
-            for key, child_value in value.items():
-                if key == "trust_provenance_readiness_summary":
-                    continue
-                child_path = f"{path}.{key}" if path else key
-                if any(token in key for token in tokens) and self._metadata_value_present(child_value):
-                    paths.add(child_path)
-                paths.update(
-                    self._metadata_paths(child_value, tokens, path=child_path)
-                )
-        elif isinstance(value, list):
-            list_path = f"{path}[]" if path else "[]"
-            for child_value in value:
-                paths.update(
-                    self._metadata_paths(child_value, tokens, path=list_path)
-                )
-        return sorted(paths)
+        rels = _frozen_metadata_paths(_freeze_metadata_value(value), tokens)
+        if not path:
+            return list(rels)
+        return sorted(
+            path + rel if rel.startswith("[]") else f"{path}.{rel}" for rel in rels
+        )
 
     def _phase4c_gap_categories(
         self,
@@ -3621,21 +3661,19 @@ class TwinPlanningContextService:
 
     def _trust_provenance_readiness_summary(self, view: Any) -> TwinTrustProvenanceReadinessSummary:
         view_payload = view.dict(exclude_none=True)
-        source_basis_paths = self._metadata_paths(view_payload, ["source_basis", "basis"])
-        source_view_paths = self._metadata_paths(view_payload, ["source_view"])
-        provenance_paths = self._metadata_paths(view_payload, ["provenance", "source_trust"])
-        readiness_paths = self._metadata_paths(
-            view_payload,
-            ["readiness", "eligibility", "scope", "summary"],
+        # Freeze once, then run every token sweep against the cached walker.
+        frozen_payload = _freeze_metadata_value(view_payload)
+        source_basis_paths = list(_frozen_metadata_paths(frozen_payload, ("source_basis", "basis")))
+        source_view_paths = list(_frozen_metadata_paths(frozen_payload, ("source_view",)))
+        provenance_paths = list(_frozen_metadata_paths(frozen_payload, ("provenance", "source_trust")))
+        readiness_paths = list(
+            _frozen_metadata_paths(frozen_payload, ("readiness", "eligibility", "scope", "summary"))
         )
-        confidence_paths = self._metadata_paths(view_payload, ["confidence"])
-        missing_paths = self._metadata_paths(view_payload, ["missing", "unknown"])
-        unsafe_paths = self._metadata_paths(view_payload, ["unsafe"])
-        limitation_paths = self._metadata_paths(view_payload, ["limitation"])
-        deferred_paths = self._metadata_paths(
-            view_payload,
-            ["deferred", "blocked_deferred"],
-        )
+        confidence_paths = list(_frozen_metadata_paths(frozen_payload, ("confidence",)))
+        missing_paths = list(_frozen_metadata_paths(frozen_payload, ("missing", "unknown")))
+        unsafe_paths = list(_frozen_metadata_paths(frozen_payload, ("unsafe",)))
+        limitation_paths = list(_frozen_metadata_paths(frozen_payload, ("limitation",)))
+        deferred_paths = list(_frozen_metadata_paths(frozen_payload, ("deferred", "blocked_deferred")))
         return TwinTrustProvenanceReadinessSummary(
             read_only_behavior_present=self._metadata_has_truthy_scope_flag(view_payload, "read_only"),
             request_time_behavior_present=self._metadata_has_truthy_scope_flag(view_payload, "request_time_only"),
@@ -12087,6 +12125,10 @@ class TwinPlanningContextService:
         self,
         db,
         home_id: str,
+        contractor_context=None,
+        confirmation_gates=None,
+        install_complexity=None,
+        exchange_object=None,
     ) -> Optional[TwinSharedCompatibilityView]:
         from app.services.contractor_context import contractor_context_service
         from app.services.planning_exchange import planning_exchange_service
@@ -12095,9 +12137,24 @@ class TwinPlanningContextService:
         if context is None:
             return None
         snapshot = self.build_topology_snapshot_view(db, home_id)
-        confirmation_gates = contractor_context_service.build_confirmation_gate_projection(db, home_id)
-        install_complexity = contractor_context_service.build_install_complexity_view(db, home_id)
-        exchange_object = planning_exchange_service.build_planning_exchange_object(db, home_id)
+        if contractor_context is None:
+            contractor_context = contractor_context_service.build_contractor_planning_context(db, home_id)
+        if confirmation_gates is None:
+            confirmation_gates = contractor_context_service.build_confirmation_gate_projection(
+                db, home_id, contractor_context=contractor_context
+            )
+        if install_complexity is None:
+            install_complexity = contractor_context_service.build_install_complexity_view(
+                db, home_id, contractor_context=contractor_context, gate_projection=confirmation_gates
+            )
+        if exchange_object is None:
+            exchange_object = planning_exchange_service.build_planning_exchange_object(
+                db,
+                home_id,
+                contractor_context=contractor_context,
+                confirmation_gates=confirmation_gates,
+                install_complexity=install_complexity,
+            )
         if snapshot is None or confirmation_gates is None or install_complexity is None or exchange_object is None:
             return None
 
@@ -12839,10 +12896,28 @@ class TwinPlanningContextService:
         if context is None:
             return None
         snapshot = self.build_topology_snapshot_view(db, home_id)
-        shared_compatibility = self.build_shared_compatibility_view(db, home_id)
-        confirmation_gates = contractor_context_service.build_confirmation_gate_projection(db, home_id)
-        install_complexity = contractor_context_service.build_install_complexity_view(db, home_id)
-        exchange_object = planning_exchange_service.build_planning_exchange_object(db, home_id)
+        contractor_context = contractor_context_service.build_contractor_planning_context(db, home_id)
+        confirmation_gates = contractor_context_service.build_confirmation_gate_projection(
+            db, home_id, contractor_context=contractor_context
+        )
+        install_complexity = contractor_context_service.build_install_complexity_view(
+            db, home_id, contractor_context=contractor_context, gate_projection=confirmation_gates
+        )
+        exchange_object = planning_exchange_service.build_planning_exchange_object(
+            db,
+            home_id,
+            contractor_context=contractor_context,
+            confirmation_gates=confirmation_gates,
+            install_complexity=install_complexity,
+        )
+        shared_compatibility = self.build_shared_compatibility_view(
+            db,
+            home_id,
+            contractor_context=contractor_context,
+            confirmation_gates=confirmation_gates,
+            install_complexity=install_complexity,
+            exchange_object=exchange_object,
+        )
         if (
             snapshot is None
             or shared_compatibility is None

@@ -451,9 +451,19 @@ class ContractorWorkflowService:
             return None
 
         contractor_context = contractor_context_service.build_contractor_planning_context(db, home_id)
-        gate_view = contractor_context_service.build_confirmation_gate_projection(db, home_id)
-        install_complexity = contractor_context_service.build_install_complexity_view(db, home_id)
-        planning_exchange = planning_exchange_service.build_planning_exchange_object(db, home_id)
+        gate_view = contractor_context_service.build_confirmation_gate_projection(
+            db, home_id, contractor_context=contractor_context
+        )
+        install_complexity = contractor_context_service.build_install_complexity_view(
+            db, home_id, contractor_context=contractor_context, gate_projection=gate_view
+        )
+        planning_exchange = planning_exchange_service.build_planning_exchange_object(
+            db,
+            home_id,
+            contractor_context=contractor_context,
+            confirmation_gates=gate_view,
+            install_complexity=install_complexity,
+        )
         estimate_view = estimate_readiness_service.build_home_estimate_readiness(db, home_id)
         proposal_view = proposal_option_sets_service.build_home_proposal_option_sets(db, home_id)
         unavailable_sources = [

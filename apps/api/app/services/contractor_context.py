@@ -433,8 +433,14 @@ class ContractorContextService:
             limitations=CONTRACTOR_CONFIRMATION_GATE_LIMITATIONS,
         )
 
-    def build_confirmation_gate_projection(self, db, home_id: str) -> Optional[ContractorConfirmationGateProjectionView]:
-        contractor_context = self.build_contractor_planning_context(db, home_id)
+    def build_confirmation_gate_projection(
+        self,
+        db,
+        home_id: str,
+        contractor_context: Optional[ContractorPlanningContextView] = None,
+    ) -> Optional[ContractorConfirmationGateProjectionView]:
+        if contractor_context is None:
+            contractor_context = self.build_contractor_planning_context(db, home_id)
         if contractor_context is None:
             return None
 
@@ -516,9 +522,19 @@ class ContractorContextService:
             limitations=CONTRACTOR_INSTALL_COMPLEXITY_LIMITATIONS,
         )
 
-    def build_install_complexity_view(self, db, home_id: str) -> Optional[ContractorInstallComplexityView]:
-        contractor_context = self.build_contractor_planning_context(db, home_id)
-        gate_projection = self.build_confirmation_gate_projection(db, home_id)
+    def build_install_complexity_view(
+        self,
+        db,
+        home_id: str,
+        contractor_context: Optional[ContractorPlanningContextView] = None,
+        gate_projection: Optional[ContractorConfirmationGateProjectionView] = None,
+    ) -> Optional[ContractorInstallComplexityView]:
+        if contractor_context is None:
+            contractor_context = self.build_contractor_planning_context(db, home_id)
+        if gate_projection is None:
+            gate_projection = self.build_confirmation_gate_projection(
+                db, home_id, contractor_context=contractor_context
+            )
         if contractor_context is None or gate_projection is None:
             return None
 
