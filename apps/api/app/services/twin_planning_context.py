@@ -3,7 +3,7 @@ from collections import Counter
 from typing import Any, Dict, Iterable, List, Optional
 
 from app.core.repository import repository
-from app.core.types import AuthorityLayer, DataClassification, DataOrigin
+from app.core.types import AuthorityLayer, DataClassification, FactLifecycleState
 from app.design_advisor.schemas import ResilienceRecommendation
 from app.provenance.schemas import ProvenanceSummary
 from app.services.design_advisor import design_advisor_service
@@ -2106,10 +2106,20 @@ class TwinPlanningContextService:
         default_classification: TwinPlanningRecordClassification = TwinPlanningRecordClassification.recorded_fact,
     ) -> TwinPlanningRecordClassification:
         placeholder_fields = self._placeholder_fields(record_snapshot)
-        if data_origin == DataOrigin.placeholder.value or placeholder_fields:
+        if data_origin == FactLifecycleState.placeholder.value or placeholder_fields:
             return TwinPlanningRecordClassification.placeholder
-        if data_origin == DataOrigin.derived_estimate.value:
+        if data_origin == FactLifecycleState.derived_estimate.value:
             return TwinPlanningRecordClassification.derived_output
+        if data_origin == FactLifecycleState.expired.value:
+            # Expired facts must not present as current; classify into the
+            # lowest-trust bucket even if provenance rows exist.
+            return TwinPlanningRecordClassification.unknown
+        if data_origin in (
+            FactLifecycleState.photo_verified.value,
+            FactLifecycleState.contractor_verified.value,
+        ):
+            # The verification event itself is the source backing.
+            return TwinPlanningRecordClassification.source_backed_fact
         if self._has_provenance(provenance_summary):
             return TwinPlanningRecordClassification.source_backed_fact
         return default_classification
@@ -2126,13 +2136,26 @@ class TwinPlanningContextService:
         reasons = list(extra_reasons or [])
         if data_origin:
             reasons.append(f"Persisted data_origin is '{data_origin}'.")
-        if classification == TwinPlanningRecordClassification.source_backed_fact:
+        if classification == TwinPlanningRecordClassification.source_backed_fact and self._has_provenance(
+            provenance_summary
+        ):
             reasons.append("A provenance summary links this record to source or lineage metadata.")
+        if data_origin in (
+            FactLifecycleState.photo_verified.value,
+            FactLifecycleState.contractor_verified.value,
+        ):
+            reasons.append(
+                f"Verification lifecycle state '{data_origin}' elevates this record to a source-backed fact."
+            )
+        if data_origin == FactLifecycleState.expired.value:
+            reasons.append(
+                "This record's lifecycle state is 'expired'; treat it as stale until re-verified."
+            )
         if placeholder_fields:
             reasons.append(f"Placeholder-bearing fields are present: {', '.join(placeholder_fields)}.")
         if not self._has_provenance(provenance_summary):
             reasons.append("No field-level provenance summary is currently linked for this entity.")
-        if data_origin == DataOrigin.demo_seed.value:
+        if data_origin == FactLifecycleState.demo_seed.value:
             reasons.append("Demo seed records are useful for continuity but are not factual authority.")
         return reasons
 
@@ -2247,7 +2270,7 @@ class TwinPlanningContextService:
             label=f"Advisor recommendation summary for {design_id}",
             classification=TwinPlanningRecordClassification.derived_output,
             authority_layer=AuthorityLayer.derived,
-            data_origin=DataOrigin.derived_estimate,
+            data_origin=FactLifecycleState.derived_estimate,
             record={
                 "design_id": design_id,
                 "recommended_profile": recommended_profile,
@@ -2285,7 +2308,7 @@ class TwinPlanningContextService:
             label=f"Advisor note for {design_id}",
             classification=TwinPlanningRecordClassification.advisory_output,
             authority_layer=AuthorityLayer.advisory,
-            data_origin=DataOrigin.derived_estimate,
+            data_origin=FactLifecycleState.derived_estimate,
             record={"design_id": design_id, "advisor_note": advisor_note},
             classification_reasons=[
                 "Advisor note is explanatory text over structured records and deterministic outputs.",
