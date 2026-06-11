@@ -4,7 +4,7 @@ from app.core.types import (
     AutonomyReservePosture,
     BatterySizingPosture,
     ConfidenceLevel,
-    DataOrigin,
+    FactLifecycleState,
     FutureGrowthMarginPosture,
     LowSolarAssumptionPosture,
     RecoveryStrengthPosture,
@@ -13,6 +13,7 @@ from app.core.types import (
     SeasonalConservatismPosture,
     SolarSizingPosture,
 )
+from app.engines.resilience import calc
 from app.design_advisor.schemas import (
     ArchitectureConsistencyCheck,
     BackupLoadSelectionSummary,
@@ -124,33 +125,12 @@ class ResilienceRecommendationService:
     SOLAR_CONVERSION_TYPES = {"microinverter", "string_inverter", "hybrid_inverter"}
     SOLAR_RELATED_TYPES = {"solar_panel", "microinverter", "string_inverter", "hybrid_inverter"}
 
-    AUTONOMY_HOUR_RANGES = {
-        AutonomyReservePosture.minimal: (4.0, 8.0),
-        AutonomyReservePosture.standard: (8.0, 14.0),
-        AutonomyReservePosture.elevated: (14.0, 24.0),
-        AutonomyReservePosture.extended: (24.0, 36.0),
-    }
-
-    RESERVE_MARGIN_FACTORS = {
-        ReserveMarginPosture.lean: (1.05, 1.12),
-        ReserveMarginPosture.standard: (1.12, 1.22),
-        ReserveMarginPosture.elevated: (1.22, 1.35),
-        ReserveMarginPosture.robust: (1.35, 1.5),
-    }
-
-    GROWTH_MARGIN_FACTORS = {
-        FutureGrowthMarginPosture.tight: (1.0, 1.08),
-        FutureGrowthMarginPosture.planned: (1.08, 1.18),
-        FutureGrowthMarginPosture.expansion_oriented: (1.18, 1.3),
-        FutureGrowthMarginPosture.future_ready: (1.3, 1.45),
-    }
-
-    SOLAR_PRODUCTION_FACTORS = {
-        SolarSizingPosture.load_matched: (0.52, 0.72),
-        SolarSizingPosture.resilience_balanced: (0.68, 0.9),
-        SolarSizingPosture.recovery_weighted: (0.88, 1.12),
-        SolarSizingPosture.future_weighted: (1.05, 1.32),
-    }
+    # Coefficient tables now live in the dependency-free calculation engine;
+    # these aliases keep existing references working without duplicating values.
+    AUTONOMY_HOUR_RANGES = calc.AUTONOMY_HOUR_RANGES
+    RESERVE_MARGIN_FACTORS = calc.RESERVE_MARGIN_FACTORS
+    GROWTH_MARGIN_FACTORS = calc.GROWTH_MARGIN_FACTORS
+    SOLAR_PRODUCTION_FACTORS = calc.SOLAR_PRODUCTION_FACTORS
 
     SEASONAL_CONSERVATISM = {
         LowSolarAssumptionPosture.favorable: SeasonalConservatismPosture.mild,
@@ -281,7 +261,7 @@ class ResilienceRecommendationService:
         return "missing"
 
     def _round_range(self, value: float) -> float:
-        return round(value, 1)
+        return calc.round_range(value)
 
     def _solar_assignments(self, analysis):
         return [
@@ -535,9 +515,7 @@ class ResilienceRecommendationService:
                 )
 
         selected_load_count = len(selected_loads)
-        coverage_ratio = None
-        if total_recorded_load_count:
-            coverage_ratio = round(selected_load_count / total_recorded_load_count, 2)
+        coverage_ratio = calc.backup_coverage_ratio(selected_load_count, total_recorded_load_count)
 
         if not selected_load_count:
             outage_posture = "ungrounded outage posture"
@@ -616,14 +594,9 @@ class ResilienceRecommendationService:
         self, analysis, profile: Optional[RecommendationProfile] = None
     ) -> Optional[float]:
         selected_loads = self._selected_backup_loads(analysis, profile)
-        if not selected_loads:
-            return None
-        fallback_hours = 4.0
-        total_kwh = 0.0
-        for load in selected_loads:
-            daily_hours = load.estimated_daily_hours if load.estimated_daily_hours is not None else fallback_hours
-            total_kwh += (load.running_watts * daily_hours) / 1000
-        return round(total_kwh, 2)
+        return calc.backup_load_energy_need_kwh(
+            [(load.running_watts, load.estimated_daily_hours) for load in selected_loads]
+        )
 
     def _backup_load_model_summary(
         self, analysis, profile: Optional[RecommendationProfile] = None
@@ -2058,30 +2031,25 @@ class ResilienceRecommendationService:
         self, analysis, profile: RecommendationProfile, config
     ) -> BatterySizingEstimate:
         backup_load_energy_need_kwh = self._backup_load_energy_need_kwh(analysis, profile)
-        autonomy_min, autonomy_max = self.AUTONOMY_HOUR_RANGES[config["autonomy_reserve_posture"]]
+        autonomy_min, autonomy_max = calc.AUTONOMY_HOUR_RANGES[config["autonomy_reserve_posture"]]
         usable_range = None
         recommended_range = None
         scope_note = "Planning estimate only. This range is derived from current backup-load modeling and recommendation posture, not final engineered battery design."
 
-        if backup_load_energy_need_kwh is not None:
-            reserve_min, reserve_max = self.RESERVE_MARGIN_FACTORS[config["reserve_margin_posture"]]
-            growth_min, growth_max = self.GROWTH_MARGIN_FACTORS[config["future_growth_margin_posture"]]
-
-            # Internal planning estimate: convert daily energy need into autonomy-window energy,
-            # then layer reserve and future-growth posture without exposing the coefficients in UI.
-            autonomy_energy_min = backup_load_energy_need_kwh * (autonomy_min / 24.0)
-            autonomy_energy_max = backup_load_energy_need_kwh * (autonomy_max / 24.0)
-            usable_min = autonomy_energy_min * reserve_min
-            usable_max = autonomy_energy_max * reserve_max
-            recommended_min = usable_min * growth_min
-            recommended_max = usable_max * growth_max
+        ranges = calc.battery_capacity_ranges(
+            backup_load_energy_need_kwh,
+            config["autonomy_reserve_posture"],
+            config["reserve_margin_posture"],
+            config["future_growth_margin_posture"],
+        )
+        if ranges is not None:
             usable_range = BatteryCapacityRange(
-                min_kwh=self._round_range(usable_min),
-                max_kwh=self._round_range(usable_max),
+                min_kwh=ranges.usable_min_kwh,
+                max_kwh=ranges.usable_max_kwh,
             )
             recommended_range = BatteryCapacityRange(
-                min_kwh=self._round_range(recommended_min),
-                max_kwh=self._round_range(recommended_max),
+                min_kwh=ranges.recommended_min_kwh,
+                max_kwh=ranges.recommended_max_kwh,
             )
         else:
             scope_note = "Planning estimate unavailable. Record essential or backup load scope before relying on battery guidance."
@@ -2191,7 +2159,6 @@ class ResilienceRecommendationService:
         low_solar_posture = config["low_solar_assumption_posture"]
         recovery_strength = self.RECOVERY_STRENGTH[solar_posture]
         seasonal_conservatism = self.SEASONAL_CONSERVATISM[low_solar_posture]
-        solar_min_factor, solar_max_factor = self.SOLAR_PRODUCTION_FACTORS[solar_posture]
 
         site_capacity = self._site_capacity_adjustment(analysis)
         roof_geometry_readiness = self._roof_geometry_readiness(analysis)
@@ -2202,48 +2169,25 @@ class ResilienceRecommendationService:
         recommended_range = None
         scope_note = "Planning estimate only. This range starts from profile-based recovery posture and current backup-load modeling, then applies coarse site-aware caution signals. It is not a final engineered production study."
 
-        if (
-            battery_sizing.backup_load_energy_need_kwh is not None
-            and battery_sizing.recommended_battery_capacity_range_kwh is not None
-        ):
-            backup_energy = battery_sizing.backup_load_energy_need_kwh
-            battery_min = battery_sizing.recommended_battery_capacity_range_kwh.min_kwh
-            battery_max = battery_sizing.recommended_battery_capacity_range_kwh.max_kwh
-
-            # Internal planning estimate: use current backup-load energy and the battery recovery
-            # burden implied by the chosen profile to derive a solar range without surfacing the
-            # underlying production-credit assumptions.
-            base_recovery_need_min = max(backup_energy, battery_min * 0.55)
-            base_recovery_need_max = max(backup_energy * 1.1, battery_max * 0.75)
-            base_recommended_min = base_recovery_need_min * solar_min_factor
-            base_recommended_max = base_recovery_need_max * solar_max_factor
-
-            site_factor_min, site_factor_max = site_capacity["factor_range"]
-            shading_factor_min, shading_factor_max = shading["factor_range"]
-            seasonal_factor_min, seasonal_factor_max = seasonal_region["factor_range"]
-            install_factor_min, install_factor_max = install_realism["factor_range"]
-
-            recommended_min = (
-                base_recommended_min
-                * site_factor_min
-                * shading_factor_min
-                * seasonal_factor_min
-                * install_factor_min
-            )
-            recommended_max = (
-                base_recommended_max
-                * site_factor_max
-                * shading_factor_max
-                * seasonal_factor_max
-                * install_factor_max
-            )
+        battery_recommended = battery_sizing.recommended_battery_capacity_range_kwh
+        ranges = calc.solar_capacity_ranges(
+            battery_sizing.backup_load_energy_need_kwh,
+            battery_recommended.min_kwh if battery_recommended else None,
+            battery_recommended.max_kwh if battery_recommended else None,
+            solar_posture,
+            site_capacity["factor_range"],
+            shading["factor_range"],
+            seasonal_region["factor_range"],
+            install_realism["factor_range"],
+        )
+        if ranges is not None:
             base_recommended_range = SolarCapacityRange(
-                min_kw=self._round_range(base_recommended_min),
-                max_kw=self._round_range(base_recommended_max),
+                min_kw=ranges.base_recommended_min_kw,
+                max_kw=ranges.base_recommended_max_kw,
             )
             recommended_range = SolarCapacityRange(
-                min_kw=self._round_range(recommended_min),
-                max_kw=self._round_range(recommended_max),
+                min_kw=ranges.recommended_min_kw,
+                max_kw=ranges.recommended_max_kw,
             )
         else:
             scope_note = "Planning estimate unavailable. Record essential or backup load scope before relying on solar recovery guidance."
@@ -2842,7 +2786,7 @@ class ResilienceRecommendationService:
                 context_signals={"design_present": False},
                 scope_note="Recommendation profiles are planning-oriented guidance only. They do not replace engineering sizing or site validation.",
                 basis="No design found for resilience recommendation.",
-                data_origin=DataOrigin.derived_estimate,
+                data_origin=FactLifecycleState.derived_estimate,
                 provenance_summary=provenance,
             )
 
@@ -3034,7 +2978,7 @@ class ResilienceRecommendationService:
             context_signals=context_signals,
             scope_note="Recommendation profiles express planning philosophies, tradeoffs, and resilience posture. They do not expose engineering formulas or imply permit-grade sizing certainty.",
             basis="Deterministic recommendation model based on design goal, backup load grouping, assigned architecture, panel headroom, and pathway context.",
-            data_origin=DataOrigin.derived_estimate,
+            data_origin=FactLifecycleState.derived_estimate,
             provenance_summary=provenance,
         )
 
