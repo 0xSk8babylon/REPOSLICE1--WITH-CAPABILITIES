@@ -12,9 +12,23 @@ from app.services.scenario_revision import scenario_revision_service
 router = APIRouter(prefix="/scenarios", tags=["scenarios"])
 
 
+def _serialize_scenario(db: Session, scenario):
+    if scenario is None:
+        return None
+    serialized = Scenario.from_orm(scenario).dict()
+    serialized["revision_overview"] = scenario_revision_service.build_revision_overview(
+        db, scenario.id
+    ).dict()
+    serialized["revisions"] = [
+        revision.dict()
+        for revision in scenario_revision_service.list_revision_summaries(db, scenario.id)
+    ]
+    return serialized
+
+
 @router.get("", response_model=List[Scenario])
 def list_scenarios(db: Session = Depends(get_db)):
-    return repository.list_scenarios(db)
+    return [_serialize_scenario(db, scenario) for scenario in repository.list_scenario_models(db)]
 
 
 @router.get("/compare", response_model=Dict[str, object])
@@ -24,7 +38,7 @@ def compare_scenarios(db: Session = Depends(get_db)):
 
 @router.get("/{scenario_id}/revisions", response_model=List[ScenarioRevisionSummary])
 def list_scenario_revisions(scenario_id: str, db: Session = Depends(get_db)):
-    if repository.get_scenario(db, scenario_id) is None:
+    if repository.get_scenario_model(db, scenario_id) is None:
         raise HTTPException(status_code=404, detail="Scenario not found")
     return scenario_revision_service.list_revision_summaries(db, scenario_id)
 
@@ -32,19 +46,14 @@ def list_scenario_revisions(scenario_id: str, db: Session = Depends(get_db)):
 @router.post("", response_model=Scenario)
 def create_scenario(payload: ScenarioCreate, db: Session = Depends(get_db)):
     scenario = repository.create_scenario(db, payload)
-    scenario_id = scenario["id"]
-    scenario_revision_service.capture_revision(
-        db, repository.get_scenario_model(db, scenario_id), reason="saved_revision"
-    )
-    return repository.get_scenario(db, scenario_id)
+    scenario_revision_service.capture_revision(db, scenario, reason="saved_revision")
+    return _serialize_scenario(db, repository.get_scenario_model(db, scenario.id))
 
 
 @router.patch("/{scenario_id}", response_model=Scenario)
 def update_scenario(scenario_id: str, payload: ScenarioUpdate, db: Session = Depends(get_db)):
-    if repository.get_scenario(db, scenario_id) is None:
+    if repository.get_scenario_model(db, scenario_id) is None:
         raise HTTPException(status_code=404, detail="Scenario not found")
     scenario = repository.update_scenario(db, scenario_id, payload)
-    scenario_revision_service.capture_revision(
-        db, repository.get_scenario_model(db, scenario["id"]), reason="saved_revision"
-    )
-    return repository.get_scenario(db, scenario_id)
+    scenario_revision_service.capture_revision(db, scenario, reason="saved_revision")
+    return _serialize_scenario(db, repository.get_scenario_model(db, scenario_id))
