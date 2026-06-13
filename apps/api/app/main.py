@@ -18,6 +18,7 @@ from app.equipment.router import router as equipment_router
 from app.estimates.router import router as estimates_router
 from app.estimate_readiness.router import router as estimate_readiness_router
 from app.facts.router import router as facts_router
+from app.geometry.router import router as geometry_router
 from app.homes.router import router as homes_router
 from app.loads.router import router as loads_router
 from app.nec_load_calculation.router import router as nec_load_calculation_router
@@ -113,4 +114,5 @@ api_router.include_router(program_intelligence_router)
 api_router.include_router(system_visibility_router)
 api_router.include_router(facts_router)
 api_router.include_router(nec_load_calculation_router)
+api_router.include_router(geometry_router)
 app.include_router(api_router)

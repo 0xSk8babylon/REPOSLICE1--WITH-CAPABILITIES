@@ -74,6 +74,12 @@ class Home(Base, TimestampMixin):
     facts: Mapped[List["Fact"]] = relationship(
         "Fact", back_populates="home", cascade="all, delete-orphan"
     )
+    roof_planes: Mapped[List["RoofPlane"]] = relationship(
+        "RoofPlane", back_populates="home", cascade="all, delete-orphan"
+    )
+    geometry_obstructions: Mapped[List["GeometryObstruction"]] = relationship(
+        "GeometryObstruction", back_populates="home", cascade="all, delete-orphan"
+    )
 
 
 class Fact(Base, TimestampMixin):
@@ -93,6 +99,43 @@ class Fact(Base, TimestampMixin):
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     home: Mapped["Home"] = relationship("Home", back_populates="facts")
+
+
+class RoofPlane(Base, TimestampMixin):
+    __tablename__ = "roof_planes"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    home_id: Mapped[str] = mapped_column(ForeignKey("homes.id"), index=True)
+    name: Mapped[str] = mapped_column(String)
+    area_sqft: Mapped[float] = mapped_column(Float)
+    azimuth_degrees: Mapped[float] = mapped_column(Float)
+    pitch_degrees: Mapped[float] = mapped_column(Float)
+    usable_area_sqft: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    horizon_trace: Mapped[List] = mapped_column(JSON, default=list)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
+
+    home: Mapped["Home"] = relationship("Home", back_populates="roof_planes")
+
+
+class GeometryObstruction(Base, TimestampMixin):
+    __tablename__ = "geometry_obstructions"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    home_id: Mapped[str] = mapped_column(ForeignKey("homes.id"), index=True)
+    name: Mapped[str] = mapped_column(String)
+    obstruction_type: Mapped[str] = mapped_column(String)
+    approximate_height_ft: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    azimuth_degrees: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    distance_ft: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    data_origin: Mapped[str] = mapped_column(
+        String, default=FactLifecycleState.user_created.value, index=True
+    )
+
+    home: Mapped["Home"] = relationship("Home", back_populates="geometry_obstructions")
 
 
 class BuildingStructure(Base, TimestampMixin):

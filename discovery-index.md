@@ -35,6 +35,11 @@ Read these first:
   - Handoff: `docs/handoffs/2026-06-13-b5-hourly-simulation-closeout.md`
   - Runtime files: `apps/api/app/engines/hourly_simulation.py` and `apps/api/tests/test_hourly_simulation.py`.
   - Current boundary: pure deterministic hourly engine for load/solar/battery/grid flows, flat/TOU/tiered caller-provided rate math, bill delta, self-consumption, import/export, cycles/year, backup coverage, and input confidence carry-through. No DB access, persistence, migrations, routes, frontend behavior, auth/security, permission enforcement, external utility/rate lookup, dependency, lockfile rewrite, real tariffs, customer billing, proposal generation, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
+- Auto-Loop Roadmap Runner Phase 20: Geometry - implemented in the current working tree under Matt's broad roadmap override.
+  - Handoff: `docs/handoffs/2026-06-13-phase-20-geometry-closeout.md`
+  - Runtime endpoints: `GET/POST /api/homes/{home_id}/geometry/roof-planes`, `GET/POST /api/homes/{home_id}/geometry/obstructions`, and `GET /api/homes/{home_id}/geometry/export`.
+  - Runtime files: `apps/api/app/geometry/__init__.py`, `apps/api/app/geometry/schemas.py`, `apps/api/app/geometry/router.py`, `apps/api/app/services/geometry.py`, `apps/api/app/core/models.py`, `apps/api/app/core/repository.py`, `apps/api/app/main.py`, and `apps/api/tests/test_geometry.py`.
+  - Current boundary: additive planning geometry storage/query and HomeDiagram-ready export with per-plane tier-1 shading. No Alembic migration file, frontend rendering, satellite/lidar/GIS ingestion, external service, auth/security, permission enforcement, deletion endpoint, dependency, lockfile rewrite, field verification, AHJ/utility approval, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -253,6 +258,7 @@ Read these first:
   - `docs/handoffs/2026-06-13-b2-nec-220-load-calculation-closeout.md`
   - `docs/handoffs/2026-06-13-b4-calculator-primitives-closeout.md`
   - `docs/handoffs/2026-06-13-b5-hourly-simulation-closeout.md`
+  - `docs/handoffs/2026-06-13-phase-20-geometry-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`

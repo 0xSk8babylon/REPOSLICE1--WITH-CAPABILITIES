@@ -60,6 +60,9 @@
 - `GET /api/homes/{home_id}/facts`
 - `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`
 - `GET /api/homes/{home_id}/load-calculations/nec-220`
+- `GET /api/homes/{home_id}/geometry/roof-planes`
+- `GET /api/homes/{home_id}/geometry/obstructions`
+- `GET /api/homes/{home_id}/geometry/export`
 
 ## Current Write Contracts
 
@@ -76,6 +79,8 @@
 - `POST/PATCH /api/equipment/locations`
 - `POST/PATCH /api/estimated-pathways`
 - `POST/PATCH /api/homes/{home_id}/facts`
+- `POST /api/homes/{home_id}/geometry/roof-planes`
+- `POST /api/homes/{home_id}/geometry/obstructions`
 
 ## Compatibility-Sensitive Contracts
 
@@ -182,6 +187,9 @@
   - response includes 220.82 and 220.83 method results, calculation readiness, service load VA/amps, service headroom, stage-level VA values, consumed facts with effective confidence, substituted assumptions, missing/effectively-missing gaps, output confidence tier, source basis, and compliance boundary text
   - defaultable inputs are labeled as assumptions; required inputs with no safe default block calculation and return gaps
   - response is a planning calculation only, not stamped engineering, permit-ready design, AHJ approval, utility approval, field verification, final service sizing, proposal, pricing, auth/security behavior, permission enforcement, migration behavior, or operational behavior
+- `GET/POST /api/homes/{home_id}/geometry/roof-planes`, `GET/POST /api/homes/{home_id}/geometry/obstructions`, and `GET /api/homes/{home_id}/geometry/export`
+  - additive Phase 20 Geometry surfaces for home-scoped roof planes, obstructions, HomeDiagram-ready geometry export, and per-plane tier-1 shading derived from stored horizon traces
+  - response is a planning geometry model only, not field verification, measured roof certification, satellite/lidar/GIS ingestion, permit-ready roof layout, structural engineering, AHJ/utility approval, frontend rendering, permission enforcement, auth/security behavior, export authorization, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 

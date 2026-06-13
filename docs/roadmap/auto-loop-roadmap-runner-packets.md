@@ -43,6 +43,8 @@ Status: implemented as a pure deterministic engine using caller-provided load, s
 
 Add roof-plane and obstruction storage/query surfaces plus geometry export for future HomeDiagram consumption and per-plane shading input. This packet is additive and does not gate B6.
 
+Status: implemented as additive roof-plane and obstruction storage/query surfaces plus HomeDiagram-ready export with per-plane B4 shading. No frontend rendering, external imagery/maps, field verification, deletion endpoint, auth/security, permission enforcement, deployment, push, `twin_id`, graph engine, or operational behavior added.
+
 ### B6 - Sizers
 
 Add battery, generator, V2H, and transformer-headroom sizers that consume B4/B5/B1 inputs and return recommendation bands plus assumptions, corrections, and inherited confidence. This packet must not bake SGIP, 25D, 48E, quote, pricing, eligibility, or savings claims into sizing outputs.

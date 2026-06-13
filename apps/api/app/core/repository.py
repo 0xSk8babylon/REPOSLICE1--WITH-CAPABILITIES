@@ -93,6 +93,36 @@ class DatabaseRepository:
         db.refresh(fact)
         return fact
 
+    def list_roof_planes(self, db: Session, home_id: str):
+        statement = (
+            select(models.RoofPlane)
+            .where(models.RoofPlane.home_id == home_id)
+            .order_by(models.RoofPlane.name, models.RoofPlane.created_at)
+        )
+        return db.scalars(statement).all()
+
+    def create_roof_plane(self, db: Session, payload):
+        plane = models.RoofPlane(**payload.dict())
+        db.add(plane)
+        db.commit()
+        db.refresh(plane)
+        return plane
+
+    def list_geometry_obstructions(self, db: Session, home_id: str):
+        statement = (
+            select(models.GeometryObstruction)
+            .where(models.GeometryObstruction.home_id == home_id)
+            .order_by(models.GeometryObstruction.name, models.GeometryObstruction.created_at)
+        )
+        return db.scalars(statement).all()
+
+    def create_geometry_obstruction(self, db: Session, payload):
+        obstruction = models.GeometryObstruction(**payload.dict())
+        db.add(obstruction)
+        db.commit()
+        db.refresh(obstruction)
+        return obstruction
+
     def list_buildings(self, db: Session, home_id: Optional[str] = None):
         statement = select(models.BuildingStructure).order_by(models.BuildingStructure.created_at)
         if home_id:

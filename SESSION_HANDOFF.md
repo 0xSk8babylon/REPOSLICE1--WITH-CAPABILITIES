@@ -21,6 +21,9 @@
 - Loop B5 Hourly Simulation is implemented in the working tree. It adds `apps/api/app/engines/hourly_simulation.py` plus focused tests for hourly energy conservation, battery SoC/cycles, flat/TOU/tiered caller-provided rate math, bill delta, backup coverage, and invalid profile handling.
 - B5 changed `apps/api/app/engines/hourly_simulation.py`, `apps/api/tests/test_hourly_simulation.py`, docs/continuity files, and `docs/handoffs/2026-06-13-b5-hourly-simulation-closeout.md`.
 - B5 does not add persistence, migrations, routes, frontend behavior, auth/security, permission enforcement, external utility/rate lookup, dependencies, lockfiles, real tariff data, customer billing, proposal generation, deployment, push, graph behavior, `twin_id`, or operational control.
+- Loop Phase 20 Geometry is implemented in the working tree. It adds roof-plane and obstruction SQLAlchemy models, repository helpers, schemas, router, geometry export service, and focused tests for storage/query plus per-plane B4 tier-1 shading.
+- Phase 20 changed `apps/api/app/core/models.py`, `apps/api/app/core/repository.py`, `apps/api/app/main.py`, `apps/api/app/geometry/__init__.py`, `apps/api/app/geometry/schemas.py`, `apps/api/app/geometry/router.py`, `apps/api/app/services/geometry.py`, `apps/api/tests/test_geometry.py`, docs/API/continuity files, and `docs/handoffs/2026-06-13-phase-20-geometry-closeout.md`.
+- Phase 20 does not add an Alembic migration file, frontend rendering, satellite/lidar/GIS ingestion, external service, auth/security, permission enforcement, deletion endpoint, dependency, lockfile, field verification, AHJ/utility approval, deployment, push, graph engine behavior, `twin_id`, or operational control.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -230,6 +233,10 @@
 - B5 Hourly Simulation was implemented under Matt's broad roadmap override.
 - Added pure deterministic hourly simulation engine and focused tests.
 - Updated continuity docs for B5.
+
+- Phase 20 Geometry was implemented under Matt's broad roadmap override.
+- Added home-scoped roof-plane and obstruction storage/query surfaces and a geometry export with per-plane shading.
+- Updated API and continuity docs for Phase 20.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.
