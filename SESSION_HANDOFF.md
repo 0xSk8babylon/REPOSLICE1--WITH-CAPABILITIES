@@ -15,6 +15,9 @@
 - Loop B2 NEC 220 Load Calculation is implemented in the working tree. It adds `GET /api/homes/{home_id}/load-calculations/nec-220` as an additive, deterministic, planning-only endpoint over B1 facts for 220.82 and 220.83 method results. It reports stage-level VA, service-load amps, headroom, consumed facts, effective confidence, labeled default assumptions, gaps, source basis, and professional-review/AHJ boundary text.
 - B2 changed `apps/api/app/nec_load_calculation/__init__.py`, `apps/api/app/nec_load_calculation/schemas.py`, `apps/api/app/nec_load_calculation/router.py`, `apps/api/app/services/nec_load_calculation.py`, `apps/api/app/services/facts.py`, `apps/api/app/main.py`, `apps/api/tests/test_nec_load_calculation.py`, docs/API/continuity files, and `docs/handoffs/2026-06-13-b2-nec-220-load-calculation-closeout.md`.
 - B2 does not add migrations, auth/security, permission enforcement, frontend behavior, external services, dependencies, lockfiles, secrets, deletion, pricing, proposal generation, field verification, AHJ/utility approval, production deployment, push, `twin_id`, graph engine behavior, or operational control.
+- Loop B4 Calculator Primitives is implemented in the working tree. It adds `apps/api/app/engines/calculator_primitives.py` plus focused tests for 120% backfeed planning, supply-side tap review metadata, coupling direction, critical-load identification, tier-1 shading derate, and solar production estimation with optional injected estimator.
+- B4 changed `apps/api/app/engines/calculator_primitives.py`, `apps/api/tests/test_calculator_primitives.py`, docs/continuity files, and `docs/handoffs/2026-06-13-b4-calculator-primitives-closeout.md`.
+- B4 does not add persistence, migrations, routes, frontend behavior, auth/security changes, permission enforcement, external services, dependency installs, lockfile rewrites, network calls, pricing, proposal generation, field verification, AHJ/utility approval, production deployment, push, `twin_id`, graph engine behavior, or operational control.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -216,6 +219,10 @@
 - Added backend read-only NEC load-calculation schemas, router, service, and focused tests for `GET /api/homes/{home_id}/load-calculations/nec-220`.
 - Updated the B1 fact gap registry with `nec_220_83` and additional NEC defaultable input keys.
 - Updated continuity and API docs for B2.
+
+- B4 Calculator Primitives was implemented under Matt's session-only calculation override.
+- Added pure deterministic calculator primitives and focused tests.
+- Updated continuity docs for B4.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.

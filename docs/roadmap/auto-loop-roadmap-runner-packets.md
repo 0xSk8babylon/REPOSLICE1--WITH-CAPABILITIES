@@ -31,6 +31,8 @@ Session note: Matt explicitly overrode NEC and calculation hard stops for this r
 
 Add pure-function calculator primitives for backfeed, supply-side tap, coupling, critical-load identification, tier-1 shading derate, and solar production estimation with optional injected PVWatts behavior. This packet must keep primitives state-free and network-free unless the caller injects a mocked client.
 
+Status: implemented as pure `app.engines` functions with focused tests; no route, persistence, network call, dependency, migration, auth/security, permission enforcement, frontend behavior, or operational behavior added.
+
 ### B5 - 8760 Hourly Simulation
 
 Add the request-time hourly simulation engine for solar, battery, load profile, rate structures, imports/exports, outage coverage, and cycle counting. This packet must keep energy conservation test coverage and preserve confidence lineage.

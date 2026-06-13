@@ -27,6 +27,10 @@ Read these first:
   - Runtime endpoint: `GET /api/homes/{home_id}/load-calculations/nec-220`.
   - Runtime files: `apps/api/app/nec_load_calculation/__init__.py`, `apps/api/app/nec_load_calculation/schemas.py`, `apps/api/app/nec_load_calculation/router.py`, `apps/api/app/services/nec_load_calculation.py`, `apps/api/app/services/facts.py`, `apps/api/app/main.py`, and `apps/api/tests/test_nec_load_calculation.py`.
   - Current boundary: additive deterministic planning-only 220.82/220.83 calculation over B1 facts, with stage VA values, consumed facts, assumptions, gaps, confidence, service load/headroom, and professional-review/AHJ boundary text. No migration, auth/security, permission enforcement, frontend behavior, external service, dependency, lockfile rewrite, pricing/proposal, field-verification, AHJ/utility approval, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
+- Auto-Loop Roadmap Runner B4: Calculator Primitives - implemented in the current working tree under Matt's 2026-06-13 session-only calculation override.
+  - Handoff: `docs/handoffs/2026-06-13-b4-calculator-primitives-closeout.md`
+  - Runtime files: `apps/api/app/engines/calculator_primitives.py` and `apps/api/tests/test_calculator_primitives.py`.
+  - Current boundary: pure deterministic functions only for backfeed planning, supply-side tap review metadata, coupling direction, critical-load identification, tier-1 shading derate, and solar production estimation. No DB access, persistence, migrations, routes, frontend behavior, auth/security, permission enforcement, external service, dependency, lockfile rewrite, network call, pricing/proposal, approval authority, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -243,6 +247,7 @@ Read these first:
   - `docs/roadmap/auto-loop-roadmap-runner-packets.md`
   - `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`
   - `docs/handoffs/2026-06-13-b2-nec-220-load-calculation-closeout.md`
+  - `docs/handoffs/2026-06-13-b4-calculator-primitives-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`
