@@ -39,6 +39,9 @@
 - Loop C1 / Phases 18-19 UI shell is implemented in the working tree. It adds local auth headers to the React API client and a `/experience` route with Explore/Twin/Plan/Build tabs, fact/load/geometry summaries, and a lightweight HomeDiagram-style SVG visual.
 - C1 changed `apps/web/src/lib/api.js`, `apps/web/src/app/App.jsx`, `apps/web/src/pages/C1ExperiencePage.jsx`, `apps/web/src/styles/global.css`, docs/API/continuity files, and `docs/handoffs/2026-06-13-c1-ui-shell-closeout.md`.
 - C1 does not add dependencies, lockfile rewrites, Three.js package, external services, production auth provider, deployment, push, billing, operational control, final design claims, or permissioned export UI.
+- Loop B3 Hardened Evidence Intake is implemented in the working tree. It adds a local validated photo-evidence-to-fact endpoint that creates B1 photo-verified facts after rejecting malformed or unsupported evidence metadata.
+- B3 changed `apps/api/app/evidence/__init__.py`, `apps/api/app/evidence/schemas.py`, `apps/api/app/evidence/router.py`, `apps/api/app/services/evidence.py`, `apps/api/app/main.py`, `apps/api/app/security/auth.py`, `apps/api/tests/test_evidence.py`, docs/API/continuity files, and `docs/handoffs/2026-06-13-b3-evidence-intake-closeout.md`.
+- B3 does not store raw files, perform OCR, call AI extraction, scan malware, add external providers, add dependencies, rewrite lockfiles, add frontend capture UI, add production storage, expose secrets, deploy, push, or perform field verification.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -272,6 +275,10 @@
 - C1 / Phases 18-19 UI shell was implemented under Matt's broad roadmap override.
 - Added authenticated API client headers and a four-surface homeowner workspace route.
 - Updated API and continuity docs for C1.
+
+- B3 Hardened Evidence Intake was implemented under Matt's broad roadmap override.
+- Added local validated evidence-to-fact endpoint and focused tests.
+- Updated API and continuity docs for B3.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.

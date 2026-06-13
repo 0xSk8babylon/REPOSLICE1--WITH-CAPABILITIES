@@ -79,6 +79,8 @@ Status: implemented under Matt's broad roadmap override as an additive `/experie
 
 Deferred until C1 capture UI and hardened untrusted-upload boundaries are approved. Hard stop if it requires upload security, external services, secrets, or auth/permission enforcement.
 
+Status: implemented under Matt's broad roadmap override as local validated evidence metadata and extracted-value intake that creates B1 photo-verified facts. No raw file storage, OCR, AI extraction, malware scanning, external service, dependency, lockfile, frontend capture UI, production storage, secrets, deploy, push, or field verification added.
+
 ## Carry-Forward Practice
 
 When a packet names a protected future capability, split the packet into the smallest safe additive slice and stop before migrations, auth/security/permission enforcement, destructive deletion, external services, dependency installs, lockfile rewrites, or production operations.

@@ -37,6 +37,7 @@ HOME_DATA_PREFIXES = (
     "/api/energy-passport",
     "/api/program-intelligence",
     "/api/privacy",
+    "/api/evidence",
 )
 
 

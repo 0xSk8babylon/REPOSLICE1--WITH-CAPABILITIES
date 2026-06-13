@@ -15,6 +15,7 @@ from app.design_advisor.router import router as design_advisor_router
 from app.designs.router import router as designs_router
 from app.energy_passport.router import router as energy_passport_router
 from app.equipment.router import router as equipment_router
+from app.evidence.router import router as evidence_router
 from app.estimates.router import router as estimates_router
 from app.estimate_readiness.router import router as estimate_readiness_router
 from app.facts.router import router as facts_router
@@ -119,4 +120,5 @@ api_router.include_router(facts_router)
 api_router.include_router(nec_load_calculation_router)
 api_router.include_router(geometry_router)
 api_router.include_router(privacy_router)
+api_router.include_router(evidence_router)
 app.include_router(api_router)

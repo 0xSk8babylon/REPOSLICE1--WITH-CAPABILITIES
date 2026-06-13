@@ -67,6 +67,7 @@
 - `GET /api/homes/{home_id}/geometry/obstructions`
 - `GET /api/homes/{home_id}/geometry/export`
 - `GET /api/privacy/homes/{home_id}/export`
+- `POST /api/evidence/homes/{home_id}/photo-facts`
 
 ## Current Write Contracts
 
@@ -200,6 +201,10 @@
   - additive A4 local privacy surfaces for portable home record export, consent record capture, and local SQLite homeowner record deletion
   - guarded by A2 home-data middleware
   - deletion applies to local app records only; it does not contact external providers, utilities, contractors, CRMs, email systems, backups, legal systems, payment systems, or production privacy workflows
+- `POST /api/evidence/homes/{home_id}/photo-facts`
+  - additive B3 local evidence-intake endpoint that validates photo evidence metadata and extracted values before creating B1 `photo_verified` facts
+  - guarded by A2 home-data middleware
+  - does not store raw files, perform OCR, call AI extraction, scan malware, add external providers, add production storage, or perform field verification
 
 ## Scoped View-Model Mapping Notes
 

@@ -62,6 +62,11 @@ Read these first:
   - Frontend route: `/experience`
   - Runtime files: `apps/web/src/lib/api.js`, `apps/web/src/app/App.jsx`, `apps/web/src/pages/C1ExperiencePage.jsx`, and `apps/web/src/styles/global.css`.
   - Current boundary: local auth-header API client support and four-surface Explore/Twin/Plan/Build workspace with lightweight SVG/CSS HomeDiagram-style visual. No dependencies, lockfile rewrite, Three.js package, external service, production auth provider, deployment, push, billing, operational control, final design claims, or permissioned export UI was added.
+- Auto-Loop Roadmap Runner B3: Hardened Evidence Intake - implemented in the current working tree under Matt's broad roadmap override.
+  - Handoff: `docs/handoffs/2026-06-13-b3-evidence-intake-closeout.md`
+  - Runtime endpoint: `POST /api/evidence/homes/{home_id}/photo-facts`.
+  - Runtime files: `apps/api/app/evidence/__init__.py`, `apps/api/app/evidence/schemas.py`, `apps/api/app/evidence/router.py`, `apps/api/app/services/evidence.py`, `apps/api/app/main.py`, `apps/api/app/security/auth.py`, and `apps/api/tests/test_evidence.py`.
+  - Current boundary: local evidence metadata validation and extracted-value-to-B1-fact creation. No raw file storage, OCR, AI extraction, malware scanning, external providers, dependencies, lockfile rewrite, frontend capture UI, production storage, secrets, deployment, push, or field verification was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -286,6 +291,7 @@ Read these first:
   - `docs/handoffs/2026-06-13-a2-auth-object-audit-closeout.md`
   - `docs/handoffs/2026-06-13-a4-privacy-ccpa-closeout.md`
   - `docs/handoffs/2026-06-13-c1-ui-shell-closeout.md`
+  - `docs/handoffs/2026-06-13-b3-evidence-intake-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`
