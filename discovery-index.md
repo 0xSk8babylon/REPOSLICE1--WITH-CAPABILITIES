@@ -40,6 +40,10 @@ Read these first:
   - Runtime endpoints: `GET/POST /api/homes/{home_id}/geometry/roof-planes`, `GET/POST /api/homes/{home_id}/geometry/obstructions`, and `GET /api/homes/{home_id}/geometry/export`.
   - Runtime files: `apps/api/app/geometry/__init__.py`, `apps/api/app/geometry/schemas.py`, `apps/api/app/geometry/router.py`, `apps/api/app/services/geometry.py`, `apps/api/app/core/models.py`, `apps/api/app/core/repository.py`, `apps/api/app/main.py`, and `apps/api/tests/test_geometry.py`.
   - Current boundary: additive planning geometry storage/query and HomeDiagram-ready export with per-plane tier-1 shading. No Alembic migration file, frontend rendering, satellite/lidar/GIS ingestion, external service, auth/security, permission enforcement, deletion endpoint, dependency, lockfile rewrite, field verification, AHJ/utility approval, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
+- Auto-Loop Roadmap Runner B6: Sizers - implemented in the current working tree under Matt's broad roadmap override.
+  - Handoff: `docs/handoffs/2026-06-13-b6-sizers-closeout.md`
+  - Runtime files: `apps/api/app/engines/sizers.py` and `apps/api/tests/test_sizers.py`.
+  - Current boundary: pure deterministic sizer primitives for battery, generator, V2H, and transformer headroom with assumptions and confidence. No routes, persistence, migrations, frontend behavior, auth/security, permission enforcement, external lookups, pricing, SGIP, 25D, 48E, quote logic, proposal generation, product ranking, procurement, field verification, AHJ/utility approval, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -259,6 +263,7 @@ Read these first:
   - `docs/handoffs/2026-06-13-b4-calculator-primitives-closeout.md`
   - `docs/handoffs/2026-06-13-b5-hourly-simulation-closeout.md`
   - `docs/handoffs/2026-06-13-phase-20-geometry-closeout.md`
+  - `docs/handoffs/2026-06-13-b6-sizers-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`

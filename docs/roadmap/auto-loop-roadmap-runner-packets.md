@@ -49,6 +49,8 @@ Status: implemented as additive roof-plane and obstruction storage/query surface
 
 Add battery, generator, V2H, and transformer-headroom sizers that consume B4/B5/B1 inputs and return recommendation bands plus assumptions, corrections, and inherited confidence. This packet must not bake SGIP, 25D, 48E, quote, pricing, eligibility, or savings claims into sizing outputs.
 
+Status: implemented as pure sizer primitives with assumptions/confidence and no incentive, pricing, quote, eligibility, product-ranking, final-design, or approval claims.
+
 ### B7 / Phase 21 - Graph Comparator And Smart Panel Scoring
 
 Add typed multigraph comparator foundations, candidate configuration scoring, and smart-panel planning score metadata. This packet must not create operational control, final design approval, product ranking as sales direction, or utility authority.
