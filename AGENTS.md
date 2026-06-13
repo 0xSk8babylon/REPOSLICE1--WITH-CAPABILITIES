@@ -6,6 +6,18 @@ This file defines how AI agents work on the `residential-energy-planner` project
 
 AI agents may inspect, recommend, draft, implement approved work, test, and document within their assigned boundaries. They do not own product direction, final technical decisions, compliance decisions, pricing decisions, permission decisions, architecture decisions, or merge approval.
 
+## OwnerWorkflows Authority Adapter
+
+This repo follows OwnerWorkflows as the generic operating authority for safe push, dependency provenance, lockfile integrity, secret hygiene, hard stops, approval gates, temporary automation, and session closeout method.
+
+When a prompt says "Use OwnerWorkflows authority," apply OwnerWorkflows for generic workflow/process rules and apply this repo's AGENTS.md, PROJECT_STATE.md, SESSION_HANDOFF.md, discovery-index.md, and relevant phase docs for Residential Energy Planner-specific implementation.
+
+OwnerWorkflows controls generic process. Residential Energy Planner controls product scope, Energy Twin rules, implementation details, project state, phase records, and domain-specific constraints.
+
+Do not duplicate or rewrite OwnerWorkflows generic rules locally unless explicitly approved.
+
+Hard stops remain: no push, dependency installs, lockfile rewrites, migrations, auth/security changes, destructive changes, external services/secrets, or broad refactors unless explicitly approved.
+
 ## Core Rule
 
 Matt is the final approver.
