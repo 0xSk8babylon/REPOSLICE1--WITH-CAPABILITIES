@@ -25,6 +25,8 @@ Add the provenance-aware fact lifecycle layer for home-scoped facts: fact value,
 
 Implement NEC 220.82 and 220.83 calculation endpoints that consume B1 facts, return stage-by-stage VA/amp results, propagate confidence, substitute only documented defaults, and report gaps. This packet touches electrical logic and must preserve the non-authoritative engineer/AHJ boundary.
 
+Session note: Matt explicitly overrode NEC and calculation hard stops for this roadmap/session only on 2026-06-13. The override does not cover migrations, auth/security/permission enforcement, secrets, dependency installs, lockfile rewrites, deletion, push, deployment, billing, real customer data, external paid services, GitHub Actions/CI changes, or work outside the active packet.
+
 ### B4 - Calculator Primitives
 
 Add pure-function calculator primitives for backfeed, supply-side tap, coupling, critical-load identification, tier-1 shading derate, and solar production estimation with optional injected PVWatts behavior. This packet must keep primitives state-free and network-free unless the caller injects a mocked client.

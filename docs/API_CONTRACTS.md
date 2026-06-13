@@ -59,6 +59,7 @@
 - `GET /api/program-intelligence/homes/{home_id}`
 - `GET /api/homes/{home_id}/facts`
 - `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`
+- `GET /api/homes/{home_id}/load-calculations/nec-220`
 
 ## Current Write Contracts
 
@@ -176,6 +177,11 @@
   - additive B1 gap-readiness endpoint for named calculation requirement sets such as `nec_220_82` and `battery_backup_sizing`
   - response reports required keys, defaultable keys, present keys, missing/effectively-missing gaps, readiness, and limitations
   - readiness reflects fact availability and effective confidence only; it is not NEC compliance, engineering approval, field verification, AHJ approval, proposal readiness, or permission enforcement
+- `GET /api/homes/{home_id}/load-calculations/nec-220`
+  - additive B2 NEC Article 220 planning load-calculation endpoint over B1 facts
+  - response includes 220.82 and 220.83 method results, calculation readiness, service load VA/amps, service headroom, stage-level VA values, consumed facts with effective confidence, substituted assumptions, missing/effectively-missing gaps, output confidence tier, source basis, and compliance boundary text
+  - defaultable inputs are labeled as assumptions; required inputs with no safe default block calculation and return gaps
+  - response is a planning calculation only, not stamped engineering, permit-ready design, AHJ approval, utility approval, field verification, final service sizing, proposal, pricing, auth/security behavior, permission enforcement, migration behavior, or operational behavior
 
 ## Scoped View-Model Mapping Notes
 

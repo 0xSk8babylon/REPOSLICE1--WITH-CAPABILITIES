@@ -11,6 +11,10 @@
 - Loop B1 Fact Lifecycle was implemented as an additive backend packet. It adds home-scoped fact persistence, fact create/update/read APIs, read-time effective confidence decay, derived-from parent fact IDs, and named calculation gap reporting. Runtime endpoint contracts are `GET /api/homes/{home_id}/facts`, `POST /api/homes/{home_id}/facts`, `PATCH /api/homes/{home_id}/facts/{fact_id}`, and `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`.
 - B1 changed `apps/api/app/core/models.py`, `apps/api/app/core/repository.py`, `apps/api/app/core/types.py`, `apps/api/app/main.py`, `apps/api/app/facts/__init__.py`, `apps/api/app/facts/schemas.py`, `apps/api/app/facts/router.py`, `apps/api/app/services/facts.py`, `apps/api/tests/test_facts.py`, `docs/API_CONTRACTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, `discovery-index.md`, `docs/roadmap/auto-loop-roadmap-runner-packets.md`, and `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`.
 - B1 intentionally does not add Alembic migrations, auth, permission enforcement, delete endpoints, frontend behavior, external services, dependency installs, lockfile rewrites, GitHub Actions changes, billing, production deployment, push behavior, NEC calculation execution, or field-verification authority.
+- Matt then provided a session-only override for NEC and calculation hard stops for this roadmap/session only.
+- Loop B2 NEC 220 Load Calculation is implemented in the working tree. It adds `GET /api/homes/{home_id}/load-calculations/nec-220` as an additive, deterministic, planning-only endpoint over B1 facts for 220.82 and 220.83 method results. It reports stage-level VA, service-load amps, headroom, consumed facts, effective confidence, labeled default assumptions, gaps, source basis, and professional-review/AHJ boundary text.
+- B2 changed `apps/api/app/nec_load_calculation/__init__.py`, `apps/api/app/nec_load_calculation/schemas.py`, `apps/api/app/nec_load_calculation/router.py`, `apps/api/app/services/nec_load_calculation.py`, `apps/api/app/services/facts.py`, `apps/api/app/main.py`, `apps/api/tests/test_nec_load_calculation.py`, docs/API/continuity files, and `docs/handoffs/2026-06-13-b2-nec-220-load-calculation-closeout.md`.
+- B2 does not add migrations, auth/security, permission enforcement, frontend behavior, external services, dependencies, lockfiles, secrets, deletion, pricing, proposal generation, field verification, AHJ/utility approval, production deployment, push, `twin_id`, graph engine behavior, or operational control.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -207,6 +211,11 @@
 - Updated `apps/api/app/main.py` to include the fact lifecycle router under `/api`.
 - Added `apps/api/tests/test_facts.py` with focused coverage for route registration, create/read effective confidence, update `verified_at` reset, derived parent IDs, no/slow/standard/fast decay policies, known-to-missing transition, expiry behavior, and named calculation gap reporting.
 - Updated roadmap/API/continuity docs for B1.
+
+- B2 NEC 220 Load Calculation was implemented under Matt's session-only NEC/calculation override.
+- Added backend read-only NEC load-calculation schemas, router, service, and focused tests for `GET /api/homes/{home_id}/load-calculations/nec-220`.
+- Updated the B1 fact gap registry with `nec_220_83` and additional NEC defaultable input keys.
+- Updated continuity and API docs for B2.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.

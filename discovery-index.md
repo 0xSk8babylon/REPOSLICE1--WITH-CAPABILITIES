@@ -22,6 +22,11 @@ Read these first:
   - Runtime endpoints: `GET /api/homes/{home_id}/facts`, `POST /api/homes/{home_id}/facts`, `PATCH /api/homes/{home_id}/facts/{fact_id}`, and `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`.
   - Runtime files: `apps/api/app/facts/__init__.py`, `apps/api/app/facts/schemas.py`, `apps/api/app/facts/router.py`, `apps/api/app/services/facts.py`, `apps/api/app/core/models.py`, `apps/api/app/core/repository.py`, `apps/api/app/core/types.py`, `apps/api/app/main.py`, and `apps/api/tests/test_facts.py`.
   - Current boundary: additive backend fact lifecycle CRUD/readiness foundation with read-time confidence decay, derived-from parent fact IDs, and named calculation gap reporting. No migration file, auth, permission enforcement, delete endpoint, frontend behavior, external service, dependency, lockfile rewrite, production deployment, push, NEC calculation execution, or field-verification authority was added.
+- Auto-Loop Roadmap Runner B2: NEC 220 Load Calculation - implemented in the current working tree under Matt's 2026-06-13 session-only NEC/calculation override.
+  - Handoff: `docs/handoffs/2026-06-13-b2-nec-220-load-calculation-closeout.md`
+  - Runtime endpoint: `GET /api/homes/{home_id}/load-calculations/nec-220`.
+  - Runtime files: `apps/api/app/nec_load_calculation/__init__.py`, `apps/api/app/nec_load_calculation/schemas.py`, `apps/api/app/nec_load_calculation/router.py`, `apps/api/app/services/nec_load_calculation.py`, `apps/api/app/services/facts.py`, `apps/api/app/main.py`, and `apps/api/tests/test_nec_load_calculation.py`.
+  - Current boundary: additive deterministic planning-only 220.82/220.83 calculation over B1 facts, with stage VA values, consumed facts, assumptions, gaps, confidence, service load/headroom, and professional-review/AHJ boundary text. No migration, auth/security, permission enforcement, frontend behavior, external service, dependency, lockfile rewrite, pricing/proposal, field-verification, AHJ/utility approval, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -237,6 +242,7 @@ Read these first:
   - latest file in `docs/handoffs/`
   - `docs/roadmap/auto-loop-roadmap-runner-packets.md`
   - `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`
+  - `docs/handoffs/2026-06-13-b2-nec-220-load-calculation-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`
