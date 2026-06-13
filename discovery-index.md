@@ -44,6 +44,10 @@ Read these first:
   - Handoff: `docs/handoffs/2026-06-13-b6-sizers-closeout.md`
   - Runtime files: `apps/api/app/engines/sizers.py` and `apps/api/tests/test_sizers.py`.
   - Current boundary: pure deterministic sizer primitives for battery, generator, V2H, and transformer headroom with assumptions and confidence. No routes, persistence, migrations, frontend behavior, auth/security, permission enforcement, external lookups, pricing, SGIP, 25D, 48E, quote logic, proposal generation, product ranking, procurement, field verification, AHJ/utility approval, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
+- Auto-Loop Roadmap Runner B7 / Phase 21: Graph Comparator and Smart Panel Scoring - implemented in the current working tree under Matt's broad roadmap override.
+  - Handoff: `docs/handoffs/2026-06-13-b7-graph-comparator-smart-panel-closeout.md`
+  - Runtime files: `apps/api/app/engines/graph_comparator.py` and `apps/api/tests/test_graph_comparator.py`.
+  - Current boundary: pure deterministic planning graph comparator and smart-panel scoring primitives over supplied inputs. No graph database, persisted topology graph, lifecycle event log, routes, frontend behavior, auth/security, permission enforcement, external services, final design selection, product ranking as sales direction, pricing authority, utility approval, field verification, DERMS, dispatch, operational control, deployment, push, or `twin_id` was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -264,6 +268,7 @@ Read these first:
   - `docs/handoffs/2026-06-13-b5-hourly-simulation-closeout.md`
   - `docs/handoffs/2026-06-13-phase-20-geometry-closeout.md`
   - `docs/handoffs/2026-06-13-b6-sizers-closeout.md`
+  - `docs/handoffs/2026-06-13-b7-graph-comparator-smart-panel-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`

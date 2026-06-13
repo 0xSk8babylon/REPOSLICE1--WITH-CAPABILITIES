@@ -27,6 +27,9 @@
 - Loop B6 Sizers is implemented in the working tree. It adds `apps/api/app/engines/sizers.py` plus focused tests for battery, generator, V2H, and transformer headroom sizing primitives.
 - B6 changed `apps/api/app/engines/sizers.py`, `apps/api/tests/test_sizers.py`, docs/continuity files, and `docs/handoffs/2026-06-13-b6-sizers-closeout.md`.
 - B6 does not add routes, persistence, migrations, frontend behavior, auth/security, permission enforcement, external lookups, pricing, SGIP, 25D, 48E, quote logic, proposal generation, product ranking, procurement, field verification, AHJ/utility approval, deployment, push, graph behavior, `twin_id`, or operational control.
+- Loop B7 / Phase 21 Graph Comparator and Smart Panel Scoring is implemented in the working tree. It adds `apps/api/app/engines/graph_comparator.py` plus focused tests for candidate scoring, tradeoff surfacing, smart-panel scoring, and graph confidence summaries.
+- B7 changed `apps/api/app/engines/graph_comparator.py`, `apps/api/tests/test_graph_comparator.py`, docs/continuity files, and `docs/handoffs/2026-06-13-b7-graph-comparator-smart-panel-closeout.md`.
+- B7 does not add a graph database, persisted topology graph, lifecycle event log, routes, frontend behavior, auth/security, permission enforcement, external services, final design selection, product ranking as sales direction, pricing authority, utility approval, field verification, DERMS, dispatch, operational control, deployment, push, or `twin_id`.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -244,6 +247,10 @@
 - B6 Sizers was implemented under Matt's broad roadmap override.
 - Added pure deterministic sizer primitives and focused tests.
 - Updated continuity docs for B6.
+
+- B7 / Phase 21 Graph Comparator and Smart Panel Scoring was implemented under Matt's broad roadmap override.
+- Added pure deterministic graph comparator and smart-panel scoring primitives.
+- Updated continuity docs for B7.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.
