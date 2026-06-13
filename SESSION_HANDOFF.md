@@ -18,6 +18,9 @@
 - Loop B4 Calculator Primitives is implemented in the working tree. It adds `apps/api/app/engines/calculator_primitives.py` plus focused tests for 120% backfeed planning, supply-side tap review metadata, coupling direction, critical-load identification, tier-1 shading derate, and solar production estimation with optional injected estimator.
 - B4 changed `apps/api/app/engines/calculator_primitives.py`, `apps/api/tests/test_calculator_primitives.py`, docs/continuity files, and `docs/handoffs/2026-06-13-b4-calculator-primitives-closeout.md`.
 - B4 does not add persistence, migrations, routes, frontend behavior, auth/security changes, permission enforcement, external services, dependency installs, lockfile rewrites, network calls, pricing, proposal generation, field verification, AHJ/utility approval, production deployment, push, `twin_id`, graph engine behavior, or operational control.
+- Loop B5 Hourly Simulation is implemented in the working tree. It adds `apps/api/app/engines/hourly_simulation.py` plus focused tests for hourly energy conservation, battery SoC/cycles, flat/TOU/tiered caller-provided rate math, bill delta, backup coverage, and invalid profile handling.
+- B5 changed `apps/api/app/engines/hourly_simulation.py`, `apps/api/tests/test_hourly_simulation.py`, docs/continuity files, and `docs/handoffs/2026-06-13-b5-hourly-simulation-closeout.md`.
+- B5 does not add persistence, migrations, routes, frontend behavior, auth/security, permission enforcement, external utility/rate lookup, dependencies, lockfiles, real tariff data, customer billing, proposal generation, deployment, push, graph behavior, `twin_id`, or operational control.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -223,6 +226,10 @@
 - B4 Calculator Primitives was implemented under Matt's session-only calculation override.
 - Added pure deterministic calculator primitives and focused tests.
 - Updated continuity docs for B4.
+
+- B5 Hourly Simulation was implemented under Matt's broad roadmap override.
+- Added pure deterministic hourly simulation engine and focused tests.
+- Updated continuity docs for B5.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.

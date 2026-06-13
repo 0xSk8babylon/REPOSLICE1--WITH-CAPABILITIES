@@ -31,6 +31,10 @@ Read these first:
   - Handoff: `docs/handoffs/2026-06-13-b4-calculator-primitives-closeout.md`
   - Runtime files: `apps/api/app/engines/calculator_primitives.py` and `apps/api/tests/test_calculator_primitives.py`.
   - Current boundary: pure deterministic functions only for backfeed planning, supply-side tap review metadata, coupling direction, critical-load identification, tier-1 shading derate, and solar production estimation. No DB access, persistence, migrations, routes, frontend behavior, auth/security, permission enforcement, external service, dependency, lockfile rewrite, network call, pricing/proposal, approval authority, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
+- Auto-Loop Roadmap Runner B5: Hourly Simulation - implemented in the current working tree under Matt's broad roadmap override.
+  - Handoff: `docs/handoffs/2026-06-13-b5-hourly-simulation-closeout.md`
+  - Runtime files: `apps/api/app/engines/hourly_simulation.py` and `apps/api/tests/test_hourly_simulation.py`.
+  - Current boundary: pure deterministic hourly engine for load/solar/battery/grid flows, flat/TOU/tiered caller-provided rate math, bill delta, self-consumption, import/export, cycles/year, backup coverage, and input confidence carry-through. No DB access, persistence, migrations, routes, frontend behavior, auth/security, permission enforcement, external utility/rate lookup, dependency, lockfile rewrite, real tariffs, customer billing, proposal generation, deployment, push, graph behavior, `twin_id`, or operational behavior was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -248,6 +252,7 @@ Read these first:
   - `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`
   - `docs/handoffs/2026-06-13-b2-nec-220-load-calculation-closeout.md`
   - `docs/handoffs/2026-06-13-b4-calculator-primitives-closeout.md`
+  - `docs/handoffs/2026-06-13-b5-hourly-simulation-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`

@@ -37,6 +37,8 @@ Status: implemented as pure `app.engines` functions with focused tests; no route
 
 Add the request-time hourly simulation engine for solar, battery, load profile, rate structures, imports/exports, outage coverage, and cycle counting. This packet must keep energy conservation test coverage and preserve confidence lineage.
 
+Status: implemented as a pure deterministic engine using caller-provided load, solar, battery, and rate inputs. Bill outputs are calculation results from supplied rates only, not utility billing authority, tariff advice, or savings guarantees.
+
 ### Phase 20 - Geometry
 
 Add roof-plane and obstruction storage/query surfaces plus geometry export for future HomeDiagram consumption and per-plane shading input. This packet is additive and does not gate B6.
