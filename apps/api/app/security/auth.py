@@ -36,6 +36,7 @@ HOME_DATA_PREFIXES = (
     "/api/crm-handoff",
     "/api/energy-passport",
     "/api/program-intelligence",
+    "/api/privacy",
 )
 
 

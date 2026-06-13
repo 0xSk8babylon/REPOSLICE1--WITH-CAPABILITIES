@@ -46,6 +46,17 @@ class AuditEvent(Base, TimestampMixin):
     reason: Mapped[str] = mapped_column(Text)
 
 
+class ConsentRecord(Base, TimestampMixin):
+    __tablename__ = "consent_records"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    home_id: Mapped[str] = mapped_column(String, index=True)
+    user_id: Mapped[str] = mapped_column(String, index=True)
+    consent_type: Mapped[str] = mapped_column(String, index=True)
+    status: Mapped[str] = mapped_column(String, index=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+
 class Home(Base, TimestampMixin):
     __tablename__ = "homes"
 

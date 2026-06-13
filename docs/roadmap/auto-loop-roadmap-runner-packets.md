@@ -67,6 +67,8 @@ Status: implemented under Matt's broad roadmap override as local provider-free h
 
 Hard stop under current automation rules if it requires deletion workflows, consent enforcement, privacy enforcement, or auth/security coupling. Requires separate owner decision.
 
+Status: implemented under Matt's broad roadmap override as local SQLite export, consent record, and deletion foundation guarded by A2 middleware. No external provider deletion, legal advice, production privacy workflow, frontend UI, dependency, lockfile, secrets, push, deployment, billing, or operational behavior added.
+
 ### C1 / Phases 18-19 - UI On Heart-Quill Shell
 
 Frontend work behind A2 auth. Hard stop until A2 is separately approved and implemented.

@@ -65,6 +65,7 @@
 - `GET /api/homes/{home_id}/geometry/roof-planes`
 - `GET /api/homes/{home_id}/geometry/obstructions`
 - `GET /api/homes/{home_id}/geometry/export`
+- `GET /api/privacy/homes/{home_id}/export`
 
 ## Current Write Contracts
 
@@ -83,6 +84,8 @@
 - `POST/PATCH /api/homes/{home_id}/facts`
 - `POST /api/homes/{home_id}/geometry/roof-planes`
 - `POST /api/homes/{home_id}/geometry/obstructions`
+- `POST /api/privacy/homes/{home_id}/consent`
+- `DELETE /api/privacy/homes/{home_id}`
 
 ## Compatibility-Sensitive Contracts
 
@@ -192,6 +195,10 @@
 - `GET/POST /api/homes/{home_id}/geometry/roof-planes`, `GET/POST /api/homes/{home_id}/geometry/obstructions`, and `GET /api/homes/{home_id}/geometry/export`
   - additive Phase 20 Geometry surfaces for home-scoped roof planes, obstructions, HomeDiagram-ready geometry export, and per-plane tier-1 shading derived from stored horizon traces
   - response is a planning geometry model only, not field verification, measured roof certification, satellite/lidar/GIS ingestion, permit-ready roof layout, structural engineering, AHJ/utility approval, frontend rendering, permission enforcement, auth/security behavior, export authorization, or operational behavior
+- `GET /api/privacy/homes/{home_id}/export`, `POST /api/privacy/homes/{home_id}/consent`, and `DELETE /api/privacy/homes/{home_id}`
+  - additive A4 local privacy surfaces for portable home record export, consent record capture, and local SQLite homeowner record deletion
+  - guarded by A2 home-data middleware
+  - deletion applies to local app records only; it does not contact external providers, utilities, contractors, CRMs, email systems, backups, legal systems, payment systems, or production privacy workflows
 
 ## Scoped View-Model Mapping Notes
 

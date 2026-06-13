@@ -25,6 +25,7 @@ from app.nec_load_calculation.router import router as nec_load_calculation_route
 from app.panels.router import router as panels_router
 from app.planning_exchange.router import router as planning_exchange_router
 from app.post_install.router import router as post_install_router
+from app.privacy.router import router as privacy_router
 from app.program_intelligence.router import router as program_intelligence_router
 from app.product_preferences.router import router as product_preferences_router
 from app.proposal_option_sets.router import router as proposal_option_sets_router
@@ -117,4 +118,5 @@ api_router.include_router(system_visibility_router)
 api_router.include_router(facts_router)
 api_router.include_router(nec_load_calculation_router)
 api_router.include_router(geometry_router)
+api_router.include_router(privacy_router)
 app.include_router(api_router)

@@ -33,6 +33,9 @@
 - Loop A2 Auth + Object Authorization + Audit Logging is implemented in the working tree. It adds a provider-free local header-based `HomeAccessMiddleware`, an `AuditEvent` model, and focused tests for authentication, home-level authorization, and audit writes.
 - A2 changed `apps/api/app/security/__init__.py`, `apps/api/app/security/auth.py`, `apps/api/app/core/models.py`, `apps/api/app/main.py`, `apps/api/tests/test_auth_audit.py`, docs/API/continuity files, and `docs/handoffs/2026-06-13-a2-auth-object-audit-closeout.md`.
 - A2 does not add an external auth provider, secrets, sessions, cookies, OAuth, password flow, RBAC/ABAC, frontend login UI, dependency installs, lockfile rewrites, production deployment, push, billing, or operational control.
+- Loop A4 Privacy / CCPA is implemented in the working tree. It adds local privacy export, consent record, and deletion endpoints guarded by A2 middleware.
+- A4 changed `apps/api/app/privacy/__init__.py`, `apps/api/app/privacy/schemas.py`, `apps/api/app/privacy/router.py`, `apps/api/app/services/privacy.py`, `apps/api/app/core/models.py`, `apps/api/app/main.py`, `apps/api/app/security/auth.py`, `apps/api/tests/test_privacy.py`, docs/API/continuity files, and `docs/handoffs/2026-06-13-a4-privacy-ccpa-closeout.md`.
+- A4 does not add external provider deletion, CRM/utility/contractor integration, legal advice, production privacy workflow, frontend UI, dependency installs, lockfile rewrites, secrets, push, deployment, billing, or operational control.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -258,6 +261,10 @@
 - A2 Auth + Object Authorization + Audit Logging was implemented under Matt's broad roadmap override.
 - Added local provider-free home-data auth middleware and audit logging.
 - Updated API and continuity docs for A2.
+
+- A4 Privacy / CCPA was implemented under Matt's broad roadmap override.
+- Added local homeowner export, consent record, and deletion foundations.
+- Updated API and continuity docs for A4.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.

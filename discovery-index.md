@@ -52,6 +52,11 @@ Read these first:
   - Handoff: `docs/handoffs/2026-06-13-a2-auth-object-audit-closeout.md`
   - Runtime files: `apps/api/app/security/__init__.py`, `apps/api/app/security/auth.py`, `apps/api/app/core/models.py`, `apps/api/app/main.py`, and `apps/api/tests/test_auth_audit.py`.
   - Current boundary: provider-free local header-based enforcement for home-data API paths using `x-user-id` and `x-home-access`, plus persisted audit events. No external auth provider, secrets, sessions, cookies, OAuth, password flow, RBAC/ABAC, frontend login UI, dependency, lockfile rewrite, deployment, push, billing, or operational control was added.
+- Auto-Loop Roadmap Runner A4: Privacy / CCPA - implemented in the current working tree under Matt's broad roadmap override.
+  - Handoff: `docs/handoffs/2026-06-13-a4-privacy-ccpa-closeout.md`
+  - Runtime endpoints: `GET /api/privacy/homes/{home_id}/export`, `POST /api/privacy/homes/{home_id}/consent`, and `DELETE /api/privacy/homes/{home_id}`.
+  - Runtime files: `apps/api/app/privacy/__init__.py`, `apps/api/app/privacy/schemas.py`, `apps/api/app/privacy/router.py`, `apps/api/app/services/privacy.py`, `apps/api/app/core/models.py`, `apps/api/app/main.py`, `apps/api/app/security/auth.py`, and `apps/api/tests/test_privacy.py`.
+  - Current boundary: local SQLite homeowner record export, consent record, and deletion foundation. No external provider deletion, CRM/utility/contractor integration, legal advice, production privacy workflow, frontend UI, dependency, lockfile rewrite, secrets, push, deployment, billing, or operational behavior was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -274,6 +279,7 @@ Read these first:
   - `docs/handoffs/2026-06-13-b6-sizers-closeout.md`
   - `docs/handoffs/2026-06-13-b7-graph-comparator-smart-panel-closeout.md`
   - `docs/handoffs/2026-06-13-a2-auth-object-audit-closeout.md`
+  - `docs/handoffs/2026-06-13-a4-privacy-ccpa-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`
