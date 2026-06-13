@@ -36,6 +36,9 @@
 - Loop A4 Privacy / CCPA is implemented in the working tree. It adds local privacy export, consent record, and deletion endpoints guarded by A2 middleware.
 - A4 changed `apps/api/app/privacy/__init__.py`, `apps/api/app/privacy/schemas.py`, `apps/api/app/privacy/router.py`, `apps/api/app/services/privacy.py`, `apps/api/app/core/models.py`, `apps/api/app/main.py`, `apps/api/app/security/auth.py`, `apps/api/tests/test_privacy.py`, docs/API/continuity files, and `docs/handoffs/2026-06-13-a4-privacy-ccpa-closeout.md`.
 - A4 does not add external provider deletion, CRM/utility/contractor integration, legal advice, production privacy workflow, frontend UI, dependency installs, lockfile rewrites, secrets, push, deployment, billing, or operational control.
+- Loop C1 / Phases 18-19 UI shell is implemented in the working tree. It adds local auth headers to the React API client and a `/experience` route with Explore/Twin/Plan/Build tabs, fact/load/geometry summaries, and a lightweight HomeDiagram-style SVG visual.
+- C1 changed `apps/web/src/lib/api.js`, `apps/web/src/app/App.jsx`, `apps/web/src/pages/C1ExperiencePage.jsx`, `apps/web/src/styles/global.css`, docs/API/continuity files, and `docs/handoffs/2026-06-13-c1-ui-shell-closeout.md`.
+- C1 does not add dependencies, lockfile rewrites, Three.js package, external services, production auth provider, deployment, push, billing, operational control, final design claims, or permissioned export UI.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -265,6 +268,10 @@
 - A4 Privacy / CCPA was implemented under Matt's broad roadmap override.
 - Added local homeowner export, consent record, and deletion foundations.
 - Updated API and continuity docs for A4.
+
+- C1 / Phases 18-19 UI shell was implemented under Matt's broad roadmap override.
+- Added authenticated API client headers and a four-surface homeowner workspace route.
+- Updated API and continuity docs for C1.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.

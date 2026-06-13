@@ -116,6 +116,110 @@ a {
   gap: 24px;
 }
 
+.c1-workspace {
+  display: grid;
+  gap: 18px;
+}
+
+.surface-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.surface-tab {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.62);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.surface-tab.active {
+  background: var(--ink);
+  color: var(--surface-strong);
+}
+
+.surface-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.75fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.surface-primary,
+.surface-side,
+.surface-metric {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.74);
+}
+
+.surface-primary {
+  padding: 20px;
+}
+
+.surface-primary h2 {
+  margin: 0 0 16px;
+  font-size: 2rem;
+}
+
+.home-diagram {
+  display: grid;
+  gap: 10px;
+}
+
+.home-diagram svg {
+  width: 100%;
+  aspect-ratio: 21 / 13;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.diagram-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diagram-meta span,
+.surface-metric small {
+  color: var(--muted);
+}
+
+.diagram-meta span {
+  min-height: 30px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgba(31, 42, 44, 0.08);
+}
+
+.surface-side {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.surface-metric {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+
+.surface-metric span {
+  color: var(--brand);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.surface-metric strong {
+  font-size: 1.45rem;
+}
+
 .homeowner-entry {
   /* Silver / gray / dark glass palette */
   --twin-color-background: #0c0f14;

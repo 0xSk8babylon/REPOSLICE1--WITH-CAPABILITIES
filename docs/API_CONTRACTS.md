@@ -23,6 +23,7 @@
 - Shared additive metadata models now exist for view-boundary and permission-readiness descriptions.
 - These metadata fields are descriptive only. They do not filter responses, enforce RBAC, enforce tenant isolation, authorize exports, or change account/session behavior.
 - A2 home-data middleware requires `x-user-id` and, where a home ID is present, `x-home-access` containing that home ID or `*`. This is provider-free local enforcement, not production auth provider integration.
+- The React API client sends local development `x-user-id` and `x-home-access` headers from `VITE_API_USER_ID` and `VITE_API_HOME_ACCESS`, defaulting to `demo_user` and `home_001`.
 - Provenance and recommendation inspectability surfaces may now include additive `authority_layer`, `data_classification`, `derivation_type`, and `limitations` fields.
 - Account responses may now include additive `permission_readiness` metadata explaining that role, plan, and subscription fields remain scaffolding only.
 

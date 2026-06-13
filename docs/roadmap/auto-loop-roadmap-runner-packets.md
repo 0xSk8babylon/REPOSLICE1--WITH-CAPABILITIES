@@ -73,6 +73,8 @@ Status: implemented under Matt's broad roadmap override as local SQLite export, 
 
 Frontend work behind A2 auth. Hard stop until A2 is separately approved and implemented.
 
+Status: implemented under Matt's broad roadmap override as an additive `/experience` route with local auth-header API client support and Explore/Twin/Plan/Build workspace. Three.js was not added because no dependency exists and dependency/lockfile changes were avoided.
+
 ### B3 - Hardened Evidence Intake
 
 Deferred until C1 capture UI and hardened untrusted-upload boundaries are approved. Hard stop if it requires upload security, external services, secrets, or auth/permission enforcement.

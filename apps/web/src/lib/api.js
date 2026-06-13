@@ -1,11 +1,23 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const API_PREFIX = "/api";
+const API_USER_ID = import.meta.env.VITE_API_USER_ID || "demo_user";
+const API_HOME_ACCESS = import.meta.env.VITE_API_HOME_ACCESS || "home_001";
+
+function authHeaders() {
+  return {
+    "x-user-id": API_USER_ID,
+    "x-home-access": API_HOME_ACCESS,
+  };
+}
 
 async function request(path, options = {}) {
   const { method = "GET", body } = options;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
+    headers: {
+      ...authHeaders(),
+      ...(body ? { "Content-Type": "application/json" } : {}),
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
 
@@ -112,4 +124,8 @@ export const api = {
   getAIContext: (designId) => request(apiPath(`/ai-context/design/${designId}`)),
   getEstimatePlaceholder: () => request(apiPath("/estimates/placeholder")),
   getArchitectureVisibility: () => request(apiPath("/system-visibility/architecture")),
+  getFacts: (homeId) => request(apiPath(`/homes/${homeId}/facts`)),
+  getGeometryExport: (homeId) => request(apiPath(`/homes/${homeId}/geometry/export`)),
+  getNec220LoadCalculation: (homeId) => request(apiPath(`/homes/${homeId}/load-calculations/nec-220`)),
+  getPrivacyExport: (homeId) => request(apiPath(`/privacy/homes/${homeId}/export`)),
 };

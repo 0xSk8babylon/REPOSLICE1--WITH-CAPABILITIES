@@ -57,6 +57,11 @@ Read these first:
   - Runtime endpoints: `GET /api/privacy/homes/{home_id}/export`, `POST /api/privacy/homes/{home_id}/consent`, and `DELETE /api/privacy/homes/{home_id}`.
   - Runtime files: `apps/api/app/privacy/__init__.py`, `apps/api/app/privacy/schemas.py`, `apps/api/app/privacy/router.py`, `apps/api/app/services/privacy.py`, `apps/api/app/core/models.py`, `apps/api/app/main.py`, `apps/api/app/security/auth.py`, and `apps/api/tests/test_privacy.py`.
   - Current boundary: local SQLite homeowner record export, consent record, and deletion foundation. No external provider deletion, CRM/utility/contractor integration, legal advice, production privacy workflow, frontend UI, dependency, lockfile rewrite, secrets, push, deployment, billing, or operational behavior was added.
+- Auto-Loop Roadmap Runner C1 / Phases 18-19: UI Shell - implemented in the current working tree under Matt's broad roadmap override.
+  - Handoff: `docs/handoffs/2026-06-13-c1-ui-shell-closeout.md`
+  - Frontend route: `/experience`
+  - Runtime files: `apps/web/src/lib/api.js`, `apps/web/src/app/App.jsx`, `apps/web/src/pages/C1ExperiencePage.jsx`, and `apps/web/src/styles/global.css`.
+  - Current boundary: local auth-header API client support and four-surface Explore/Twin/Plan/Build workspace with lightweight SVG/CSS HomeDiagram-style visual. No dependencies, lockfile rewrite, Three.js package, external service, production auth provider, deployment, push, billing, operational control, final design claims, or permissioned export UI was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -280,6 +285,7 @@ Read these first:
   - `docs/handoffs/2026-06-13-b7-graph-comparator-smart-panel-closeout.md`
   - `docs/handoffs/2026-06-13-a2-auth-object-audit-closeout.md`
   - `docs/handoffs/2026-06-13-a4-privacy-ccpa-closeout.md`
+  - `docs/handoffs/2026-06-13-c1-ui-shell-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`

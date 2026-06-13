@@ -6,6 +6,7 @@ import { AIContextPage } from "../pages/AIContextPage";
 import { ArchitecturePage } from "../pages/ArchitecturePage";
 import { DesignAdvisorPage } from "../pages/DesignAdvisorPage";
 import { HomeModelPage } from "../pages/HomeModelPage";
+import { C1ExperiencePage } from "../pages/C1ExperiencePage";
 import { ProductLibraryPage } from "../pages/ProductLibraryPage";
 import { ScenarioComparisonPage } from "../pages/ScenarioComparisonPage";
 import { SystemDesignBuilderPage } from "../pages/SystemDesignBuilderPage";
@@ -16,6 +17,7 @@ import { TakeoffEstimatePage } from "../pages/TakeoffEstimatePage";
 // relabeled away from contractor/endpoint language.
 const navItems = [
   { to: "/", label: "Overview" },
+  { to: "/experience", label: "Explore" },
   { to: "/home-model", label: "Energy Twin" },
   { to: "/design-builder", label: "Goals" },
   { to: "/design-advisor", label: "Readiness" },
@@ -49,6 +51,7 @@ export default function App() {
           <Shell navigation={<Navigation />}>
             <Routes>
               <Route path="/home-model" element={<HomeModelPage />} />
+              <Route path="/experience" element={<C1ExperiencePage />} />
               <Route path="/design-builder" element={<SystemDesignBuilderPage />} />
               <Route path="/product-library" element={<ProductLibraryPage />} />
               <Route path="/scenario-comparison" element={<ScenarioComparisonPage />} />
