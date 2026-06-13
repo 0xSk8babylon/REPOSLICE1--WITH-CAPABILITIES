@@ -32,6 +32,20 @@ class Account(Base, TimestampMixin):
     homes: Mapped[List["Home"]] = relationship("Home", back_populates="account")
 
 
+class AuditEvent(Base, TimestampMixin):
+    __tablename__ = "audit_events"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[Optional[str]] = mapped_column(String, nullable=True, index=True)
+    home_id: Mapped[Optional[str]] = mapped_column(String, nullable=True, index=True)
+    action: Mapped[str] = mapped_column(String, index=True)
+    method: Mapped[str] = mapped_column(String)
+    path: Mapped[str] = mapped_column(String)
+    status_code: Mapped[int] = mapped_column(Integer)
+    authorized: Mapped[str] = mapped_column(String, index=True)
+    reason: Mapped[str] = mapped_column(Text)
+
+
 class Home(Base, TimestampMixin):
     __tablename__ = "homes"
 

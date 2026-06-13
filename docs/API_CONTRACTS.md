@@ -9,7 +9,8 @@
 
 ## Authority And View Boundary Policy
 
-- Current API responses are product data contracts, not security enforcement boundaries.
+- A2 adds local header-based authentication, home-level authorization, and audit logging for home-data API paths.
+- Current API responses remain product data contracts; A2 enforcement is a runtime access boundary, not a scoped view-model guarantee.
 - Existing account, role, and subscription fields are scaffolding only; they do not imply RBAC, tenant isolation, contractor authorization, utility submission, or operational-control permission.
 - Future scoped API views should be additive and should carry explicit authority layer, trust-zone posture, data classification, and provenance summaries where they expose derived or advisory intelligence.
 - Future consumer, contractor, utility, AI, or orchestration views must not scrape prose as source of truth. They should consume structured fields that distinguish canonical objects, derived estimates, advisory explanations, operational state, and historical lineage.
@@ -21,6 +22,7 @@
 - Shared backend enums now exist for `authority_layer`, `data_classification`, and intended API-view audience.
 - Shared additive metadata models now exist for view-boundary and permission-readiness descriptions.
 - These metadata fields are descriptive only. They do not filter responses, enforce RBAC, enforce tenant isolation, authorize exports, or change account/session behavior.
+- A2 home-data middleware requires `x-user-id` and, where a home ID is present, `x-home-access` containing that home ID or `*`. This is provider-free local enforcement, not production auth provider integration.
 - Provenance and recommendation inspectability surfaces may now include additive `authority_layer`, `data_classification`, `derivation_type`, and `limitations` fields.
 - Account responses may now include additive `permission_readiness` metadata explaining that role, plan, and subscription fields remain scaffolding only.
 

@@ -37,6 +37,7 @@ from app.product_library.router import router as product_library_router
 from app.provenance.router import router as provenance_router
 from app.rule_provenance.router import router as rule_provenance_router
 from app.scenarios.router import router as scenarios_router
+from app.security.auth import HomeAccessMiddleware
 from app.seed.runtime import initialize_and_seed
 from app.source_documents.router import router as source_documents_router
 from app.system_visibility.router import router as system_visibility_router
@@ -53,6 +54,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(HomeAccessMiddleware)
 
 
 @app.on_event("startup")

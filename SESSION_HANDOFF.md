@@ -30,6 +30,9 @@
 - Loop B7 / Phase 21 Graph Comparator and Smart Panel Scoring is implemented in the working tree. It adds `apps/api/app/engines/graph_comparator.py` plus focused tests for candidate scoring, tradeoff surfacing, smart-panel scoring, and graph confidence summaries.
 - B7 changed `apps/api/app/engines/graph_comparator.py`, `apps/api/tests/test_graph_comparator.py`, docs/continuity files, and `docs/handoffs/2026-06-13-b7-graph-comparator-smart-panel-closeout.md`.
 - B7 does not add a graph database, persisted topology graph, lifecycle event log, routes, frontend behavior, auth/security, permission enforcement, external services, final design selection, product ranking as sales direction, pricing authority, utility approval, field verification, DERMS, dispatch, operational control, deployment, push, or `twin_id`.
+- Loop A2 Auth + Object Authorization + Audit Logging is implemented in the working tree. It adds a provider-free local header-based `HomeAccessMiddleware`, an `AuditEvent` model, and focused tests for authentication, home-level authorization, and audit writes.
+- A2 changed `apps/api/app/security/__init__.py`, `apps/api/app/security/auth.py`, `apps/api/app/core/models.py`, `apps/api/app/main.py`, `apps/api/tests/test_auth_audit.py`, docs/API/continuity files, and `docs/handoffs/2026-06-13-a2-auth-object-audit-closeout.md`.
+- A2 does not add an external auth provider, secrets, sessions, cookies, OAuth, password flow, RBAC/ABAC, frontend login UI, dependency installs, lockfile rewrites, production deployment, push, billing, or operational control.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -251,6 +254,10 @@
 - B7 / Phase 21 Graph Comparator and Smart Panel Scoring was implemented under Matt's broad roadmap override.
 - Added pure deterministic graph comparator and smart-panel scoring primitives.
 - Updated continuity docs for B7.
+
+- A2 Auth + Object Authorization + Audit Logging was implemented under Matt's broad roadmap override.
+- Added local provider-free home-data auth middleware and audit logging.
+- Updated API and continuity docs for A2.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.

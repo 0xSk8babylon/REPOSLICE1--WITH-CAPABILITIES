@@ -48,6 +48,10 @@ Read these first:
   - Handoff: `docs/handoffs/2026-06-13-b7-graph-comparator-smart-panel-closeout.md`
   - Runtime files: `apps/api/app/engines/graph_comparator.py` and `apps/api/tests/test_graph_comparator.py`.
   - Current boundary: pure deterministic planning graph comparator and smart-panel scoring primitives over supplied inputs. No graph database, persisted topology graph, lifecycle event log, routes, frontend behavior, auth/security, permission enforcement, external services, final design selection, product ranking as sales direction, pricing authority, utility approval, field verification, DERMS, dispatch, operational control, deployment, push, or `twin_id` was added.
+- Auto-Loop Roadmap Runner A2: Auth + Object Authorization + Audit Logging - implemented in the current working tree under Matt's broad roadmap override.
+  - Handoff: `docs/handoffs/2026-06-13-a2-auth-object-audit-closeout.md`
+  - Runtime files: `apps/api/app/security/__init__.py`, `apps/api/app/security/auth.py`, `apps/api/app/core/models.py`, `apps/api/app/main.py`, and `apps/api/tests/test_auth_audit.py`.
+  - Current boundary: provider-free local header-based enforcement for home-data API paths using `x-user-id` and `x-home-access`, plus persisted audit events. No external auth provider, secrets, sessions, cookies, OAuth, password flow, RBAC/ABAC, frontend login UI, dependency, lockfile rewrite, deployment, push, billing, or operational control was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -269,6 +273,7 @@ Read these first:
   - `docs/handoffs/2026-06-13-phase-20-geometry-closeout.md`
   - `docs/handoffs/2026-06-13-b6-sizers-closeout.md`
   - `docs/handoffs/2026-06-13-b7-graph-comparator-smart-panel-closeout.md`
+  - `docs/handoffs/2026-06-13-a2-auth-object-audit-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`
