@@ -36,6 +36,7 @@ from app.rule_provenance.router import router as rule_provenance_router
 from app.scenarios.router import router as scenarios_router
 from app.seed.runtime import initialize_and_seed
 from app.source_documents.router import router as source_documents_router
+from app.system_visibility.router import router as system_visibility_router
 from app.takeoffs.router import router as takeoffs_router
 from app.twin_planning_context.router import router as twin_planning_context_router
 
@@ -107,4 +108,5 @@ api_router.include_router(post_install_router)
 api_router.include_router(crm_handoff_router)
 api_router.include_router(energy_passport_router)
 api_router.include_router(program_intelligence_router)
+api_router.include_router(system_visibility_router)
 app.include_router(api_router)

@@ -3,6 +3,7 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import { Shell } from "../components/Shell";
 import { DashboardPage } from "../pages/DashboardPage";
 import { AIContextPage } from "../pages/AIContextPage";
+import { ArchitecturePage } from "../pages/ArchitecturePage";
 import { DesignAdvisorPage } from "../pages/DesignAdvisorPage";
 import { HomeModelPage } from "../pages/HomeModelPage";
 import { ProductLibraryPage } from "../pages/ProductLibraryPage";
@@ -10,15 +11,15 @@ import { ScenarioComparisonPage } from "../pages/ScenarioComparisonPage";
 import { SystemDesignBuilderPage } from "../pages/SystemDesignBuilderPage";
 import { TakeoffEstimatePage } from "../pages/TakeoffEstimatePage";
 
+// Minimal, homeowner-safe navigation for U1. Existing routes are preserved
+// (still defined below and deep-linkable); only the primary nav is trimmed and
+// relabeled away from contractor/endpoint language.
 const navItems = [
-  { to: "/", label: "Dashboard" },
-  { to: "/home-model", label: "Home / Property Model" },
-  { to: "/design-builder", label: "System Design Builder" },
-  { to: "/product-library", label: "Product Library" },
-  { to: "/scenario-comparison", label: "Scenario Comparison" },
-  { to: "/design-advisor", label: "Design Advisor" },
-  { to: "/ai-context", label: "AI Context" },
-  { to: "/takeoff-estimate", label: "Takeoff / Estimate" },
+  { to: "/", label: "Overview" },
+  { to: "/home-model", label: "Energy Twin" },
+  { to: "/design-builder", label: "Goals" },
+  { to: "/design-advisor", label: "Readiness" },
+  { to: "/scenario-comparison", label: "Upgrade Paths" },
 ];
 
 function Navigation() {
@@ -40,17 +41,25 @@ function Navigation() {
 
 export default function App() {
   return (
-    <Shell navigation={<Navigation />}>
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/home-model" element={<HomeModelPage />} />
-        <Route path="/design-builder" element={<SystemDesignBuilderPage />} />
-        <Route path="/product-library" element={<ProductLibraryPage />} />
-        <Route path="/scenario-comparison" element={<ScenarioComparisonPage />} />
-        <Route path="/design-advisor" element={<DesignAdvisorPage />} />
-        <Route path="/ai-context" element={<AIContextPage />} />
-        <Route path="/takeoff-estimate" element={<TakeoffEstimatePage />} />
-      </Routes>
-    </Shell>
+    <Routes>
+      <Route path="/" element={<DashboardPage />} />
+      <Route
+        path="*"
+        element={
+          <Shell navigation={<Navigation />}>
+            <Routes>
+              <Route path="/home-model" element={<HomeModelPage />} />
+              <Route path="/design-builder" element={<SystemDesignBuilderPage />} />
+              <Route path="/product-library" element={<ProductLibraryPage />} />
+              <Route path="/scenario-comparison" element={<ScenarioComparisonPage />} />
+              <Route path="/design-advisor" element={<DesignAdvisorPage />} />
+              <Route path="/ai-context" element={<AIContextPage />} />
+              <Route path="/architecture" element={<ArchitecturePage />} />
+              <Route path="/takeoff-estimate" element={<TakeoffEstimatePage />} />
+            </Routes>
+          </Shell>
+        }
+      />
+    </Routes>
   );
 }

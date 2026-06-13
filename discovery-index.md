@@ -220,6 +220,8 @@ Read these first:
   - `docs/governance/GOVERNANCE_GAP_ANALYSIS.md`
   - `docs/governance/PROJECT_SKILL_RECOMMENDATIONS.md`
   - `.codex/project-skills/`
+- Frontend/UI execution doctrine:
+  - `docs/skills/frontend-skill.md` when the task asks for a visually strong landing page, website, app, prototype, demo, game UI, dashboard, product surface, or other frontend implementation. This skill is additive execution doctrine and does not replace project governance, backend phase doctrine, deterministic workflow constraints, scoped boundaries, or lean operational summaries.
 - Continuity maintenance:
   - `docs/continuity/LEAN_RESTORE_WORKFLOW.md`
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`

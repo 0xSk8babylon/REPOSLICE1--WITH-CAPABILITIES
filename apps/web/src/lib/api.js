@@ -111,4 +111,5 @@ export const api = {
   getDesignAdvisor: (designId) => request(apiPath(`/design-advisor/summary/${designId}`)),
   getAIContext: (designId) => request(apiPath(`/ai-context/design/${designId}`)),
   getEstimatePlaceholder: () => request(apiPath("/estimates/placeholder")),
+  getArchitectureVisibility: () => request(apiPath("/system-visibility/architecture")),
 };
