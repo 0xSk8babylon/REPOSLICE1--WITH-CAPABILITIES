@@ -57,6 +57,8 @@
 - `GET /api/crm-handoff/homes/{home_id}`
 - `GET /api/energy-passport/homes/{home_id}`
 - `GET /api/program-intelligence/homes/{home_id}`
+- `GET /api/homes/{home_id}/facts`
+- `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`
 
 ## Current Write Contracts
 
@@ -72,6 +74,7 @@
   - create/update flows now capture additive immutable scenario revisions behind the existing live scenario record
 - `POST/PATCH /api/equipment/locations`
 - `POST/PATCH /api/estimated-pathways`
+- `POST/PATCH /api/homes/{home_id}/facts`
 
 ## Compatibility-Sensitive Contracts
 
@@ -161,6 +164,18 @@
   - response includes explicit scope and capability-boundary flags, utility context awareness, program categories, incentive awareness, demand response awareness, VPP awareness, TOU awareness, interconnection awareness, battery participation readiness, load-shifting readiness, backup-planning readiness, smart-panel readiness, EV coordination readiness, DER aggregation readiness, missing inputs, blockers, confirmation gates, assumptions, dependencies, homeowner-safe summaries, contractor/program review prompts, verification recommendations, do-not-assume statements, and source/provenance basis
   - unknown utility, rate-plan, battery configuration, export status, interconnection status, equipment compatibility, and program jurisdiction inputs degrade the response through missing inputs, blockers, and confirmation gates rather than inference
   - response is program/grid-edge awareness metadata only, not persistence, migration, write behavior, background jobs, external API calls, auth/security behavior, permission enforcement, eligibility determination, enrollment workflow, rebate calculation, incentive calculation, tariff optimization, utility dispatch, device control, demand response execution, grid-services execution, billing logic, pricing logic, proposal generation, CRM integration, email automation, export behavior, push behavior, frontend behavior, interconnection approval, utility approval, or operational behavior
+- `GET /api/homes/{home_id}/facts`
+  - additive B1 Fact Lifecycle batch-read endpoint over persisted home-scoped facts
+  - response includes stored fact value, unit, source, confidence tier, verified timestamp, optional expiry/decay policy, derived-from parent fact IDs, effective confidence score/tier, applied decay policy, and confidence reason
+  - effective confidence is computed at read time; no background aging job, auth enforcement, permission enforcement, frontend behavior, migration file, external source lookup, engineering approval, or field-verification authority is added
+- `POST /api/homes/{home_id}/facts` and `PATCH /api/homes/{home_id}/facts/{fact_id}`
+  - additive B1 Fact Lifecycle create/update endpoints for home-scoped planning facts
+  - create/update resets `verified_at` server-side and stores `derived_from` parent fact IDs for derived facts
+  - these endpoints are fact-entry surfaces only; they do not verify truth, approve engineering inputs, enforce permission, import external data, delete facts, or create audit/auth behavior
+- `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`
+  - additive B1 gap-readiness endpoint for named calculation requirement sets such as `nec_220_82` and `battery_backup_sizing`
+  - response reports required keys, defaultable keys, present keys, missing/effectively-missing gaps, readiness, and limitations
+  - readiness reflects fact availability and effective confidence only; it is not NEC compliance, engineering approval, field verification, AHJ approval, proposal readiness, or permission enforcement
 
 ## Scoped View-Model Mapping Notes
 

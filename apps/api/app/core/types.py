@@ -157,6 +157,29 @@ class FactLifecycleState(str, Enum):
     expired = "expired"
 
 
+class FactSource(str, Enum):
+    utility_bill = "utility_bill"
+    homeowner_stated = "homeowner_stated"
+    photo_verified = "photo_verified"
+    contractor_measured = "contractor_measured"
+    derived = "derived"
+    manufacturer_spec = "manufacturer_spec"
+
+
+class FactConfidenceTier(str, Enum):
+    known = "known"
+    derived = "derived"
+    assumed = "assumed"
+    missing = "missing"
+
+
+class FactDecayPolicy(str, Enum):
+    no_decay = "no_decay"
+    slow_decay = "slow_decay"
+    standard_decay = "standard_decay"
+    fast_decay = "fast_decay"
+
+
 # Backward-compatible alias: every existing ``data_origin: DataOrigin`` and
 # ``trust_state: DataOrigin`` annotation now resolves to the canonical fact
 # lifecycle vocabulary (stored string values are unchanged).

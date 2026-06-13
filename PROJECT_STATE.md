@@ -15,6 +15,7 @@
 
 ## Current Product Phase
 
+- B1 Fact Lifecycle is complete as the first Auto-Loop Roadmap Runner packet in the current local working line: an additive home-scoped fact lifecycle backend layer with persisted facts, read-time effective confidence decay, derived-from parent fact IDs, and named calculation gap reporting at `/api/homes/{home_id}/facts` and `/api/homes/{home_id}/facts/gaps/{calculation_name}`. The packet adds no Alembic migration file, auth, permission enforcement, delete endpoint, frontend behavior, external service, dependency, lockfile, billing, production deployment, or push behavior.
 - Phase 1: Planner Foundation is complete.
 - Phase 2A: Twin Doctrine Foundation is complete.
 - Phase 2B: Twin Runtime Expression is complete for the current approved runtime scope: `TwinPlanningContext`, Runtime View Foundations, Dependency Awareness Foundations, and Permission Foundations. The runtime remains an approved read-only, `home_id`-anchored planning-context layer over existing planner records. Provenance Expansion runtime foundation scope is sufficiently complete; remaining provenance maturity work is deferred.
@@ -203,6 +204,7 @@ Phase 4 Trust / Provenance Maturity and Readiness Normalization is complete and 
 
 ## Current Continuity Risks
 
+- B1 Fact Lifecycle adds a new SQLAlchemy `facts` table model without an Alembic migration file because migrations are a hard stop in the active Auto-Loop Roadmap Runner. Existing app startup/test harness create missing tables through `Base.metadata.create_all`; migration normalization remains a future owner-controlled task.
 - Detailed continuity docs still exist and remain valuable, but they are too large to treat as mandatory startup context.
 - Cognition docs now reduce restore ambiguity, but future sessions must avoid duplicating state summaries across root discovery files and detailed docs.
 - Provenance Expansion remains partial and gap-reporting based, so trust messaging must stay explicit.

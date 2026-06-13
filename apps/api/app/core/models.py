@@ -71,6 +71,28 @@ class Home(Base, TimestampMixin):
     estimated_pathways: Mapped[List["EstimatedPathway"]] = relationship(
         "EstimatedPathway", back_populates="home", cascade="all, delete-orphan"
     )
+    facts: Mapped[List["Fact"]] = relationship(
+        "Fact", back_populates="home", cascade="all, delete-orphan"
+    )
+
+
+class Fact(Base, TimestampMixin):
+    __tablename__ = "facts"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    home_id: Mapped[str] = mapped_column(ForeignKey("homes.id"), index=True)
+    key: Mapped[str] = mapped_column(String, index=True)
+    value: Mapped[object] = mapped_column(JSON)
+    unit: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    source: Mapped[str] = mapped_column(String, index=True)
+    confidence_tier: Mapped[str] = mapped_column(String, index=True)
+    verified_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    decay_policy: Mapped[Optional[str]] = mapped_column(String, nullable=True, index=True)
+    derived_from: Mapped[List[str]] = mapped_column(JSON, default=list)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    home: Mapped["Home"] = relationship("Home", back_populates="facts")
 
 
 class BuildingStructure(Base, TimestampMixin):

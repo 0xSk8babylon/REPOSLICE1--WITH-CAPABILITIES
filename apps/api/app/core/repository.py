@@ -70,6 +70,29 @@ class DatabaseRepository:
         db.commit()
         return self.get_home_by_id(db, home_id)
 
+    def list_facts(self, db: Session, home_id: str):
+        statement = (
+            select(models.Fact)
+            .where(models.Fact.home_id == home_id)
+            .order_by(models.Fact.key, models.Fact.created_at)
+        )
+        return db.scalars(statement).all()
+
+    def get_fact(self, db: Session, fact_id: str):
+        return db.get(models.Fact, fact_id)
+
+    def create_fact(self, db: Session, fact):
+        db.add(fact)
+        db.commit()
+        db.refresh(fact)
+        return fact
+
+    def save_fact(self, db: Session, fact):
+        db.add(fact)
+        db.commit()
+        db.refresh(fact)
+        return fact
+
     def list_buildings(self, db: Session, home_id: Optional[str] = None):
         statement = select(models.BuildingStructure).order_by(models.BuildingStructure.created_at)
         if home_id:

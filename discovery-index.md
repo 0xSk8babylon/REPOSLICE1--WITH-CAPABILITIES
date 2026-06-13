@@ -16,6 +16,12 @@ Read these first:
 
 ## Canonical Phase Structure
 
+- Auto-Loop Roadmap Runner B1: Fact Lifecycle - complete in the current local line.
+  - Packet plan: `docs/roadmap/auto-loop-roadmap-runner-packets.md`
+  - Handoff: `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`
+  - Runtime endpoints: `GET /api/homes/{home_id}/facts`, `POST /api/homes/{home_id}/facts`, `PATCH /api/homes/{home_id}/facts/{fact_id}`, and `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`.
+  - Runtime files: `apps/api/app/facts/__init__.py`, `apps/api/app/facts/schemas.py`, `apps/api/app/facts/router.py`, `apps/api/app/services/facts.py`, `apps/api/app/core/models.py`, `apps/api/app/core/repository.py`, `apps/api/app/core/types.py`, `apps/api/app/main.py`, and `apps/api/tests/test_facts.py`.
+  - Current boundary: additive backend fact lifecycle CRUD/readiness foundation with read-time confidence decay, derived-from parent fact IDs, and named calculation gap reporting. No migration file, auth, permission enforcement, delete endpoint, frontend behavior, external service, dependency, lockfile rewrite, production deployment, push, NEC calculation execution, or field-verification authority was added.
 - Phase 1: Planner Foundation - complete.
 - Phase 2A: Twin Doctrine Foundation - complete.
 - Phase 2B: Twin Runtime Expression - complete for the current approved runtime foundation scope.
@@ -229,6 +235,8 @@ Read these first:
   - `docs/session-report-email.md` when Matt asks for "email when done", "send report", or session-report email delivery
   - `docs/skills/session-closeout-stabilization-email.md` when Matt asks for "email when done", "send closeout report", "stabilization email", "session-closeout stabilization", "email the final status", or "email after commit"
   - latest file in `docs/handoffs/`
+  - `docs/roadmap/auto-loop-roadmap-runner-packets.md`
+  - `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`
   - `docs/phase-4-charter.md`
   - `docs/handoffs/2026-06-04-phase-4-closeout.md`
   - `docs/handoffs/2026-06-04-phase-4-charter.md`

@@ -6,6 +6,11 @@
 
 ## Session Summary
 
+- 2026-06-13 Auto-Loop Roadmap Runner was activated by Matt for the pasted B1 through B7/A2/A4/C1/B3 roadmap under OwnerWorkflows authority. The repo/branch/remote/status were confirmed as `/home/mattcoje/residential-energy-planner`, branch `fix/github-workflow`, remotes `origin`, `twin-layer`, and `twin-layer-base`, and a clean worktree before edits.
+- Loop packets were materialized in `docs/roadmap/auto-loop-roadmap-runner-packets.md`.
+- Loop B1 Fact Lifecycle was implemented as an additive backend packet. It adds home-scoped fact persistence, fact create/update/read APIs, read-time effective confidence decay, derived-from parent fact IDs, and named calculation gap reporting. Runtime endpoint contracts are `GET /api/homes/{home_id}/facts`, `POST /api/homes/{home_id}/facts`, `PATCH /api/homes/{home_id}/facts/{fact_id}`, and `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`.
+- B1 changed `apps/api/app/core/models.py`, `apps/api/app/core/repository.py`, `apps/api/app/core/types.py`, `apps/api/app/main.py`, `apps/api/app/facts/__init__.py`, `apps/api/app/facts/schemas.py`, `apps/api/app/facts/router.py`, `apps/api/app/services/facts.py`, `apps/api/tests/test_facts.py`, `docs/API_CONTRACTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, `discovery-index.md`, `docs/roadmap/auto-loop-roadmap-runner-packets.md`, and `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`.
+- B1 intentionally does not add Alembic migrations, auth, permission enforcement, delete endpoints, frontend behavior, external services, dependency installs, lockfile rewrites, GitHub Actions changes, billing, production deployment, push behavior, NEC calculation execution, or field-verification authority.
 - Session date: 2026-06-04
 - Starting head commit: `7f493b1`
 - Current continuation starting head: `f666ec3`
@@ -194,6 +199,14 @@
 - Phase 15: Program Intelligence & Grid Edge Readiness - implemented in the working tree as `GET /api/program-intelligence/homes/{home_id}`.
 
 ## What Changed Last
+
+- B1 Fact Lifecycle was implemented for the Auto-Loop Roadmap Runner.
+- Added backend fact lifecycle package, schemas, router, and deterministic service logic under `apps/api/app/facts/` and `apps/api/app/services/facts.py`.
+- Added `FactSource`, `FactConfidenceTier`, and `FactDecayPolicy` enums.
+- Added the SQLAlchemy `Fact` model and home relationship without creating an Alembic migration file.
+- Updated `apps/api/app/main.py` to include the fact lifecycle router under `/api`.
+- Added `apps/api/tests/test_facts.py` with focused coverage for route registration, create/read effective confidence, update `verified_at` reset, derived parent IDs, no/slow/standard/fast decay policies, known-to-missing transition, expiry behavior, and named calculation gap reporting.
+- Updated roadmap/API/continuity docs for B1.
 
 - Phase 15 Program Intelligence & Grid Edge Readiness is implemented in the working tree and not committed.
 - Added backend read-only program-intelligence schemas, router, service, and package files under `apps/api/app/program_intelligence/` plus `apps/api/app/services/program_intelligence.py`.
