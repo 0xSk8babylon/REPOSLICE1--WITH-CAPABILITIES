@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-06-06
+2026-06-14
 
 ## Repo Shape
 
@@ -15,6 +15,7 @@
 
 ## Current Product Phase
 
+- Planner Sandbox Contract v0 is implemented in the current working tree as an additive backend-only, non-persistent sandbox contract surface. It adds a read-only guided template registry at `/api/planner-sandbox/templates`, individual template reads at `/api/planner-sandbox/templates/{template_id}`, local sandbox maturity states (`template_seeded`, `draft`, `checked`, `validated`, `project_candidate`), Pydantic draft input/assumption/domain/validation-result shapes, and request-time draft validation at `/api/planner-sandbox/drafts/validate`. It adds no SQLAlchemy model, migration, auth/security change, contractor sharing, project creation, delete endpoint, drag/drop canvas, product ingestion, production persistence, external service, frontend wiring, pricing, compliance determination, permitting status, utility status, contractor commitment, push, or operational behavior.
 - B1 Fact Lifecycle is complete as the first Auto-Loop Roadmap Runner packet in the current local working line: an additive home-scoped fact lifecycle backend layer with persisted facts, read-time effective confidence decay, derived-from parent fact IDs, and named calculation gap reporting at `/api/homes/{home_id}/facts` and `/api/homes/{home_id}/facts/gaps/{calculation_name}`. The packet adds no Alembic migration file, auth, permission enforcement, delete endpoint, frontend behavior, external service, dependency, lockfile, billing, production deployment, or push behavior.
 - B2 NEC 220 Load Calculation is implemented in the current working tree under Matt's session-only NEC/calculation override. It adds `GET /api/homes/{home_id}/load-calculations/nec-220` as an additive, deterministic, planning-only 220.82/220.83 load-calculation endpoint over B1 facts, with consumed facts, effective confidence, assumptions, gaps, stage-level VA values, service amps/headroom, and explicit professional-review/AHJ boundary text. It adds no migration, auth/security, permission enforcement, frontend behavior, external service, dependency, lockfile, billing, deployment, push, pricing, proposal, field-verification, or approval authority.
 - B4 Calculator Primitives is implemented in the current working tree as a pure deterministic `apps/api/app/engines/calculator_primitives.py` library for backfeed planning, supply-side tap review metadata, coupling direction, critical-load identification, tier-1 shading derate, and solar production estimation with optional injected estimator. It adds no persistence, migration, route, frontend behavior, auth/security, permission enforcement, external service, network call, dependency, lockfile, deployment, push, pricing, proposal, approval authority, graph behavior, or operational control.

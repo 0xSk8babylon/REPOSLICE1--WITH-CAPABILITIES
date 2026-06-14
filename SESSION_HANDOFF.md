@@ -2,10 +2,11 @@
 
 ## Updated
 
-2026-06-06
+2026-06-14
 
 ## Session Summary
 
+- 2026-06-14 Planner Sandbox Contract v0 is implemented in the working tree and not staged or committed. It adds a backend-only, non-persistent Planner Sandbox package with `GET /api/planner-sandbox/templates`, `GET /api/planner-sandbox/templates/{template_id}`, and `POST /api/planner-sandbox/drafts/validate`. Runtime files changed are `apps/api/app/planner_sandbox/__init__.py`, `apps/api/app/planner_sandbox/schemas.py`, `apps/api/app/planner_sandbox/router.py`, `apps/api/app/services/planner_sandbox.py`, `apps/api/app/main.py`, `apps/api/tests/test_planner_sandbox.py`, `docs/API_CONTRACTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, and `discovery-index.md`. The contract defines read-only guided templates, draft inputs, draft assumptions, sandbox draft shape, validation-result shape, and local maturity states `template_seeded`, `draft`, `checked`, `validated`, and `project_candidate`. Focused tests pass with `6 tests OK`. No SQLAlchemy model, migration, auth/security change, contractor sharing, project creation, delete endpoint, drag/drop canvas, product ingestion, production persistence, external service, frontend wiring, pricing, compliance determination, permitting status, utility status, contractor commitment, push, or operational behavior was introduced.
 - 2026-06-13 Auto-Loop Roadmap Runner was activated by Matt for the pasted B1 through B7/A2/A4/C1/B3 roadmap under OwnerWorkflows authority. The repo/branch/remote/status were confirmed as `/home/mattcoje/residential-energy-planner`, branch `fix/github-workflow`, remotes `origin`, `twin-layer`, and `twin-layer-base`, and a clean worktree before edits.
 - Loop packets were materialized in `docs/roadmap/auto-loop-roadmap-runner-packets.md`.
 - Loop B1 Fact Lifecycle was implemented as an additive backend packet. It adds home-scoped fact persistence, fact create/update/read APIs, read-time effective confidence decay, derived-from parent fact IDs, and named calculation gap reporting. Runtime endpoint contracts are `GET /api/homes/{home_id}/facts`, `POST /api/homes/{home_id}/facts`, `PATCH /api/homes/{home_id}/facts/{fact_id}`, and `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`.

@@ -16,6 +16,10 @@ Read these first:
 
 ## Canonical Phase Structure
 
+- Planner Sandbox Contract v0 - implemented in the current working tree.
+  - Runtime endpoints: `GET /api/planner-sandbox/templates`, `GET /api/planner-sandbox/templates/{template_id}`, and `POST /api/planner-sandbox/drafts/validate`.
+  - Runtime files: `apps/api/app/planner_sandbox/__init__.py`, `apps/api/app/planner_sandbox/schemas.py`, `apps/api/app/planner_sandbox/router.py`, `apps/api/app/services/planner_sandbox.py`, `apps/api/app/main.py`, and `apps/api/tests/test_planner_sandbox.py`.
+  - Current boundary: additive backend-only sandbox contract with read-only guided template registry, draft input/assumption/domain/validation-result shapes, and local maturity states `template_seeded`, `draft`, `checked`, `validated`, and `project_candidate`. No SQLAlchemy model, migration, auth/security change, contractor sharing, project creation, delete endpoint, drag/drop canvas, product ingestion, production persistence, external service, frontend wiring, pricing, compliance determination, permitting status, utility status, contractor commitment, push, or operational behavior was added.
 - Auto-Loop Roadmap Runner B1: Fact Lifecycle - complete in the current local line.
   - Packet plan: `docs/roadmap/auto-loop-roadmap-runner-packets.md`
   - Handoff: `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`

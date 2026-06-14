@@ -60,6 +60,9 @@
 - `GET /api/crm-handoff/homes/{home_id}`
 - `GET /api/energy-passport/homes/{home_id}`
 - `GET /api/program-intelligence/homes/{home_id}`
+- `GET /api/planner-sandbox/templates`
+- `GET /api/planner-sandbox/templates/{template_id}`
+- `POST /api/planner-sandbox/drafts/validate`
 - `GET /api/homes/{home_id}/facts`
 - `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`
 - `GET /api/homes/{home_id}/load-calculations/nec-220`
@@ -177,6 +180,15 @@
   - response includes explicit scope and capability-boundary flags, utility context awareness, program categories, incentive awareness, demand response awareness, VPP awareness, TOU awareness, interconnection awareness, battery participation readiness, load-shifting readiness, backup-planning readiness, smart-panel readiness, EV coordination readiness, DER aggregation readiness, missing inputs, blockers, confirmation gates, assumptions, dependencies, homeowner-safe summaries, contractor/program review prompts, verification recommendations, do-not-assume statements, and source/provenance basis
   - unknown utility, rate-plan, battery configuration, export status, interconnection status, equipment compatibility, and program jurisdiction inputs degrade the response through missing inputs, blockers, and confirmation gates rather than inference
   - response is program/grid-edge awareness metadata only, not persistence, migration, write behavior, background jobs, external API calls, auth/security behavior, permission enforcement, eligibility determination, enrollment workflow, rebate calculation, incentive calculation, tariff optimization, utility dispatch, device control, demand response execution, grid-services execution, billing logic, pricing logic, proposal generation, CRM integration, email automation, export behavior, push behavior, frontend behavior, interconnection approval, utility approval, or operational behavior
+- `GET /api/planner-sandbox/templates` and `GET /api/planner-sandbox/templates/{template_id}`
+  - additive Planner Sandbox Contract v0 guided-template registry endpoints
+  - response includes fixed read-only template definitions, draft input definitions, draft assumption definitions, template steps, local sandbox maturity states (`template_seeded`, `draft`, `checked`, `validated`, `project_candidate`), capability-boundary flags, limitations, and non-authoritative planning-only notes
+  - registry entries are static request-time contract objects and are not production persistence, project records, contractor sharing, product ingestion, external service behavior, pricing logic, frontend behavior, or a source of final design/compliance/permitting/utility/safety/contractor/project authority
+- `POST /api/planner-sandbox/drafts/validate`
+  - additive Planner Sandbox Contract v0 request-time draft validation endpoint over caller-supplied sandbox draft payloads
+  - response includes draft ID, template ID, requested/resulting maturity state, validation status, missing required inputs, missing required assumptions, checked input keys, issues, capability-boundary flags, limitations, and non-authoritative planning-only notes
+  - validation is deterministic for the same payload and template registry; it checks sandbox completeness and authority-claim language only
+  - response does not persist drafts, create production records, create projects, delete records, share with contractors, ingest products, call external services, perform pricing, wire frontend behavior, or create final design/compliance/permitting/utility/safety/contractor/project authority
 - `GET /api/homes/{home_id}/facts`
   - additive B1 Fact Lifecycle batch-read endpoint over persisted home-scoped facts
   - response includes stored fact value, unit, source, confidence tier, verified timestamp, optional expiry/decay policy, derived-from parent fact IDs, effective confidence score/tier, applied decay policy, and confidence reason
