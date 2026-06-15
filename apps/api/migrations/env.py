@@ -1,10 +1,10 @@
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
 
 from app.core.config import settings
-from app.core.database import Base
+from app.core.database import Base, engine_kwargs_for_url
 from app.core import models  # noqa: F401
 
 config = context.config
@@ -14,6 +14,12 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
+
+def migration_engine_kwargs(url: str):
+    kwargs = engine_kwargs_for_url(url)
+    kwargs.setdefault("poolclass", pool.NullPool)
+    return kwargs
 
 
 def run_migrations_offline():
@@ -31,10 +37,10 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+    url = config.get_main_option("sqlalchemy.url")
+    connectable = create_engine(
+        url,
+        **migration_engine_kwargs(url),
     )
 
     with connectable.connect() as connection:
@@ -48,4 +54,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-

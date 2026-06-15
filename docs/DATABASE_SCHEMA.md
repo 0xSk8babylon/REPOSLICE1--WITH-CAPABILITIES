@@ -18,8 +18,9 @@ Postgres foundation:
 - `DATABASE_URL` may point at a SQLAlchemy-supported Postgres URL in a future approved environment.
 - `postgres://` URLs are normalized to `postgresql://` before SQLAlchemy engine creation.
 - SQLite-only engine arguments are applied only to SQLite connections.
+- Alembic uses the same dialect-aware engine argument helper as runtime setup.
 - For non-SQLite databases, startup `create_all` and demo seeding default to disabled unless explicitly opted in with `DATABASE_CREATE_ALL_ON_STARTUP=true` and `DATABASE_SEED_DEMO_DATA_ON_STARTUP=true`.
-- No Postgres driver dependency, production service, secret, schema migration, data migration, or runtime persistence switch is introduced by this foundation.
+- A Python Postgres DBAPI dependency is present for future approved checks. No production service, secret, schema migration, data migration, or runtime persistence switch is introduced by this foundation.
 
 ## Core Tables
 
@@ -63,4 +64,5 @@ This is the minimum separation contract, not a complete governance system.
 
 - Alembic exists as a lightweight baseline.
 - Current baseline revision creates or drops tables from metadata.
+- The current baseline is not the final durable Postgres initial schema strategy.
 - Migration discipline is still early-stage and should become normal practice before larger schema changes.
