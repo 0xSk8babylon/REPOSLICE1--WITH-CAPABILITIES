@@ -11,6 +11,8 @@ services:
       - "54329:5432"
     volumes:
       - rep_postgres_data:/var/lib/postgresql/data
+    networks:
+      - rep_postgres_dev
     healthcheck:
       test:
         [
@@ -23,3 +25,11 @@ services:
 
 volumes:
   rep_postgres_data:
+
+networks:
+  rep_postgres_dev:
+    name: residential-energy-planner-postgres-dev
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

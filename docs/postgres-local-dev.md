@@ -19,6 +19,10 @@ docker compose -f compose.postgres.yml ps
 docker compose -f compose.postgres.yml exec postgres pg_isready -U rep_dev -d residential_energy_planner
 ```
 
+The Compose service uses a fixed local bridge network named `residential-energy-planner-postgres-dev` with subnet `172.25.0.0/16`. This keeps local Postgres smoke checks aligned with host firewall rules instead of depending on Docker's automatic subnet allocation.
+
+Host UFW must allow outbound traffic to `172.25.0.0/16` on port `5432/tcp`, and that allow rule must be ordered before the broad outbound deny for `172.16.0.0/12`. If Docker reports that `172.25.0.0/16` conflicts with another local Docker network, stop and report the conflict; do not broaden firewall rules automatically.
+
 The service uses:
 
 ```text
@@ -61,11 +65,13 @@ This smoke check should not create schema, seed data, stamp a database, or apply
 
 PG-5 connection-only smoke is resolved/passed for the local environment after a host firewall correction. The failure cause was environmental: UFW had a broad outbound DROP for `172.16.0.0/12`, which blocked Docker bridge traffic. The manual fix was an outbound allow rule for the active Docker network subnet, `172.25.0.0/16`, on Postgres port `5432/tcp`, ordered before the broad DROP. After that correction, DBAPI psycopg and SQLAlchemy `SELECT 1` smoke checks passed manually.
 
-Before future smoke reruns, confirm the active Docker bridge subnet. Docker may recreate the Compose network on a different subnet, so the firewall allow rule must match the current subnet:
+Before future smoke reruns, confirm the fixed Docker bridge subnet:
 
 ```bash
-docker network inspect residential-energy-planner_default --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+docker network inspect residential-energy-planner-postgres-dev --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
 ```
+
+Expected output: `172.25.0.0/16`.
 
 The next boundary is PG-5A Disposable Baseline Upgrade Test planning. Before any runtime switch or persistence planning, the existing Alembic baseline still needs a disposable local Postgres test. That future test may run `alembic upgrade head` only against a disposable local Postgres database/container, with no runtime `DATABASE_URL` switch, no FastAPI startup against Postgres, no `.env` change, no persistence wiring, no production database, and no downgrade.
 
@@ -78,3 +84,5 @@ docker compose -f compose.postgres.yml --profile postgres down
 ```
 
 Deleting the named volume removes local Postgres data and should be an explicit owner-controlled cleanup action.
+
+Do not run `docker compose -f compose.postgres.yml --profile postgres down -v` unless Matt explicitly approves Docker volume deletion.
