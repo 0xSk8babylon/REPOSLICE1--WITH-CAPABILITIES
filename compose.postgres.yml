@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    profiles:
+      - postgres
+    environment:
+      POSTGRES_DB: residential_energy_planner
+      POSTGRES_USER: rep_dev
+      POSTGRES_PASSWORD: rep_dev_password
+    ports:
+      - "54329:5432"
+    volumes:
+      - rep_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U rep_dev -d residential_energy_planner",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  rep_postgres_data:
