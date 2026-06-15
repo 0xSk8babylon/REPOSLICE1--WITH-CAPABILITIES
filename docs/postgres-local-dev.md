@@ -57,6 +57,18 @@ PY
 
 This smoke check should not create schema, seed data, stamp a database, or apply migrations.
 
+## PG-5 Smoke Status
+
+PG-5 connection-only smoke is resolved/passed for the local environment after a host firewall correction. The failure cause was environmental: UFW had a broad outbound DROP for `172.16.0.0/12`, which blocked Docker bridge traffic. The manual fix was an outbound allow rule for the active Docker network subnet, `172.25.0.0/16`, on Postgres port `5432/tcp`, ordered before the broad DROP. After that correction, DBAPI psycopg and SQLAlchemy `SELECT 1` smoke checks passed manually.
+
+Before future smoke reruns, confirm the active Docker bridge subnet. Docker may recreate the Compose network on a different subnet, so the firewall allow rule must match the current subnet:
+
+```bash
+docker network inspect residential-energy-planner_default --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+```
+
+The next boundary is PG-5A Disposable Baseline Upgrade Test planning. Before any runtime switch or persistence planning, the existing Alembic baseline still needs a disposable local Postgres test. That future test may run `alembic upgrade head` only against a disposable local Postgres database/container, with no runtime `DATABASE_URL` switch, no FastAPI startup against Postgres, no `.env` change, no persistence wiring, no production database, and no downgrade.
+
 ## Cleanup
 
 Stop the local service without deleting data:
