@@ -70,9 +70,13 @@ class SystemVisibilityTests(unittest.TestCase):
             "product",
             "ui",
             "home",
+            "explore",
             "planner",
+            "builder",
             "build",
+            "internal",
             "hidden_internal",
+            "deferred",
         ]:
             self.assertIn(expected, graph.filters)
 
@@ -127,12 +131,15 @@ class SystemVisibilityTests(unittest.TestCase):
         graph = self._build()
         capability_nodes = [node for node in graph.nodes if node.kind.value == "product_capability"]
 
-        self.assertGreaterEqual(len(capability_nodes), 14)
+        self.assertGreaterEqual(len(capability_nodes), 21)
         self.assertEqual(len(capability_nodes), graph.product_inventory.total_capabilities)
         self.assertEqual(4, graph.product_inventory.home_capabilities)
-        self.assertEqual(4, graph.product_inventory.planner_capabilities)
-        self.assertEqual(5, graph.product_inventory.build_capabilities)
+        self.assertEqual(2, graph.product_inventory.explore_capabilities)
+        self.assertEqual(3, graph.product_inventory.planner_capabilities)
+        self.assertEqual(3, graph.product_inventory.builder_capabilities)
+        self.assertEqual(3, graph.product_inventory.build_capabilities)
         self.assertGreaterEqual(graph.product_inventory.internal_capabilities, 1)
+        self.assertEqual(8, graph.product_inventory.deferred_capabilities)
 
         group_map = {group.ui_section: [item.product_name for item in group.capabilities] for group in graph.product_groups}
         self.assertEqual(
@@ -140,24 +147,42 @@ class SystemVisibilityTests(unittest.TestCase):
             group_map["Home"],
         )
         self.assertEqual(
-            ["Compatibility", "Scenario Builder", "Product Preferences", "Planning Intelligence"],
+            ["Explore Goals", "Explore Learn"],
+            group_map["Explore"],
+        )
+        self.assertEqual(
+            ["Guided Templates", "Sandbox Drafts", "Comparisons"],
             group_map["Planner"],
         )
         self.assertEqual(
             [
-                "Proposal Options",
-                "Contractor Context",
+                "Builder Readiness",
                 "Estimate Readiness",
-                "Install Path",
                 "Program Intelligence",
             ],
-            group_map["Build"],
+            group_map["Builder"],
+        )
+        self.assertEqual(
+            [
+                "Compatibility",
+                "Proposal Options",
+                "Contractor Context",
+                "Product Preferences",
+                "Install Path",
+                "Planning Intelligence",
+                "Post-Install Handoff",
+                "Product Catalog",
+            ],
+            group_map["Deferred/Legacy"],
         )
 
         self.assertEqual(len(capability_nodes), len(graph.exports.ui_capability_map))
         self.assertEqual(4, len(graph.exports.home_section_inventory))
-        self.assertEqual(4, len(graph.exports.planner_section_inventory))
-        self.assertEqual(5, len(graph.exports.build_section_inventory))
+        self.assertEqual(2, len(graph.exports.explore_section_inventory))
+        self.assertEqual(3, len(graph.exports.planner_section_inventory))
+        self.assertEqual(3, len(graph.exports.builder_section_inventory))
+        self.assertEqual(3, len(graph.exports.build_section_inventory))
+        self.assertEqual(8, len(graph.exports.deferred_section_inventory))
 
     def test_product_mapping_metadata_fields_are_attached_to_meaningful_nodes(self):
         graph = self._build()
@@ -174,7 +199,7 @@ class SystemVisibilityTests(unittest.TestCase):
         self.assertTrue(energy_twin.empty_state_message)
 
         self.assertEqual("Program Intelligence", program_router.product_name)
-        self.assertEqual("Build", program_router.ui_section)
+        self.assertEqual("Builder", program_router.ui_section)
         self.assertEqual("derived_view", program_router.data_type.value)
 
 

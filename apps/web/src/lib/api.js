@@ -128,4 +128,9 @@ export const api = {
   getGeometryExport: (homeId) => request(apiPath(`/homes/${homeId}/geometry/export`)),
   getNec220LoadCalculation: (homeId) => request(apiPath(`/homes/${homeId}/load-calculations/nec-220`)),
   getPrivacyExport: (homeId) => request(apiPath(`/privacy/homes/${homeId}/export`)),
+  getPlannerSandboxTemplates: () => request(apiPath("/planner-sandbox/templates")),
+  getEstimateReadiness: (homeId) => request(apiPath(`/estimate-readiness/homes/${homeId}`)),
+  getProductPreferences: (homeId) => request(apiPath(`/product-preferences/homes/${homeId}`)),
+  getEnergyPassport: (homeId) => request(apiPath(`/energy-passport/homes/${homeId}`)),
+  getProgramIntelligence: (homeId) => request(apiPath(`/program-intelligence/homes/${homeId}`)),
 };

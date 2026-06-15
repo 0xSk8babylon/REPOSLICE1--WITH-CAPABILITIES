@@ -2,7 +2,7 @@
 
 ## Canonical Role
 
-`uiRegistry.js` is the canonical frontend placement source for future Home, Planner, Build, and Hidden/Internal card organization.
+`uiRegistry.js` is the canonical frontend placement source for the current Home, Explore, Planner, Builder object-view shell plus Internal/Debug and Deferred/Legacy route organization.
 
 It is canonical for frontend section placement, homeowner-safe labels, card names, ordering, V1 visibility, and frontend trust-boundary notes. It is not canonical for backend contracts, product facts, persistence, permissions, or runtime capability existence.
 
@@ -10,7 +10,7 @@ The `/architecture` cockpit remains the canonical internal technical/product arc
 
 ## What It Is
 
-The UI Registry is a frontend product-architecture map for future Home, Planner, and Build pages.
+The UI Registry is a frontend product-architecture map for Home, Explore, Planner, Builder, Internal/Debug, and Deferred/Legacy surfaces.
 
 It lives in `apps/web/src/lib/uiRegistry.js` and lists product capabilities as reusable UI planning items. Each item defines homeowner-safe labels, section placement, card naming, priority, V1 visibility, data type, source capability, empty-state copy, and trust-boundary notes.
 
@@ -22,7 +22,7 @@ The Architecture Visibility cockpit maps technical capabilities to product capab
 
 Future pages should use the registry to answer:
 
-- Which cards belong in Home, Planner, Build, or Hidden/Internal?
+- Which cards belong in Home, Explore, Planner, Builder, Internal/Debug, or Deferred/Legacy?
 - What order should the cards appear in?
 - Which cards are visible in V1?
 - What homeowner-safe label and empty state should be used?
@@ -30,7 +30,7 @@ Future pages should use the registry to answer:
 
 ## How Pages Should Consume It
 
-Future Home, Planner, and Build pages should import the registry helpers:
+Home, Explore, Planner, and Builder pages should import the registry helpers when they render registry-driven cards:
 
 ```js
 import { getVisibleSectionItems } from "../lib/uiRegistry";
@@ -39,9 +39,16 @@ import { getVisibleSectionItems } from "../lib/uiRegistry";
 Recommended use:
 
 - Home page: `getVisibleSectionItems("home")`
+- Explore page: `getVisibleSectionItems("explore")`
 - Planner page: `getVisibleSectionItems("planner")`
-- Build page: `getVisibleSectionItems("build")`
-- Internal planning tools: `getSectionItems("hidden")` or `getV1Items()`
+- Builder page: `getVisibleSectionItems("builder")`
+- Internal/debug tools: `getSectionItems("internal")` or `getV1Items()`
+- Deferred/legacy inventory: `getSectionItems("deferred")`
+
+Compatibility aliases remain supported for older callers:
+
+- `getVisibleSectionItems("build")` resolves to Builder.
+- `getSectionItems("hidden")` and `getSectionItems("hidden_internal")` resolve to Internal/Debug.
 
 Pages should render cards from registry metadata first, then attach data-specific content through explicit page logic. The registry should decide placement and labels; it should not fetch API data or calculate planning results.
 
@@ -73,9 +80,9 @@ Expected steady state:
 - `architectureProductCapabilitiesNotRepresented` is empty
 - `allowedFutureSourceCapabilityReferences` contains only explicitly documented deferred items
 
-Current allowed future reference:
+Current allowed future references:
 
-- `post-install-handoff` may reference `capability-post-install-handoff` until the Architecture Visibility cockpit adds a matching product capability node or Matt decides to remove/defer that Build card.
+- None. Deferred route and product surfaces should have an explicit Architecture Visibility product capability node, even when the runtime feature is hidden or deferred.
 
 ## What Should Not Go In It
 
@@ -96,7 +103,7 @@ The registry may reference a `sourceCapability` string so internal tools can tra
 
 To move a capability:
 
-1. Change the item's `section` to one of `home`, `planner`, `build`, or `hidden`.
+1. Change the item's `section` to one of `home`, `explore`, `planner`, `builder`, `internal`, or `deferred`.
 2. Adjust `priority` so the item appears in the intended order.
 3. Review `homeownerLabel`, `cardName`, `homeownerQuestionAnswered`, and `emptyStateMessage` for the new context.
 4. Update `trustBoundaryNotes` if the new placement changes the risk of overclaiming.
@@ -108,10 +115,12 @@ Moving a capability into a visible homeowner section is product-direction-sensit
 
 Safe section movement rules:
 
-- Home is for Energy Twin overview, home outline, known facts, Energy Passport, and readiness snapshot.
-- Planner is for scenarios, compatibility, constraints, product preferences, and planning intelligence.
-- Build is for proposal options, contractor context, estimate readiness, install path, program intelligence, and post-install handoff.
-- Hidden/Internal is for technical, admin, testing, governance, or system visibility items.
+- Home is for the durable Energy Twin record, home outline, known facts, Energy Passport, and readiness snapshot.
+- Explore is for homeowner goals and learning context. Goal selection is local UI intent unless a future approved workflow adds persistence.
+- Planner is for the current object-view planner surfaces: Guided Templates, Sandbox Drafts, and Comparisons.
+- Builder is for project/build-readiness context and selected read-only readiness summaries. It is not contractor workflow, project promotion, proposal generation, or handoff.
+- Internal/Debug is for capabilities, architecture cockpit, test coverage, governance, and system visibility items that should not appear in homeowner primary navigation.
+- Deferred/Legacy is for hidden routes, legacy/deep routes, future product foundations, and capability surfaces intentionally kept outside primary navigation.
 
 ## Hiding Or Deferring A Capability
 
@@ -119,7 +128,8 @@ To hide a capability without removing it:
 
 - Set `visibleInV1: false`.
 - Keep the item in its intended future section if the product destination is known.
-- Move the item to `section: "hidden"` only when it is internal, admin, testing, or system-visibility only.
+- Move the item to `section: "internal"` only when it is internal, admin, testing, debug, governance, or system-visibility only.
+- Move the item to `section: "deferred"` when it remains reachable for compatibility or future planning but is not part of the current primary shell.
 - Use the empty state to explain missing prerequisites without implying the feature exists in runtime.
 
 Deferred items should remain traceable. Do not delete a future capability solely because it is not visible in V1.
@@ -151,28 +161,42 @@ Home:
 - Energy Passport
 - Readiness snapshot
 
+Explore:
+
+- Goals
+- Learn
+
 Planner:
 
-- Upgrade paths
-- Compatibility
-- Planning constraints
-- Product preferences
-- Planning intelligence
+- Guided templates
+- Sandbox drafts
+- Comparisons
 
-Build:
+Builder:
 
-- Proposal options
-- Contractor review context
 - Estimate readiness
-- Install path
 - Program readiness
-- Post-install handoff
+- Build readiness
 
-Hidden/Internal:
+Internal/Debug:
 
 - Product Architecture Cockpit
 - Technical Architecture Map
 - Test Coverage
+- Capabilities debug route
+
+Deferred/Legacy:
+
+- Compatibility
+- Planning constraints
+- Product preferences
+- Planning intelligence
+- Proposal options
+- Contractor review context
+- Install path
+- Catalog
+- Post-install handoff
+- Legacy deep routes
 
 ## Relationship To `/architecture`
 

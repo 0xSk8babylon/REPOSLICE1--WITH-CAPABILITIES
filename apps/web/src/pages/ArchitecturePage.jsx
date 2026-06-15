@@ -19,9 +19,13 @@ const FILTER_LABELS = {
   product: "Product",
   ui: "UI",
   home: "Home",
+  explore: "Explore",
   planner: "Planner",
-  build: "Build",
+  builder: "Builder",
+  build: "Builder alias",
+  internal: "Internal/Debug",
   hidden_internal: "Hidden/Internal",
+  deferred: "Deferred/Legacy",
 };
 
 const VIEW_MODE_FILTERS = {
@@ -33,8 +37,8 @@ const VIEW_MODE_FILTERS = {
   Tests: ["tests"],
   Docs: ["docs"],
   Phases: ["phases"],
-  Product: ["product", "home", "planner", "build", "hidden_internal"],
-  UI: ["ui", "product", "home", "planner", "build", "hidden_internal"],
+  Product: ["product", "home", "explore", "planner", "builder", "internal", "hidden_internal", "deferred"],
+  UI: ["ui", "product", "home", "explore", "planner", "builder", "internal", "hidden_internal", "deferred"],
 };
 
 const KIND_TONES = {
@@ -160,7 +164,7 @@ function ArchitectureDetailPanel({ node, connectedEdges, nodeLabels }) {
       </div>
       <MetricRow label="Product Meaning" value={productMapping.product_name || "Internal architecture visibility"} />
       <MetricRow label="Homeowner Label" value={productMapping.homeowner_label || "Internal planning surface"} />
-      <MetricRow label="UI Section" value={productMapping.ui_section || "Hidden/Internal"} />
+      <MetricRow label="UI Section" value={productMapping.ui_section || "Internal/Debug"} />
       <MetricRow label="Card Name" value={productMapping.ui_card || "Internal architecture"} />
       <MetricRow label="Priority" value={String(productMapping.ui_priority ?? "Not set")} />
       <MetricRow label="Visible in V1" value={String(productMapping.visible_in_v1 || false)} />
@@ -292,19 +296,29 @@ export function ArchitecturePage() {
               <p>Homeowner record and summary surfaces</p>
             </article>
             <article className="stat-card">
-              <span>Planner</span>
-              <strong>{graph.product_inventory?.planner_capabilities || 0}</strong>
-              <p>Planning and comparison surfaces</p>
+              <span>Explore</span>
+              <strong>{graph.product_inventory?.explore_capabilities || 0}</strong>
+              <p>Goals and learn surfaces</p>
             </article>
             <article className="stat-card">
-              <span>Build</span>
-              <strong>{graph.product_inventory?.build_capabilities || 0}</strong>
-              <p>Contractor and execution-readiness surfaces</p>
+              <span>Planner</span>
+              <strong>{graph.product_inventory?.planner_capabilities || 0}</strong>
+              <p>Templates, drafts, and comparisons</p>
+            </article>
+            <article className="stat-card">
+              <span>Builder</span>
+              <strong>{graph.product_inventory?.builder_capabilities ?? graph.product_inventory?.build_capabilities ?? 0}</strong>
+              <p>Project and build-readiness surfaces</p>
             </article>
             <article className="stat-card">
               <span>Internal</span>
               <strong>{graph.product_inventory?.internal_capabilities || 0}</strong>
               <p>Hidden cockpit and governance surfaces</p>
+            </article>
+            <article className="stat-card">
+              <span>Deferred</span>
+              <strong>{graph.product_inventory?.deferred_capabilities || 0}</strong>
+              <p>Legacy and future route surfaces</p>
             </article>
           </div>
         </PageSection>
@@ -444,8 +458,12 @@ export function ArchitecturePage() {
               <select value={exportKey} onChange={(event) => setExportKey(event.target.value)}>
                 <option value="ui_capability_map">UI Capability Map</option>
                 <option value="home_section_inventory">Home section inventory</option>
+                <option value="explore_section_inventory">Explore section inventory</option>
                 <option value="planner_section_inventory">Planner section inventory</option>
-                <option value="build_section_inventory">Build section inventory</option>
+                <option value="builder_section_inventory">Builder section inventory</option>
+                <option value="build_section_inventory">Build alias inventory</option>
+                <option value="internal_section_inventory">Internal/debug inventory</option>
+                <option value="deferred_section_inventory">Deferred/legacy inventory</option>
               </select>
             </label>
           </div>

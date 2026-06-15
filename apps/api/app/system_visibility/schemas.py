@@ -116,9 +116,12 @@ class ArchitectureVisibilitySummary(ORMModel):
 class ProductInventorySummary(ORMModel):
     total_capabilities: int
     home_capabilities: int
+    explore_capabilities: int = 0
     planner_capabilities: int
+    builder_capabilities: int = 0
     build_capabilities: int
     internal_capabilities: int
+    deferred_capabilities: int = 0
     visible_in_v1_capabilities: int
 
 
@@ -146,9 +149,12 @@ class ProductGroup(ORMModel):
 class ProductExportBundle(ORMModel):
     ui_capability_map: List[ProductCapabilityExport] = Field(default_factory=list)
     home_section_inventory: List[ProductCapabilityExport] = Field(default_factory=list)
+    explore_section_inventory: List[ProductCapabilityExport] = Field(default_factory=list)
     planner_section_inventory: List[ProductCapabilityExport] = Field(default_factory=list)
+    builder_section_inventory: List[ProductCapabilityExport] = Field(default_factory=list)
     build_section_inventory: List[ProductCapabilityExport] = Field(default_factory=list)
     internal_section_inventory: List[ProductCapabilityExport] = Field(default_factory=list)
+    deferred_section_inventory: List[ProductCapabilityExport] = Field(default_factory=list)
 
 
 class ArchitectureVisibilitySourceBasis(ORMModel):

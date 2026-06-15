@@ -1,22 +1,24 @@
 import { useMemo, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 
+import { api } from "../lib/api";
 import {
   builderReadiness,
   capabilities,
   catalogItems,
   comparisonRows,
   goals,
-  homeFacts,
-  homeRecord,
+  homeFacts as staticHomeFacts,
+  homeRecord as staticHomeRecord,
   learnTopics,
   sandboxDrafts,
   templateOverlays,
-  templates,
+  templates as staticTemplates,
   twinEdges,
   twinNodes,
   upgradePath,
 } from "../lib/heartQuillMockData";
+import { useApiQuery } from "../lib/useApiQuery";
 
 const navItems = [
   { to: "/", label: "Home", sub: "Energy Twin" },
@@ -37,6 +39,108 @@ const iconPaths = {
   arrow: <path d="M5 12h14m-6-6 6 6-6 6" />,
   grid: <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />,
 };
+
+function formatLabel(value) {
+  if (value === null || value === undefined || value === "") return "Not available";
+  return String(value).replaceAll("_", " ");
+}
+
+function formatHomeAddress(home) {
+  if (!home) return staticHomeRecord.address;
+  return [home.address_line_1, home.city, home.state].filter(Boolean).join(", ") || staticHomeRecord.address;
+}
+
+function getHomeRecord(home) {
+  if (!home) return staticHomeRecord;
+  return {
+    name: home.name || staticHomeRecord.name,
+    address: formatHomeAddress(home),
+    service: home.service_size ? `${home.service_size}A service` : "Service size not recorded",
+    utility: home.utility_provider || "Utility context not recorded",
+    status: "Read-only planning record",
+    provenance: `Backend ${formatLabel(home.data_origin)}`,
+  };
+}
+
+function getFactSummary(facts = []) {
+  return {
+    total: facts.length,
+    known: facts.filter((fact) => fact.effective_confidence_tier === "known").length,
+    needs: facts.filter((fact) => ["assumed", "stale"].includes(fact.effective_confidence_tier)).length,
+    missing: facts.filter((fact) => fact.effective_confidence_tier === "missing").length,
+  };
+}
+
+function formatFactValue(fact) {
+  const value = Array.isArray(fact.value) ? fact.value.join(", ") : fact.value;
+  return `${formatLabel(value)}${fact.unit ? ` ${fact.unit}` : ""}`;
+}
+
+function getFactRows(facts = []) {
+  if (!facts.length) {
+    return staticHomeFacts.map(([label, value]) => ({
+      label,
+      value,
+      basis: "Static shell placeholder",
+    }));
+  }
+
+  return facts.slice(0, 6).map((fact) => ({
+    label: formatLabel(fact.key),
+    value: formatFactValue(fact),
+    basis: `${formatLabel(fact.source)} / ${formatLabel(fact.effective_confidence_tier)}`,
+  }));
+}
+
+function getNecSummary(loadCalculation) {
+  const result = loadCalculation?.results?.[0];
+  if (!result) {
+    return {
+      amps: "Gap",
+      posture: "No load calculation read",
+      missing: "Not read",
+      confidence: "not assessed",
+      boundary: "Professional review boundary remains active",
+    };
+  }
+
+  return {
+    amps: result.calculated_service_load_amps ? `${Math.round(result.calculated_service_load_amps)}A` : "Gap",
+    posture: result.calculation_ready ? "Planning calculation available" : "Needs facts",
+    missing: loadCalculation.missing_data?.length || result.gaps?.length || 0,
+    confidence: formatLabel(result.output_confidence_tier),
+    boundary: loadCalculation.compliance_boundary || "Professional review boundary remains active",
+  };
+}
+
+function toTemplateCard(template) {
+  if (!template.template_id) return template;
+
+  const requiredInputCount = (template.draft_input_definitions || []).filter((input) => input.required).length;
+  return {
+    id: template.template_id,
+    architecture: formatLabel(template.authority_layer || "advisory"),
+    intent: template.name,
+    backup: `${requiredInputCount} required inputs`,
+    cost: Math.min(4, Math.max(1, requiredInputCount || 1)),
+    complexity: Math.min(4, Math.max(1, template.steps?.length || 1)),
+    blurb: template.summary,
+    basis: template.non_authoritative_note,
+  };
+}
+
+function ApiStatus({ query, label, fallbackLabel = "Static placeholders remain visible" }) {
+  if (query.loading) {
+    return <Badge tone="info">Reading {label}</Badge>;
+  }
+  if (query.error) {
+    return <Badge tone="warn">{fallbackLabel}</Badge>;
+  }
+  if (query.data) {
+    return <Badge tone="info">Backend read-only</Badge>;
+  }
+  return <Badge tone="warn">{fallbackLabel}</Badge>;
+}
 
 function Icon({ name, size = 18 }) {
   return (
@@ -162,7 +266,7 @@ function ShellHeader() {
         ))}
       </nav>
       <div className="hq-shell-meta">
-        <Badge tone="warn">Mock shell</Badge>
+        <Badge tone="info">Read-only shell</Badge>
       </div>
     </header>
   );
@@ -179,9 +283,21 @@ export function HeartQuillAppShell({ children }) {
 
 export function HomeShellPage() {
   const [selected, setSelected] = useState(twinNodes.find((node) => node.hub));
-  const knownCount = twinNodes.filter((node) => node.status === "known").length;
-  const needsCount = twinNodes.filter((node) => node.status === "needs").length;
-  const missingCount = twinNodes.filter((node) => node.status === "missing").length;
+  const homeQuery = useApiQuery("hq-home", api.getHome);
+  const homeId = homeQuery.data?.id;
+  const factsQuery = useApiQuery(`hq-facts:${homeId || "none"}`, () => api.getFacts(homeId), {
+    enabled: Boolean(homeId),
+  });
+  const loadCalcQuery = useApiQuery(`hq-nec:${homeId || "none"}`, () => api.getNec220LoadCalculation(homeId), {
+    enabled: Boolean(homeId),
+  });
+  const homeRecord = getHomeRecord(homeQuery.data);
+  const factSummary = getFactSummary(factsQuery.data || []);
+  const factRows = getFactRows(factsQuery.data || []);
+  const necSummary = getNecSummary(loadCalcQuery.data);
+  const knownCount = factsQuery.data?.length ? factSummary.known : twinNodes.filter((node) => node.status === "known").length;
+  const needsCount = factsQuery.data?.length ? factSummary.needs : twinNodes.filter((node) => node.status === "needs").length;
+  const missingCount = loadCalcQuery.data ? necSummary.missing : twinNodes.filter((node) => node.status === "missing").length;
 
   return (
     <div className="hq-page hq-home-page">
@@ -191,7 +307,7 @@ export function HomeShellPage() {
           <h1>Your home has an Energy Twin.</h1>
           <p>
             Start from the durable record: known facts, current status, missing inputs, and the next
-            homeowner-safe step. This shell uses static placeholder data until backend wiring is approved.
+            homeowner-safe step. Backend reads are read-only; placeholder data stays labeled when a read is unavailable.
           </p>
           <div className="hq-actions">
             <Link className="hq-btn hq-btn-primary" to="/explore">
@@ -208,7 +324,7 @@ export function HomeShellPage() {
               <p className="hq-eyebrow">Current status</p>
               <h2>{homeRecord.name}</h2>
             </div>
-            <Badge tone="warn">{homeRecord.provenance}</Badge>
+            <ApiStatus query={homeQuery} label="home record" fallbackLabel={homeRecord.provenance} />
           </div>
           <dl className="hq-record-list">
             <div>
@@ -229,6 +345,12 @@ export function HomeShellPage() {
             </div>
           </dl>
         </section>
+      </section>
+
+      <section className="hq-api-strip" aria-label="Read-only backend wiring status">
+        <ApiStatus query={homeQuery} label="home record" />
+        <ApiStatus query={factsQuery} label="fact lifecycle" />
+        <ApiStatus query={loadCalcQuery} label="NEC planning load calculation" />
       </section>
 
       <section className="hq-dashboard-grid">
@@ -258,7 +380,7 @@ export function HomeShellPage() {
           <article className="hq-panel hq-kpi-grid">
             <div>
               <strong>{knownCount}</strong>
-              <span>known facts</span>
+              <span>{factsQuery.data?.length ? "backend known facts" : "placeholder known objects"}</span>
             </div>
             <div>
               <strong>{needsCount}</strong>
@@ -266,7 +388,7 @@ export function HomeShellPage() {
             </div>
             <div>
               <strong>{missingCount}</strong>
-              <span>missing inputs</span>
+              <span>{loadCalcQuery.data ? "load-calc missing inputs" : "placeholder missing objects"}</span>
             </div>
           </article>
         </aside>
@@ -275,16 +397,41 @@ export function HomeShellPage() {
       <section className="hq-panel">
         <div className="hq-panel-head">
           <div>
+            <p className="hq-eyebrow">Planning load read</p>
+            <h2>{necSummary.posture}</h2>
+          </div>
+          <Badge tone={loadCalcQuery.data ? "info" : "warn"}>{necSummary.confidence}</Badge>
+        </div>
+        <div className="hq-data-grid">
+          <div>
+            <span>Calculated service load</span>
+            <strong>{necSummary.amps}</strong>
+          </div>
+          <div>
+            <span>Missing inputs</span>
+            <strong>{necSummary.missing}</strong>
+          </div>
+          <div>
+            <span>Boundary</span>
+            <strong>{necSummary.boundary}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="hq-panel">
+        <div className="hq-panel-head">
+          <div>
             <p className="hq-eyebrow">Known facts</p>
             <h2>What the shell can safely say now</h2>
           </div>
-          <Badge tone="warn">Placeholder-safe</Badge>
+          <ApiStatus query={factsQuery} label="facts" fallbackLabel="Placeholder-safe" />
         </div>
         <div className="hq-fact-table">
-          {homeFacts.map(([label, value]) => (
-            <div key={label}>
-              <span>{label}</span>
-              <strong>{value}</strong>
+          {factRows.map((fact) => (
+            <div key={fact.label}>
+              <span>{fact.label}</span>
+              <strong>{fact.value}</strong>
+              <small>{fact.basis}</small>
             </div>
           ))}
         </div>
@@ -381,6 +528,10 @@ export function ExploreShellPage() {
 export function PlannerShellPage() {
   const [tab, setTab] = useState("templates");
   const [overlayId, setOverlayId] = useState("ac-partial");
+  const templateQuery = useApiQuery("hq-planner-sandbox-templates", api.getPlannerSandboxTemplates);
+  const plannerTemplates = templateQuery.data?.templates?.length
+    ? templateQuery.data.templates.map(toTemplateCard)
+    : staticTemplates;
   const overlay = templateOverlays[overlayId];
 
   return (
@@ -394,7 +545,7 @@ export function PlannerShellPage() {
             save, validation persistence, or project promotion is wired.
           </p>
         </div>
-        <Badge tone="warn">Mock/static planner data</Badge>
+        <ApiStatus query={templateQuery} label="sandbox template registry" fallbackLabel="Static planner data" />
       </header>
 
       <section className="hq-panel hq-planner-canvas">
@@ -408,7 +559,7 @@ export function PlannerShellPage() {
         <div className="hq-canvas-grid">
           <HomeDiagram selectedId={null} onSelect={() => {}} overlay={overlay} />
           <div className="hq-overlay-list">
-            {templates.map((template) => {
+            {staticTemplates.map((template) => {
               const active = template.id === overlayId;
               return (
                 <button
@@ -449,38 +600,48 @@ export function PlannerShellPage() {
         </button>
       </nav>
 
-      {tab === "templates" ? <TemplatesView /> : null}
+      {tab === "templates" ? <TemplatesView templates={plannerTemplates} registry={templateQuery.data} query={templateQuery} /> : null}
       {tab === "sandbox" ? <SandboxView /> : null}
       {tab === "comparisons" ? <ComparisonsView /> : null}
     </div>
   );
 }
 
-function TemplatesView() {
+function TemplatesView({ templates, registry, query }) {
   return (
-    <section className="hq-grid-section">
-      {templates.map((template) => (
-        <article key={template.id} className="hq-card">
-          <div className="hq-card-head">
-            <Badge tone="info">{template.architecture}</Badge>
-            <Badge tone={template.backup === "None" ? "muted" : "warn"}>{template.backup}</Badge>
-          </div>
-          <h3>{template.intent}</h3>
-          <p>{template.blurb}</p>
-          <dl className="hq-mini-stats">
-            <div>
-              <dt>Cost tier</dt>
-              <dd><Pips value={template.cost} /></dd>
+    <>
+      <section className="hq-api-strip" aria-label="Planner backend wiring status">
+        <ApiStatus query={query} label="guided template registry" fallbackLabel="Static template placeholders" />
+        <Badge tone={registry?.read_only ? "info" : "warn"}>
+          {registry?.read_only ? "Registry is read-only" : "No registry mutation wired"}
+        </Badge>
+        <Badge tone="warn">No draft save or project promotion</Badge>
+      </section>
+      <section className="hq-grid-section">
+        {templates.map((template) => (
+          <article key={template.id} className="hq-card">
+            <div className="hq-card-head">
+              <Badge tone="info">{template.architecture}</Badge>
+              <Badge tone={template.backup === "None" ? "muted" : "warn"}>{template.backup}</Badge>
             </div>
-            <div>
-              <dt>Complexity</dt>
-              <dd><Pips value={template.complexity} /></dd>
-            </div>
-          </dl>
-          <button type="button" className="hq-link-button">Seed draft placeholder</button>
-        </article>
-      ))}
-    </section>
+            <h3>{template.intent}</h3>
+            <p>{template.blurb}</p>
+            <dl className="hq-mini-stats">
+              <div>
+                <dt>Input tier</dt>
+                <dd><Pips value={template.cost} /></dd>
+              </div>
+              <div>
+                <dt>Step depth</dt>
+                <dd><Pips value={template.complexity} /></dd>
+              </div>
+            </dl>
+            {template.basis ? <p className="hq-source">Basis: {template.basis}</p> : null}
+            <button type="button" className="hq-link-button">Seed draft placeholder</button>
+          </article>
+        ))}
+      </section>
+    </>
   );
 }
 
@@ -558,7 +719,64 @@ function ComparisonsView() {
   );
 }
 
+function getBuilderRows(estimateReadiness, productPreferences, programIntelligence, energyPassport) {
+  if (!estimateReadiness && !productPreferences && !programIntelligence && !energyPassport) {
+    return builderReadiness;
+  }
+
+  return [
+    [
+      "Estimate posture",
+      formatLabel(estimateReadiness?.readiness_summary?.overall_status || "not available"),
+      estimateReadiness?.estimate_allowed ? "draft" : "blocked",
+    ],
+    [
+      "Confirmation gates",
+      `${estimateReadiness?.readiness_summary?.pending_gate_count ?? 0} pending`,
+      estimateReadiness?.readiness_summary?.pending_gate_count ? "needs" : "draft",
+    ],
+    [
+      "Product guidance",
+      formatLabel(productPreferences?.summary?.overall_status || "not available"),
+      productPreferences?.summary?.product_selection_allowed ? "draft" : "blocked",
+    ],
+    [
+      "Program awareness",
+      formatLabel(programIntelligence?.summary?.overall_status || "not available"),
+      programIntelligence?.summary?.eligibility_determined ? "draft" : "needs",
+    ],
+    [
+      "Energy passport",
+      formatLabel(energyPassport?.summary?.overall_status || "not available"),
+      energyPassport?.summary?.transfer_ready ? "draft" : "needs",
+    ],
+    ["Contractor handoff", "Deferred", "blocked"],
+  ];
+}
+
 export function BuilderShellPage() {
+  const homeQuery = useApiQuery("hq-builder-home", api.getHome);
+  const homeId = homeQuery.data?.id;
+  const estimateQuery = useApiQuery(`hq-estimate-readiness:${homeId || "none"}`, () => api.getEstimateReadiness(homeId), {
+    enabled: Boolean(homeId),
+  });
+  const productQuery = useApiQuery(`hq-product-preferences:${homeId || "none"}`, () => api.getProductPreferences(homeId), {
+    enabled: Boolean(homeId),
+  });
+  const programQuery = useApiQuery(`hq-program-intelligence:${homeId || "none"}`, () => api.getProgramIntelligence(homeId), {
+    enabled: Boolean(homeId),
+  });
+  const passportQuery = useApiQuery(`hq-energy-passport:${homeId || "none"}`, () => api.getEnergyPassport(homeId), {
+    enabled: Boolean(homeId),
+  });
+  const readinessRows = getBuilderRows(estimateQuery.data, productQuery.data, programQuery.data, passportQuery.data);
+  const missingInputs =
+    (estimateQuery.data?.missing_inputs?.length || 0) +
+    (productQuery.data?.missing_inputs?.length || 0) +
+    (programQuery.data?.missing_inputs?.length || 0) +
+    (passportQuery.data?.transfer_readiness?.missing_transfer_inputs?.length || 0);
+  const backendSummaryLoaded = Boolean(estimateQuery.data || productQuery.data || programQuery.data || passportQuery.data);
+
   return (
     <div className="hq-page">
       <header className="hq-page-head">
@@ -576,15 +794,50 @@ export function BuilderShellPage() {
             <p className="hq-eyebrow">Project readiness</p>
             <h2>Selected draft context</h2>
           </div>
-          <Badge tone="warn">Not project-promoted</Badge>
+          <ApiStatus query={estimateQuery} label="estimate readiness" fallbackLabel="Not project-promoted" />
         </div>
         <div className="hq-builder-grid">
-          {builderReadiness.map(([label, value, state]) => (
+          {readinessRows.map(([label, value, state]) => (
             <article key={label} className={`hq-builder-item hq-builder-${state}`}>
               <span>{label}</span>
               <strong>{value}</strong>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="hq-api-strip" aria-label="Builder backend wiring status">
+        <ApiStatus query={estimateQuery} label="estimate readiness" />
+        <ApiStatus query={productQuery} label="product preference metadata" />
+        <ApiStatus query={programQuery} label="program intelligence metadata" />
+        <ApiStatus query={passportQuery} label="energy passport metadata" />
+      </section>
+
+      <section className="hq-panel">
+        <div className="hq-panel-head">
+          <div>
+            <p className="hq-eyebrow">Backend readiness summary</p>
+            <h2>{backendSummaryLoaded ? `${missingInputs} missing inputs surfaced` : "Backend readiness not loaded"}</h2>
+          </div>
+          <Badge tone="warn">Planning-only</Badge>
+        </div>
+        <div className="hq-data-grid">
+          <div>
+            <span>Estimate allowed</span>
+            <strong>{estimateQuery.data ? (estimateQuery.data.estimate_allowed ? "Yes" : "No") : "Not read"}</strong>
+          </div>
+          <div>
+            <span>Product selection</span>
+            <strong>{productQuery.data ? (productQuery.data.summary?.product_selection_allowed ? "Allowed" : "Deferred") : "Not read"}</strong>
+          </div>
+          <div>
+            <span>Program eligibility</span>
+            <strong>{programQuery.data ? (programQuery.data.summary?.eligibility_determined ? "Determined" : "Not determined") : "Not read"}</strong>
+          </div>
+          <div>
+            <span>Transfer ready</span>
+            <strong>{passportQuery.data ? (passportQuery.data.summary?.transfer_ready ? "Yes" : "No") : "Not read"}</strong>
+          </div>
         </div>
       </section>
 

@@ -1,13 +1,27 @@
 const SECTION_ORDER = {
   home: 10,
-  planner: 20,
-  build: 30,
-  hidden: 40,
+  explore: 20,
+  planner: 30,
+  builder: 40,
+  internal: 50,
+  deferred: 60,
 };
 
+const SECTION_ALIASES = {
+  build: "builder",
+  hidden: "internal",
+  hidden_internal: "internal",
+};
+
+function normalizeSection(section) {
+  return SECTION_ALIASES[section] || section;
+}
+
 function bySectionAndPriority(left, right) {
+  const leftSection = normalizeSection(left.section);
+  const rightSection = normalizeSection(right.section);
   return (
-    (SECTION_ORDER[left.section] || 999) - (SECTION_ORDER[right.section] || 999) ||
+    (SECTION_ORDER[leftSection] || 999) - (SECTION_ORDER[rightSection] || 999) ||
     left.priority - right.priority ||
     left.homeownerLabel.localeCompare(right.homeownerLabel)
   );
@@ -18,23 +32,26 @@ export const architectureProductCapabilityIds = Object.freeze([
   "capability-energy-passport",
   "capability-readiness",
   "capability-home-facts",
+  "capability-explore-goals",
+  "capability-explore-learn",
+  "capability-guided-templates",
+  "capability-sandbox-drafts",
   "capability-compatibility",
   "capability-scenario-builder",
   "capability-product-preferences",
   "capability-planning-intelligence",
   "capability-proposal-options",
+  "capability-builder-readiness",
   "capability-contractor-context",
   "capability-estimate-readiness",
   "capability-install-path",
   "capability-program-intelligence",
+  "capability-product-catalog",
+  "capability-post-install-handoff",
   "capability-architecture-cockpit",
 ]);
 
-export const allowedFutureSourceCapabilityIds = Object.freeze([
-  // Phase 13 exists in backend runtime, but the Architecture/Product cockpit
-  // does not yet expose a matching product_capability node.
-  "capability-post-install-handoff",
-]);
+export const allowedFutureSourceCapabilityIds = Object.freeze([]);
 
 export const uiRegistry = Object.freeze([
   {
@@ -130,15 +147,15 @@ export const uiRegistry = Object.freeze([
   {
     id: "scenarios",
     productName: "Scenarios",
-    homeownerLabel: "Upgrade paths",
+    homeownerLabel: "Comparisons",
     contractorLabel: "Scenario planning",
     section: "planner",
-    cardName: "Upgrade Paths",
-    priority: 10,
+    cardName: "Comparisons",
+    priority: 30,
     visibleInV1: true,
     dataType: "workflow",
     sourceCapability: "capability-scenario-builder",
-    homeownerQuestionAnswered: "Which upgrade paths should I compare at a planning level?",
+    homeownerQuestionAnswered: "Which template or draft contexts can I compare at a planning level?",
     emptyStateMessage: "Create at least one planning path to compare future upgrade options.",
     trustBoundaryNotes: [
       "Scenario comparison is planning context, not final design selection.",
@@ -146,14 +163,86 @@ export const uiRegistry = Object.freeze([
     ],
   },
   {
+    id: "explore-goals",
+    productName: "Explore Goals",
+    homeownerLabel: "Goals",
+    contractorLabel: "Homeowner goals",
+    section: "explore",
+    cardName: "Goals",
+    priority: 10,
+    visibleInV1: true,
+    dataType: "workflow",
+    sourceCapability: "capability-explore-goals",
+    homeownerQuestionAnswered: "What should the home do next?",
+    emptyStateMessage: "Select goals locally before moving into planner templates.",
+    trustBoundaryNotes: [
+      "Goal selection is local UI intent and does not create persistence, project records, or recommendations.",
+      "Goals should seed planning context only after an approved workflow exists.",
+    ],
+  },
+  {
+    id: "explore-learn",
+    productName: "Explore Learn",
+    homeownerLabel: "Learn",
+    contractorLabel: "Homeowner education context",
+    section: "explore",
+    cardName: "Learn",
+    priority: 20,
+    visibleInV1: true,
+    dataType: "internal",
+    sourceCapability: "capability-explore-learn",
+    homeownerQuestionAnswered: "What plain-language context helps me understand planning terms?",
+    emptyStateMessage: "Learning content remains supporting context until source-backed content governance is approved.",
+    trustBoundaryNotes: [
+      "Learn content is explanatory context, not engineering, legal, financial, utility, or contractor advice.",
+      "Do not present educational copy as a source of structured home facts.",
+    ],
+  },
+  {
+    id: "guided-templates",
+    productName: "Guided Templates",
+    homeownerLabel: "Guided templates",
+    contractorLabel: "Sandbox template registry",
+    section: "planner",
+    cardName: "Guided Templates",
+    priority: 10,
+    visibleInV1: true,
+    dataType: "workflow",
+    sourceCapability: "capability-guided-templates",
+    homeownerQuestionAnswered: "Which safe starting patterns can seed a planning draft?",
+    emptyStateMessage: "Guided templates are available only as read-only sandbox seed patterns.",
+    trustBoundaryNotes: [
+      "Guided templates seed sandbox drafts only and do not create saved drafts, projects, proposals, pricing, utility status, or contractor commitments.",
+      "Template maturity states describe draft completeness only.",
+    ],
+  },
+  {
+    id: "sandbox-drafts",
+    productName: "Sandbox Drafts",
+    homeownerLabel: "Sandbox drafts",
+    contractorLabel: "Sandbox draft context",
+    section: "planner",
+    cardName: "Sandbox Drafts",
+    priority: 20,
+    visibleInV1: true,
+    dataType: "workflow",
+    sourceCapability: "capability-sandbox-drafts",
+    homeownerQuestionAnswered: "What assumptions and missing inputs would a draft need before it can mature?",
+    emptyStateMessage: "Draft creation and persistence are deferred; current draft cards are placeholders unless explicitly wired.",
+    trustBoundaryNotes: [
+      "Sandbox drafts are not persisted projects and do not create save/edit behavior.",
+      "Assumptions, placeholders, and missing inputs must remain visible.",
+    ],
+  },
+  {
     id: "compatibility",
     productName: "Compatibility",
     homeownerLabel: "Compatibility",
     contractorLabel: "Compatibility review",
-    section: "planner",
+    section: "deferred",
     cardName: "Compatibility",
     priority: 20,
-    visibleInV1: true,
+    visibleInV1: false,
     dataType: "derived_view",
     sourceCapability: "capability-compatibility",
     homeownerQuestionAnswered: "Which planning paths look compatible or need review?",
@@ -168,7 +257,7 @@ export const uiRegistry = Object.freeze([
     productName: "Constraints",
     homeownerLabel: "Planning constraints",
     contractorLabel: "Constraint and risk context",
-    section: "planner",
+    section: "deferred",
     cardName: "Planning Constraints",
     priority: 30,
     visibleInV1: false,
@@ -186,7 +275,7 @@ export const uiRegistry = Object.freeze([
     productName: "Product Preferences",
     homeownerLabel: "Product preferences",
     contractorLabel: "Product preference and install logic",
-    section: "planner",
+    section: "deferred",
     cardName: "Product Preferences",
     priority: 40,
     visibleInV1: false,
@@ -204,7 +293,7 @@ export const uiRegistry = Object.freeze([
     productName: "Planning Intelligence",
     homeownerLabel: "Planning intelligence",
     contractorLabel: "Planning intelligence context",
-    section: "planner",
+    section: "deferred",
     cardName: "Planning Intelligence",
     priority: 50,
     visibleInV1: false,
@@ -222,7 +311,7 @@ export const uiRegistry = Object.freeze([
     productName: "Proposal Options",
     homeownerLabel: "Proposal options",
     contractorLabel: "Proposal option readiness",
-    section: "build",
+    section: "deferred",
     cardName: "Proposal Options",
     priority: 10,
     visibleInV1: false,
@@ -240,7 +329,7 @@ export const uiRegistry = Object.freeze([
     productName: "Contractor Context",
     homeownerLabel: "Contractor review context",
     contractorLabel: "Contractor context",
-    section: "build",
+    section: "deferred",
     cardName: "Contractor Context",
     priority: 20,
     visibleInV1: false,
@@ -258,10 +347,10 @@ export const uiRegistry = Object.freeze([
     productName: "Estimate Readiness",
     homeownerLabel: "Estimate readiness",
     contractorLabel: "Estimate readiness gates",
-    section: "build",
+    section: "builder",
     cardName: "Estimate Readiness",
-    priority: 30,
-    visibleInV1: false,
+    priority: 20,
+    visibleInV1: true,
     dataType: "derived_view",
     sourceCapability: "capability-estimate-readiness",
     homeownerQuestionAnswered: "What is blocking a planning estimate or proposal prep?",
@@ -276,7 +365,7 @@ export const uiRegistry = Object.freeze([
     productName: "Install Path",
     homeownerLabel: "Install path",
     contractorLabel: "Install path and topology takeoff",
-    section: "build",
+    section: "deferred",
     cardName: "Install Path",
     priority: 40,
     visibleInV1: false,
@@ -294,9 +383,9 @@ export const uiRegistry = Object.freeze([
     productName: "Program Intelligence",
     homeownerLabel: "Program readiness",
     contractorLabel: "Program and grid-edge readiness",
-    section: "build",
+    section: "builder",
     cardName: "Program Intelligence",
-    priority: 50,
+    priority: 30,
     visibleInV1: false,
     dataType: "derived_view",
     sourceCapability: "capability-program-intelligence",
@@ -312,7 +401,7 @@ export const uiRegistry = Object.freeze([
     productName: "Post-Install Handoff",
     homeownerLabel: "Post-install handoff",
     contractorLabel: "Post-install retention and handoff context",
-    section: "build",
+    section: "deferred",
     cardName: "Post-Install Handoff",
     priority: 60,
     visibleInV1: false,
@@ -326,11 +415,47 @@ export const uiRegistry = Object.freeze([
     ],
   },
   {
+    id: "builder-readiness",
+    productName: "Builder Readiness",
+    homeownerLabel: "Build readiness",
+    contractorLabel: "Project readiness context",
+    section: "builder",
+    cardName: "Build Readiness",
+    priority: 10,
+    visibleInV1: true,
+    dataType: "derived_view",
+    sourceCapability: "capability-builder-readiness",
+    homeownerQuestionAnswered: "What must be resolved before a plan can move forward?",
+    emptyStateMessage: "Builder remains a readiness surface until project promotion and contractor handoff are approved.",
+    trustBoundaryNotes: [
+      "Builder is not contractor workflow, proposal generation, project promotion, or save/edit behavior.",
+      "Readiness must not imply field verification, approval, eligibility, pricing, or final design status.",
+    ],
+  },
+  {
+    id: "product-catalog-deferred",
+    productName: "Product Catalog",
+    homeownerLabel: "Catalog",
+    contractorLabel: "Deferred product catalog",
+    section: "deferred",
+    cardName: "Catalog",
+    priority: 70,
+    visibleInV1: false,
+    dataType: "internal",
+    sourceCapability: "capability-product-catalog",
+    homeownerQuestionAnswered: "Which product categories may be organized later?",
+    emptyStateMessage: "Catalog is reachable as a hidden route, but Product Catalog Foundation is deferred.",
+    trustBoundaryNotes: [
+      "Catalog entries are planning categories only until source-backed product facts are approved.",
+      "Do not imply pricing, availability, compatibility, recommendations, procurement, or warranty claims.",
+    ],
+  },
+  {
     id: "architecture-cockpit",
     productName: "Product Architecture Cockpit",
     homeownerLabel: "Internal product map",
     contractorLabel: "Internal product map",
-    section: "hidden",
+    section: "internal",
     cardName: "Product Architecture Cockpit",
     priority: 10,
     visibleInV1: true,
@@ -348,7 +473,7 @@ export const uiRegistry = Object.freeze([
     productName: "Technical Architecture Map",
     homeownerLabel: "Internal architecture map",
     contractorLabel: "Internal architecture map",
-    section: "hidden",
+    section: "internal",
     cardName: "Technical Architecture Map",
     priority: 20,
     visibleInV1: true,
@@ -366,7 +491,7 @@ export const uiRegistry = Object.freeze([
     productName: "Test Coverage",
     homeownerLabel: "Internal verification map",
     contractorLabel: "Internal verification map",
-    section: "hidden",
+    section: "internal",
     cardName: "Test Coverage",
     priority: 30,
     visibleInV1: true,
@@ -379,10 +504,47 @@ export const uiRegistry = Object.freeze([
       "Test gaps should remain visible in internal planning surfaces.",
     ],
   },
+  {
+    id: "capabilities-debug-route",
+    productName: "Capabilities Debug Route",
+    homeownerLabel: "Capabilities",
+    contractorLabel: "Internal/debug capability list",
+    section: "internal",
+    cardName: "Capabilities",
+    priority: 40,
+    visibleInV1: true,
+    dataType: "internal",
+    sourceCapability: "capability-architecture-cockpit",
+    homeownerQuestionAnswered: "Which capabilities are reachable for internal inspection?",
+    emptyStateMessage: "Capabilities is hidden from primary navigation and remains an internal/debug route.",
+    trustBoundaryNotes: [
+      "Capabilities should not be presented as homeowner-facing navigation.",
+      "Internal capability labels are not product approval or implementation authority.",
+    ],
+  },
+  {
+    id: "legacy-deep-routes",
+    productName: "Legacy Deep Routes",
+    homeownerLabel: "Legacy routes",
+    contractorLabel: "Deferred legacy route inventory",
+    section: "deferred",
+    cardName: "Legacy Deep Routes",
+    priority: 80,
+    visibleInV1: false,
+    dataType: "internal",
+    sourceCapability: "capability-architecture-cockpit",
+    homeownerQuestionAnswered: "Which old route surfaces remain reachable during migration?",
+    emptyStateMessage: "Legacy/deep routes remain reachable until Matt approves deletion, hiding, or replacement.",
+    trustBoundaryNotes: [
+      "Do not delete legacy routes during this alignment pass.",
+      "Deep route availability is compatibility preservation, not primary navigation intent.",
+    ],
+  },
 ]);
 
 export function getSectionItems(section) {
-  return uiRegistry.filter((item) => item.section === section).sort(bySectionAndPriority);
+  const normalizedSection = normalizeSection(section);
+  return uiRegistry.filter((item) => normalizeSection(item.section) === normalizedSection).sort(bySectionAndPriority);
 }
 
 export function getVisibleSectionItems(section) {
