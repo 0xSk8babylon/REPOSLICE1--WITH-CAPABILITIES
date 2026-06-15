@@ -73,7 +73,15 @@ docker network inspect residential-energy-planner-postgres-dev --format '{{range
 
 Expected output: `172.25.0.0/16`.
 
-The next boundary is PG-5A Disposable Baseline Upgrade Test planning. Before any runtime switch or persistence planning, the existing Alembic baseline still needs a disposable local Postgres test. That future test may run `alembic upgrade head` only against a disposable local Postgres database/container, with no runtime `DATABASE_URL` switch, no FastAPI startup against Postgres, no `.env` change, no persistence wiring, no production database, and no downgrade.
+## PG-5A Baseline Test Status
+
+PG-5A disposable baseline upgrade test passed against local database `rep_pg5a_baseline_test`. The test ran `alembic upgrade head` only against that disposable local Postgres database, then `alembic current` reported `20260523_0001 (head)`.
+
+Schema inspection found `alembic_version` plus the 25 SQLAlchemy metadata tables. The disposable database remains in the preserved Docker volume unless later cleanup is explicitly approved.
+
+Codex sandbox Python still has host-networking limitations and failed DBAPI/SQLAlchemy host checks, but outside-sandbox host Python passed DBAPI and SQLAlchemy `SELECT 1` against `rep_pg5a_baseline_test`.
+
+PG-5A does not approve a runtime `DATABASE_URL` switch, FastAPI startup against Postgres, persistence wiring, SQLite migration, downgrade, stamp, production database use, migration file creation, or `.env` changes.
 
 ## Cleanup
 
