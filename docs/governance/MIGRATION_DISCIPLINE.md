@@ -4,6 +4,8 @@
 
 SQLite is the local development system of record. Alembic exists as a baseline scaffold, but migration discipline is still early.
 
+Postgres foundation is configuration-only at this stage. Non-SQLite connections do not auto-create or auto-seed tables unless explicitly opted in, and no production Postgres dependency, service, secret, schema migration, or persistence switch is approved by that foundation.
+
 ## Required Practice
 
 - Treat schema changes as compatibility-sensitive.

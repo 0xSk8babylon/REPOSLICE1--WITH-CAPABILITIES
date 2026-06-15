@@ -9,7 +9,7 @@ from app.compatibility_rules.router import router as compatibility_router
 from app.contractor_context.router import router as contractor_context_router
 from app.contractor_workflow.router import router as contractor_workflow_router
 from app.core.config import settings
-from app.core.database import db_session
+from app.core.database import database_connection_summary, db_session
 from app.crm_handoff.router import router as crm_handoff_router
 from app.design_advisor.router import router as design_advisor_router
 from app.designs.router import router as designs_router
@@ -68,11 +68,13 @@ def on_startup():
 
 @app.get("/")
 def root():
+    database_summary = database_connection_summary()
     return {
         "name": settings.app_name,
         "version": settings.api_version,
         "message": "Residential energy planning scaffold. Structured data and rules are authoritative; AI is a consumer of grounded context.",
-        "database_url": settings.resolved_database_url,
+        "database_url": database_summary["url"],
+        "database": database_summary,
         "api_policy": {
             "legacy_routes_remain_supported": True,
             "preferred_base_prefix": "/api",

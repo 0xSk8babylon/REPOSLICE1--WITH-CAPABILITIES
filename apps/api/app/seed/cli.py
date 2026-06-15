@@ -1,6 +1,6 @@
 import sys
 
-from app.seed.runtime import init_database, reset_and_reseed, seed_database
+from app.seed.runtime import initialize_and_seed, reset_and_reseed
 
 
 def main():
@@ -10,8 +10,7 @@ def main():
         from app.core.database import db_session
 
         with db_session() as db:
-            init_database()
-            seed_database(db, force=False)
+            initialize_and_seed(db)
     elif command in {"reseed", "reset"}:
         reset_and_reseed()
     elif command == "path":

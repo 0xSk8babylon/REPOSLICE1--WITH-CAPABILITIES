@@ -13,6 +13,14 @@ Migration scaffold:
 - `apps/api/alembic.ini`
 - `apps/api/migrations/`
 
+Postgres foundation:
+
+- `DATABASE_URL` may point at a SQLAlchemy-supported Postgres URL in a future approved environment.
+- `postgres://` URLs are normalized to `postgresql://` before SQLAlchemy engine creation.
+- SQLite-only engine arguments are applied only to SQLite connections.
+- For non-SQLite databases, startup `create_all` and demo seeding default to disabled unless explicitly opted in with `DATABASE_CREATE_ALL_ON_STARTUP=true` and `DATABASE_SEED_DEMO_DATA_ON_STARTUP=true`.
+- No Postgres driver dependency, production service, secret, schema migration, data migration, or runtime persistence switch is introduced by this foundation.
+
 ## Core Tables
 
 - `accounts`

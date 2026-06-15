@@ -4,6 +4,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import Base, SessionLocal, database_path, engine
 from app.core import models
 from app.core.types import FactLifecycleState
@@ -227,8 +228,10 @@ def seed_database(db: Session, force: bool = False):
 
 
 def initialize_and_seed(db: Session):
-    init_database()
-    seed_database(db, force=False)
+    if settings.should_create_all_on_startup:
+        init_database()
+    if settings.should_seed_demo_data_on_startup:
+        seed_database(db, force=False)
 
 
 def reset_and_reseed():
