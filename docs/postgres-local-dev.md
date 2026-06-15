@@ -93,6 +93,23 @@ Authenticated `GET /api/homes/all` using `x-user-id: pg6a_smoke` and `x-home-acc
 
 PG-6A-3 does not approve a runtime `DATABASE_URL` switch, `.env` changes, FastAPI dev/prod server startup against Postgres, persistence wiring, sandbox draft persistence, SQLite-to-Postgres migration, downgrade, stamp, production database use, or migration file creation.
 
+## PG-6B Write Smoke Status
+
+PG-6B disposable Postgres Home + Fact write/read smoke passed against local database `rep_pg6b_write_smoke`. The test ran `alembic upgrade head` only against that disposable local database, then `alembic current` reported `20260523_0001 (head)`.
+
+The smoke used existing APIs only:
+
+- `POST /api/homes` returned `200` and created a disposable smoke home.
+- `GET /api/homes/all` returned `200` and included the created home.
+- `POST /api/homes/{home_id}/facts` returned `200` and created a disposable smoke fact attached to the home.
+- `GET /api/homes/{home_id}/facts` returned `200`, found the created fact, and reported effective confidence tier `known` with score `1.0`.
+
+`audit_events` contained authorized events for `/api/homes`, `/api/homes/all`, and `/api/homes/{home_id}/facts`.
+
+The disposable database remains in the preserved Docker volume unless later cleanup is explicitly approved.
+
+PG-6B does not approve a runtime `DATABASE_URL` switch, `.env` Postgres default, FastAPI dev/prod server startup against Postgres, persistence wiring, sandbox draft persistence, SQLite-to-Postgres migration, downgrade, stamp, production database use, migration file creation, or broader endpoint compatibility.
+
 ## Cleanup
 
 Stop the local service without deleting data:
