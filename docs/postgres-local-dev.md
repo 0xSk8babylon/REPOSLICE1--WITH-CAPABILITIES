@@ -61,6 +61,72 @@ PY
 
 This smoke check should not create schema, seed data, stamp a database, or apply migrations.
 
+## PG-7 Opt-In Local Runtime Mode
+
+PG-7 local runtime mode is explicit and local-only. SQLite remains the default when `DATABASE_URL` is unset. Do not commit these values to `.env`, and do not use the Compose placeholder credentials outside local development.
+
+Use a dedicated local runtime-smoke database instead of the Compose default database:
+
+```text
+rep_pg7_local_runtime
+```
+
+Prepare the database only after the local Postgres service is running and the fixed Docker subnet is confirmed as `172.25.0.0/16`:
+
+```bash
+docker compose -f compose.postgres.yml --profile postgres up -d
+docker network inspect residential-energy-planner-postgres-dev --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+docker compose -f compose.postgres.yml --profile postgres exec postgres pg_isready -U rep_dev -d residential_energy_planner
+```
+
+Host UFW must allow `172.25.0.0/16` on `5432/tcp` before any broad `172.16.0.0/12` deny before running host-side Postgres checks.
+
+Create the local runtime-smoke database if needed:
+
+```bash
+docker compose -f compose.postgres.yml --profile postgres exec postgres \
+  createdb -U rep_dev rep_pg7_local_runtime
+```
+
+If it already exists, continue without dropping it.
+
+Apply the current Alembic head only to the dedicated local runtime-smoke database:
+
+```bash
+cd apps/api
+DATABASE_URL='postgresql+psycopg://rep_dev:rep_dev_password@127.0.0.1:54329/rep_pg7_local_runtime' \
+DATABASE_CREATE_ALL_ON_STARTUP=false \
+DATABASE_SEED_DEMO_DATA_ON_STARTUP=false \
+python3 -m alembic upgrade head
+```
+
+Start FastAPI in opt-in local Postgres mode with one-shot environment variables only:
+
+```bash
+cd apps/api
+DATABASE_URL='postgresql+psycopg://rep_dev:rep_dev_password@127.0.0.1:54329/rep_pg7_local_runtime' \
+DATABASE_CREATE_ALL_ON_STARTUP=false \
+DATABASE_SEED_DEMO_DATA_ON_STARTUP=false \
+python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+The local runtime smoke checklist is:
+
+- `GET /` returns `200`, a redacted Postgres URL, `create_all_on_startup=false`, and `seed_demo_data_on_startup=false`.
+- `GET /api/homes/all` with `x-user-id` and `x-home-access: *` returns `200`.
+- `POST /api/homes` creates one local smoke home.
+- `POST /api/homes/{home_id}/facts` creates one fact attached to that home.
+- `GET /api/homes/{home_id}/facts` reads the fact back.
+- `audit_events` contains authorized events for the tested paths.
+
+Postgres demo seeding remains disabled for PG-7. Seed behavior on Postgres requires a separate approval gate.
+
+Rollback is command-level: stop the FastAPI process and restart without `DATABASE_URL` to return to the SQLite default. Stop the local container without deleting volumes:
+
+```bash
+docker compose -f compose.postgres.yml --profile postgres down
+```
+
 ## PG-5 Smoke Status
 
 PG-5 connection-only smoke is resolved/passed for the local environment after a host firewall correction. The failure cause was environmental: UFW had a broad outbound DROP for `172.16.0.0/12`, which blocked Docker bridge traffic. The manual fix was an outbound allow rule for the active Docker network subnet, `172.25.0.0/16`, on Postgres port `5432/tcp`, ordered before the broad DROP. After that correction, DBAPI psycopg and SQLAlchemy `SELECT 1` smoke checks passed manually.
