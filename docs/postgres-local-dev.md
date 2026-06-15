@@ -83,6 +83,16 @@ Codex sandbox Python still has host-networking limitations and failed DBAPI/SQLA
 
 PG-5A does not approve a runtime `DATABASE_URL` switch, FastAPI startup against Postgres, persistence wiring, SQLite migration, downgrade, stamp, production database use, migration file creation, or `.env` changes.
 
+## PG-6A-3 Runtime Smoke Status
+
+PG-6A-3 test-only FastAPI/TestClient Postgres runtime smoke passed against disposable local database `rep_pg6a_runtime_smoke`. The database was already at Alembic `20260523_0001 (head)`, and `alembic upgrade head` completed as a no-op against that disposable database only.
+
+The TestClient root endpoint `/` returned `200` with redacted URL `postgresql+psycopg://rep_dev:***@127.0.0.1:54329/rep_pg6a_runtime_smoke`. The response reported `create_all_on_startup=false` and `seed_demo_data_on_startup=false`.
+
+Authenticated `GET /api/homes/all` using `x-user-id: pg6a_smoke` and `x-home-access: *` returned `200` with `[]`, and `audit_events` contained an authorized `200` event for `/api/homes/all`.
+
+PG-6A-3 does not approve a runtime `DATABASE_URL` switch, `.env` changes, FastAPI dev/prod server startup against Postgres, persistence wiring, sandbox draft persistence, SQLite-to-Postgres migration, downgrade, stamp, production database use, or migration file creation.
+
 ## Cleanup
 
 Stop the local service without deleting data:
