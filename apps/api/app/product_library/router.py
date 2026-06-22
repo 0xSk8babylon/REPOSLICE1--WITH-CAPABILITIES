@@ -16,7 +16,9 @@ router = APIRouter(prefix="/product-library", tags=["product_library"])
 def list_products(db: Session = Depends(get_db)):
     return [
         EquipmentProduct(
-            **EquipmentProduct.from_orm(product).dict(),
+            **EquipmentProduct.from_orm(product).dict(
+                exclude={"provenance_summary", "source_documents"}
+            ),
             provenance_summary=provenance_service.summarize_entity(db, "equipment_product", product.id),
             source_documents=provenance_service.get_source_documents_for_entity(db, "equipment_product", product.id),
         )
