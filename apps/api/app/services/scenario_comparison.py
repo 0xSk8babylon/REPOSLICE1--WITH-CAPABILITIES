@@ -126,7 +126,7 @@ class ScenarioComparisonService:
         completeness = design_completeness_service.evaluate(db, scenario.linked_design_id)
         if analysis is None:
             return {
-                **Scenario.from_orm(scenario).dict(),
+                **Scenario.model_validate(scenario).model_dump(),
                 "linked_design": None,
                 "comparison_summary": {
                     "completeness_score": completeness["completeness_score"],
@@ -166,7 +166,7 @@ class ScenarioComparisonService:
             warnings.append("No source documents are linked directly to this scenario summary yet.")
 
         return {
-            **Scenario.from_orm(scenario).dict(),
+            **Scenario.model_validate(scenario).model_dump(),
             "linked_design": {
                 "id": analysis["design"].id,
                 "name": analysis["design"].name,

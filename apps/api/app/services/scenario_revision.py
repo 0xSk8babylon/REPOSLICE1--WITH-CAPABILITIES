@@ -58,7 +58,7 @@ class ScenarioRevisionService:
 
     def list_revision_summaries(self, db, scenario_id: str) -> List[ScenarioRevisionSummary]:
         return [
-            ScenarioRevisionSummary.from_orm(revision)
+            ScenarioRevisionSummary.model_validate(revision)
             for revision in self._list_revision_models(db, scenario_id)
         ]
 

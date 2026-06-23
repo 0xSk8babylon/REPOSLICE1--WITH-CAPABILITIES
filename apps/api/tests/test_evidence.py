@@ -23,7 +23,7 @@ class EvidenceTests(unittest.TestCase):
             db.commit()
 
     def test_route_registration(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/evidence/homes/{home_id}/photo-facts", paths)
 
     def test_valid_photo_evidence_creates_photo_verified_fact(self):

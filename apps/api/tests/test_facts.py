@@ -53,7 +53,7 @@ class FactLifecycleTests(unittest.TestCase):
             return fact
 
     def test_route_registration(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/homes/{home_id}/facts", paths)
         self.assertIn("/api/homes/{home_id}/facts/{fact_id}", paths)
         self.assertIn("/api/homes/{home_id}/facts/gaps/{calculation_name}", paths)

@@ -112,7 +112,7 @@ class Phase13PostInstallCRMHandoffTests(unittest.TestCase):
         return self.cached_crm_handoff
 
     def test_routes_are_additive_and_home_id_anchored(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/post-install/homes/{home_id}", paths)
         self.assertIn("/api/crm-handoff/homes/{home_id}", paths)
 

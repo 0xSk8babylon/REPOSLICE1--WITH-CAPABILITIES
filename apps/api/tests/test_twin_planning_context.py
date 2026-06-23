@@ -217,7 +217,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual(first, second)
 
     def test_trust_provenance_readiness_index_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/trust-provenance-readiness-index",
             paths,
@@ -731,7 +731,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_api_route_is_api_prefixed_and_read_only_additive(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
 
         self.assertIn("/api/twin-planning-context/homes/{home_id}", paths)
         self.assertNotIn("/twin-planning-context/homes/{home_id}", paths)
@@ -744,7 +744,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("No twin_id is created or inferred.", payload["limitations"])
 
     def test_ai_design_grounding_view_is_additive_and_minimized(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/twin-planning-context/homes/{home_id}/views/ai-design-grounding", paths)
 
         full_context = self._context()
@@ -901,7 +901,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIsNone(self._ai_view("missing_design"))
 
     def test_runtime_projection_route_is_additive_and_role_addressed(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
 
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/runtime-projection/{role}",
@@ -1104,7 +1104,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("twin_dependency.equipment_system_reference_v1", ai_rule_keys)
 
     def test_topology_snapshot_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/twin-planning-context/homes/{home_id}/views/topology-snapshot", paths)
 
         snapshot = self._topology_snapshot()
@@ -1452,7 +1452,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_dependency_impact_readiness_route_is_additive_and_explain_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/dependency-impact-readiness",
             paths,
@@ -1578,7 +1578,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("operate devices", limitation_text)
 
     def test_dependency_reasoning_route_is_additive_and_explain_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/dependency-reasoning",
             paths,
@@ -1758,7 +1758,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertIn("operate devices", limitation_text)
 
     def test_planning_intelligence_readiness_route_is_additive_and_inventory_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/planning-intelligence-readiness",
             paths,
@@ -1979,7 +1979,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_advisory_context_assembly_route_is_additive_and_input_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/advisory-context-assembly",
             paths,
@@ -2123,7 +2123,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_constraint_risk_reasoning_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/constraint-risk-reasoning",
             paths,
@@ -2315,7 +2315,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertFalse(view.reasoning_scope.permission_enforcement_present)
 
     def test_scenario_comparison_readiness_route_is_additive_and_readiness_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/scenario-comparison-readiness",
             paths,
@@ -2501,7 +2501,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertFalse(view.readiness_scope.export_present)
 
     def test_pre_recommendation_advisory_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/pre-recommendation-advisory",
             paths,
@@ -2675,7 +2675,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertFalse(view.advisory_scope.permission_enforcement_present)
 
     def test_recommendation_eligibility_readiness_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/recommendation-eligibility-readiness",
             paths,
@@ -2881,7 +2881,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertFalse(view.eligibility_scope.recommendations_generated)
 
     def test_basic_advisory_recommendations_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/basic-advisory-recommendations",
             paths,
@@ -3067,7 +3067,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_contractor_facing_advisory_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/contractor-facing-advisory",
             paths,
@@ -3189,7 +3189,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_contractor_planning_context_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/contractor-context/homes/{home_id}", paths)
 
         view = self._contractor_planning_context_view()
@@ -3295,7 +3295,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])
 
     def test_contractor_confirmation_gate_route_is_additive_read_only_and_deterministic(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/contractor-context/homes/{home_id}/confirmation-gates", paths)
 
         view = self._contractor_confirmation_gate_view()
@@ -3392,7 +3392,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             self.assertNotIn(forbidden, payload_text)
 
     def test_contractor_install_complexity_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/contractor-context/homes/{home_id}/install-complexity", paths)
 
         view = self._contractor_install_complexity_view()
@@ -3446,7 +3446,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             self.assertTrue(signal.provenance.derived_from)
 
     def test_planning_exchange_route_is_additive_read_only_and_non_authoritative(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/planning-exchange/homes/{home_id}", paths)
 
         view = self._planning_exchange_object_view()
@@ -3616,7 +3616,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
             self.assertNotIn(forbidden, payload_text)
 
     def test_shared_compatibility_route_is_additive_read_only_and_non_authoritative(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/twin-planning-context/homes/{home_id}/views/shared-compatibility", paths)
 
         view = self._shared_compatibility_view()
@@ -3837,7 +3837,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])
 
     def test_topology_takeoff_route_is_additive_read_only_and_non_authoritative(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/twin-planning-context/homes/{home_id}/views/topology-takeoff", paths)
 
         view = self._topology_takeoff_view()
@@ -4094,7 +4094,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         self.assertEqual(sorted(first["deferred_boundaries"]), first["deferred_boundaries"])
 
     def test_homeowner_facing_advisory_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/homeowner-facing-advisory",
             paths,
@@ -4217,7 +4217,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_energy_goal_reasoning_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/energy-goal-reasoning",
             paths,
@@ -4340,7 +4340,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_proposal_readiness_foundation_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/proposal-readiness-foundation",
             paths,
@@ -4462,7 +4462,7 @@ class TwinPlanningContextServiceTests(unittest.TestCase):
         )
 
     def test_product_spec_readiness_route_is_additive_and_read_only(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn(
             "/api/twin-planning-context/homes/{home_id}/views/product-spec-readiness",
             paths,

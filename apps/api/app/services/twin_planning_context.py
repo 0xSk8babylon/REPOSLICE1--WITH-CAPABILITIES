@@ -3683,7 +3683,7 @@ class TwinPlanningContextService:
         return self._sorted_unique(notes)
 
     def _trust_provenance_readiness_summary(self, view: Any) -> TwinTrustProvenanceReadinessSummary:
-        view_payload = view.dict(exclude_none=True)
+        view_payload = view.model_dump(exclude_none=True)
         # Freeze once, then run every token sweep against the cached walker.
         frozen_payload = _freeze_metadata_value(view_payload)
         source_basis_paths = list(_frozen_metadata_paths(frozen_payload, ("source_basis", "basis")))

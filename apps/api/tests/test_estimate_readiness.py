@@ -35,7 +35,7 @@ class EstimateReadinessServiceTests(unittest.TestCase):
         return counts
 
     def test_estimate_readiness_route_is_additive_read_only_and_schema_stable(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/estimate-readiness/homes/{home_id}", paths)
 
         view = self._view()

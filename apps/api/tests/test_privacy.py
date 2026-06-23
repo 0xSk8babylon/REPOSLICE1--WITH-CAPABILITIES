@@ -24,7 +24,7 @@ class PrivacyTests(unittest.TestCase):
             db.commit()
 
     def test_route_registration(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/privacy/homes/{home_id}/export", paths)
         self.assertIn("/api/privacy/homes/{home_id}/consent", paths)
         self.assertIn("/api/privacy/homes/{home_id}", paths)

@@ -14,7 +14,7 @@ router = APIRouter(prefix="/loads", tags=["loads"])
 
 def _serialize_load(load, provenance_summaries=None) -> Load:
     provenance_summaries = provenance_summaries or {}
-    return Load.from_orm(load).copy(update={"provenance_summary": provenance_summaries.get(load.id)})
+    return Load.model_validate(load).model_copy(update={"provenance_summary": provenance_summaries.get(load.id)})
 
 
 @router.get("", response_model=List[Load])

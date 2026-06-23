@@ -38,7 +38,7 @@ class ProductPreferencesServiceTests(unittest.TestCase):
         return counts
 
     def test_route_is_additive_home_id_anchored_and_schema_stable(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/product-preferences/homes/{home_id}", paths)
 
         with patch(

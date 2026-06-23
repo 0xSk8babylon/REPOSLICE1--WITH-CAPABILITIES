@@ -7,7 +7,7 @@ from app.core import models
 
 
 def _apply_updates(instance, update_model):
-    for field, value in update_model.dict(exclude_unset=True).items():
+    for field, value in update_model.model_dump(exclude_unset=True).items():
         setattr(instance, field, value)
 
 
@@ -20,7 +20,7 @@ class DatabaseRepository:
         return db.get(models.Account, account_id)
 
     def create_account(self, db: Session, payload):
-        account = models.Account(**payload.dict())
+        account = models.Account(**payload.model_dump())
         db.add(account)
         db.commit()
         db.refresh(account)
@@ -58,7 +58,7 @@ class DatabaseRepository:
         return db.scalars(statement).first()
 
     def create_home(self, db: Session, payload):
-        home = models.Home(**payload.dict())
+        home = models.Home(**payload.model_dump())
         db.add(home)
         db.commit()
         db.refresh(home)
@@ -102,7 +102,7 @@ class DatabaseRepository:
         return db.scalars(statement).all()
 
     def create_roof_plane(self, db: Session, payload):
-        plane = models.RoofPlane(**payload.dict())
+        plane = models.RoofPlane(**payload.model_dump())
         db.add(plane)
         db.commit()
         db.refresh(plane)
@@ -117,7 +117,7 @@ class DatabaseRepository:
         return db.scalars(statement).all()
 
     def create_geometry_obstruction(self, db: Session, payload):
-        obstruction = models.GeometryObstruction(**payload.dict())
+        obstruction = models.GeometryObstruction(**payload.model_dump())
         db.add(obstruction)
         db.commit()
         db.refresh(obstruction)
@@ -133,7 +133,7 @@ class DatabaseRepository:
         return db.get(models.BuildingStructure, building_id)
 
     def create_building(self, db: Session, payload):
-        building = models.BuildingStructure(**payload.dict())
+        building = models.BuildingStructure(**payload.model_dump())
         db.add(building)
         db.commit()
         db.refresh(building)
@@ -161,7 +161,7 @@ class DatabaseRepository:
         return db.get(models.ElectricalPanel, panel_id)
 
     def create_panel(self, db: Session, payload):
-        panel = models.ElectricalPanel(**payload.dict())
+        panel = models.ElectricalPanel(**payload.model_dump())
         db.add(panel)
         db.commit()
         db.refresh(panel)
@@ -189,7 +189,7 @@ class DatabaseRepository:
         return db.get(models.Load, load_id)
 
     def create_load(self, db: Session, payload):
-        load = models.Load(**payload.dict())
+        load = models.Load(**payload.model_dump())
         db.add(load)
         db.commit()
         db.refresh(load)
@@ -230,7 +230,7 @@ class DatabaseRepository:
         return db.scalars(statement).first()
 
     def create_design(self, db: Session, payload):
-        data = payload.dict()
+        data = payload.model_dump()
         equipment = data.pop("equipment", [])
         design = models.EnergySystemDesign(**data)
         db.add(design)
@@ -280,7 +280,7 @@ class DatabaseRepository:
         return db.scalars(statement).first()
 
     def create_design_equipment(self, db: Session, payload):
-        equipment = models.DesignEquipment(**payload.dict())
+        equipment = models.DesignEquipment(**payload.model_dump())
         db.add(equipment)
         db.commit()
         return self.get_design_equipment(db, equipment.id)
@@ -306,7 +306,7 @@ class DatabaseRepository:
         return db.get(models.EquipmentLocation, location_id)
 
     def create_equipment_location(self, db: Session, payload):
-        location = models.EquipmentLocation(**payload.dict())
+        location = models.EquipmentLocation(**payload.model_dump())
         db.add(location)
         db.commit()
         db.refresh(location)
@@ -334,7 +334,7 @@ class DatabaseRepository:
         return db.get(models.EquipmentProduct, product_id)
 
     def create_product(self, db: Session, payload):
-        product = models.EquipmentProduct(**payload.dict())
+        product = models.EquipmentProduct(**payload.model_dump())
         db.add(product)
         db.commit()
         db.refresh(product)
@@ -375,7 +375,7 @@ class DatabaseRepository:
         return db.scalars(statement).first()
 
     def create_scenario(self, db: Session, payload):
-        scenario = models.Scenario(**payload.dict())
+        scenario = models.Scenario(**payload.model_dump())
         db.add(scenario)
         db.commit()
         db.refresh(scenario)
@@ -425,7 +425,7 @@ class DatabaseRepository:
         return db.get(models.EstimatedPathway, pathway_id)
 
     def create_estimated_pathway(self, db: Session, payload):
-        pathway = models.EstimatedPathway(**payload.dict())
+        pathway = models.EstimatedPathway(**payload.model_dump())
         db.add(pathway)
         db.commit()
         db.refresh(pathway)
@@ -451,7 +451,7 @@ class DatabaseRepository:
         return db.get(models.LoadTemplate, template_id)
 
     def create_load_template(self, db: Session, payload):
-        template = models.LoadTemplate(**payload.dict())
+        template = models.LoadTemplate(**payload.model_dump())
         db.add(template)
         db.commit()
         db.refresh(template)
@@ -477,7 +477,7 @@ class DatabaseRepository:
         return db.get(models.DesignGoalPreset, preset_id)
 
     def create_design_goal_preset(self, db: Session, payload):
-        preset = models.DesignGoalPreset(**payload.dict())
+        preset = models.DesignGoalPreset(**payload.model_dump())
         db.add(preset)
         db.commit()
         db.refresh(preset)
@@ -510,7 +510,7 @@ class DatabaseRepository:
         return db.scalars(statement).all()
 
     def create_source_document(self, db: Session, payload):
-        document = models.SourceDocument(**payload.dict())
+        document = models.SourceDocument(**payload.model_dump())
         db.add(document)
         db.commit()
         db.refresh(document)
@@ -543,7 +543,7 @@ class DatabaseRepository:
         return db.scalars(statement).all()
 
     def create_data_provenance(self, db: Session, payload):
-        record = models.DataProvenance(**payload.dict())
+        record = models.DataProvenance(**payload.model_dump())
         db.add(record)
         db.commit()
         db.refresh(record)
@@ -571,7 +571,7 @@ class DatabaseRepository:
         return db.scalars(statement).all()
 
     def create_rule_provenance(self, db: Session, payload):
-        record = models.RuleProvenance(**payload.dict())
+        record = models.RuleProvenance(**payload.model_dump())
         db.add(record)
         db.commit()
         db.refresh(record)

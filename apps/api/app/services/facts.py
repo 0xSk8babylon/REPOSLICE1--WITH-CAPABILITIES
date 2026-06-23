@@ -94,7 +94,7 @@ class FactLifecycleService:
         fact = models.Fact(
             home_id=home_id,
             verified_at=now,
-            **payload.dict(),
+            **payload.model_dump(),
         )
         return repository.create_fact(db, fact)
 
@@ -102,7 +102,7 @@ class FactLifecycleService:
         fact = repository.get_fact(db, fact_id)
         if fact is None:
             return None
-        updates = payload.dict(exclude_unset=True)
+        updates = payload.model_dump(exclude_unset=True)
         for field, value in updates.items():
             setattr(fact, field, value)
         fact.verified_at = datetime.utcnow()
@@ -137,9 +137,9 @@ class FactLifecycleService:
             reason = f"Applied {policy.value} from verified_at to read time."
 
         effective_score = round(base_score * factor, 4)
-        stored_fact = Fact.from_orm(fact)
+        stored_fact = Fact.model_validate(fact)
         return EffectiveFact(
-            **stored_fact.dict(),
+            **stored_fact.model_dump(),
             effective_confidence_score=effective_score,
             effective_confidence_tier=_tier_from_score(effective_score),
             effective_confidence_reason=reason,

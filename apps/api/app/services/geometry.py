@@ -9,7 +9,7 @@ from app.geometry.schemas import HomeGeometryExport, RoofPlane, RoofPlaneShading
 
 class GeometryService:
     def export_home_geometry(self, db: Session, home_id: str) -> HomeGeometryExport:
-        planes = [RoofPlane.from_orm(plane) for plane in repository.list_roof_planes(db, home_id)]
+        planes = [RoofPlane.model_validate(plane) for plane in repository.list_roof_planes(db, home_id)]
         obstructions = repository.list_geometry_obstructions(db, home_id)
         shading = self._per_plane_shading(planes)
         return HomeGeometryExport(

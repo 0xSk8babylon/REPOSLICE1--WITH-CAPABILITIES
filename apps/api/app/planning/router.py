@@ -25,7 +25,7 @@ design_goal_presets_router = APIRouter(prefix="/design-goal-presets", tags=["des
 
 def _serialize_estimated_pathway(pathway, provenance_summaries=None) -> EstimatedPathway:
     provenance_summaries = provenance_summaries or {}
-    return EstimatedPathway.from_orm(pathway).copy(update={"provenance_summary": provenance_summaries.get(pathway.id)})
+    return EstimatedPathway.model_validate(pathway).model_copy(update={"provenance_summary": provenance_summaries.get(pathway.id)})
 
 
 @estimated_pathways_router.get("", response_model=List[EstimatedPathway])

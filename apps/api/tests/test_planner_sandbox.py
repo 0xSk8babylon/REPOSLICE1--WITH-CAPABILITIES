@@ -40,7 +40,7 @@ def _complete_backup_draft():
 
 class PlannerSandboxTests(unittest.TestCase):
     def test_routes_are_registered_without_frontend_or_home_scope(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/planner-sandbox/templates", paths)
         self.assertIn("/api/planner-sandbox/templates/{template_id}", paths)
         self.assertIn("/api/planner-sandbox/drafts/validate", paths)

@@ -15,12 +15,12 @@ router = APIRouter(prefix="/scenarios", tags=["scenarios"])
 def _serialize_scenario(db: Session, scenario):
     if scenario is None:
         return None
-    serialized = Scenario.from_orm(scenario).dict()
+    serialized = Scenario.model_validate(scenario).model_dump()
     serialized["revision_overview"] = scenario_revision_service.build_revision_overview(
         db, scenario.id
-    ).dict()
+    ).model_dump()
     serialized["revisions"] = [
-        revision.dict()
+        revision.model_dump()
         for revision in scenario_revision_service.list_revision_summaries(db, scenario.id)
     ]
     return serialized

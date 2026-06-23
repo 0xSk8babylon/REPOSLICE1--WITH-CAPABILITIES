@@ -2473,9 +2473,9 @@ class ResilienceRecommendationService:
         inverter_system_architecture: InverterSystemArchitectureEstimate,
         rule_documents_map=None,
     ) -> StructuredSystemReasoningGraph:
-        battery_sizing = BatterySizingEstimate.parse_obj(profile_card.battery_sizing_estimate)
-        solar_sizing = SolarSizingEstimate.parse_obj(profile_card.solar_sizing_estimate)
-        profile_inspectability = EstimateInspectability.parse_obj(profile_card.inspectability)
+        battery_sizing = BatterySizingEstimate.model_validate(profile_card.battery_sizing_estimate.model_dump())
+        solar_sizing = SolarSizingEstimate.model_validate(profile_card.solar_sizing_estimate.model_dump())
+        profile_inspectability = EstimateInspectability.model_validate(profile_card.inspectability.model_dump())
         graph_rule_keys = [
             "recommendation.backup_load_selection_v1",
             "recommendation.current_home_energy_architecture_v1",
@@ -2867,12 +2867,23 @@ class ResilienceRecommendationService:
             if architecture_fit.warnings:
                 profile_incomplete_inputs.extend(architecture_fit.warnings)
             battery_sizing = self._battery_sizing_estimate(analysis, key, config)
-            battery_inspectability = self._battery_inspectability(
-                db, analysis, key, config, battery_sizing, confidence, recommendation_rule_documents
+            battery_inspectability = EstimateInspectability.model_validate(
+                self._battery_inspectability(
+                    db, analysis, key, config, battery_sizing, confidence, recommendation_rule_documents
+                )
             )
             solar_sizing = self._solar_sizing_estimate(analysis, config, battery_sizing)
-            solar_inspectability = self._solar_inspectability(
-                db, analysis, key, config, battery_sizing, solar_sizing, confidence, recommendation_rule_documents
+            solar_inspectability = EstimateInspectability.model_validate(
+                self._solar_inspectability(
+                    db,
+                    analysis,
+                    key,
+                    config,
+                    battery_sizing,
+                    solar_sizing,
+                    confidence,
+                    recommendation_rule_documents,
+                )
             )
             profiles.append(
                 RecommendationProfileCard(
@@ -2880,10 +2891,10 @@ class ResilienceRecommendationService:
                     recommended=key == profile,
                     fit_reason=self._fit_reason(key, analysis, architecture_fit),
                     architecture_fit=architecture_fit,
-                    battery_sizing_estimate=battery_sizing.copy(
+                    battery_sizing_estimate=battery_sizing.model_copy(
                         update={"inspectability": battery_inspectability}
                     ),
-                    solar_sizing_estimate=solar_sizing.copy(update={"inspectability": solar_inspectability}),
+                    solar_sizing_estimate=solar_sizing.model_copy(update={"inspectability": solar_inspectability}),
                     inspectability=provenance_service.build_estimate_inspectability(
                         db,
                         basis="Profile fit is based on current design goal, load grouping, recorded architecture type, equipment mix, panel/service direction, pathway planning, and overall planning completeness.",

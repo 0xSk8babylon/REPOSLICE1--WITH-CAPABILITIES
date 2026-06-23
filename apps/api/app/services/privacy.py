@@ -32,11 +32,11 @@ class PrivacyService:
         )
 
     def record_consent(self, db: Session, payload) -> ConsentRecord:
-        record = models.ConsentRecord(**payload.dict())
+        record = models.ConsentRecord(**payload.model_dump())
         db.add(record)
         db.commit()
         db.refresh(record)
-        return ConsentRecord.from_orm(record)
+        return ConsentRecord.model_validate(record)
 
     def delete_homeowner_record(self, db: Session, home_id: str) -> PrivacyDeletionResult:
         deleted_sections: List[str] = []

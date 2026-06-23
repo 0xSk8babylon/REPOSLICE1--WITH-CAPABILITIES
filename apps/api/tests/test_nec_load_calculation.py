@@ -47,7 +47,7 @@ class NecLoadCalculationTests(unittest.TestCase):
         self._add_fact("load.hvac_cooling_va", 6000, "VA")
 
     def test_route_registration(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/homes/{home_id}/load-calculations/nec-220", paths)
 
     def test_220_82_worked_example_returns_stage_values_and_headroom(self):

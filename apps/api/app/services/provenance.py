@@ -105,7 +105,7 @@ class ProvenanceService:
         records = repository.list_data_provenance(db, entity_type=entity_type, entity_id=entity_id)
         source_document_ids = [record.source_document_id for record in records if record.source_document_id]
         return [
-            SourceDocument.from_orm(document)
+            SourceDocument.model_validate(document)
             for document in repository.get_source_documents_by_ids(db, source_document_ids)
         ]
 

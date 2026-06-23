@@ -41,7 +41,7 @@ class AIContextService:
                         "location_id": location.id if location else None,
                         "location_name": location.name if location else None,
                         "data_origin": entry["equipment"].data_origin,
-                        "provenance_summary": provenance_service.summarize_entity(db, "equipment_product", product.id).dict(),
+                        "provenance_summary": provenance_service.summarize_entity(db, "equipment_product", product.id).model_dump(),
                     }
                 )
 
@@ -70,7 +70,7 @@ class AIContextService:
                     "contractor_packet",
                     "operational_control",
                 ],
-            ).dict(),
+            ).model_dump(),
             "permission_readiness": {
                 "account_scaffolding_only": True,
                 "role_enforcement": "not_enforced",
@@ -81,21 +81,21 @@ class AIContextService:
                     "Future AI-safe views should narrow this broad context through explicit view contracts before adding RBAC or exports.",
                 ],
             },
-            "design": EnergySystemDesign.from_orm(design).dict() if design else None,
-            "home": Home.from_orm(home).dict() if home else None,
+            "design": EnergySystemDesign.model_validate(design).model_dump() if design else None,
+            "home": Home.model_validate(home).model_dump() if home else None,
             "products": [
                 {
-                    **EquipmentProduct.from_orm(product).dict(),
-                    "provenance_summary": provenance_service.summarize_entity(db, "equipment_product", product.id).dict(),
+                    **EquipmentProduct.model_validate(product).model_dump(),
+                    "provenance_summary": provenance_service.summarize_entity(db, "equipment_product", product.id).model_dump(),
                     "source_documents": [
-                        document.dict()
+                        document.model_dump()
                         for document in provenance_service.get_source_documents_for_entity(db, "equipment_product", product.id)
                     ],
                 }
                 for product in products
             ],
-            "compatibility_issues": [CompatibilityIssue.from_orm(issue).dict() for issue in issues],
-            "advisor_issues": [issue.dict() for issue in advisor_issues],
+            "compatibility_issues": [CompatibilityIssue.model_validate(issue).model_dump() for issue in issues],
+            "advisor_issues": [issue.model_dump() for issue in advisor_issues],
             "design_completeness": completeness,
             "design_maturity": {
                 "stored_status": analysis["design"].status if analysis else None,

@@ -12,7 +12,7 @@ class SystemVisibilityTests(unittest.TestCase):
         return system_visibility_service.build_architecture_graph()
 
     def test_route_registration_and_response_shape(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/system-visibility/architecture", paths)
 
         response = get_architecture_visibility()

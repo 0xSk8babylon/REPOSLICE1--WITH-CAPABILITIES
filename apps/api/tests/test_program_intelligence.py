@@ -108,7 +108,7 @@ class ProgramIntelligenceTests(unittest.TestCase):
             return program_intelligence_service.build_home_program_intelligence(None, "home_001")
 
     def test_route_registration_and_response_is_home_id_anchored(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/program-intelligence/homes/{home_id}", paths)
 
         view = self._build()

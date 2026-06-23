@@ -1,13 +1,12 @@
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.types import ApiViewAudience, AuthorityLayer, DataClassification
 
 
 class ORMModel(BaseModel):
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ViewBoundaryMetadata(ORMModel):

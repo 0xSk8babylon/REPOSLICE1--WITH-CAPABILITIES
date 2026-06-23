@@ -38,7 +38,7 @@ class ContractorWorkflowReadinessServiceTests(unittest.TestCase):
         return counts
 
     def test_route_is_additive_and_returns_home_id_anchored_view(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/contractor-workflow/homes/{home_id}/readiness", paths)
 
         with patch(

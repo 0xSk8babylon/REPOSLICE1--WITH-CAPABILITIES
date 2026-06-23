@@ -147,7 +147,7 @@ class EnergyPassportTests(unittest.TestCase):
             return energy_passport_service.build_home_energy_passport(None, "home_001")
 
     def test_route_exists_and_response_is_home_id_anchored(self):
-        paths = {getattr(route, "path", None) for route in app.routes}
+        paths = set(app.openapi()["paths"])
         self.assertIn("/api/energy-passport/homes/{home_id}", paths)
 
         view = self._build()
