@@ -22,7 +22,7 @@ Do not bundle these gates. Each gate requires a fresh owner approval with the ex
 
 ## Production-Only Railway Names
 
-Recommended production-only labels, not yet created or verified:
+Production-only labels:
 
 ```text
 Railway workspace: 0xsk8babylon's Projects
@@ -308,7 +308,20 @@ Rollback posture:
 
 ## Current Status
 
-- Production Postgres created: no.
+- Production Postgres Gate 1: PASS.
+- Production workspace: `0xsk8babylon's Projects`.
+- Production project: `rep-postgres-production`.
+- Production project ID: `c71285ee-5be0-451c-ab39-c023cf4a9a98`.
+- Production environment: `production`.
+- Production environment ID: `f47e9ce9-e868-4089-9865-bb5b54ae59e1`.
+- Production Postgres service: `Postgres`.
+- Production Postgres service ID: `13a5b2f6-3983-4ff5-92a7-69d4b09e0372`.
+- Logical DB / app target label: `rep_pg8e_production`.
+- Production Postgres deployment status: `SUCCESS`.
+- Production Postgres instance status: `RUNNING`.
+- Production Postgres volume state: `READY`.
+- Production DB vars exist: yes, values redacted.
+- Owner credential capture required: manually capture production `DATABASE_URL`, `DATABASE_PUBLIC_URL`, and `PG*` values into 1Password through the Railway dashboard.
 - Production Alembic upgrade run: no.
 - PG-8E production data migration run: no.
 - Production FastAPI deployed: no.
@@ -320,4 +333,4 @@ Rollback posture:
 
 ## Next Required Approval
 
-Next approval should be for Gate 1 only: production Postgres creation planning/execution, with exact Railway target names confirmed before any managed resource is created.
+Next approval should be for Gate 2 planning/preflight only: production Alembic upgrade planning against the approved production Postgres target. Production Alembic upgrade execution, PG-8E production migration, production FastAPI deploy/env-var wiring, and public production smoke are not approved yet.

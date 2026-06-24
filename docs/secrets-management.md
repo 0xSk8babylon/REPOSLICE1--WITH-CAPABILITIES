@@ -120,6 +120,7 @@ DEBUG=false
 Production rules:
 
 - Use a distinct Railway production environment and distinct production Postgres service.
+- Owner must manually capture production `DATABASE_URL`, `DATABASE_PUBLIC_URL`, and `PG*` values into 1Password through the Railway dashboard; do not print or copy them through chat, docs, commits, logs, or repo-local env files.
 - Never reuse staging database credentials in production.
 - Never point production at local Docker, Supabase staging, or disposable rehearsal databases.
 - Do not run migrations or data copy until a production migration plan is approved.
