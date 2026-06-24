@@ -132,7 +132,7 @@ export SESSION_REPORT_EMAIL_TO="matt@example.com"
 Before sending, load `.env` in the active shell and verify delivery variables without printing the API key:
 
 ```bash
-cd ~/residential-energy-planner
+cd /path/to/residential-energy-planner
 set -a
 source .env
 set +a
@@ -207,3 +207,7 @@ These fields are persisted but not yet connected to login, access control, billi
 - Product specs, cost values, engineering logic, and code guidance are placeholders by design.
 
 See `docs/` for the detailed vision and system philosophy.
+
+## Secrets Management
+
+Use `.env.example` for placeholder variable names only. Real secrets belong outside the repo, with `~/.secrets/residential-energy-planner/` as the preferred local working path and 1Password as the current source of truth. Repo-local `.env` files are gitignored runtime delivery files only. The current runbook is `docs/secrets-management.md`.

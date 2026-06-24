@@ -1,5 +1,7 @@
 # Railway Staging Postgres Runbook
 
+Related secrets boundary: `docs/secrets-management.md`.
+
 ## Current Railway State
 
 - Repo Railway config: none found.
@@ -20,9 +22,11 @@ This is a staging-only managed Postgres target. It is not a production database 
 When a staging FastAPI service is later approved, it should use Railway-managed Postgres connection settings with these app-level variables:
 
 ```text
+APP_ENV=staging
 DATABASE_URL
 DATABASE_CREATE_ALL_ON_STARTUP=false
 DATABASE_SEED_DEMO_DATA_ON_STARTUP=false
+DEBUG=false
 ```
 
 Do not print or commit resolved connection strings. Do not copy Railway secrets into the repo.

@@ -8,6 +8,7 @@ from sqlalchemy.engine import make_url
 class Settings(BaseSettings):
     app_name: str = "Residential Energy Planner API"
     api_version: str = "0.1.0"
+    app_env: str = "local"
     debug: bool = True
     data_dir: Path = Path(__file__).resolve().parents[2] / "data"
     database_file: str = "residential_energy_planner.sqlite3"

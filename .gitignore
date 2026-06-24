@@ -11,6 +11,8 @@ apps/api/data/
 # Local secrets
 .env
 .env.local
+.env.*
+!.env.example
 
 # Local-only session continuity
 /SESSION_HANDOFF.md

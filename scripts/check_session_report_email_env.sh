@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-cd "${HOME}/residential-energy-planner"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "${script_dir}/.." && pwd)"
+cd "${repo_root}"
 
 if [ ! -f ".env" ]; then
   echo ".env is missing" >&2
