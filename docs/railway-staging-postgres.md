@@ -122,6 +122,47 @@ Protected GET smoke with expected audit-only writes:
 
 `audit_events` increased from `0` to `3` as expected for protected GET access. Core migrated table counts remained unchanged after protected smoke.
 
+## Staging Verification Automation
+
+Use the local staging secret file from `~/.secrets/residential-energy-planner/staging.env`. These scripts must not print `DATABASE_URL` or secret values.
+
+Read-only staging readiness check:
+
+```bash
+scripts/check_staging_readiness.sh
+```
+
+This verifies the repo is clean, the staging env file exists, env file permissions are closed to group/other access, required key names are present, `APP_ENV=staging`, `DEBUG=false`, startup create/seed flags are disabled, the Postgres target is reachable, Alembic is at `20260523_0001`, expected tables exist, expected row counts match, provenance orphan counts are zero, and public FK constraints are validated. It uses SELECT-only database checks.
+
+The local verification scripts normalize bare `postgres://` or `postgresql://` values to SQLAlchemy's `postgresql+psycopg://` dialect inside the running process because the API dependency set installs `psycopg`. They do not edit the secret file or print the resolved URL.
+
+Local FastAPI smoke against the staging database:
+
+```bash
+python3 scripts/smoke_staging_fastapi.py
+```
+
+The default smoke verifies the repo is clean, exercises `/`, `/api/accounts`, and `/api/product-library`, and expects no database writes. It requires the API runtime dependencies from `apps/api/requirements.txt`; if a usable `apps/api/.venv/bin/python` exists, the script can re-execute itself with that venv interpreter.
+
+If the local host Python environment is stale, use the established ephemeral Docker Python runtime and install dependencies inside the disposable container, not on the host:
+
+```bash
+docker run --rm \
+  -v "$PWD":/work \
+  -v "$HOME/.secrets":/root/.secrets:ro \
+  -w /work \
+  python:3.11-slim \
+  sh -lc 'python -m pip install -q -r apps/api/requirements.txt && python scripts/smoke_staging_fastapi.py'
+```
+
+Protected GET smoke is available only when the expected audit-only writes are explicitly approved:
+
+```bash
+python3 scripts/smoke_staging_fastapi.py --include-protected-audit-smoke
+```
+
+With that flag, the script also exercises `/api/homes/all`, `/api/designs`, and `/api/scenarios`; it requires exactly three `audit_events` inserts and verifies core migrated table counts remain unchanged.
+
 ## Next Step
 
 Next required approval: Railway staging FastAPI service deploy and runtime env-var wiring. Do not deploy the FastAPI service or set Railway runtime variables until Matt explicitly approves that next boundary.
