@@ -14,6 +14,13 @@ Read these first:
 4. `.codex/skills/repo-memory-map/SKILL.md` if present
 5. `.codex/skills/repo-guardrails/SKILL.md` if present
 
+## Deployment And Secrets Routing
+
+- Secrets-management boundary: `docs/secrets-management.md`
+- Safe placeholder environment template: `.env.example`
+- Railway staging Postgres preflight: `docs/railway-staging-postgres.md`
+- Local Postgres smoke/rehearsal guidance: `docs/postgres-local-dev.md`
+
 ## Canonical Phase Structure
 
 - Planner Sandbox Contract v0 - implemented in the current working tree.
