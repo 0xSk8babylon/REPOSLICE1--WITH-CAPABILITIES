@@ -105,7 +105,7 @@ Rules:
 
 ## Railway Production
 
-Production is not approved for provisioning, migration, or deployment in this thread.
+Production provisioning, migration, deployment, env-var wiring, and smoke remain separated by approval gate. The current planning boundary is documented in `docs/railway-production-postgres.md`; it does not approve production resource creation, migrations, data copy, FastAPI deployment, env-var wiring, smoke, push, or new secrets.
 
 Required production variables when production is later approved:
 
@@ -124,6 +124,7 @@ Production rules:
 - Never point production at local Docker, Supabase staging, or disposable rehearsal databases.
 - Do not run migrations or data copy until a production migration plan is approved.
 - Do not expose database diagnostics beyond redacted connection summaries.
+- Do not bundle production Postgres creation, Alembic upgrade, PG-8E data migration, FastAPI deploy/env-var wiring, and public smoke into one approval.
 
 ## CI Secrets
 
@@ -207,4 +208,5 @@ Notes:
 - `.github/workflows/ci.yml`
 - `docs/postgres-local-dev.md`
 - `docs/railway-staging-postgres.md`
+- `docs/railway-production-postgres.md`
 - `docs/session-report-email.md`

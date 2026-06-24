@@ -19,6 +19,7 @@ Read these first:
 - Secrets-management boundary: `docs/secrets-management.md`
 - Safe placeholder environment template: `.env.example`
 - Railway staging Postgres preflight: `docs/railway-staging-postgres.md`
+- Railway production Postgres plan: `docs/railway-production-postgres.md`
 - Local Postgres smoke/rehearsal guidance: `docs/postgres-local-dev.md`
 
 ## Canonical Phase Structure

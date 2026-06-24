@@ -1,6 +1,7 @@
 # Railway Staging Postgres Runbook
 
 Related secrets boundary: `docs/secrets-management.md`.
+Production planning boundary: `docs/railway-production-postgres.md`.
 
 ## Current Railway State
 
@@ -220,4 +221,4 @@ Core migrated counts remained unchanged. FK and provenance checks passed.
 
 ## Next Step
 
-Next required approval: staging-to-production planning only. Do not create production Railway resources, run production migrations, deploy production services, set production env vars, or push until Matt explicitly approves that next boundary.
+Next required approval: production Gate 1 only, as defined in `docs/railway-production-postgres.md`. Do not create production Railway resources, run production migrations, migrate production data, deploy production services, set production env vars, run public production smoke, touch staging resources, or push until Matt explicitly approves the exact next boundary.
