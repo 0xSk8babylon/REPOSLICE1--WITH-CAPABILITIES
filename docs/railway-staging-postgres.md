@@ -10,14 +10,18 @@ Related secrets boundary: `docs/secrets-management.md`.
 - Project: `rep-postgres-staging`.
 - Environment: `staging`.
 - Existing Railway Postgres service: `Postgres`.
+- Existing Railway FastAPI service: `rep-api-staging`.
+- Public staging URL: `https://rep-api-staging-staging.up.railway.app`.
 - Logical DB / app target label: `rep_pg8e_staging`.
-- Repo status during staging migration/smoke closeout: clean on `fix/github-workflow`, ahead of origin by 32.
+- Repo status before Railway staging FastAPI smoke closeout docs: clean on `fix/github-workflow`, ahead of origin by 35.
 
 ## Staging Resource
 
 - Railway environment: `staging`
 - Railway project: `rep-postgres-staging`
 - Railway Postgres service: `Postgres`
+- Railway FastAPI service: `rep-api-staging`
+- Public staging URL: `https://rep-api-staging-staging.up.railway.app`
 - Logical DB / app target label: `rep_pg8e_staging`
 
 This is a staging-only managed Postgres target. It is not a production database and should not be treated as a production cutover.
@@ -75,8 +79,8 @@ Railway staging Postgres migration passed.
 - Unexpected writes: no
 - Production touched: no
 - Secrets printed: no
-- FastAPI Railway deploy started: no
-- Railway FastAPI env vars set: no
+- FastAPI Railway deploy: PASS
+- Railway FastAPI env vars set: yes, values redacted
 
 Validated staging row counts:
 
@@ -163,6 +167,57 @@ python3 scripts/smoke_staging_fastapi.py --include-protected-audit-smoke
 
 With that flag, the script also exercises `/api/homes/all`, `/api/designs`, and `/api/scenarios`; it requires exactly three `audit_events` inserts and verifies core migrated table counts remain unchanged.
 
+## Railway Staging FastAPI Deploy And Public Smoke
+
+Railway staging FastAPI deploy passed for service `rep-api-staging`.
+
+- Public staging URL: `https://rep-api-staging-staging.up.railway.app`
+- Runtime database backend reported by `/`: `postgresql`
+- Startup create-all disabled: yes
+- Startup seed disabled: yes
+- Migrations run during deploy/smoke: no
+- Seed run during deploy/smoke: no
+- Secrets printed: no
+- Production touched: no
+- Push performed: no
+
+Deployed public HTTP smoke:
+
+```text
+/                         200, backend postgresql
+/api/accounts             200, count 1
+/api/product-library      200, count 8
+/api/homes/all            200, count 1
+/api/designs              200, count 2
+/api/scenarios            200, count 2
+```
+
+Protected GET smoke produced only expected audit writes:
+
+```text
+audit_events_before=6
+audit_events_after=9
+audit_events_delta=3
+```
+
+Post-smoke readiness gate: PASS.
+
+```text
+alembic_version=20260523_0001
+accounts=1
+homes=1
+source_documents=5
+data_provenance=7
+rule_provenance=25
+equipment_products=8
+energy_system_designs=2
+scenarios=2
+data_provenance_orphan_count=0
+rule_provenance_orphan_count=0
+```
+
+Core migrated counts remained unchanged. FK and provenance checks passed.
+
 ## Next Step
 
-Next required approval: Railway staging FastAPI service deploy and runtime env-var wiring. Do not deploy the FastAPI service or set Railway runtime variables until Matt explicitly approves that next boundary.
+Next required approval: staging-to-production planning only. Do not create production Railway resources, run production migrations, deploy production services, set production env vars, or push until Matt explicitly approves that next boundary.
