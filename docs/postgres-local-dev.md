@@ -176,6 +176,80 @@ The disposable database remains in the preserved Docker volume unless later clea
 
 PG-6B does not approve a runtime `DATABASE_URL` switch, `.env` Postgres default, FastAPI dev/prod server startup against Postgres, persistence wiring, sandbox draft persistence, SQLite-to-Postgres migration, downgrade, stamp, production database use, migration file creation, or broader endpoint compatibility.
 
+## PG-8E Local SQLite-to-Postgres Rehearsal Status
+
+PG-8E local rehearsal passed against the owned Docker Postgres service only. The disposable local rehearsal database was:
+
+```text
+rep_pg8e_rehearsal
+```
+
+The rehearsal used the existing SQLite backup:
+
+```text
+apps/api/data/backups/residential_energy_planner.pg8e.20260623T070201Z.sqlite3
+sha256 b9cf2b94c3a13b4a66352688a8a19338ef2a6aba86b184d9d218a1e4a4056c9d
+```
+
+`alembic upgrade head` ran only against `rep_pg8e_rehearsal` and the target revision was verified as `20260523_0001`.
+
+The committed SQLite-to-Postgres migration helper then passed dry-run and execute mode against `rep_pg8e_rehearsal`:
+
+- dry-run: PASS
+- execute: PASS
+- `count_mismatches`: `{}`
+- source SQLite foreign-key issue count: `0`
+- target provenance/source-document orphan checks: PASS
+- `data_provenance` source-document orphans: `0`
+- `rule_provenance` source-document orphans: `0`
+
+Post-migration row-count validation:
+
+```text
+accounts=1
+source_documents=5
+design_goal_presets=2
+load_templates=6
+homes=1
+audit_events=0 before smoke, 3 after smoke
+consent_records=0
+buildings=2
+electrical_panels=1
+loads=3
+facts=0
+roof_planes=0
+geometry_obstructions=0
+equipment_locations=3
+equipment_products=8
+energy_system_designs=2
+design_equipment=5
+compatibility_issues=2
+scenarios=2
+scenario_revisions=2
+takeoff_requests=1
+takeoff_line_items=2
+estimated_pathways=2
+data_provenance=7
+rule_provenance=25
+```
+
+FastAPI TestClient smoke ran against `rep_pg8e_rehearsal` with `DATABASE_CREATE_ALL_ON_STARTUP=false` and `DATABASE_SEED_DEMO_DATA_ON_STARTUP=false`:
+
+```text
+/                       200
+/api/accounts           200
+/api/homes/all          200
+/api/designs            200
+/api/scenarios          200
+/api/product-library    200
+```
+
+Sample migrated IDs included `account_demo`, `home_001`, `design_001`, `design_002`, `scenario_001`, `scenario_002`, `product_ecoflow_system`, `product_eg4_hybrid`, `product_enphase_micro`, `source_doc_demo_seed_catalog`, `source_doc_internal_rulebook`, and `source_doc_pathway_walkthrough_note`.
+
+The rehearsal did not touch Railway, Supabase, production SQLite, production Postgres, vault/secrets, frontend Supabase SDKs, or remote git. No repo code changed during the rehearsal. The repo was clean afterward on `fix/github-workflow`, ahead of origin by 28.
+
+`rep_pg8e_rehearsal` remains in the local Docker Postgres volume for inspection. Do not clean it up unless Matt explicitly approves disposable rehearsal DB cleanup.
+
 ## Cleanup
 
 Stop the local service without deleting data:
