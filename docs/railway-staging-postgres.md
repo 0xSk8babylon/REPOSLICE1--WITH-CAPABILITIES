@@ -5,14 +5,19 @@ Related secrets boundary: `docs/secrets-management.md`.
 ## Current Railway State
 
 - Repo Railway config: none found.
-- Railway CLI: not installed on PATH.
-- Visible Railway environment variables: no `RAILWAY_*` variable names visible in the local shell.
-- Repo status at preflight: clean on `fix/github-workflow`, ahead of origin by 29.
+- Railway CLI: installed and authenticated for inspection.
+- Workspace: `0xsk8babylon's Projects`.
+- Project: `rep-postgres-staging`.
+- Environment: `staging`.
+- Existing Railway Postgres service: `Postgres`.
+- Logical DB / app target label: `rep_pg8e_staging`.
+- Repo status during staging migration/smoke closeout: clean on `fix/github-workflow`, ahead of origin by 32.
 
-## Proposed Staging Resource
+## Staging Resource
 
 - Railway environment: `staging`
-- Railway Postgres service: `rep-postgres-staging`
+- Railway project: `rep-postgres-staging`
+- Railway Postgres service: `Postgres`
 - Logical DB / app target label: `rep_pg8e_staging`
 
 This is a staging-only managed Postgres target. It is not a production database and should not be treated as a production cutover.
@@ -33,28 +38,90 @@ Do not print or commit resolved connection strings. Do not copy Railway secrets 
 
 ## Approval Gate
 
-Owner approval is required before provisioning any Railway resource because provisioning happens outside the repo and may create managed infrastructure or cost.
+Owner approval is required before any new Railway resource, FastAPI deploy, Railway env-var wiring, production operation, or future migration step because those actions happen outside the repo and may create managed infrastructure, cost, runtime exposure, or data changes.
 
-Before provisioning, confirm:
+Before further Railway action, confirm:
 
 - target environment is `staging`
-- target service name is `rep-postgres-staging`
-- target is PostgreSQL only
+- target project is `rep-postgres-staging`
+- target Postgres service is the existing `Postgres` service
 - no production environment, service, or database is selected
-- no app deploy, migration, or data copy is being bundled into the provisioning step
+- no app deploy, migration, env-var change, or data copy is being bundled into an unrelated step
 
 ## Guardrails
 
 - Staging only.
 - Do not create production Railway resources.
-- Do not deploy FastAPI.
-- Do not run PG-8E migration against Railway yet.
+- Do not deploy FastAPI without separate owner approval.
+- Do not set Railway FastAPI env vars without separate owner approval.
+- Do not run additional migrations without separate owner approval.
 - Do not touch production SQLite.
 - Do not touch production Postgres.
 - Do not edit secrets or vault material.
 - Do not introduce frontend Supabase SDKs.
 - Do not push without explicit approval.
 
+## PG-8E Staging Migration Status
+
+Railway staging Postgres migration passed.
+
+- Alembic upgrade head: PASS
+- Alembic revision: `20260523_0001`
+- Public schema table count after Alembic: `26`
+- PG-8E dry-run: PASS
+- PG-8E execute: PASS
+- FK validation: PASS
+- Provenance validation: PASS
+- Unexpected writes: no
+- Production touched: no
+- Secrets printed: no
+- FastAPI Railway deploy started: no
+- Railway FastAPI env vars set: no
+
+Validated staging row counts:
+
+```text
+accounts=1
+homes=1
+source_documents=5
+data_provenance=7
+rule_provenance=25
+equipment_products=8
+energy_system_designs=2
+scenarios=2
+```
+
+Integrity validation:
+
+```text
+source_sqlite_fk_issue_count=0
+postgres_unvalidated_fk_constraint_count=0
+data_provenance_orphan_count=0
+rule_provenance_orphan_count=0
+```
+
+## Local FastAPI Smoke Status
+
+Local FastAPI TestClient smoke passed against the migrated Railway staging database with `DATABASE_CREATE_ALL_ON_STARTUP=false` and `DATABASE_SEED_DEMO_DATA_ON_STARTUP=false`.
+
+Unprotected GET smoke:
+
+```text
+/                    200
+/api/accounts        200, count 1
+/api/product-library 200, count 8
+```
+
+Protected GET smoke with expected audit-only writes:
+
+```text
+/api/homes/all 200, count 1
+/api/designs   200, count 2
+/api/scenarios 200, count 2
+```
+
+`audit_events` increased from `0` to `3` as expected for protected GET access. Core migrated table counts remained unchanged after protected smoke.
+
 ## Next Step
 
-After owner approval, install or authenticate Railway tooling only as needed, link or select the intended Railway project/environment, and create exactly one staging PostgreSQL service named `rep-postgres-staging`. Stop after provisioning/preflight unless Matt explicitly approves the next step.
+Next required approval: Railway staging FastAPI service deploy and runtime env-var wiring. Do not deploy the FastAPI service or set Railway runtime variables until Matt explicitly approves that next boundary.
