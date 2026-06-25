@@ -18,6 +18,7 @@ Read these first:
 
 - Secrets-management boundary: `docs/secrets-management.md`
 - OAuth/auth foundation plan: `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`
+- Ownership/permissions plan: `docs/security/OWNERSHIP_PERMISSIONS_PLAN.md`
 - Safe placeholder environment template: `.env.example`
 - Railway staging Postgres preflight: `docs/railway-staging-postgres.md`
 - Railway production Postgres plan: `docs/railway-production-postgres.md`
@@ -31,6 +32,10 @@ Read these first:
   - Runtime files: `apps/api/app/auth/__init__.py`, `apps/api/app/auth/router.py`, `apps/api/app/auth/schemas.py`, `apps/api/app/security/principal.py`, `apps/api/app/security/auth.py`, `apps/api/app/core/models.py`, `apps/api/app/core/config.py`, `apps/api/app/main.py`, `apps/api/migrations/versions/20260625_0002_auth_foundation.py`, `apps/api/tests/test_auth_foundation.py`, `apps/api/tests/test_auth_audit.py`, and `apps/api/tests/test_alembic_foundation.py`.
   - Current boundary: provider-neutral OIDC/JWT bearer request boundary with app-owned `users`, `oauth_identities`, and `account_memberships`. OAuth provider identity is identity proof only; app-owned tables control users, account membership, account/home authorization, audit actor identity, permissions, and provenance. `x-user-id` / `x-home-access` remain local/test-only scaffold headers behind explicit dev/test config. Fake verified bearer claims are local/test-only and do not add a real provider integration. No provider SDK, app session table, home access grant table, production DB change, Railway runtime wiring, deploy, production smoke, or push is approved.
   - Deferred: `home_access_grants`, `home_ownerships`, ownership transfer, RBAC/ABAC beyond minimal account membership, app-owned sessions, provider SDK wiring, production runtime wiring, and production smoke.
+- Ownership / Permissions Plan - approved docs-only on 2026-06-25.
+  - Canonical plan: `docs/security/OWNERSHIP_PERMISSIONS_PLAN.md`
+  - Current boundary: use active `account_memberships` as the first ownership and authorization boundary. Roles come only from app-owned tables. `member` is write-capable; `viewer` is read-only and may read derived advisory views; privacy export/delete is owner-only; `homes.account_id = null` is hidden/denied by default. Global/reference reads for product library, source documents, rule provenance, load templates, and design goal presets may remain readable to authenticated users for the first slice.
+  - Deferred: `home_access_grants`, `home_ownerships`, ownership transfer, contractor/utility/program sharing, app sessions, production auth/runtime wiring, `data_provenance` entity-aware filtering unless needed earlier, and any implementation until explicitly approved.
 - Planner Sandbox Contract v0 - implemented in the current working tree.
   - Runtime endpoints: `GET /api/planner-sandbox/templates`, `GET /api/planner-sandbox/templates/{template_id}`, and `POST /api/planner-sandbox/drafts/validate`.
   - Runtime files: `apps/api/app/planner_sandbox/__init__.py`, `apps/api/app/planner_sandbox/schemas.py`, `apps/api/app/planner_sandbox/router.py`, `apps/api/app/services/planner_sandbox.py`, `apps/api/app/main.py`, and `apps/api/tests/test_planner_sandbox.py`.

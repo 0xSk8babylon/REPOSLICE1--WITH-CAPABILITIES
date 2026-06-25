@@ -10,6 +10,7 @@
 ## Authority And View Boundary Policy
 
 - OAuth/auth foundation is documented in `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`. Slice 1 adds provider-neutral OIDC/JWT identity-proof boundary structures mapped into app-owned `users`, `oauth_identities`, and `account_memberships` before any account/home authorization or audit actor decision. No provider SDK, provider secret, session table, production wiring, deploy, or production smoke is approved by that plan.
+- Ownership/permissions planning is documented in `docs/security/OWNERSHIP_PERMISSIONS_PLAN.md`. The approved first boundary is active app-owned `account_memberships`; roles come only from app-owned tables, `homes.account_id = null` is hidden/denied by default, and `home_access_grants` / `home_ownerships` remain deferred.
 - A2 adds local header-based authentication, home-level authorization, and audit logging for home-data API paths.
 - Current API responses remain product data contracts; A2 enforcement is a runtime access boundary, not a scoped view-model guarantee.
 - Existing account, role, and subscription fields are scaffolding only; they do not imply RBAC, tenant isolation, contractor authorization, utility submission, or operational-control permission.
@@ -29,6 +30,7 @@
 - A fake bearer token adapter exists only for tests/local development when explicitly enabled. It maps verified-looking test claims to app-owned identity and membership records; it is not a real provider integration.
 - The React API client sends local development `x-user-id` and `x-home-access` headers from `VITE_API_USER_ID` and `VITE_API_HOME_ACCESS`, defaulting to `demo_user` and `home_001`.
 - Future collection/list routes must filter by app-owned account/home access before production runtime use; provider tokens and provider-side metadata must not be treated as planner authorization.
+- Planned first-slice route filtering uses `account_memberships -> homes.account_id` for home/account data. `member` is write-capable, `viewer` is read-only and may read derived advisory views, and privacy export/delete is owner-only. Product library, source documents, rule provenance, load templates, and design goal presets may remain readable to authenticated users for now.
 - Provenance and recommendation inspectability surfaces may now include additive `authority_layer`, `data_classification`, `derivation_type`, and `limitations` fields.
 - Account responses may now include additive `permission_readiness` metadata explaining that role, plan, and subscription fields remain scaffolding only.
 
