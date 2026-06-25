@@ -4,7 +4,9 @@
 
 Docs-only planning approved by Matt on 2026-06-25.
 
-Implementation is not approved by this document. This plan does not add code, migrations, provider SDKs, secrets, production DB changes, Railway runtime wiring, deploys, smoke tests, or pushes.
+Implementation slice 1 was separately approved by Matt on 2026-06-25 for account-membership route filtering on the highest-risk collection/object routes.
+
+Implemented slice 1 adds a provider-neutral permissions helper, account-role metadata on the internal principal, membership-filtered home/design/scenario collection routes, object authorization for design equipment and scenario revisions, and focused ownership tests. It does not add migrations, new tables, provider SDKs, secrets, production DB changes, Railway runtime wiring, deploys, smoke tests, pushes, `home_access_grants`, or `home_ownerships`.
 
 ## Approved Direction
 
@@ -99,6 +101,14 @@ Unknown roles should deny by default.
 Inactive memberships should deny by default.
 
 ## Route Filtering Plan
+
+Implementation slice 1 status:
+
+- implemented: `GET /api/homes`, `GET /api/homes/all`, `POST /api/homes`, `PATCH /api/homes/{home_id}`
+- implemented: `GET /api/designs`, `POST /api/designs`, `PATCH /api/designs/{design_id}`
+- implemented: `GET/POST/PATCH/DELETE /api/designs/{design_id}/equipment...`
+- implemented: `GET /api/scenarios`, `GET /api/scenarios/compare`, `GET /api/scenarios/{scenario_id}/revisions`, `POST /api/scenarios`, `PATCH /api/scenarios/{scenario_id}`
+- still planned: broader collection filtering for buildings, panels, loads, equipment locations, estimated pathways, compatibility issue lists, takeoffs, and remaining home-path derived surfaces
 
 ### First Priority Collection Routes
 

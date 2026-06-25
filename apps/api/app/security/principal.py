@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -10,6 +10,7 @@ from app.core import models
 
 
 FAKE_OIDC_PREFIX = "fake-oidc:"
+READ_MEMBERSHIP_ROLES = {"owner", "admin", "member", "viewer"}
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,7 @@ class AuthPrincipal:
     issuer: Optional[str] = None
     subject: Optional[str] = None
     account_ids: Set[str] = field(default_factory=set)
+    account_roles: Dict[str, str] = field(default_factory=dict)
     limitations: List[str] = field(default_factory=list)
 
 
@@ -84,7 +86,11 @@ def principal_from_verified_claims(
             models.AccountMembership.status == "active",
         )
     ).all()
-    account_ids = {membership.account_id for membership in memberships}
+    readable_memberships = [
+        membership for membership in memberships if membership.role in READ_MEMBERSHIP_ROLES
+    ]
+    account_ids = {membership.account_id for membership in readable_memberships}
+    account_roles = {membership.account_id: membership.role for membership in memberships}
     allowed_home_ids = _home_ids_for_accounts(db, account_ids)
 
     return AuthPrincipal(
@@ -94,6 +100,7 @@ def principal_from_verified_claims(
         issuer=identity.issuer,
         subject=identity.subject,
         account_ids=account_ids,
+        account_roles=account_roles,
         allowed_home_ids=allowed_home_ids,
         auth_source=auth_source,
         limitations=[

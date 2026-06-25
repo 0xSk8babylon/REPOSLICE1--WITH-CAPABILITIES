@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Set
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -33,20 +33,28 @@ class DatabaseRepository:
         db.refresh(account)
         return account
 
-    def list_homes(self, db: Session):
+    def list_homes(self, db: Session, account_ids: Optional[Set[str]] = None):
+        if account_ids is not None and not account_ids:
+            return []
         statement = (
             select(models.Home)
             .options(selectinload(models.Home.buildings), selectinload(models.Home.panels))
             .order_by(models.Home.created_at)
         )
+        if account_ids is not None:
+            statement = statement.where(models.Home.account_id.in_(account_ids))
         return db.scalars(statement).all()
 
-    def get_home(self, db: Session):
+    def get_home(self, db: Session, account_ids: Optional[Set[str]] = None):
+        if account_ids is not None and not account_ids:
+            return None
         statement = (
             select(models.Home)
             .options(selectinload(models.Home.buildings), selectinload(models.Home.panels))
             .order_by(models.Home.created_at)
         )
+        if account_ids is not None:
+            statement = statement.where(models.Home.account_id.in_(account_ids))
         return db.scalars(statement).first()
 
     def get_home_by_id(self, db: Session, home_id: str):
@@ -207,7 +215,9 @@ class DatabaseRepository:
         db.delete(load)
         db.commit()
 
-    def list_designs(self, db: Session):
+    def list_designs(self, db: Session, home_ids: Optional[Set[str]] = None):
+        if home_ids is not None and not home_ids:
+            return []
         statement = (
             select(models.EnergySystemDesign)
             .options(
@@ -216,6 +226,8 @@ class DatabaseRepository:
             )
             .order_by(models.EnergySystemDesign.created_at)
         )
+        if home_ids is not None:
+            statement = statement.where(models.EnergySystemDesign.home_id.in_(home_ids))
         return db.scalars(statement).all()
 
     def get_design(self, db: Session, design_id: str):
@@ -358,12 +370,16 @@ class DatabaseRepository:
             statement = statement.where(models.CompatibilityIssue.design_id == design_id)
         return db.scalars(statement).all()
 
-    def list_scenario_models(self, db: Session):
+    def list_scenario_models(self, db: Session, home_ids: Optional[Set[str]] = None):
+        if home_ids is not None and not home_ids:
+            return []
         statement = (
             select(models.Scenario)
             .options(selectinload(models.Scenario.revisions))
             .order_by(models.Scenario.created_at)
         )
+        if home_ids is not None:
+            statement = statement.where(models.Scenario.home_id.in_(home_ids))
         return db.scalars(statement).all()
 
     def get_scenario_model(self, db: Session, scenario_id: str):

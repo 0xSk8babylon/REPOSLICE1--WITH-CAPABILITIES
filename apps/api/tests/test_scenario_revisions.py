@@ -6,8 +6,15 @@ from app.core.database import engine  # noqa: E402
 from app.core.repository import repository  # noqa: E402
 from app.scenarios.schemas import ScenarioCreate, ScenarioUpdate  # noqa: E402
 from app.scenarios.router import create_scenario, list_scenarios, update_scenario  # noqa: E402
+from app.security.principal import AuthPrincipal  # noqa: E402
 from app.services.design_advisor import design_advisor_service  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
+
+TEST_PRINCIPAL = AuthPrincipal(
+    user_id="scenario_revision_test_user",
+    allowed_home_ids={"*"},
+    auth_source="local_test_headers",
+)
 
 
 class ScenarioRevisionFoundationTests(unittest.TestCase):
@@ -16,7 +23,7 @@ class ScenarioRevisionFoundationTests(unittest.TestCase):
 
     def test_seeded_scenarios_receive_baseline_revisions(self):
         with Session(engine) as db:
-            scenarios = list_scenarios(db)
+            scenarios = list_scenarios(db, TEST_PRINCIPAL)
 
         scenario_map = {scenario["id"]: scenario for scenario in scenarios}
         self.assertEqual(2, len(scenarios))
@@ -47,7 +54,7 @@ class ScenarioRevisionFoundationTests(unittest.TestCase):
         )
 
         with Session(engine) as db:
-            scenario = create_scenario(payload, db)
+            scenario = create_scenario(payload, db, TEST_PRINCIPAL)
             self.assertEqual(1, scenario["revision_overview"]["revision_count"])
             self.assertEqual("Revision 1", scenario["revision_overview"]["latest_revision_label"])
 
@@ -55,6 +62,7 @@ class ScenarioRevisionFoundationTests(unittest.TestCase):
                 "scenario_003",
                 ScenarioUpdate(notes="Second saved revision", linked_design_id="design_002"),
                 db,
+                TEST_PRINCIPAL,
             )
 
         self.assertEqual(2, updated["revision_overview"]["revision_count"])
@@ -72,7 +80,7 @@ class ScenarioRevisionFoundationTests(unittest.TestCase):
         with Session(engine) as db:
             scenario = repository.get_scenario_model(db, "scenario_001")
             linked_design_id = scenario.linked_design_id
-            update_scenario("scenario_001", ScenarioUpdate(notes="Revised for history"), db)
+            update_scenario("scenario_001", ScenarioUpdate(notes="Revised for history"), db, TEST_PRINCIPAL)
             advisor = design_advisor_service.explain(db, linked_design_id)
 
         linked_scenarios = advisor["planning_state"].linked_scenarios
