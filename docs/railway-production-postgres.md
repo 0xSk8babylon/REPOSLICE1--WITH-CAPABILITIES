@@ -331,11 +331,12 @@ Rollback posture:
 - Production DB vars exist: yes, values redacted.
 - Production 1Password DB URL shape correction: owner non-secret verification confirmed both `DATABASE_URL` and `DATABASE_PUBLIC_URL` are correctly shaped, non-placeholder Postgres URLs with username, password, host, port, and database path present.
 - Production DB URL consistency: internal and public URLs share scheme family, username, password, and database; hosts differ as expected, with `DATABASE_URL` internal-like and `DATABASE_PUBLIC_URL` not internal-like.
-- Production Alembic Gate 2 status: verification pending after owner-run Alembic command completed without traceback on 2026-06-25.
+- Production Alembic Gate 2 status: PASS on 2026-06-25.
 - 1Password `op run` delivery path with disposable Docker API dependency install and in-memory `postgresql+psycopg://` URL rewrite: reached Alembic invocation without printing secrets.
 - Production Alembic upgrade command result: returned to shell with no traceback.
-- Production Alembic version verified: no, verification output not yet provided.
-- Production schema/tables verified: no, verification output not yet provided.
+- Production DB connection verification: PASS.
+- Production Alembic version verified: `20260523_0001`.
+- Production schema/tables verified: PASS; public schema table count `26`, minimum expected core table count `10`, missing core tables `[]`, and core tables present.
 - PG-8E production data migration run: no.
 - Production FastAPI deployed: no.
 - Production FastAPI env vars set: no.
@@ -346,4 +347,4 @@ Rollback posture:
 
 ## Next Required Approval
 
-Next immediate prerequisite is a non-secret verification-only check confirming `alembic_version=20260523_0001` and expected public tables. Production PG-8E data cutover remains a separate later approval after Gate 2 passes; production FastAPI deploy/env-var wiring and public production smoke are also not approved.
+Next required approval is Production PG-8E data cutover planning/execution. Production FastAPI deploy/env-var wiring and public production smoke are also not approved.
