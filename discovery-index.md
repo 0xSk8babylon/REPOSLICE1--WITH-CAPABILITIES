@@ -20,6 +20,7 @@ Read these first:
 - OAuth/auth foundation plan: `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`
 - Ownership/permissions plan: `docs/security/OWNERSHIP_PERMISSIONS_PLAN.md`
 - Audit/trust layer plan: `docs/security/AUDIT_TRUST_LAYER_PLAN.md`
+- Address onboarding plan: `docs/security/ADDRESS_ONBOARDING_PLAN.md`
 - Safe placeholder environment template: `.env.example`
 - Railway staging Postgres preflight: `docs/railway-staging-postgres.md`
 - Railway production Postgres plan: `docs/railway-production-postgres.md`
@@ -44,6 +45,10 @@ Read these first:
   - Current boundary: audit authority remains app-owned and provider-neutral. Slice 1 adds nullable audit actor/scope/context/provenance fields while preserving legacy `audit_events` columns, routes middleware/privacy audit writes through a central writer, marks local/test scaffold audit events, preserves audit records through privacy delete with minimized context, and filters `/api/provenance` by accessible direct home-scoped and design/scenario-scoped entities while allowing intentional global/reference entity types and omitting unknown entity types by default. No production DB change, deploy, smoke, Railway wiring, provider SDK, or push has been approved.
   - Verification: Docker `python:3.11-slim` focused runtime tests passed with 36 tests OK; disposable SQLite `alembic upgrade head` reached `20260625_0003 (head)` and confirmed all new audit columns present; compileall, `git diff --check`, and secret-pattern review passed.
   - Deferred: audit query APIs, retention automation, consent actor hardening, broader route-level denial auditing, batching/performance work for broad provenance lists, contractor/utility grant references, production runtime wiring, and production smoke.
+- Address Onboarding plan - docs-only planning approved on 2026-06-25.
+  - Canonical plan: `docs/security/ADDRESS_ONBOARDING_PLAN.md`
+  - Current boundary: planned backend-first onboarding route `POST /api/onboarding/address` should derive or verify writable account scope from app-owned `account_memberships`, create only non-null-account homes, return account-scoped exact minimal normalized address matches, deny viewers/no-writable-account principals, write minimized audit context, and create user-entered address provenance rows if feasible. Demo `account_demo` / `home_001` behavior must be preserved.
+  - Deferred: implementation, frontend onboarding, migrations, external geocoding, postal validation APIs, property/parcel enrichment, utility territory inference, climate/AHJ/program inference, external secrets, provider SDKs, production DB changes, deploy, smoke, Railway wiring, and push.
 - Planner Sandbox Contract v0 - implemented in the current working tree.
   - Runtime endpoints: `GET /api/planner-sandbox/templates`, `GET /api/planner-sandbox/templates/{template_id}`, and `POST /api/planner-sandbox/drafts/validate`.
   - Runtime files: `apps/api/app/planner_sandbox/__init__.py`, `apps/api/app/planner_sandbox/schemas.py`, `apps/api/app/planner_sandbox/router.py`, `apps/api/app/services/planner_sandbox.py`, `apps/api/app/main.py`, and `apps/api/tests/test_planner_sandbox.py`.
