@@ -496,8 +496,11 @@ Corrected production database checks:
 Credential exposure:
 
 - Live production DB credentials were exposed during troubleshooting outside this runbook.
-- Rotate the production DB credentials before any production FastAPI runtime deploy, Railway runtime env-var wiring, or public production smoke.
-- After rotation, update the production 1Password item from the correct Railway production Postgres card/service and repeat the same non-secret identity-shape verification before deploy/smoke.
+- Production DB credential rotation: PASS.
+- Matt rotated the Railway production Postgres credentials after the exposure and updated the production 1Password DB fields.
+- Rotated production 1Password fields are internally consistent: `DATABASE_URL`, `DATABASE_PUBLIC_URL`, and `PGHOST`/`PGPORT`/`PGUSER`/`PGPASSWORD`/`PGDATABASE` all describe the same production database identity through the expected internal and public Railway endpoints.
+- Rotated `scripts/templates/production-op.env.tpl` delivery path works; `scripts/check_production_op_secrets.sh` passed without printing secret values.
+- Template-based post-rotation production DB verification passed: connection PASS, `alembic_version=20260523_0001`, `count_mismatches={}`, public FK constraints validated, and provenance orphan counts are zero.
 - Do not paste, print, commit, or store the old or rotated values in docs, chat, scripts, tests, local env files, or shell history.
 
 ## Gate 3 Corrected PG-8E Execute Result
@@ -572,7 +575,8 @@ takeoff_requests=1
 - Production DB vars exist: yes, values redacted.
 - Production DB identity correction: PASS by owner non-secret exact-match checks against the correct Railway production Postgres card/service.
 - Prior wrong-card ambiguity: RESOLVED for production 1Password identity; corrected Gate 2 and PG-8E execute have now been re-verified against the corrected identity.
-- Production credential rotation: REQUIRED before production FastAPI deploy/runtime env-var wiring/public smoke because live DB credentials were exposed during troubleshooting.
+- Production credential rotation: PASS after credential exposure; rotated production 1Password DB fields are internally consistent.
+- Rotated 1Password/template path: PASS; `scripts/check_production_op_secrets.sh` passed and template-based post-rotation DB verification reached production without printing secrets.
 - Production Alembic Gate 2 status against corrected DB identity: PASS.
 - 1Password `op run` delivery path with disposable Docker API dependency install and in-memory `postgresql+psycopg://` URL rewrite: reached Alembic invocation without printing secrets.
 - Production Alembic upgrade command result against corrected DB identity: PASS.
@@ -580,6 +584,7 @@ takeoff_requests=1
 - Production Alembic version against corrected DB identity: `20260523_0001`.
 - Production schema/tables against corrected DB identity: PASS.
 - PG-8E production execute against corrected DB identity: PASS.
+- Post-rotation production schema/data integrity verification: PASS with `alembic_version=20260523_0001`, `count_mismatches={}`, public FK constraints validated, and provenance orphan counts zero.
 - PG-8E production `count_mismatches`: `{}`.
 - PG-8E production provenance orphan checks: PASS.
 - PG-8E production public FK validation: PASS.
@@ -592,4 +597,4 @@ takeoff_requests=1
 
 ## Next Required Approval
 
-Next gate is Production FastAPI deploy/runtime env-var wiring, which requires separate owner approval. Production credential rotation is required before production FastAPI deploy/runtime env-var wiring/public smoke because live credentials were exposed during troubleshooting.
+Next gate is either OAuth/auth foundation or Production FastAPI runtime env-var wiring, each only by separate owner approval. Public production smoke also remains separate approval after runtime wiring.

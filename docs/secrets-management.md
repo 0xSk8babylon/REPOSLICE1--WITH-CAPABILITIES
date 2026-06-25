@@ -224,14 +224,16 @@ Notes:
 - Prefer replacing credentials over trying to prove a leaked credential was unused.
 - Update this runbook when a new provider, deploy target, or auth/session mechanism is approved.
 
-Production DB credential rotation requirement:
+Production DB credential rotation record:
 
 - Live production DB credentials were exposed during production DB identity troubleshooting.
-- Rotate production DB credentials before any production FastAPI runtime deploy, Railway runtime env-var wiring, or public production smoke.
-- After rotation, update the production 1Password item from the correct Railway production Postgres card/service.
-- Repeat non-secret exact-match identity verification for internal URL, public/proxy URL, and PG* fields after rotation.
-- Re-run corrected Production Gate 2 verification and PG-8E precheck against the rotated identity before any production runtime use.
+- Production DB credential rotation: PASS.
+- Matt rotated the Railway production Postgres credentials and updated the production 1Password DB fields from the correct Railway production Postgres card/service.
+- Post-rotation non-secret verification passed: `DATABASE_URL` is a valid internal Railway URL, `DATABASE_PUBLIC_URL` is a valid public Railway proxy URL, internal/public URLs share username/password/database, and `PGHOST`/`PGPORT`/`PGUSER`/`PGPASSWORD`/`PGDATABASE` match the internal URL.
+- Rotated template delivery path works: `scripts/check_production_op_secrets.sh` passed, and `scripts/templates/production-op.env.tpl` resolved the rotated production DB connection for verification without printing secret values.
+- Template-based post-rotation DB verification passed with `production_db_connection=PASS`, `alembic_version=20260523_0001`, `count_mismatches={}`, validated public FK constraints, and zero data/rule provenance orphans.
 - Do not paste, print, commit, or store old or rotated credential values in docs, chat, scripts, tests, local env files, or shell history.
+- Production FastAPI deploy, Railway runtime env-var wiring, and public production smoke still require separate owner approval.
 
 ## Related Files
 
