@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { DashboardPage } from "../pages/DashboardPage";
+import { AddressOnboardingPage } from "../pages/AddressOnboardingPage";
 import { AIContextPage } from "../pages/AIContextPage";
 import { ArchitecturePage } from "../pages/ArchitecturePage";
 import { DesignAdvisorPage } from "../pages/DesignAdvisorPage";
@@ -25,6 +26,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomeShellPage />} />
         <Route path="/home" element={<HomeShellPage />} />
+        <Route path="/onboarding/address" element={<AddressOnboardingPage />} />
         <Route path="/explore" element={<ExploreShellPage />} />
         <Route path="/planner" element={<PlannerShellPage />} />
         <Route path="/builder" element={<BuilderShellPage />} />

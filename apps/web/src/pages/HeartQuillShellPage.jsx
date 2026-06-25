@@ -62,6 +62,10 @@ function getHomeRecord(home) {
   };
 }
 
+function isNoHomeError(error) {
+  return error?.message?.startsWith("404");
+}
+
 function getFactSummary(facts = []) {
   return {
     total: facts.length,
@@ -281,9 +285,55 @@ export function HeartQuillAppShell({ children }) {
   );
 }
 
+function HomeOnboardingEmptyState() {
+  return (
+    <div className="hq-page hq-home-page">
+      <section className="hq-hero hq-onboarding-empty">
+        <div className="hq-hero-copy">
+          <p className="hq-eyebrow">Home</p>
+          <h1>Start with the home address.</h1>
+          <p>
+            No account-scoped home record is available yet. Record a user-entered address to create or resolve the
+            Energy Twin foundation without geocoding, property enrichment, or utility inference.
+          </p>
+          <div className="hq-actions">
+            <Link className="hq-btn hq-btn-primary" to="/onboarding/address">
+              Record address <Icon name="arrow" size={15} />
+            </Link>
+          </div>
+        </div>
+        <section className="hq-panel hq-record-panel">
+          <div className="hq-panel-head">
+            <div>
+              <p className="hq-eyebrow">Current status</p>
+              <h2>No home record</h2>
+            </div>
+            <Badge tone="warn">Needs address</Badge>
+          </div>
+          <dl className="hq-record-list">
+            <div>
+              <dt>Address</dt>
+              <dd>Not recorded</dd>
+            </div>
+            <div>
+              <dt>Source</dt>
+              <dd>User entry required</dd>
+            </div>
+            <div>
+              <dt>Validation</dt>
+              <dd>No external validation in this step</dd>
+            </div>
+          </dl>
+        </section>
+      </section>
+    </div>
+  );
+}
+
 export function HomeShellPage() {
   const [selected, setSelected] = useState(twinNodes.find((node) => node.hub));
   const homeQuery = useApiQuery("hq-home", api.getHome);
+  const homeLoadNoHome = isNoHomeError(homeQuery.error);
   const homeId = homeQuery.data?.id;
   const factsQuery = useApiQuery(`hq-facts:${homeId || "none"}`, () => api.getFacts(homeId), {
     enabled: Boolean(homeId),
@@ -298,6 +348,10 @@ export function HomeShellPage() {
   const knownCount = factsQuery.data?.length ? factSummary.known : twinNodes.filter((node) => node.status === "known").length;
   const needsCount = factsQuery.data?.length ? factSummary.needs : twinNodes.filter((node) => node.status === "needs").length;
   const missingCount = loadCalcQuery.data ? necSummary.missing : twinNodes.filter((node) => node.status === "missing").length;
+
+  if (!homeQuery.loading && homeLoadNoHome) {
+    return <HomeOnboardingEmptyState />;
+  }
 
   return (
     <div className="hq-page hq-home-page">
@@ -352,6 +406,12 @@ export function HomeShellPage() {
         <ApiStatus query={factsQuery} label="fact lifecycle" />
         <ApiStatus query={loadCalcQuery} label="NEC planning load calculation" />
       </section>
+      {homeQuery.error && !homeLoadNoHome ? (
+        <section className="hq-api-strip hq-api-strip-warn" aria-label="Home backend read issue">
+          <Badge tone="warn">Home read unavailable</Badge>
+          <span>Address onboarding is not shown for authentication or server errors.</span>
+        </section>
+      ) : null}
 
       <section className="hq-dashboard-grid">
         <article className="hq-panel hq-diagram-panel">

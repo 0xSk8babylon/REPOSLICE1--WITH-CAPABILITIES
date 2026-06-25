@@ -43,10 +43,13 @@ function apiPath(path) {
 
 export const api = {
   baseUrl: API_BASE_URL,
+  getMe: () => request(apiPath("/auth/me")),
   getHome: () => request(apiPath("/homes")),
   getAllHomes: () => request(apiPath("/homes/all")),
   createHome: (payload) => request(apiPath("/homes"), { method: "POST", body: payload }),
   updateHome: (homeId, payload) => request(apiPath(`/homes/${homeId}`), { method: "PATCH", body: payload }),
+  submitAddressOnboarding: (payload) =>
+    request(apiPath("/onboarding/address"), { method: "POST", body: payload }),
 
   getBuildings: () => request(apiPath("/buildings")),
   createBuilding: (payload) => request(apiPath("/buildings"), { method: "POST", body: payload }),

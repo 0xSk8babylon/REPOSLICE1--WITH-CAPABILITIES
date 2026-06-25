@@ -1,9 +1,17 @@
 import { FormField } from "./FormField";
 
-export function TextInput({ label, hint, value, onChange, placeholder = "" }) {
+export function TextInput({ label, hint, value, onChange, placeholder = "", required = false, autoComplete }) {
   return (
     <FormField label={label} hint={hint}>
-      <input className="form-input" type="text" value={value} placeholder={placeholder} onChange={onChange} />
+      <input
+        className="form-input"
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        required={required}
+        autoComplete={autoComplete}
+        onChange={onChange}
+      />
     </FormField>
   );
 }
@@ -51,4 +59,3 @@ export function TextAreaInput({ label, hint, value, onChange, rows = 4, placehol
     </FormField>
   );
 }
-
