@@ -329,8 +329,13 @@ Rollback posture:
 - Production Postgres instance status: `RUNNING`.
 - Production Postgres volume state: `READY`.
 - Production DB vars exist: yes, values redacted.
+- Production Alembic Gate 2 status: BLOCKED on 2026-06-25 before Alembic upgrade.
+- 1Password inherited access: verified non-interactively with `op whoami` and `scripts/check_production_op_secrets.sh`.
+- Gate 2 blocker: required field titles exist, but resolved production URL fields are placeholder-shaped/incomplete and `PGPASSWORD` is placeholder-like. Replace the placeholder/incomplete 1Password values from the Railway production dashboard before retrying Gate 2.
 - Owner credential capture required: manually capture production `DATABASE_URL`, `DATABASE_PUBLIC_URL`, and `PG*` values into 1Password through the Railway dashboard.
 - Production Alembic upgrade run: no.
+- Production Alembic version verified: no, blocked before database connection.
+- Production schema/tables verified: no, blocked before database connection.
 - PG-8E production data migration run: no.
 - Production FastAPI deployed: no.
 - Production FastAPI env vars set: no.
@@ -341,4 +346,4 @@ Rollback posture:
 
 ## Next Required Approval
 
-Next approval should be for Gate 2 planning/preflight only: production Alembic upgrade planning against the approved production Postgres target. Production Alembic upgrade execution, PG-8E production migration, production FastAPI deploy/env-var wiring, and public production smoke are not approved yet.
+Next immediate prerequisite is replacing placeholder/incomplete production values in 1Password, then rerunning Gate 2 only against the approved production Postgres target. Production PG-8E data cutover remains a separate later approval after Gate 2 passes; production FastAPI deploy/env-var wiring and public production smoke are also not approved.
