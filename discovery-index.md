@@ -17,6 +17,7 @@ Read these first:
 ## Deployment And Secrets Routing
 
 - Secrets-management boundary: `docs/secrets-management.md`
+- OAuth/auth foundation plan: `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`
 - Safe placeholder environment template: `.env.example`
 - Railway staging Postgres preflight: `docs/railway-staging-postgres.md`
 - Railway production Postgres plan: `docs/railway-production-postgres.md`
@@ -24,6 +25,10 @@ Read these first:
 
 ## Canonical Phase Structure
 
+- OAuth / Auth Foundation Plan - approved docs-only on 2026-06-25.
+  - Canonical plan: `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`
+  - Current boundary: provider-neutral OIDC/JWT planning only. OAuth provider identity is identity proof only; app-owned tables control users, account membership, account/home authorization, audit actor identity, permissions, and provenance. First approved implementation slice is planned as `users`, `oauth_identities`, `account_memberships`, provider-neutral principal interface planning, `/api/auth/me` planning, bearer JWT model, and local/test-only scaffold headers behind explicit dev config. No code, migration, provider SDK, app session table, home access grant table, production DB change, Railway runtime wiring, deploy, smoke, or push is approved by the plan.
+  - Deferred: `home_access_grants`, `home_ownerships`, ownership transfer, RBAC/ABAC beyond minimal account membership, app-owned sessions, provider SDK wiring, production runtime wiring, and production smoke.
 - Planner Sandbox Contract v0 - implemented in the current working tree.
   - Runtime endpoints: `GET /api/planner-sandbox/templates`, `GET /api/planner-sandbox/templates/{template_id}`, and `POST /api/planner-sandbox/drafts/validate`.
   - Runtime files: `apps/api/app/planner_sandbox/__init__.py`, `apps/api/app/planner_sandbox/schemas.py`, `apps/api/app/planner_sandbox/router.py`, `apps/api/app/services/planner_sandbox.py`, `apps/api/app/main.py`, and `apps/api/tests/test_planner_sandbox.py`.

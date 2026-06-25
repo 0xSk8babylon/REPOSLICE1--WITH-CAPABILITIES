@@ -9,6 +9,7 @@
 
 ## Authority And View Boundary Policy
 
+- OAuth/auth foundation planning is documented in `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`. The approved direction is provider-neutral OIDC/JWT identity proof mapped into app-owned `users`, `oauth_identities`, and `account_memberships` before any account/home authorization or audit actor decision. This is planning only; no provider SDK, migration, runtime auth change, session table, production wiring, deploy, or smoke is approved by that plan.
 - A2 adds local header-based authentication, home-level authorization, and audit logging for home-data API paths.
 - Current API responses remain product data contracts; A2 enforcement is a runtime access boundary, not a scoped view-model guarantee.
 - Existing account, role, and subscription fields are scaffolding only; they do not imply RBAC, tenant isolation, contractor authorization, utility submission, or operational-control permission.
@@ -23,7 +24,9 @@
 - Shared additive metadata models now exist for view-boundary and permission-readiness descriptions.
 - These metadata fields are descriptive only. They do not filter responses, enforce RBAC, enforce tenant isolation, authorize exports, or change account/session behavior.
 - A2 home-data middleware requires `x-user-id` and, where a home ID is present, `x-home-access` containing that home ID or `*`. This is provider-free local enforcement, not production auth provider integration.
+- The approved OAuth/auth direction keeps `x-user-id` and `x-home-access` as local/test scaffolding only behind explicit development configuration once implementation is approved. Production/staging auth should use bearer JWT validation, provider-neutral identity mapping, app-owned account membership checks, and app-owned audit actor identity.
 - The React API client sends local development `x-user-id` and `x-home-access` headers from `VITE_API_USER_ID` and `VITE_API_HOME_ACCESS`, defaulting to `demo_user` and `home_001`.
+- Future collection/list routes must filter by app-owned account/home access before production runtime use; provider tokens and provider-side metadata must not be treated as planner authorization.
 - Provenance and recommendation inspectability surfaces may now include additive `authority_layer`, `data_classification`, `derivation_type`, and `limitations` fields.
 - Account responses may now include additive `permission_readiness` metadata explaining that role, plan, and subscription fields remain scaffolding only.
 
