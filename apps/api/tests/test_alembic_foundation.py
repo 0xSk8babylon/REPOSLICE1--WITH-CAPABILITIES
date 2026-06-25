@@ -10,6 +10,7 @@ from app.core.database import engine_kwargs_for_url
 
 MIGRATIONS_DIR = pathlib.Path(__file__).resolve().parents[1] / "migrations"
 ENV_PATH = MIGRATIONS_DIR / "env.py"
+AUTH_REVISION_PATH = MIGRATIONS_DIR / "versions" / "20260625_0002_auth_foundation.py"
 
 
 class AlembicFoundationTests(unittest.TestCase):
@@ -64,6 +65,17 @@ class AlembicFoundationTests(unittest.TestCase):
         kwargs = engine_kwargs_for_url("postgresql+psycopg://planner:secret@localhost:5432/energy")
 
         self.assertEqual({"future": True}, kwargs)
+
+    def test_auth_foundation_revision_is_explicit_and_additive(self):
+        source = AUTH_REVISION_PATH.read_text()
+
+        self.assertIn('revision = "20260625_0002"', source)
+        self.assertIn('down_revision = "20260523_0001"', source)
+        self.assertIn('"users"', source)
+        self.assertIn('"oauth_identities"', source)
+        self.assertIn('"account_memberships"', source)
+        self.assertIn("op.create_table", source)
+        self.assertNotIn("Base.metadata.create_all", source)
 
 
 if __name__ == "__main__":

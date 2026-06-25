@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     database_url: str = ""
     database_create_all_on_startup: Optional[bool] = None
     database_seed_demo_data_on_startup: Optional[bool] = None
+    auth_allow_scaffold_headers: bool = False
+    auth_allow_fake_oidc_tokens: bool = False
 
     @property
     def sqlite_path(self) -> Path:
@@ -51,6 +53,18 @@ class Settings(BaseSettings):
         if self.database_seed_demo_data_on_startup is not None:
             return self.database_seed_demo_data_on_startup
         return self.is_sqlite_database
+
+    @property
+    def is_local_or_test(self) -> bool:
+        return self.app_env in {"local", "test"}
+
+    @property
+    def should_allow_scaffold_auth_headers(self) -> bool:
+        return self.is_local_or_test and self.auth_allow_scaffold_headers
+
+    @property
+    def should_allow_fake_oidc_tokens(self) -> bool:
+        return self.is_local_or_test and self.auth_allow_fake_oidc_tokens
 
 
 settings = Settings()

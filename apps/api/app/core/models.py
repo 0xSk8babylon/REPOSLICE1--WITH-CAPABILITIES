@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -30,6 +30,60 @@ class Account(Base, TimestampMixin):
     )
 
     homes: Mapped[List["Home"]] = relationship("Home", back_populates="account")
+    account_memberships: Mapped[List["AccountMembership"]] = relationship(
+        "AccountMembership", back_populates="account", cascade="all, delete-orphan"
+    )
+
+
+class User(Base, TimestampMixin):
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    primary_email: Mapped[str] = mapped_column(String, unique=True, index=True)
+    display_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    status: Mapped[str] = mapped_column(String, default="active", index=True)
+
+    oauth_identities: Mapped[List["OAuthIdentity"]] = relationship(
+        "OAuthIdentity", back_populates="user", cascade="all, delete-orphan"
+    )
+    account_memberships: Mapped[List["AccountMembership"]] = relationship(
+        "AccountMembership", back_populates="user", cascade="all, delete-orphan"
+    )
+
+
+class OAuthIdentity(Base, TimestampMixin):
+    __tablename__ = "oauth_identities"
+    __table_args__ = (
+        UniqueConstraint("issuer", "subject", name="uq_oauth_identities_issuer_subject"),
+    )
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    provider: Mapped[str] = mapped_column(String, index=True)
+    issuer: Mapped[str] = mapped_column(String, index=True)
+    subject: Mapped[str] = mapped_column(String, index=True)
+    email: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    claims_snapshot: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    last_seen_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    user: Mapped["User"] = relationship("User", back_populates="oauth_identities")
+
+
+class AccountMembership(Base, TimestampMixin):
+    __tablename__ = "account_memberships"
+    __table_args__ = (
+        UniqueConstraint("account_id", "user_id", name="uq_account_memberships_account_user"),
+    )
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    role: Mapped[str] = mapped_column(String, default="member", index=True)
+    status: Mapped[str] = mapped_column(String, default="active", index=True)
+
+    account: Mapped["Account"] = relationship("Account", back_populates="account_memberships")
+    user: Mapped["User"] = relationship("User", back_populates="account_memberships")
 
 
 class AuditEvent(Base, TimestampMixin):

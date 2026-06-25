@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRouter
 
 from app.accounts.router import router as accounts_router
+from app.auth.router import router as auth_router
 from app.ai_context.router import router as ai_context_router
 from app.buildings.router import router as buildings_router
 from app.compatibility_rules.router import router as compatibility_router
@@ -125,4 +126,5 @@ api_router.include_router(geometry_router)
 api_router.include_router(privacy_router)
 api_router.include_router(evidence_router)
 api_router.include_router(planner_sandbox_router)
+api_router.include_router(auth_router)
 app.include_router(api_router)

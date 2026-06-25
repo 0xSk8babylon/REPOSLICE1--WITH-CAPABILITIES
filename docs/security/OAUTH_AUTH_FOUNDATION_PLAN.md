@@ -4,7 +4,9 @@
 
 Docs-only planning approved by Matt on 2026-06-25.
 
-Implementation is not approved by this document. This plan does not add code, migrations, provider SDKs, secrets, production DB changes, Railway runtime wiring, deploys, smoke tests, or pushes.
+Implementation slice 1 was separately approved by Matt on 2026-06-25 for provider-neutral schema and backend boundary only.
+
+Implemented slice 1 adds app-owned auth foundation tables/models, a provider-neutral principal boundary, a test-only fake verified-claims adapter, explicit local/test-only scaffold-header config, and `GET /api/auth/me`. It does not add provider SDKs, provider secrets, app sessions, home ownership/grant tables, production DB changes, Railway runtime wiring, deploys, production smoke tests, or pushes.
 
 ## Approved Direction
 
@@ -38,14 +40,14 @@ Provider tokens must not become the source of planner ownership, home access, pe
 
 ## First Implementation Slice
 
-When Matt separately approves implementation, the first slice should include:
+Matt approved and slice 1 implemented:
 
 - `users`
 - `oauth_identities`
 - `account_memberships`
 - provider-neutral principal interface
-- `/api/auth/me` planning and contract
-- bearer JWT validation boundary
+- `/api/auth/me` contract
+- bearer JWT request boundary with a fake verified-claims adapter for tests only
 - local/test-only scaffold header path behind explicit development configuration
 
 No app session table should be added in the first slice. The initial model is bearer JWT validation on backend requests.
@@ -58,7 +60,7 @@ No Clerk, Auth0, Supabase, WorkOS, or other provider SDK should be added until M
 
 App-owned actor identity.
 
-Likely fields:
+Implemented fields:
 
 - `id`
 - `primary_email`
@@ -73,7 +75,7 @@ This table is the app identity anchor for audit and ownership decisions. It does
 
 Provider identity link.
 
-Likely fields:
+Implemented fields:
 
 - `id`
 - `user_id`
@@ -97,7 +99,7 @@ Do not store provider access tokens or refresh tokens in the first slice.
 
 App-owned business/workspace membership.
 
-Likely fields:
+Implemented fields:
 
 - `id`
 - `account_id`
@@ -134,22 +136,24 @@ Additive endpoint:
 GET /api/auth/me
 ```
 
-Expected response:
+Implemented response shape:
 
-- internal app user summary
-- linked identity summary
-- account memberships
-- derived authorized home IDs or authorization summary
+- internal app `user_id`
+- `auth_source`
+- linked identity summary with `identity_id`, `provider`, `issuer`, and `subject`
+- app-owned `account_ids`
+- derived `authorized_home_ids`
 - limitations explaining that OAuth proves identity only and app tables control access
 
 This endpoint should not expose raw tokens, secrets, provider refresh tokens, or provider-side authorization internals.
 
 ## Authorization Impact
 
-The first implementation should preserve the existing home-data middleware concept but change the source of trust:
+Slice 1 preserves the existing home-data middleware concept and adds a provider-neutral principal source:
 
-- production/staging: bearer JWT -> verified provider identity -> app user -> account membership -> authorized home access
+- production/staging future path: bearer JWT -> verified provider identity -> app user -> account membership -> authorized home access
 - local/test: scaffold headers only when explicit dev/test config enables them
+- test-only fake bearer path: fake verified claims -> app user -> account membership -> authorized home access
 
 Collection/list routes must be filtered by app-owned access before production runtime use. This includes at least:
 
@@ -174,7 +178,7 @@ Audit entries must not rely on provider roles, provider organizations, or provid
 
 ## Migration Impact
 
-Implementation must add a new explicit Alembic migration.
+Implementation added explicit Alembic revision `20260625_0002_auth_foundation.py`.
 
 Migration posture:
 
@@ -212,6 +216,7 @@ Deferred to the ownership/permissions phase unless Matt separately approves a mi
 - provider SDK integration
 - production runtime env-var wiring
 - production deploy/smoke
+- collection/list route filtering rollout
 
 ## Risks And Blockers
 
@@ -219,18 +224,18 @@ Deferred to the ownership/permissions phase unless Matt separately approves a mi
 - Collection routes need app-owned filtering before production runtime use.
 - `audit_events.user_id` is currently string-based and not a durable app-user FK.
 - `consent_records.user_id` is also string-based.
-- Migration must be a new explicit Alembic revision.
+- Migration has an explicit auth revision; production application remains unrun until separately approved.
 - Provider tokens must not become the authorization source.
 - Provider choice remains unapproved.
 - Current production FastAPI runtime wiring and smoke remain unapproved.
 
-## Decisions Needed Before Implementation
+## Decisions Needed Next
 
 - Provider choice, or explicit generic OIDC-only implementation target.
 - First approved production app user/email for existing `account_demo` and `home_001`.
-- Whether `account_memberships` alone is enough for the first slice, or whether a read-only home-access placeholder is required.
-- Exact dev/test config flag for allowing scaffold headers.
-- Whether audit actor hardening is included in the first schema slice or staged immediately after `/api/auth/me`.
+- Ownership/permissions model for home-level grants, ownership transfer, and collection filtering.
+- Whether audit actor hardening should add FK-backed user references or stay staged behind string compatibility.
+- Production runtime auth wiring plan and smoke scope.
 
 ## Non-Goals
 

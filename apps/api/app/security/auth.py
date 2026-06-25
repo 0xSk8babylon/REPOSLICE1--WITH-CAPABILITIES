@@ -1,13 +1,19 @@
 import re
 import uuid
-from dataclasses import dataclass
-from typing import Optional, Set
+from typing import Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from app.core import models
+from app.core.config import settings
 from app.core.database import SessionLocal
+from app.security.principal import (
+    AuthPrincipal,
+    fake_verified_claims_from_authorization,
+    principal_from_verified_claims,
+    scaffold_principal_from_headers,
+)
 
 
 HOME_PATH_PATTERNS = (
@@ -41,19 +47,8 @@ HOME_DATA_PREFIXES = (
 )
 
 
-@dataclass(frozen=True)
-class Principal:
-    user_id: str
-    allowed_home_ids: Set[str]
-
-
 class HomeAccessMiddleware(BaseHTTPMiddleware):
-    """Header-based local auth boundary for home data routes.
-
-    This is intentionally provider-free. A future auth provider can populate
-    the same request headers or replace this middleware behind the same object
-    access checks.
-    """
+    """Provider-neutral auth boundary for home data routes."""
 
     async def dispatch(self, request, call_next):
         path = request.url.path
@@ -83,13 +78,22 @@ class HomeAccessMiddleware(BaseHTTPMiddleware):
                 return match.group(1)
         return None
 
-    def _principal_from_headers(self, request) -> Optional[Principal]:
-        user_id = request.headers.get("x-user-id")
-        if not user_id:
+    def _principal_from_headers(self, request) -> Optional[AuthPrincipal]:
+        if settings.should_allow_fake_oidc_tokens:
+            claims = fake_verified_claims_from_authorization(request.headers.get("authorization"))
+            if claims is not None:
+                db = SessionLocal()
+                try:
+                    return principal_from_verified_claims(db, claims, auth_source="fake_oidc_bearer")
+                finally:
+                    db.close()
+
+        if not settings.should_allow_scaffold_auth_headers:
             return None
-        raw_home_access = request.headers.get("x-home-access", "")
-        allowed = {item.strip() for item in raw_home_access.split(",") if item.strip()}
-        return Principal(user_id=user_id, allowed_home_ids=allowed)
+        return scaffold_principal_from_headers(
+            user_id=request.headers.get("x-user-id"),
+            raw_home_access=request.headers.get("x-home-access", ""),
+        )
 
     def _write_audit(
         self,

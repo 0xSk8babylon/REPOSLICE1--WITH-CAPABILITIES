@@ -9,7 +9,7 @@
 
 ## Authority And View Boundary Policy
 
-- OAuth/auth foundation planning is documented in `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`. The approved direction is provider-neutral OIDC/JWT identity proof mapped into app-owned `users`, `oauth_identities`, and `account_memberships` before any account/home authorization or audit actor decision. This is planning only; no provider SDK, migration, runtime auth change, session table, production wiring, deploy, or smoke is approved by that plan.
+- OAuth/auth foundation is documented in `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`. Slice 1 adds provider-neutral OIDC/JWT identity-proof boundary structures mapped into app-owned `users`, `oauth_identities`, and `account_memberships` before any account/home authorization or audit actor decision. No provider SDK, provider secret, session table, production wiring, deploy, or production smoke is approved by that plan.
 - A2 adds local header-based authentication, home-level authorization, and audit logging for home-data API paths.
 - Current API responses remain product data contracts; A2 enforcement is a runtime access boundary, not a scoped view-model guarantee.
 - Existing account, role, and subscription fields are scaffolding only; they do not imply RBAC, tenant isolation, contractor authorization, utility submission, or operational-control permission.
@@ -24,7 +24,9 @@
 - Shared additive metadata models now exist for view-boundary and permission-readiness descriptions.
 - These metadata fields are descriptive only. They do not filter responses, enforce RBAC, enforce tenant isolation, authorize exports, or change account/session behavior.
 - A2 home-data middleware requires `x-user-id` and, where a home ID is present, `x-home-access` containing that home ID or `*`. This is provider-free local enforcement, not production auth provider integration.
-- The approved OAuth/auth direction keeps `x-user-id` and `x-home-access` as local/test scaffolding only behind explicit development configuration once implementation is approved. Production/staging auth should use bearer JWT validation, provider-neutral identity mapping, app-owned account membership checks, and app-owned audit actor identity.
+- The OAuth/auth slice keeps `x-user-id` and `x-home-access` as local/test scaffolding only behind explicit development configuration. Production/staging auth should use bearer JWT validation, provider-neutral identity mapping, app-owned account membership checks, and app-owned audit actor identity.
+- `GET /api/auth/me` returns the request-scoped internal principal summary: app `user_id`, `auth_source`, linked identity summary, app-owned account IDs, derived authorized home IDs, and limitations. It does not expose raw provider tokens, refresh tokens, provider secrets, or provider-side authorization internals.
+- A fake bearer token adapter exists only for tests/local development when explicitly enabled. It maps verified-looking test claims to app-owned identity and membership records; it is not a real provider integration.
 - The React API client sends local development `x-user-id` and `x-home-access` headers from `VITE_API_USER_ID` and `VITE_API_HOME_ACCESS`, defaulting to `demo_user` and `home_001`.
 - Future collection/list routes must filter by app-owned account/home access before production runtime use; provider tokens and provider-side metadata must not be treated as planner authorization.
 - Provenance and recommendation inspectability surfaces may now include additive `authority_layer`, `data_classification`, `derivation_type`, and `limitations` fields.
@@ -32,6 +34,7 @@
 
 ## Core GET Contracts In Use
 
+- `GET /api/auth/me`
 - `GET /api/homes`
 - `GET /api/homes/all`
 - `GET /api/buildings`

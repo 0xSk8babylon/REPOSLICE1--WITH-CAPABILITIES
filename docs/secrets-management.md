@@ -24,6 +24,7 @@ This runbook defines the current secrets boundary for local development, local s
 - `SESSION_REPORT_EMAIL_FROM` and `SESSION_REPORT_EMAIL_TO`: delivery configuration. Treat as operationally sensitive but not credential material.
 - `VITE_API_BASE_URL`, `VITE_API_USER_ID`, and `VITE_API_HOME_ACCESS`: frontend development variables. The current `VITE_API_USER_ID` and `VITE_API_HOME_ACCESS` values are local scaffold headers, not production auth.
 - `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`: local Docker service variables in `compose.postgres.yml`. They are placeholders for local development only.
+- Auth local/test toggles: `AUTH_ALLOW_SCAFFOLD_HEADERS` and `AUTH_ALLOW_FAKE_OIDC_TOKENS` are non-secret booleans for explicit local/test-only behavior. Keep both false for staging and production.
 - Future auth/session secrets: `JWT_SECRET`, `SESSION_SECRET`, provider issuer/client credentials, and signing keys are not currently implemented and must not be introduced without owner-approved auth/security scope.
 - `SECRET_KEY`: not currently implemented. Reserve only for a future framework or session mechanism that explicitly requires it; do not add it to runtime without an owner-approved auth/security scope.
 - Future storage/provider secrets: bucket names, access keys, provider API keys, CRM keys, utility/provider keys, and webhook signing secrets are not currently implemented and must remain absent until approved.
@@ -57,6 +58,7 @@ Rules:
 - Repo-local `.env`, `apps/api/.env`, or `apps/web/.env.local` files are gitignored runtime delivery files only, not the source of truth.
 - Do not commit real local env files, credentials, or private config directories.
 - Do not use local scaffold auth headers as production authentication.
+- Do not enable fake OIDC bearer tokens outside explicit local/test behavior.
 - Do not place Railway, production Postgres, provider, or API-key material in repo docs.
 
 ## Local Smoke And Test Databases
@@ -214,7 +216,7 @@ Notes:
 - A real root `.env` exists locally in this checkout. It was not opened or modified during this documentation pass.
 - `docs/session-report-email.md` may still show the historical `~/residential-energy-planner` path. Prefer running scripts from the repository root unless that doc is updated.
 - The root API response includes a redacted database URL. Redaction is present, but production exposure of diagnostics should be reviewed before public deployment.
-- Auth is currently provider-free local header scaffolding. Future production auth will require new secrets, rotation policy, storage location, and deployment-specific documentation.
+- Auth foundation slice 1 is provider-neutral and app-owned. It adds local/test-only scaffold and fake-OIDC toggles, but no provider SDKs, provider secrets, app sessions, or production auth runtime wiring. Future production auth will require provider choice, secret inventory, rotation policy, storage location, and deployment-specific documentation.
 - Railway CLI/config is not present in the repo state captured by `docs/railway-staging-postgres.md`; Railway resource discovery and provisioning remain blocked on owner approval.
 
 ## Rotation And Incident Rules

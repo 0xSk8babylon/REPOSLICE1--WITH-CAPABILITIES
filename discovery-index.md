@@ -25,9 +25,11 @@ Read these first:
 
 ## Canonical Phase Structure
 
-- OAuth / Auth Foundation Plan - approved docs-only on 2026-06-25.
+- OAuth / Auth Foundation slice 1 - implemented provider-neutral backend foundation on 2026-06-25.
   - Canonical plan: `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`
-  - Current boundary: provider-neutral OIDC/JWT planning only. OAuth provider identity is identity proof only; app-owned tables control users, account membership, account/home authorization, audit actor identity, permissions, and provenance. First approved implementation slice is planned as `users`, `oauth_identities`, `account_memberships`, provider-neutral principal interface planning, `/api/auth/me` planning, bearer JWT model, and local/test-only scaffold headers behind explicit dev config. No code, migration, provider SDK, app session table, home access grant table, production DB change, Railway runtime wiring, deploy, smoke, or push is approved by the plan.
+  - Runtime endpoint: `GET /api/auth/me`.
+  - Runtime files: `apps/api/app/auth/__init__.py`, `apps/api/app/auth/router.py`, `apps/api/app/auth/schemas.py`, `apps/api/app/security/principal.py`, `apps/api/app/security/auth.py`, `apps/api/app/core/models.py`, `apps/api/app/core/config.py`, `apps/api/app/main.py`, `apps/api/migrations/versions/20260625_0002_auth_foundation.py`, `apps/api/tests/test_auth_foundation.py`, `apps/api/tests/test_auth_audit.py`, and `apps/api/tests/test_alembic_foundation.py`.
+  - Current boundary: provider-neutral OIDC/JWT bearer request boundary with app-owned `users`, `oauth_identities`, and `account_memberships`. OAuth provider identity is identity proof only; app-owned tables control users, account membership, account/home authorization, audit actor identity, permissions, and provenance. `x-user-id` / `x-home-access` remain local/test-only scaffold headers behind explicit dev/test config. Fake verified bearer claims are local/test-only and do not add a real provider integration. No provider SDK, app session table, home access grant table, production DB change, Railway runtime wiring, deploy, production smoke, or push is approved.
   - Deferred: `home_access_grants`, `home_ownerships`, ownership transfer, RBAC/ABAC beyond minimal account membership, app-owned sessions, provider SDK wiring, production runtime wiring, and production smoke.
 - Planner Sandbox Contract v0 - implemented in the current working tree.
   - Runtime endpoints: `GET /api/planner-sandbox/templates`, `GET /api/planner-sandbox/templates/{template_id}`, and `POST /api/planner-sandbox/drafts/validate`.

@@ -52,6 +52,22 @@ class AuthAuditTests(unittest.TestCase):
         self.assertEqual(401, response.status_code)
         self._assert_audit(status_code=401, authorized="false", home_id=None)
 
+    def test_scaffold_headers_are_rejected_when_disabled(self):
+        from app.security.auth import settings
+
+        original = settings.auth_allow_scaffold_headers
+        settings.auth_allow_scaffold_headers = False
+        try:
+            response = self._dispatch(
+                f"/api/homes/{HOME_ID}/facts",
+                headers={"x-user-id": "user_a", "x-home-access": HOME_ID},
+            )
+        finally:
+            settings.auth_allow_scaffold_headers = original
+
+        self.assertEqual(401, response.status_code)
+        self._assert_audit(status_code=401, authorized="false", home_id=HOME_ID)
+
     def _dispatch(self, path, headers=None):
         import asyncio
 

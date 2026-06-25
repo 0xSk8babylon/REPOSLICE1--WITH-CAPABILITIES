@@ -15,6 +15,9 @@ import os
 
 # Must run before any app.* import so the engine binds to in-memory SQLite.
 os.environ["DATABASE_URL"] = "sqlite://"
+os.environ["APP_ENV"] = "test"
+os.environ["AUTH_ALLOW_SCAFFOLD_HEADERS"] = "true"
+os.environ["AUTH_ALLOW_FAKE_OIDC_TOKENS"] = "true"
 os.environ.setdefault("DATA_DIR", "/tmp/residential-energy-planner-tests")
 
 import sqlite3  # noqa: E402
