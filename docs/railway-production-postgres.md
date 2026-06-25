@@ -216,6 +216,155 @@ Rollback posture:
 
 - PG-8E production copy is not automatically reversible. If copy fails or counts mismatch, stop and preserve the target for inspection. Any truncation, drop, restore, rerun, or service deletion requires separate explicit approval.
 
+## Gate 3 Precheck Result
+
+Owner-run production PG-8E precheck from a signed-in terminal reached the production database without printing secrets and stopped before dry-run or execute because PG-8E target tables are already non-empty.
+
+Interpretation:
+
+- PG-8E execute remains blocked by the helper's empty-target precondition.
+- The observed production counts match the known PG-8E local/staging migrated baseline for all migrated data tables, with `audit_events=9`.
+- `audit_events=9` is consistent with prior deployed staging smoke behavior, where protected GET smoke created audit-only writes while core migrated table counts remained unchanged.
+- Treat production as effectively already populated pending verification-only closeout, not as a fresh PG-8E execute performed during this gate.
+
+Observed non-secret precheck facts:
+
+```text
+production_db_connection=PASS
+alembic_version=20260523_0001
+expected_alembic_version=20260523_0001
+missing_pg8e_tables=[]
+non_empty_pg8e_tables_present=true
+accounts=1
+homes=1
+source_documents=5
+data_provenance=7
+rule_provenance=25
+equipment_products=8
+energy_system_designs=2
+scenarios=2
+audit_events=9
+```
+
+Full observed target counts:
+
+```text
+accounts=1
+source_documents=5
+design_goal_presets=2
+load_templates=6
+homes=1
+audit_events=9
+consent_records=0
+buildings=2
+electrical_panels=1
+loads=3
+facts=0
+roof_planes=0
+geometry_obstructions=0
+equipment_locations=3
+equipment_products=8
+energy_system_designs=2
+design_equipment=5
+compatibility_issues=2
+scenarios=2
+scenario_revisions=2
+takeoff_requests=1
+takeoff_line_items=2
+estimated_pathways=2
+data_provenance=7
+rule_provenance=25
+```
+
+Read-only verification-only command for the owner to run from a signed-in terminal:
+
+```bash
+SOURCE="data/backups/residential_energy_planner.pg8e.production-cutover.20260625T064247Z.sqlite3"
+
+op run --env-file scripts/templates/production-op.env.tpl -- bash -s -- "$SOURCE" <<'BASH'
+set -euo pipefail
+SOURCE="$1"
+cd apps/api
+
+python3 - "$SOURCE" <<'PY'
+import json
+import os
+import sqlite3
+import sys
+from sqlalchemy import create_engine, text
+from scripts.sqlite_to_postgres import TABLE_ORDER, EXPECTED_ALEMBIC_HEAD
+
+source = sys.argv[1]
+url = os.environ["DATABASE_URL"]
+if url.startswith("postgresql://"):
+    url = "postgresql+psycopg://" + url[len("postgresql://"):]
+elif url.startswith("postgres://"):
+    url = "postgresql+psycopg://" + url[len("postgres://"):]
+
+def q(name):
+    return '"' + name.replace('"', '""') + '"'
+
+with sqlite3.connect(f"file:{source}?mode=ro", uri=True) as sqlite:
+    source_counts = {
+        table: sqlite.execute(f"select count(*) from {q(table)}").fetchone()[0]
+        for table in TABLE_ORDER
+    }
+    sqlite_fk_issue_count = len(sqlite.execute("pragma foreign_key_check").fetchall())
+
+engine = create_engine(url, future=True)
+with engine.connect() as conn:
+    target_counts = {
+        table: int(conn.execute(text(f"select count(*) from {q(table)}")).scalar_one())
+        for table in TABLE_ORDER
+    }
+    versions = [
+        row[0]
+        for row in conn.execute(text("select version_num from alembic_version order by version_num"))
+    ]
+    data_orphans = int(conn.execute(text("""
+        select count(*)
+        from data_provenance provenance
+        left join source_documents source on provenance.source_document_id = source.id
+        where provenance.source_document_id is not null and source.id is null
+    """)).scalar_one())
+    rule_orphans = int(conn.execute(text("""
+        select count(*)
+        from rule_provenance provenance
+        left join source_documents source on provenance.source_document_id = source.id
+        where provenance.source_document_id is not null and source.id is null
+    """)).scalar_one())
+    unvalidated_fk_constraints = int(conn.execute(text("""
+        select count(*)
+        from pg_constraint c
+        join pg_namespace n on n.oid = c.connamespace
+        where n.nspname = 'public'
+          and c.contype = 'f'
+          and not c.convalidated
+    """)).scalar_one())
+
+count_mismatches = {
+    table: {"source": source_counts[table], "target": target_counts[table]}
+    for table in TABLE_ORDER
+    if source_counts[table] != target_counts[table]
+}
+
+print(json.dumps({
+    "stage": "production_pg8e_verification_only",
+    "alembic_version": ",".join(versions),
+    "expected_alembic_version": EXPECTED_ALEMBIC_HEAD,
+    "count_mismatches": count_mismatches,
+    "source_sqlite_fk_issue_count": sqlite_fk_issue_count,
+    "postgres_unvalidated_fk_constraint_count": unvalidated_fk_constraints,
+    "data_provenance_orphan_count": data_orphans,
+    "rule_provenance_orphan_count": rule_orphans,
+    "target_counts": target_counts,
+}, indent=2, sort_keys=True))
+PY
+BASH
+```
+
+This command is read-only. It must not be changed into a copy, execute, truncate, delete, reset, seed, smoke, deploy, Railway env-var wiring, or resource-modification command without separate owner approval.
+
 ## Gate 4: Production FastAPI Deploy And Env-Var Wiring Checklist
 
 Purpose: deploy FastAPI to Railway production and wire it to the approved migrated production Postgres database.
@@ -337,7 +486,9 @@ Rollback posture:
 - Production DB connection verification: PASS.
 - Production Alembic version verified: `20260523_0001`.
 - Production schema/tables verified: PASS; public schema table count `26`, minimum expected core table count `10`, missing core tables `[]`, and core tables present.
-- PG-8E production data migration run: no.
+- PG-8E production precheck: BLOCKED before dry-run/execute because target PG-8E tables are already non-empty.
+- PG-8E production data migration run by this gate: no.
+- Production target appears already populated to the known PG-8E migrated baseline, pending read-only verification closeout; observed counts include `accounts=1`, `homes=1`, `source_documents=5`, `data_provenance=7`, `rule_provenance=25`, `equipment_products=8`, `energy_system_designs=2`, `scenarios=2`, and `audit_events=9`.
 - Production FastAPI deployed: no.
 - Production FastAPI env vars set: no.
 - Public production smoke run: no.
@@ -347,4 +498,4 @@ Rollback posture:
 
 ## Next Required Approval
 
-Next required approval is Production PG-8E data cutover planning/execution. Production FastAPI deploy/env-var wiring and public production smoke are also not approved.
+Next required step is Production PG-8E verification-only closeout from a signed-in owner terminal. Production FastAPI deploy/env-var wiring and public production smoke require separate owner approval and are not approved by this runbook.
