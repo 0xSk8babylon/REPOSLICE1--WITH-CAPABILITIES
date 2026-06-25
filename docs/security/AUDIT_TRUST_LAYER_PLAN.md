@@ -6,6 +6,8 @@ Docs-only planning approved by Matt on 2026-06-25.
 
 Implementation slice 1 approved and implemented on 2026-06-25. It adds explicit additive Alembic revision `20260625_0003_audit_trust_foundation.py`, nullable audit actor/scope/context/provenance fields on `audit_events`, central writer `app/security/audit.py`, middleware/privacy audit integrations, privacy-delete audit retention, and entity-aware `/api/provenance` filtering for direct home-scoped, design/scenario-scoped, global/reference, and unknown-default-deny entity types.
 
+Verification after commit `17ef702` passed in Docker `python:3.11-slim`: focused audit/privacy/permissions/auth/alembic tests ran `36 tests OK`, disposable SQLite `alembic upgrade head` reached `20260625_0003 (head)` with all new audit columns present, compileall passed, `git diff --check` passed, and secret-pattern review passed.
+
 Production DB migration, production runtime wiring, deploy, smoke, provider SDKs, audit query APIs, retention automation, and push remain unapproved.
 
 This plan records the approved audit/trust direction on top of the completed provider-neutral auth foundation and account-membership ownership enforcement slices. It was created as a docs-only planning gate before implementation slice 1 was approved.

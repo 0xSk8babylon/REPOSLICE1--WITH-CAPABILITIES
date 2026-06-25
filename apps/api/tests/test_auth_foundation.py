@@ -88,7 +88,7 @@ class AuthFoundationTests(unittest.TestCase):
             self.assertIn("home_001", response.authorized_home_ids)
 
     def test_auth_me_route_is_mounted_under_api_prefix(self):
-        paths = {route.path for route in app.routes}
+        paths = set(app.openapi()["paths"])
 
         self.assertIn("/api/auth/me", paths)
 
