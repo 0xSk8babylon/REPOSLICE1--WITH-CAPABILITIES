@@ -329,11 +329,10 @@ Rollback posture:
 - Production Postgres instance status: `RUNNING`.
 - Production Postgres volume state: `READY`.
 - Production DB vars exist: yes, values redacted.
-- Production Alembic Gate 2 status: BLOCKED on 2026-06-25 before Alembic upgrade.
-- 1Password inherited access: verified non-interactively with `op whoami` and `scripts/check_production_op_secrets.sh`.
-- Gate 2 blocker: required field titles exist, but resolved production URL fields are placeholder-shaped/incomplete and `PGPASSWORD` is placeholder-like. Replace the placeholder/incomplete 1Password values from the Railway production dashboard before retrying Gate 2.
-- Owner credential capture required: manually capture production `DATABASE_URL`, `DATABASE_PUBLIC_URL`, and `PG*` values into 1Password through the Railway dashboard.
-- Production Alembic upgrade run: no.
+- Production Alembic Gate 2 status: BLOCKED on 2026-06-25 before production database connection.
+- 1Password `op run` delivery path: reached Alembic invocation without printing secrets.
+- Gate 2 blocker: owner-run `python3 -m alembic upgrade head` failed during Alembic environment import because the local Python environment lacked `pydantic_settings` from `apps/api/requirements.txt`.
+- Production Alembic upgrade applied: no.
 - Production Alembic version verified: no, blocked before database connection.
 - Production schema/tables verified: no, blocked before database connection.
 - PG-8E production data migration run: no.
@@ -346,4 +345,4 @@ Rollback posture:
 
 ## Next Required Approval
 
-Next immediate prerequisite is replacing placeholder/incomplete production values in 1Password, then rerunning Gate 2 only against the approved production Postgres target. Production PG-8E data cutover remains a separate later approval after Gate 2 passes; production FastAPI deploy/env-var wiring and public production smoke are also not approved.
+Next immediate prerequisite is rerunning Gate 2 from a dependency-ready API Python environment, such as an installed `apps/api/requirements.txt` environment or an existing `.vendor` path, while keeping the same `op run --env-file scripts/templates/production-op.env.tpl` delivery boundary. Production PG-8E data cutover remains a separate later approval after Gate 2 passes; production FastAPI deploy/env-var wiring and public production smoke are also not approved.
