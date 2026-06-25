@@ -463,6 +463,43 @@ Rollback posture:
 
 - If public smoke fails, stop and do not retry write-producing smoke automatically. Any env-var change, redeploy, database repair, migration rerun, or rollback requires separate approval.
 
+## Production DB Identity Correction
+
+Matt confirmed the production 1Password item now matches the correct Railway production Postgres card/service. The prior wrong-card ambiguity is resolved for secret identity, but earlier Production Gate 2 and PG-8E evidence must be treated as superseded until re-verified against this now-proven identity.
+
+Non-secret owner verification result:
+
+```text
+post_update_internal_exact_match=True
+post_update_public_exact_match=True
+internal_same_password=True
+public_same_password=True
+public_same_host=True
+public_same_port=True
+pgpassword_matches_internal=True
+```
+
+Interpretation:
+
+- Production 1Password `DATABASE_URL` now exactly matches the correct Railway production internal URL.
+- Production 1Password `DATABASE_PUBLIC_URL` now exactly matches the correct Railway production public/proxy URL.
+- `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, and `PGDATABASE` now match the corrected internal URL.
+- The internal/public production URLs share the same username, password, and database and use different hosts as expected.
+- Staging does not need redo based on the read-only staging classification: staging remains a separate staging-only target, and the issue was the production 1Password item pointing at the wrong Railway production DB card/service.
+
+Required next production database checks:
+
+- Re-run corrected Production Gate 2 verification against the now-proven production DB identity.
+- Re-run PG-8E production precheck against the now-proven production DB identity.
+- Run PG-8E dry-run/execute only if corrected Gate 2 is verified, source counts match the approved SQLite baseline, target precheck is safe, and dry-run passes.
+
+Credential exposure:
+
+- Live production DB credentials were exposed during troubleshooting outside this runbook.
+- Rotate the production DB credentials before any production FastAPI runtime deploy, Railway runtime env-var wiring, or public production smoke.
+- After rotation, update the production 1Password item from the correct Railway production Postgres card/service and repeat the same non-secret identity-shape verification before deploy/smoke.
+- Do not paste, print, commit, or store the old or rotated values in docs, chat, scripts, tests, local env files, or shell history.
+
 ## Current Status
 
 - Production Postgres Gate 1: PASS.
@@ -478,17 +515,17 @@ Rollback posture:
 - Production Postgres instance status: `RUNNING`.
 - Production Postgres volume state: `READY`.
 - Production DB vars exist: yes, values redacted.
-- Production 1Password DB URL shape correction: owner non-secret verification confirmed both `DATABASE_URL` and `DATABASE_PUBLIC_URL` are correctly shaped, non-placeholder Postgres URLs with username, password, host, port, and database path present.
-- Production DB URL consistency: internal and public URLs share scheme family, username, password, and database; hosts differ as expected, with `DATABASE_URL` internal-like and `DATABASE_PUBLIC_URL` not internal-like.
-- Production Alembic Gate 2 status: PASS on 2026-06-25.
+- Production DB identity correction: PASS by owner non-secret exact-match checks against the correct Railway production Postgres card/service.
+- Prior wrong-card ambiguity: RESOLVED for production 1Password identity; earlier Gate 2 and PG-8E evidence is superseded until re-verified against the corrected identity.
+- Production credential rotation: REQUIRED before production FastAPI deploy/runtime env-var wiring/public smoke because live DB credentials were exposed during troubleshooting.
+- Production Alembic Gate 2 status against corrected DB identity: pending re-verification.
 - 1Password `op run` delivery path with disposable Docker API dependency install and in-memory `postgresql+psycopg://` URL rewrite: reached Alembic invocation without printing secrets.
-- Production Alembic upgrade command result: returned to shell with no traceback.
-- Production DB connection verification: PASS.
-- Production Alembic version verified: `20260523_0001`.
-- Production schema/tables verified: PASS; public schema table count `26`, minimum expected core table count `10`, missing core tables `[]`, and core tables present.
-- PG-8E production precheck: BLOCKED before dry-run/execute because target PG-8E tables are already non-empty.
-- PG-8E production data migration run by this gate: no.
-- Production target appears already populated to the known PG-8E migrated baseline, pending read-only verification closeout; observed counts include `accounts=1`, `homes=1`, `source_documents=5`, `data_provenance=7`, `rule_provenance=25`, `equipment_products=8`, `energy_system_designs=2`, `scenarios=2`, and `audit_events=9`.
+- Production Alembic upgrade command result against corrected DB identity: pending re-verification.
+- Production DB connection verification against corrected DB identity: pending re-verification.
+- Production Alembic version against corrected DB identity: pending re-verification.
+- Production schema/tables against corrected DB identity: pending re-verification.
+- PG-8E production precheck against corrected DB identity: pending re-verification.
+- PG-8E production data migration run against corrected DB identity: no.
 - Production FastAPI deployed: no.
 - Production FastAPI env vars set: no.
 - Public production smoke run: no.
@@ -498,4 +535,4 @@ Rollback posture:
 
 ## Next Required Approval
 
-Next required step is Production PG-8E verification-only closeout from a signed-in owner terminal. Production FastAPI deploy/env-var wiring and public production smoke require separate owner approval and are not approved by this runbook.
+Next required step is corrected Production Gate 2 verification from a signed-in owner terminal, followed by PG-8E precheck only if Gate 2 passes against the now-proven production DB identity. Production credential rotation is required before production FastAPI deploy/runtime env-var wiring/public smoke. Production FastAPI deploy/env-var wiring and public production smoke require separate owner approval and are not approved by this runbook.

@@ -224,6 +224,15 @@ Notes:
 - Prefer replacing credentials over trying to prove a leaked credential was unused.
 - Update this runbook when a new provider, deploy target, or auth/session mechanism is approved.
 
+Production DB credential rotation requirement:
+
+- Live production DB credentials were exposed during production DB identity troubleshooting.
+- Rotate production DB credentials before any production FastAPI runtime deploy, Railway runtime env-var wiring, or public production smoke.
+- After rotation, update the production 1Password item from the correct Railway production Postgres card/service.
+- Repeat non-secret exact-match identity verification for internal URL, public/proxy URL, and PG* fields after rotation.
+- Re-run corrected Production Gate 2 verification and PG-8E precheck against the rotated identity before any production runtime use.
+- Do not paste, print, commit, or store old or rotated credential values in docs, chat, scripts, tests, local env files, or shell history.
+
 ## Related Files
 
 - `.env.example`
