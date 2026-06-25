@@ -1,13 +1,12 @@
 import re
-import uuid
 from typing import Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-from app.core import models
 from app.core.config import settings
 from app.core.database import SessionLocal
+from app.security.audit import audit_service
 from app.security.principal import (
     AuthPrincipal,
     fake_verified_claims_from_authorization,
@@ -43,6 +42,7 @@ HOME_DATA_PREFIXES = (
     "/api/energy-passport",
     "/api/program-intelligence",
     "/api/privacy",
+    "/api/provenance",
     "/api/evidence",
 )
 
@@ -58,14 +58,44 @@ class HomeAccessMiddleware(BaseHTTPMiddleware):
         principal = self._principal_from_headers(request)
         home_id = self._extract_home_id(path) or request.query_params.get("home_id")
         if principal is None:
-            self._write_audit(None, home_id, request.method, path, 401, False, "missing principal")
+            self._write_audit(
+                None,
+                home_id,
+                request.method,
+                path,
+                401,
+                False,
+                "missing principal",
+                decision="not_authenticated",
+                request_id=request.headers.get("x-request-id"),
+            )
             return JSONResponse(status_code=401, content={"detail": "Authentication required"})
         if home_id and "*" not in principal.allowed_home_ids and home_id not in principal.allowed_home_ids:
-            self._write_audit(principal.user_id, home_id, request.method, path, 403, False, "home access denied")
+            self._write_audit(
+                principal,
+                home_id,
+                request.method,
+                path,
+                403,
+                False,
+                "home access denied",
+                decision="denied",
+                request_id=request.headers.get("x-request-id"),
+            )
             return JSONResponse(status_code=403, content={"detail": "Home access denied"})
 
         response = await call_next(request)
-        self._write_audit(principal.user_id, home_id, request.method, path, response.status_code, True, "authorized")
+        authorized = response.status_code < 400
+        self._write_audit(
+            principal,
+            home_id,
+            request.method,
+            path,
+            response.status_code,
+            authorized,
+            "authorized" if authorized else "route returned error status",
+            request_id=request.headers.get("x-request-id"),
+        )
         return response
 
     def _is_home_data_path(self, path: str) -> bool:
@@ -97,29 +127,35 @@ class HomeAccessMiddleware(BaseHTTPMiddleware):
 
     def _write_audit(
         self,
-        user_id: Optional[str],
+        principal: Optional[AuthPrincipal],
         home_id: Optional[str],
         method: str,
         path: str,
         status_code: int,
         authorized: bool,
         reason: str,
+        decision: Optional[str] = None,
+        request_id: Optional[str] = None,
     ) -> None:
-        db = SessionLocal()
-        try:
-            db.add(
-                models.AuditEvent(
-                    id=f"audit_{uuid.uuid4().hex}",
-                    user_id=user_id,
-                    home_id=home_id,
-                    action="home_data_access",
-                    method=method,
-                    path=path,
-                    status_code=status_code,
-                    authorized=str(authorized).lower(),
-                    reason=reason,
-                )
-            )
-            db.commit()
-        finally:
-            db.close()
+        audit_service.record_with_new_session(
+            action="home_data_access",
+            method=method,
+            path=path,
+            status_code=status_code,
+            authorized=authorized,
+            reason=reason,
+            principal=principal,
+            home_id=home_id,
+            object_type="home" if home_id else None,
+            object_id=home_id,
+            route_template=self._route_template(path, home_id),
+            source_surface="middleware",
+            decision=decision,
+            request_id=request_id,
+            event_context={"auth_boundary": "home_access_middleware"},
+        )
+
+    def _route_template(self, path: str, home_id: Optional[str]) -> str:
+        if home_id:
+            return path.replace(home_id, "{home_id}", 1)
+        return path

@@ -21,6 +21,7 @@ from app.loads.schemas import LoadUpdate  # noqa: E402
 from app.panels import router as panels_router  # noqa: E402
 from app.planning import router as planning_router  # noqa: E402
 from app.privacy import router as privacy_router  # noqa: E402
+from app.provenance import router as provenance_router  # noqa: E402
 from app.product_library import router as product_library_router  # noqa: E402
 from app.scenarios import router as scenarios_router  # noqa: E402
 from app.security.principal import VerifiedIdentityClaims, principal_from_verified_claims  # noqa: E402
@@ -201,6 +202,20 @@ class AccountMembershipPermissionsTests(unittest.TestCase):
         self.assertEqual(403, delete_error.exception.status_code)
         self.assertEqual("home_001", exported.exported_sections["home"]["id"])
         self.assertTrue(deleted.deleted)
+
+    def test_provenance_filters_by_accessible_entity_scope_and_denies_unknowns(self):
+        with Session(engine) as db:
+            principal = self._principal(db, role="owner")
+            self._add_scope_provenance_records(db)
+
+            records = provenance_router.list_provenance(db=db, principal=principal)
+
+        provenance_ids = {record.id for record in records}
+        self.assertIn("prov_load_allowed", provenance_ids)
+        self.assertIn("prov_global_product", provenance_ids)
+        self.assertNotIn("prov_load_other", provenance_ids)
+        self.assertNotIn("prov_load_null", provenance_ids)
+        self.assertNotIn("prov_unknown", provenance_ids)
 
     def _principal(self, db, role):
         self._add_user_identity_membership(db, f"user_test_{role}", f"subject_test_{role}", role=role)
@@ -495,6 +510,58 @@ class AccountMembershipPermissionsTests(unittest.TestCase):
                 unit="each",
             )
         )
+        db.commit()
+
+    def _add_scope_provenance_records(self, db):
+        for record in [
+            models.DataProvenance(
+                id="prov_load_allowed",
+                entity_type="load",
+                entity_id="load_001",
+                field_name="running_watts",
+                source_type="user_entry",
+                trust_state="user_created",
+                confidence_level="medium",
+            ),
+            models.DataProvenance(
+                id="prov_load_other",
+                entity_type="load",
+                entity_id="load_other",
+                field_name="running_watts",
+                source_type="user_entry",
+                trust_state="user_created",
+                confidence_level="medium",
+            ),
+            models.DataProvenance(
+                id="prov_load_null",
+                entity_type="load",
+                entity_id="load_null",
+                field_name="running_watts",
+                source_type="user_entry",
+                trust_state="user_created",
+                confidence_level="medium",
+            ),
+            models.DataProvenance(
+                id="prov_global_product",
+                entity_type="equipment_product",
+                entity_id="battery_enphase_5p",
+                field_name="manufacturer",
+                source_type="manufacturer_datasheet",
+                trust_state="verified",
+                confidence_level="high",
+            ),
+            models.DataProvenance(
+                id="prov_unknown",
+                entity_type="unknown_private_entity",
+                entity_id="unknown_001",
+                field_name="private",
+                source_type="user_entry",
+                trust_state="claimed",
+                confidence_level="low",
+            ),
+        ]:
+            if db.get(models.DataProvenance, record.id) is None:
+                db.add(record)
         db.commit()
 
 

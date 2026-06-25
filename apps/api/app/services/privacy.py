@@ -65,7 +65,6 @@ class PrivacyService:
             (models.RoofPlane, "roof_planes"),
             (models.GeometryObstruction, "obstructions"),
             (models.ConsentRecord, "consent_records"),
-            (models.AuditEvent, "audit_events"),
             (models.EstimatedPathway, "estimated_pathways"),
             (models.Scenario, "scenarios"),
             (models.EnergySystemDesign, "designs"),
@@ -87,9 +86,10 @@ class PrivacyService:
             home_id=home_id,
             deleted=bool(deleted_sections),
             deleted_sections=deleted_sections,
-            retained_sections=[],
+            retained_sections=["audit_events"],
             limitations=[
                 "Deletion applies to local SQLite application records only.",
+                "Audit records are retained with minimized event context for accountability.",
                 "External systems are not integrated and are not affected.",
             ],
         )

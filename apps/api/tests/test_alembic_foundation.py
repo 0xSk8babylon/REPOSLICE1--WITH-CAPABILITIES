@@ -11,6 +11,7 @@ from app.core.database import engine_kwargs_for_url
 MIGRATIONS_DIR = pathlib.Path(__file__).resolve().parents[1] / "migrations"
 ENV_PATH = MIGRATIONS_DIR / "env.py"
 AUTH_REVISION_PATH = MIGRATIONS_DIR / "versions" / "20260625_0002_auth_foundation.py"
+AUDIT_REVISION_PATH = MIGRATIONS_DIR / "versions" / "20260625_0003_audit_trust_foundation.py"
 
 
 class AlembicFoundationTests(unittest.TestCase):
@@ -75,6 +76,19 @@ class AlembicFoundationTests(unittest.TestCase):
         self.assertIn('"oauth_identities"', source)
         self.assertIn('"account_memberships"', source)
         self.assertIn("op.create_table", source)
+        self.assertNotIn("Base.metadata.create_all", source)
+
+    def test_audit_trust_revision_is_explicit_and_additive(self):
+        source = AUDIT_REVISION_PATH.read_text()
+
+        self.assertIn('revision = "20260625_0003"', source)
+        self.assertIn('down_revision = "20260625_0002"', source)
+        self.assertIn('"actor_user_id"', source)
+        self.assertIn('"actor_identity_id"', source)
+        self.assertIn('"event_context"', source)
+        self.assertIn('"provenance_refs"', source)
+        self.assertIn("op.add_column", source)
+        self.assertNotIn("op.drop_table", source)
         self.assertNotIn("Base.metadata.create_all", source)
 
 

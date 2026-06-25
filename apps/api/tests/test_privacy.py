@@ -57,10 +57,16 @@ class PrivacyTests(unittest.TestCase):
                 db,
             )
             exported = export_homeowner_record(HOME_ID, db, _owner_principal())
+            audit_event = db.query(models.AuditEvent).filter_by(action="privacy.export").first()
 
         self.assertEqual("residential_energy_planner_privacy_export_v1", exported.portable_format)
         self.assertEqual("privacy_fact", exported.exported_sections["facts"][0]["id"])
         self.assertEqual("consent_1", exported.exported_sections["consent_records"][0]["id"])
+        self.assertIsNotNone(audit_event)
+        self.assertEqual("privacy_owner", audit_event.actor_user_id)
+        self.assertEqual("identity_privacy_owner", audit_event.actor_identity_id)
+        self.assertEqual("account_demo", audit_event.account_id)
+        self.assertEqual("privacy", audit_event.source_surface)
 
     def test_delete_removes_home_and_local_related_records(self):
         with Session(engine) as db:
@@ -78,10 +84,16 @@ class PrivacyTests(unittest.TestCase):
             result = delete_homeowner_record(HOME_ID, db, _owner_principal())
             remaining_home = db.get(models.Home, HOME_ID)
             remaining_consent = db.query(models.ConsentRecord).filter_by(home_id=HOME_ID).count()
+            delete_audit = db.query(models.AuditEvent).filter_by(action="privacy.delete").first()
 
         self.assertTrue(result.deleted)
         self.assertIsNone(remaining_home)
         self.assertEqual(0, remaining_consent)
+        self.assertIn("audit_events", result.retained_sections)
+        self.assertIsNotNone(delete_audit)
+        self.assertEqual("privacy_owner", delete_audit.actor_user_id)
+        self.assertEqual("home", delete_audit.object_type)
+        self.assertEqual(HOME_ID, delete_audit.object_id)
         self.assertIn("local SQLite", result.limitations[0])
 
 
@@ -90,6 +102,7 @@ def _owner_principal():
         user_id="privacy_owner",
         allowed_home_ids={HOME_ID},
         auth_source="fake_oidc_bearer",
+        identity_id="identity_privacy_owner",
         account_ids={"account_demo"},
         account_roles={"account_demo": "owner"},
     )

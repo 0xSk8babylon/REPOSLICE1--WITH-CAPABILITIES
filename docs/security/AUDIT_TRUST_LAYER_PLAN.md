@@ -4,9 +4,13 @@
 
 Docs-only planning approved by Matt on 2026-06-25.
 
-This plan records the approved audit/trust direction on top of the completed provider-neutral auth foundation and account-membership ownership enforcement slices. It does not implement code, create migrations, alter production DB, wire provider SDKs, deploy, run smoke, wire Railway runtime variables, or push.
+Implementation slice 1 approved and implemented on 2026-06-25. It adds explicit additive Alembic revision `20260625_0003_audit_trust_foundation.py`, nullable audit actor/scope/context/provenance fields on `audit_events`, central writer `app/security/audit.py`, middleware/privacy audit integrations, privacy-delete audit retention, and entity-aware `/api/provenance` filtering for direct home-scoped, design/scenario-scoped, global/reference, and unknown-default-deny entity types.
 
-First implementation later should use a new explicit Alembic revision. Audit schema evolution must be additive and must preserve existing `audit_events` fields for compatibility.
+Production DB migration, production runtime wiring, deploy, smoke, provider SDKs, audit query APIs, retention automation, and push remain unapproved.
+
+This plan records the approved audit/trust direction on top of the completed provider-neutral auth foundation and account-membership ownership enforcement slices. It was created as a docs-only planning gate before implementation slice 1 was approved.
+
+Implementation slice 1 uses a new explicit Alembic revision. Audit schema evolution must remain additive and must preserve existing `audit_events` fields for compatibility.
 
 ## Approved Direction
 
@@ -109,7 +113,7 @@ Audit records may reference provenance records when a read/write/reasoning event
 
 ## Recommended Architecture
 
-Add a central audit writer/service later, likely under `app/security/audit.py`.
+Slice 1 adds a central audit writer/service under `app/security/audit.py`.
 
 Recommended service responsibilities:
 
@@ -329,7 +333,7 @@ Normal product flows should not update or delete audit events.
 
 First implementation should not expose new audit query APIs unless separately approved.
 
-Expected API contract updates later:
+API contract updates from slice 1:
 
 - `/api/provenance` becomes authenticated and entity-aware filtered.
 - Privacy consent route may require current app principal.
