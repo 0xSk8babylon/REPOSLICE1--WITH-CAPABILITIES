@@ -129,6 +129,14 @@ Approval required before this gate:
 - Production Postgres service is empty or intentionally schema-ready.
 - Current Alembic head remains `20260523_0001`.
 
+Preferred local secret delivery for this gate:
+
+```bash
+op run --env-file scripts/templates/production-op.env.tpl -- bash -lc 'cd apps/api && python3 -m alembic upgrade head'
+```
+
+The template maps `DATABASE_PUBLIC_URL` from 1Password to runtime `DATABASE_URL` for local Alembic access. It contains only `op://` references and non-secret flags. Run `scripts/check_production_op_secrets.sh` first to verify `op` auth, item existence, and required field-title presence without printing secret values.
+
 Preflight:
 
 - Confirm no staging Railway service is selected.

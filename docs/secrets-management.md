@@ -162,6 +162,32 @@ Rules:
 - Do not create repo-local `secrets/`, `.secrets/`, `env/`, `credentials/`, or private config directories for real values.
 - Treat env var names as the stable contract and provider tooling as replaceable delivery infrastructure.
 
+## 1Password Gate 2 Runtime Delivery
+
+Production Gate 2 should use 1Password secret references as the local runtime delivery layer, not a maintained `production.env` file. The checked-in template `scripts/templates/production-op.env.tpl` contains only `op://` references and non-secret flags.
+
+For local Alembic access to Railway production Postgres, the template maps:
+
+```text
+DATABASE_URL="op://TwinEnergy/j3qbtqgq3ywnrem3hxxcx2ngle/DATABASE_PUBLIC_URL"
+```
+
+This intentionally exposes the Railway public connection string to Alembic as `DATABASE_URL` only inside the `op run` subprocess. Backend and Alembic code remain provider-neutral because they continue to read standard environment variables.
+
+Before any approved Gate 2 execution, run the redacted preflight:
+
+```bash
+scripts/check_production_op_secrets.sh
+```
+
+The preflight verifies `op` auth, item existence by item ID, and required field-title presence without printing secret values. A later approved Gate 2 command should use this shape:
+
+```bash
+op run --env-file scripts/templates/production-op.env.tpl -- bash -lc 'cd apps/api && python3 -m alembic upgrade head'
+```
+
+Do not run that command until Production Alembic Gate 2 execution is explicitly approved.
+
 ## Files Intentionally Ignored By Git
 
 The current `.gitignore` intentionally excludes:
