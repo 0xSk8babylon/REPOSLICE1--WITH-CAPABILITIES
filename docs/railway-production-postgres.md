@@ -329,6 +329,8 @@ Rollback posture:
 - Production Postgres instance status: `RUNNING`.
 - Production Postgres volume state: `READY`.
 - Production DB vars exist: yes, values redacted.
+- Production 1Password DB URL shape correction: owner non-secret verification confirmed both `DATABASE_URL` and `DATABASE_PUBLIC_URL` are correctly shaped, non-placeholder Postgres URLs with username, password, host, port, and database path present.
+- Production DB URL consistency: internal and public URLs share scheme family, username, password, and database; hosts differ as expected, with `DATABASE_URL` internal-like and `DATABASE_PUBLIC_URL` not internal-like.
 - Production Alembic Gate 2 status: verification pending after owner-run Alembic command completed without traceback on 2026-06-25.
 - 1Password `op run` delivery path with disposable Docker API dependency install and in-memory `postgresql+psycopg://` URL rewrite: reached Alembic invocation without printing secrets.
 - Production Alembic upgrade command result: returned to shell with no traceback.
