@@ -127,6 +127,15 @@ def can_write_scenario_record(principal: AuthPrincipal, scenario: Optional[model
     return principal.auth_source == LOCAL_TEST_HEADER_SOURCE and _home_id_is_allowed(principal, scenario.home_id)
 
 
+def require_building_matches_home(db: Session, building_id: Optional[str], home_id: str) -> None:
+    building = db.get(models.BuildingStructure, building_id) if building_id else None
+    require_found_and_allowed(
+        building is not None,
+        building is not None and building.home_id == home_id,
+        "Building not found",
+    )
+
+
 def allowed_account_ids(principal: AuthPrincipal) -> Set[str]:
     return {
         account_id
@@ -160,6 +169,16 @@ def scoped_home_ids(db: Session, principal: AuthPrincipal) -> Set[str]:
     if not account_ids:
         return set()
     rows = db.scalars(select(models.Home.id).where(models.Home.account_id.in_(account_ids))).all()
+    return set(rows)
+
+
+def scoped_design_ids(db: Session, principal: AuthPrincipal) -> Set[str]:
+    home_ids = scoped_home_ids(db, principal)
+    if not home_ids:
+        return set()
+    rows = db.scalars(
+        select(models.EnergySystemDesign.id).where(models.EnergySystemDesign.home_id.in_(home_ids))
+    ).all()
     return set(rows)
 
 

@@ -8,6 +8,10 @@ Implementation slice 1 was separately approved by Matt on 2026-06-25 for account
 
 Implemented slice 1 adds a provider-neutral permissions helper, account-role metadata on the internal principal, membership-filtered home/design/scenario collection routes, object authorization for design equipment and scenario revisions, and focused ownership tests. It does not add migrations, new tables, provider SDKs, secrets, production DB changes, Railway runtime wiring, deploys, smoke tests, pushes, `home_access_grants`, or `home_ownerships`.
 
+Implementation slice 2 was separately approved by Matt on 2026-06-25 for remaining high-risk account-membership route filtering.
+
+Implemented slice 2 extends the same account-membership boundary to buildings, electrical panels, loads, load summaries, equipment locations, estimated pathways, compatibility issue lists, current/generated takeoffs, design advisor summaries, AI design context, and owner-only privacy export/delete checks. It does not add migrations, new tables, provider SDKs, secrets, production DB changes, Railway runtime wiring, deploys, smoke tests, pushes, `home_access_grants`, or `home_ownerships`.
+
 ## Approved Direction
 
 Use `account_memberships` as the first app-owned ownership and authorization boundary.
@@ -108,7 +112,20 @@ Implementation slice 1 status:
 - implemented: `GET /api/designs`, `POST /api/designs`, `PATCH /api/designs/{design_id}`
 - implemented: `GET/POST/PATCH/DELETE /api/designs/{design_id}/equipment...`
 - implemented: `GET /api/scenarios`, `GET /api/scenarios/compare`, `GET /api/scenarios/{scenario_id}/revisions`, `POST /api/scenarios`, `PATCH /api/scenarios/{scenario_id}`
-- still planned: broader collection filtering for buildings, panels, loads, equipment locations, estimated pathways, compatibility issue lists, takeoffs, and remaining home-path derived surfaces
+
+Implementation slice 2 status:
+
+- implemented: `GET/POST/PATCH /api/buildings`
+- implemented: `GET/POST/PATCH /api/panels`
+- implemented: `GET /api/loads`, `GET /api/loads/summary`, `POST/PATCH /api/loads`
+- implemented: `GET/POST/PATCH /api/equipment/locations`
+- implemented: `GET/POST/PATCH /api/estimated-pathways`
+- implemented: `GET /api/compatibility-rules/issues`, `GET /api/compatibility-rules/evaluate/{design_id}`
+- implemented: `GET /api/takeoffs/current`, `GET /api/takeoffs/generate/{design_id}`
+- implemented: `GET /api/design-advisor/summary/{design_id}`, `GET /api/ai-context/design/{design_id}`
+- implemented: owner-only checks for `GET /api/privacy/homes/{home_id}/export` and `DELETE /api/privacy/homes/{home_id}`
+
+Still planned: broader home-path derived surfaces and entity-aware `data_provenance` filtering in later audit/trust or route-coverage phases.
 
 ### First Priority Collection Routes
 

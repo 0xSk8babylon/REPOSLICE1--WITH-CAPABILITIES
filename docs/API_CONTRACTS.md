@@ -30,7 +30,7 @@
 - A fake bearer token adapter exists only for tests/local development when explicitly enabled. It maps verified-looking test claims to app-owned identity and membership records; it is not a real provider integration.
 - The React API client sends local development `x-user-id` and `x-home-access` headers from `VITE_API_USER_ID` and `VITE_API_HOME_ACCESS`, defaulting to `demo_user` and `home_001`.
 - Future collection/list routes must filter by app-owned account/home access before production runtime use; provider tokens and provider-side metadata must not be treated as planner authorization.
-- Implemented first-slice route filtering uses `account_memberships -> homes.account_id` for `/api/homes`, `/api/homes/all`, `/api/designs`, `/api/scenarios`, design equipment object routes, and scenario revisions. `member` is write-capable and `viewer` is read-only for the implemented write checks. Product library, source documents, rule provenance, load templates, and design goal presets may remain readable to authenticated users for now.
+- Implemented account-membership route filtering uses `account_memberships -> homes.account_id` for `/api/homes`, `/api/homes/all`, `/api/buildings`, `/api/panels`, `/api/loads`, `/api/loads/summary`, `/api/equipment/locations`, `/api/designs`, `/api/scenarios`, `/api/estimated-pathways`, compatibility issue lists/evaluation, current/generated takeoffs, design advisor summaries, AI design context, design equipment object routes, and scenario revisions. Privacy export/delete are owner-only in the implemented route layer. `member` is write-capable and `viewer` is read-only for the implemented write checks. Product library, source documents, rule provenance, load templates, and design goal presets may remain readable to authenticated users for now.
 - Provenance and recommendation inspectability surfaces may now include additive `authority_layer`, `data_classification`, `derivation_type`, and `limitations` fields.
 - Account responses may now include additive `permission_readiness` metadata explaining that role, plan, and subscription fields remain scaffolding only.
 
@@ -220,6 +220,7 @@
 - `GET /api/privacy/homes/{home_id}/export`, `POST /api/privacy/homes/{home_id}/consent`, and `DELETE /api/privacy/homes/{home_id}`
   - additive A4 local privacy surfaces for portable home record export, consent record capture, and local SQLite homeowner record deletion
   - guarded by A2 home-data middleware
+  - export and delete are also guarded by app-owned account membership owner role checks in the provider-neutral route layer
   - deletion applies to local app records only; it does not contact external providers, utilities, contractors, CRMs, email systems, backups, legal systems, payment systems, or production privacy workflows
 - `POST /api/evidence/homes/{home_id}/photo-facts`
   - additive B3 local evidence-intake endpoint that validates photo evidence metadata and extracted values before creating B1 `photo_verified` facts

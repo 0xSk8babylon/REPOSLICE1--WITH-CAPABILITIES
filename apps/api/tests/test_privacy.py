@@ -10,6 +10,7 @@ from app.core.database import engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.privacy.router import delete_homeowner_record, export_homeowner_record, record_consent  # noqa: E402
 from app.privacy.schemas import ConsentRecordCreate  # noqa: E402
+from app.security.principal import AuthPrincipal  # noqa: E402
 
 
 HOME_ID = "home_001"
@@ -55,7 +56,7 @@ class PrivacyTests(unittest.TestCase):
                 ),
                 db,
             )
-            exported = export_homeowner_record(HOME_ID, db)
+            exported = export_homeowner_record(HOME_ID, db, _owner_principal())
 
         self.assertEqual("residential_energy_planner_privacy_export_v1", exported.portable_format)
         self.assertEqual("privacy_fact", exported.exported_sections["facts"][0]["id"])
@@ -74,7 +75,7 @@ class PrivacyTests(unittest.TestCase):
                 ),
                 db,
             )
-            result = delete_homeowner_record(HOME_ID, db)
+            result = delete_homeowner_record(HOME_ID, db, _owner_principal())
             remaining_home = db.get(models.Home, HOME_ID)
             remaining_consent = db.query(models.ConsentRecord).filter_by(home_id=HOME_ID).count()
 
@@ -82,6 +83,16 @@ class PrivacyTests(unittest.TestCase):
         self.assertIsNone(remaining_home)
         self.assertEqual(0, remaining_consent)
         self.assertIn("local SQLite", result.limitations[0])
+
+
+def _owner_principal():
+    return AuthPrincipal(
+        user_id="privacy_owner",
+        allowed_home_ids={HOME_ID},
+        auth_source="fake_oidc_bearer",
+        account_ids={"account_demo"},
+        account_roles={"account_demo": "owner"},
+    )
 
 
 if __name__ == "__main__":

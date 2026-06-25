@@ -1,18 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.auth.router import current_principal
 from app.core.database import get_db
 from app.core.repository import repository
 from app.privacy.schemas import ConsentRecord, ConsentRecordCreate, PrivacyDeletionResult, PrivacyExport
+from app.security import permissions
 from app.services.privacy import privacy_service
 
 router = APIRouter(prefix="/privacy/homes/{home_id}", tags=["privacy"])
 
 
 @router.get("/export", response_model=PrivacyExport)
-def export_homeowner_record(home_id: str, db: Session = Depends(get_db)):
+def export_homeowner_record(home_id: str, db: Session = Depends(get_db), principal=Depends(current_principal)):
     if repository.get_home_by_id(db, home_id) is None:
         raise HTTPException(status_code=404, detail="Home not found")
+    permissions.require_allowed(permissions.can_privacy_admin_home(db, principal, home_id))
     return privacy_service.export_homeowner_record(db, home_id)
 
 
@@ -26,7 +29,8 @@ def record_consent(home_id: str, payload: ConsentRecordCreate, db: Session = Dep
 
 
 @router.delete("", response_model=PrivacyDeletionResult)
-def delete_homeowner_record(home_id: str, db: Session = Depends(get_db)):
+def delete_homeowner_record(home_id: str, db: Session = Depends(get_db), principal=Depends(current_principal)):
     if repository.get_home_by_id(db, home_id) is None:
         raise HTTPException(status_code=404, detail="Home not found")
+    permissions.require_allowed(permissions.can_privacy_admin_home(db, principal, home_id))
     return privacy_service.delete_homeowner_record(db, home_id)

@@ -137,6 +137,16 @@ class DatabaseRepository:
             statement = statement.where(models.BuildingStructure.home_id == home_id)
         return db.scalars(statement).all()
 
+    def list_buildings_for_homes(self, db: Session, home_ids: Set[str]):
+        if not home_ids:
+            return []
+        statement = (
+            select(models.BuildingStructure)
+            .where(models.BuildingStructure.home_id.in_(home_ids))
+            .order_by(models.BuildingStructure.created_at)
+        )
+        return db.scalars(statement).all()
+
     def get_building(self, db: Session, building_id: str):
         return db.get(models.BuildingStructure, building_id)
 
@@ -165,6 +175,16 @@ class DatabaseRepository:
             statement = statement.where(models.ElectricalPanel.home_id == home_id)
         return db.scalars(statement).all()
 
+    def list_panels_for_homes(self, db: Session, home_ids: Set[str]):
+        if not home_ids:
+            return []
+        statement = (
+            select(models.ElectricalPanel)
+            .where(models.ElectricalPanel.home_id.in_(home_ids))
+            .order_by(models.ElectricalPanel.created_at)
+        )
+        return db.scalars(statement).all()
+
     def get_panel(self, db: Session, panel_id: str):
         return db.get(models.ElectricalPanel, panel_id)
 
@@ -191,6 +211,16 @@ class DatabaseRepository:
         statement = select(models.Load).order_by(models.Load.created_at)
         if home_id:
             statement = statement.where(models.Load.home_id == home_id)
+        return db.scalars(statement).all()
+
+    def list_loads_for_homes(self, db: Session, home_ids: Set[str]):
+        if not home_ids:
+            return []
+        statement = (
+            select(models.Load)
+            .where(models.Load.home_id.in_(home_ids))
+            .order_by(models.Load.created_at)
+        )
         return db.scalars(statement).all()
 
     def get_load(self, db: Session, load_id: str):
@@ -314,6 +344,16 @@ class DatabaseRepository:
             statement = statement.where(models.EquipmentLocation.home_id == home_id)
         return db.scalars(statement).all()
 
+    def list_equipment_locations_for_homes(self, db: Session, home_ids: Set[str]):
+        if not home_ids:
+            return []
+        statement = (
+            select(models.EquipmentLocation)
+            .where(models.EquipmentLocation.home_id.in_(home_ids))
+            .order_by(models.EquipmentLocation.created_at)
+        )
+        return db.scalars(statement).all()
+
     def get_equipment_location(self, db: Session, location_id: str):
         return db.get(models.EquipmentLocation, location_id)
 
@@ -370,6 +410,16 @@ class DatabaseRepository:
             statement = statement.where(models.CompatibilityIssue.design_id == design_id)
         return db.scalars(statement).all()
 
+    def list_compatibility_issues_for_designs(self, db: Session, design_ids: Set[str]):
+        if not design_ids:
+            return []
+        statement = (
+            select(models.CompatibilityIssue)
+            .where(models.CompatibilityIssue.design_id.in_(design_ids))
+            .order_by(models.CompatibilityIssue.created_at)
+        )
+        return db.scalars(statement).all()
+
     def list_scenario_models(self, db: Session, home_ids: Optional[Set[str]] = None):
         if home_ids is not None and not home_ids:
             return []
@@ -408,12 +458,16 @@ class DatabaseRepository:
         db.delete(scenario)
         db.commit()
 
-    def get_takeoff(self, db: Session) -> Dict[str, object]:
+    def get_takeoff(self, db: Session, design_ids: Optional[Set[str]] = None) -> Dict[str, object]:
+        if design_ids is not None and not design_ids:
+            return {"request": None, "line_items": []}
         statement = (
             select(models.TakeoffRequest)
             .options(selectinload(models.TakeoffRequest.line_items))
             .order_by(models.TakeoffRequest.created_at)
         )
+        if design_ids is not None:
+            statement = statement.where(models.TakeoffRequest.design_id.in_(design_ids))
         request = db.scalars(statement).first()
         if request is None:
             return {"request": None, "line_items": []}
@@ -435,6 +489,16 @@ class DatabaseRepository:
         statement = select(models.EstimatedPathway).order_by(models.EstimatedPathway.created_at)
         if home_id:
             statement = statement.where(models.EstimatedPathway.home_id == home_id)
+        return db.scalars(statement).all()
+
+    def list_estimated_pathways_for_homes(self, db: Session, home_ids: Set[str]):
+        if not home_ids:
+            return []
+        statement = (
+            select(models.EstimatedPathway)
+            .where(models.EstimatedPathway.home_id.in_(home_ids))
+            .order_by(models.EstimatedPathway.created_at)
+        )
         return db.scalars(statement).all()
 
     def get_estimated_pathway(self, db: Session, pathway_id: str):
