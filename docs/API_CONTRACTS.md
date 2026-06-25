@@ -12,7 +12,7 @@
 - OAuth/auth foundation is documented in `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`. Slice 1 adds provider-neutral OIDC/JWT identity-proof boundary structures mapped into app-owned `users`, `oauth_identities`, and `account_memberships` before any account/home authorization or audit actor decision. No provider SDK, provider secret, session table, production wiring, deploy, or production smoke is approved by that plan.
 - Ownership/permissions enforcement is documented in `docs/security/OWNERSHIP_PERMISSIONS_PLAN.md`. The first implemented boundary is active app-owned `account_memberships`; roles come only from app-owned tables, `homes.account_id = null` is hidden/denied by default, and `home_access_grants` / `home_ownerships` remain deferred.
 - Audit/trust layer slice 1 is documented in `docs/security/AUDIT_TRUST_LAYER_PLAN.md`. Audit authority comes from the app-owned principal, account memberships, route/object authorization decisions, and source/provenance records, never provider claims. The implemented audit schema change is additive and preserves existing `audit_events` fields for compatibility.
-- Address onboarding is documented in `docs/security/ADDRESS_ONBOARDING_PLAN.md`. The approved backend-first plan uses dedicated `POST /api/onboarding/address` instead of raw `POST /api/homes`, derives or verifies writable account scope from app-owned membership, creates only non-null-account homes, returns existing homes only through account-scoped exact minimal local normalized address matches, minimizes audit context, and treats address data as user-entered until separately verified.
+- Address onboarding is documented in `docs/security/ADDRESS_ONBOARDING_PLAN.md`. The backend-first implementation uses dedicated `POST /api/onboarding/address` instead of raw `POST /api/homes`, derives or verifies writable account scope from app-owned membership, creates only non-null-account homes, returns existing homes only through account-scoped exact minimal local normalized address matches, minimizes audit context, and treats address data as user-entered until separately verified.
 - A2 adds local header-based authentication, home-level authorization, and audit logging for home-data API paths.
 - Current API responses remain product data contracts; A2 enforcement is a runtime access boundary, not a scoped view-model guarantee.
 - Existing account, role, and subscription fields are scaffolding only; they do not imply RBAC, tenant isolation, contractor authorization, utility submission, or operational-control permission.
@@ -34,7 +34,7 @@
 - Future collection/list routes must filter by app-owned account/home access before production runtime use; provider tokens and provider-side metadata must not be treated as planner authorization.
 - Implemented account-membership route filtering uses `account_memberships -> homes.account_id` for `/api/homes`, `/api/homes/all`, `/api/buildings`, `/api/panels`, `/api/loads`, `/api/loads/summary`, `/api/equipment/locations`, `/api/designs`, `/api/scenarios`, `/api/estimated-pathways`, compatibility issue lists/evaluation, current/generated takeoffs, design advisor summaries, AI design context, design equipment object routes, and scenario revisions. Privacy export/delete are owner-only in the implemented route layer. `member` is write-capable and `viewer` is read-only for the implemented write checks. Product library, source documents, rule provenance, load templates, and design goal presets may remain readable to authenticated users for now.
 - Audit/trust slice 1 adds stronger nullable app-owned audit actor/scope/context fields through explicit migration `20260625_0003_audit_trust_foundation.py`, routes middleware/privacy audit writes through the central writer, and makes `GET /api/provenance` authenticated plus entity-aware filtered. No new audit query API is approved.
-- Planned address onboarding should add `POST /api/onboarding/address` as an additive first-time home creation/resolution workflow. It should not add external geocoding, address validation APIs, property enrichment, utility inference, climate/AHJ/program inference, provider SDKs, secrets, or frontend behavior in the backend-first slice.
+- Address onboarding slice 1 adds `POST /api/onboarding/address` as an additive first-time home creation/resolution workflow. It does not add external geocoding, address validation APIs, property enrichment, utility inference, climate/AHJ/program inference, provider SDKs, secrets, migrations, or frontend behavior.
 - Provenance and recommendation inspectability surfaces may now include additive `authority_layer`, `data_classification`, `derivation_type`, and `limitations` fields.
 - Account responses may now include additive `permission_readiness` metadata explaining that role, plan, and subscription fields remain scaffolding only.
 
@@ -76,7 +76,6 @@
 - `GET /api/planner-sandbox/templates`
 - `GET /api/planner-sandbox/templates/{template_id}`
 - `POST /api/planner-sandbox/drafts/validate`
-- Planned: `POST /api/onboarding/address`
 - `GET /api/homes/{home_id}/facts`
 - `GET /api/homes/{home_id}/facts/gaps/{calculation_name}`
 - `GET /api/homes/{home_id}/load-calculations/nec-220`
@@ -97,6 +96,18 @@
 ## Current Write Contracts
 
 - `POST/PATCH /api/accounts`
+- `POST /api/onboarding/address`
+  - dedicated first-time address onboarding path
+  - request fields: optional `account_id`, `name`, `address_line_1`, optional `address_line_2`, `city`, `state`, `postal_code`, and `country`
+  - response fields: `home_id`, `account_id`, `status`, `readiness_state`, `next_route`, `next_steps`, and `limitations`
+  - `status` is `created` or `existing_home_found`; `readiness_state` is `address_recorded`
+  - owner/admin/member account memberships may create or resolve homes; viewer and no-writable-account principals are denied
+  - multiple writable accounts require explicit `account_id`
+  - created homes always have non-null `account_id`
+  - matching is local/minimal normalization only and account-scoped; the same address in another account is not returned
+  - audit events use minimized context and do not store the full raw address body
+  - user-entered data provenance rows are created for recorded address fields
+  - no external geocoding, validation, enrichment, utility/climate/AHJ/program inference, provider SDK, secret, or frontend behavior is part of this slice
 - `POST/PATCH /api/homes`
   - not the approved first-time address onboarding path
 - `POST/PATCH /api/buildings`

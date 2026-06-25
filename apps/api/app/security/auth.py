@@ -23,6 +23,7 @@ HOME_PATH_PATTERNS = (
 
 HOME_DATA_PREFIXES = (
     "/api/homes",
+    "/api/onboarding",
     "/api/buildings",
     "/api/panels",
     "/api/loads",

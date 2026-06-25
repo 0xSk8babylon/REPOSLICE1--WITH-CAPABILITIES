@@ -24,6 +24,7 @@ from app.geometry.router import router as geometry_router
 from app.homes.router import router as homes_router
 from app.loads.router import router as loads_router
 from app.nec_load_calculation.router import router as nec_load_calculation_router
+from app.onboarding.router import router as onboarding_router
 from app.panels.router import router as panels_router
 from app.planner_sandbox.router import router as planner_sandbox_router
 from app.planning_exchange.router import router as planning_exchange_router
@@ -127,4 +128,5 @@ api_router.include_router(privacy_router)
 api_router.include_router(evidence_router)
 api_router.include_router(planner_sandbox_router)
 api_router.include_router(auth_router)
+api_router.include_router(onboarding_router)
 app.include_router(api_router)
