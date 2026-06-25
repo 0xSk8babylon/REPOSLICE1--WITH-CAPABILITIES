@@ -329,12 +329,11 @@ Rollback posture:
 - Production Postgres instance status: `RUNNING`.
 - Production Postgres volume state: `READY`.
 - Production DB vars exist: yes, values redacted.
-- Production Alembic Gate 2 status: BLOCKED on 2026-06-25 before production database connection.
-- 1Password `op run` delivery path with disposable Docker API dependency install: reached Alembic invocation without printing secrets.
-- Gate 2 blocker: owner-run Docker command failed during Alembic environment import because SQLAlchemy interpreted the resolved Postgres URL with the default `psycopg2` dialect, while `apps/api/requirements.txt` installs `psycopg`.
-- Production Alembic upgrade applied: no.
-- Production Alembic version verified: no, blocked before database connection.
-- Production schema/tables verified: no, blocked before database connection.
+- Production Alembic Gate 2 status: verification pending after owner-run Alembic command completed without traceback on 2026-06-25.
+- 1Password `op run` delivery path with disposable Docker API dependency install and in-memory `postgresql+psycopg://` URL rewrite: reached Alembic invocation without printing secrets.
+- Production Alembic upgrade command result: returned to shell with no traceback.
+- Production Alembic version verified: no, verification output not yet provided.
+- Production schema/tables verified: no, verification output not yet provided.
 - PG-8E production data migration run: no.
 - Production FastAPI deployed: no.
 - Production FastAPI env vars set: no.
@@ -345,4 +344,4 @@ Rollback posture:
 
 ## Next Required Approval
 
-Next immediate prerequisite is rerunning Gate 2 with the Postgres URL presented to SQLAlchemy as `postgresql+psycopg://...`, while keeping the same `op run --env-file scripts/templates/production-op.env.tpl` delivery boundary and avoiding secret output. Production PG-8E data cutover remains a separate later approval after Gate 2 passes; production FastAPI deploy/env-var wiring and public production smoke are also not approved.
+Next immediate prerequisite is a non-secret verification-only check confirming `alembic_version=20260523_0001` and expected public tables. Production PG-8E data cutover remains a separate later approval after Gate 2 passes; production FastAPI deploy/env-var wiring and public production smoke are also not approved.
