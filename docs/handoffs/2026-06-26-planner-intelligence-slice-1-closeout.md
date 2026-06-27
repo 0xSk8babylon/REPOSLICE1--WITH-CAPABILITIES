@@ -66,10 +66,33 @@ Stacked on prior local work: `5551ba9` feat: add frontend address onboarding flo
 
 ## Production / Runtime Status
 
-- Production runtime credential verification remains PENDING: the rotated
-  credential lives in the approved 1Password source, but a live read-only
-  connectivity check was not run because the `op` CLI had no active session in the
-  non-interactive shell (requires interactive `op signin`).
+- Production runtime credential verification - PASS:
+  - 1Password `op run` resolved production `DATABASE_URL`.
+  - `DATABASE_URL` was not printed.
+  - Read-only `select 1` passed.
+  - No production write occurred.
+  - No migration, Alembic command, seed, deploy, push, or production mutation
+    occurred.
+- Production DB verification-only closeout - PASS:
+  - Alembic version observed: `20260523_0001`.
+  - Public base table count: 26.
+  - Baseline row counts matched:
+    - accounts: 1
+    - homes: 1
+    - source_documents: 5
+    - data_provenance: 7
+    - rule_provenance: 25
+    - equipment_products: 8
+    - energy_system_designs: 2
+    - scenarios: 2
+  - audit_events observed: 0 at verification time.
+  - Foreign key constraints: 27.
+  - Unvalidated foreign keys: 0.
+  - FK orphan checks: all 0.
+  - Schema note: scenarios use `home_id` and `linked_design_id`; do not assume
+    `scenarios.design_id`.
+  - PG-8E must not be rerun. Production is populated and verified; future work is
+    verification/operation only unless explicitly approved.
 - Local `.env` contains no `DATABASE_URL`, so no stale local DB credential can be
   picked up by the runtime path; `apps/api/app/core/config.py` reads `DATABASE_URL`
   from env only (no hardcoded fallback).
@@ -89,6 +112,6 @@ Stacked on prior local work: `5551ba9` feat: add frontend address onboarding flo
 
 Keep the completed slice local on `fix/github-workflow`. A GitHub push is deferred
 by owner decision; revisit only when the owner repoints `origin` to a valid
-repository or explicitly approves a target. The production runtime credential
-live-check (interactive `op signin` + read-only `SELECT 1`) and any production DB
-verification remain owner-gated and verification-only.
+repository or explicitly approves a target. Production is populated and verified;
+PG-8E must not be rerun. Future production work is verification/operation only
+unless explicitly approved.
