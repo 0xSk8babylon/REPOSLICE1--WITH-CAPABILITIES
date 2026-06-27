@@ -5,8 +5,9 @@
 The first reasoning tools / planner intelligence slice is complete and committed
 locally on `fix/github-workflow`. It adds a single design-scoped, authorized,
 audited, provenance-backed read facade over existing deterministic reasoning
-outputs. Verified booting in Python 3.11 + pydantic 2.13. Not pushed by owner
-decision.
+outputs plus a small frontend Why / Sources panel in the existing design advisor
+workspace. Backend boot and focused tests passed before the UI slice; the UI
+slice build passed in `apps/web`. Not pushed by owner decision.
 
 ## Scope
 
@@ -14,6 +15,8 @@ decision.
 - New aggregator service `apps/api/app/services/planner_intelligence.py`
 - Single endpoint: `GET /api/planner-intelligence/designs/{design_id}/summary`
 - Focused backend tests `apps/api/tests/test_planner_intelligence.py`
+- Frontend API client method `api.getPlannerIntelligence(designId)`
+- Non-blocking Why / Sources panel inside `apps/web/src/pages/DesignAdvisorPage.jsx`
 - Composition only: no new reasoning math, no LLM, no external calls, no
   persistence, no migration
 - Upgrade ladder sourced from public `design_advisor_service.explain()["planning_state"]`;
@@ -28,8 +31,10 @@ decision.
 - `8a9930d` feat: planner intelligence read facade (slice 1, C1, backend facade)
 - `7db4c6b` test: verify planner intelligence auth audit and provenance (C3,
   focused tests)
+- `ed37eaa` feat: surface planner intelligence why sources panel (UI Slice 1)
 
 Stacked on prior local work: `5551ba9` feat: add frontend address onboarding flow.
+Production verification closeout is recorded in `cf2c91d`.
 
 ## Verification
 
@@ -51,18 +56,53 @@ Stacked on prior local work: `5551ba9` feat: add frontend address onboarding flo
 - No production code changed by the tests; the only test fix was test-internal
   (capture the facade's first `explain` call; static source check for the private
   builder)
+- UI Slice 1: `npm run build` passed in `apps/web`.
+- UI Slice 1: `git diff --check` passed before commit.
+- UI Slice 1 focused review passed: planner-intelligence fetch is non-blocking;
+  existing advisor rendering is not blocked if the planner-intelligence fetch
+  fails; loading/error/empty states are contained inside the Why / Sources
+  section.
+
+## UI Slice 1 Closeout
+
+- Added `api.getPlannerIntelligence(designId)` using the existing
+  `GET /api/planner-intelligence/designs/{design_id}/summary` endpoint.
+- Added a compact, read-only Why / Sources panel inside `DesignAdvisorPage.jsx`.
+- Changed files:
+  - `apps/web/src/lib/api.js`
+  - `apps/web/src/pages/DesignAdvisorPage.jsx`
+- The panel renders trust, confidence, source/provenance, limitation, missing
+  input, and assumption context from backend trust envelopes.
+- The panel is non-blocking; Design Advisor rendering still works if the
+  planner-intelligence fetch fails.
+- Authority boundaries preserved: no final design guidance,
+  engineering/permitting/utility/pricing authority, savings/payback claims,
+  product ranking, proposal language, or homeowner directive.
+- Minor residual risk: provenance refs are safe/internal but not yet very
+  homeowner-friendly.
+- Suggested future refinement: homeowner-friendly provenance labels and copy
+  polish only; no backend architecture change is implied.
 
 ## Boundaries Preserved
 
 - Push: no (owner declined GitHub push for now)
 - Deploy: no
 - Migration: no (none created; production migration must remain not-rerun)
+- Alembic command: no
+- Seed: no
 - Production DB: not touched (any production DB work is verification-only)
 - Production commands: none run
+- Production mutation: no
 - Remotes changed: no
 - Force push: no
 - LLM / external API / secrets added: no
-- UI: no (frontend deferred to a later UI-quality pass)
+- Persistence: no
+- New backend endpoint: no
+- New dependencies: no
+- New reasoning math: no
+- Backend changed by UI Slice 1: no
+- UI: Planner Intelligence UI Slice 1 complete in the existing Design Advisor
+  page; no broad redesign.
 
 ## Production / Runtime Status
 
@@ -108,10 +148,19 @@ Stacked on prior local work: `5551ba9` feat: add frontend address onboarding flo
   (`Repository not found`); the local `origin/fix/github-workflow` tracking ref is
   stale. No remote was changed.
 
+## OwnerWorkflows Closeout Notes
+
+- Applied OwnerWorkflows docs-only, session-closeout, validation-by-scope, and
+  commit-isolation guidance.
+- Closeout scope remained documentation-only; no code, backend, UI, schema,
+  dependency, deployment, production, or remote changes were made for this
+  closeout update.
+- Push remains separately owner-approved only.
+
 ## Next Safe Step
 
-Keep the completed slice local on `fix/github-workflow`. A GitHub push is deferred
-by owner decision; revisit only when the owner repoints `origin` to a valid
-repository or explicitly approves a target. Production is populated and verified;
-PG-8E must not be rerun. Future production work is verification/operation only
-unless explicitly approved.
+Keep the completed slice local on `fix/github-workflow`. A GitHub push is
+deferred by owner decision and must remain separately approved. Production is
+populated and verified; PG-8E must not be rerun. Future production work is
+verification/operation only unless explicitly approved. The only suggested UI
+follow-up is copy polish for homeowner-friendly provenance labels.
