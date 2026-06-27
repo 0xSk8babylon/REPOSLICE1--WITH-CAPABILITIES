@@ -93,6 +93,15 @@ function formatStateLabel(value) {
   return value.replaceAll("_", " ");
 }
 
+function formatInlineList(items, fallback = "Not recorded") {
+  return (items || []).length ? items.join(", ") : fallback;
+}
+
+function formatEntityRef(ref) {
+  const role = ref.role ? ` (${formatStateLabel(ref.role)})` : "";
+  return `${ref.entity_type}:${ref.entity_id}${role}`;
+}
+
 function WorkspaceSection({ title, description, children }) {
   return (
     <section className="solution-list">
@@ -100,6 +109,267 @@ function WorkspaceSection({ title, description, children }) {
       {description ? <p className="callout-copy">{description}</p> : null}
       {children}
     </section>
+  );
+}
+
+function TrustEnvelopeSummary({ envelope }) {
+  if (!envelope) {
+    return (
+      <div className="solution-list">
+        <strong>Trust and source context</strong>
+        <p className="callout-copy">No trust envelope was returned for this block, so its advisory details are not shown here.</p>
+      </div>
+    );
+  }
+
+  const provenanceRefs = envelope.provenance_refs || [];
+
+  return (
+    <div className="solution-list">
+      <strong>Trust and source context</strong>
+      <div className="trust-row">
+        <Badge tone="info">{formatStateLabel(envelope.authority_layer)}</Badge>
+        <Badge tone={getConfidenceTone(envelope.confidence_level)}>
+          Confidence: {envelope.confidence_level || "not recorded"}
+        </Badge>
+        <Badge tone={envelope.provisional ? "warning" : "success"}>
+          {envelope.provisional ? "provisional" : "not provisional"}
+        </Badge>
+        <Badge>{formatStateLabel(envelope.trust_zone)}</Badge>
+      </div>
+      <ul>
+        <li>Data classification: {formatStateLabel(envelope.data_classification)}</li>
+        <li>Provenance refs: {provenanceRefs.length}</li>
+        <li>Missing inputs: {formatInlineList(envelope.missing_inputs)}</li>
+        <li>Assumptions: {formatInlineList(envelope.assumptions)}</li>
+        <li>Scope limits: {formatInlineList(envelope.scope_limitations)}</li>
+      </ul>
+      {provenanceRefs.length ? (
+        <details>
+          <summary>View source references</summary>
+          <ul>
+            {provenanceRefs.map((ref, index) => (
+              <li key={`${ref.entity_type}-${ref.entity_id}-${ref.role || "source"}-${index}`}>
+                {formatEntityRef(ref)}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+function PlannerBlockPanel({ title, description, envelope, children }) {
+  if (!envelope) {
+    return null;
+  }
+
+  return (
+    <article className="panel">
+      <div className="panel-header">
+        <div>
+          <h3>{title}</h3>
+          {description ? <p className="callout-copy">{description}</p> : null}
+        </div>
+        <div className="badge-row">
+          <TrustBadge state="derived_estimate" label="Source-linked planning view" />
+          <Badge tone={getConfidenceTone(envelope.confidence_level)}>
+            Confidence: {envelope.confidence_level || "not recorded"}
+          </Badge>
+        </div>
+      </div>
+      <TrustEnvelopeSummary envelope={envelope} />
+      {children}
+    </article>
+  );
+}
+
+function PlannerIntelligencePanel({ summary }) {
+  const blocks = summary?.blocks || {};
+  const recommendations = blocks.recommendations;
+  const recommendation = recommendations?.recommendation;
+  const constraints = blocks.constraints;
+  const readiness = blocks.readiness_explanation;
+  const completeness = readiness?.completeness || {};
+  const upgradePath = blocks.upgrade_path_explanation;
+  const planningState = upgradePath?.planning_state;
+  const readinessContext = upgradePath?.readiness_context || {};
+  const scenarioComparison = blocks.scenario_comparison_explanation;
+  const comparison = scenarioComparison?.comparison || {};
+  const provenance = blocks.provenance_summary;
+
+  return (
+    <div className="solution-list">
+      <div className="panel-header">
+        <div>
+          <h3>Why / Sources</h3>
+          <p className="callout-copy">
+            Read-only source context from the backend summary. This panel explains why planner-intelligence blocks
+            exist; it does not direct homeowner action, choose a design, create a proposal, or replace professional
+            review.
+          </p>
+        </div>
+        <div className="badge-row">
+          <Badge tone="danger">Not engineering approval</Badge>
+          <TrustBadge state="derived_estimate" label="Advisory explanation" />
+        </div>
+      </div>
+
+      {(summary.limitations || []).length ? (
+        <div className="solution-list">
+          <strong>View boundary</strong>
+          <ul>
+            {summary.limitations.map((limitation) => (
+              <li key={limitation}>{limitation}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <p className="callout-copy">
+        Owner workflow boundary: recommendation and comparison fields are displayed only as traceable planning
+        context. They are not homeowner directives, final design guidance, product recommendations, ranked choices,
+        savings/payback estimates, permission grants, exports, or operational behavior.
+      </p>
+
+      <div className="card-grid">
+        <PlannerBlockPanel
+          title="Recommendations summary"
+          description="Existing backend recommendation-profile context, shown only with its trust envelope."
+          envelope={recommendations?.trust_envelope}
+        >
+          <div className="metric-stack">
+            <MetricRow
+              label="Profile signal"
+              value={recommendation?.recommended_profile?.replaceAll("_", " ") || "Not returned"}
+            />
+            <MetricRow label="Basis" value={recommendation?.basis || "Not recorded"} />
+            <MetricRow label="Scope" value={recommendation?.scope_note || "Not recorded"} />
+          </div>
+        </PlannerBlockPanel>
+
+        <PlannerBlockPanel
+          title="Constraints summary"
+          description="Rule-derived compatibility constraints and warnings."
+          envelope={constraints?.trust_envelope}
+        >
+          {(constraints?.items || []).length ? (
+            <ul>
+              {constraints.items.slice(0, 4).map((item, index) => (
+                <li key={`${item.issue}-${index}`}>
+                  {item.severity || "severity not recorded"}: {item.issue}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="callout-copy">No constraints were returned for this design.</p>
+          )}
+          {(constraints?.items || []).length > 4 ? (
+            <p className="callout-copy">{constraints.items.length - 4} additional constraints remain in the backend payload.</p>
+          ) : null}
+        </PlannerBlockPanel>
+
+        <PlannerBlockPanel
+          title="Readiness explanation"
+          description="Completeness and missing-input state from the advisor summary."
+          envelope={readiness?.trust_envelope}
+        >
+          <div className="metric-stack">
+            <MetricRow label="Completeness" value={`${completeness.completeness_score ?? "N/A"}/100`} />
+            <MetricRow label="Scope" value={completeness.scope_note || "Not recorded"} />
+            <MetricRow label="Missing categories" value={formatInlineList(completeness.missing_categories)} />
+          </div>
+          {(completeness.recommended_next_steps || []).length ? (
+            <details className="solution-list">
+              <summary>View next steps</summary>
+              <ul>
+                {completeness.recommended_next_steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </PlannerBlockPanel>
+
+        <PlannerBlockPanel
+          title="Upgrade path explanation"
+          description="Planning-state variant summary with readiness context."
+          envelope={upgradePath?.trust_envelope}
+        >
+          <div className="metric-stack">
+            <MetricRow label="Planning state" value={planningState?.summary || "Not returned"} />
+            <MetricRow label="Design goal" value={planningState?.design_goal?.replaceAll("_", " ") || "Not recorded"} />
+            <MetricRow
+              label="Expansion basis"
+              value={readinessContext.expansion_basis || "Not recorded"}
+            />
+          </div>
+          {(planningState?.variants || []).length ? (
+            <details className="solution-list">
+              <summary>View planning variants</summary>
+              <ul>
+                {planningState.variants.map((variant) => (
+                  <li key={variant.variant_key}>
+                    {variant.label}: {formatStateLabel(variant.state_role)}; confidence {variant.confidence_level || "not recorded"}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </PlannerBlockPanel>
+
+        {scenarioComparison ? (
+          <PlannerBlockPanel
+            title="Scenario comparison"
+            description="Home-scoped comparison context if the backend returned one; not a homeowner ranking or choice."
+            envelope={scenarioComparison.trust_envelope}
+          >
+            <div className="metric-stack">
+              <MetricRow label="Status" value={comparison.status || "Not recorded"} />
+              <MetricRow label="Scenario count" value={String(comparison.summary?.scenario_count ?? "N/A")} />
+              <MetricRow label="Average completeness" value={String(comparison.summary?.average_completeness_score ?? "N/A")} />
+            </div>
+            {comparison.comparison_note ? <p className="callout-copy">{comparison.comparison_note}</p> : null}
+            {(comparison.warnings || []).length ? (
+              <details className="solution-list">
+                <summary>View comparison warnings</summary>
+                <ul>
+                  {comparison.warnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
+          </PlannerBlockPanel>
+        ) : null}
+
+        <PlannerBlockPanel
+          title="Provenance and missing inputs"
+          description="Aggregated source, rule, assumption, and missing-input metadata."
+          envelope={provenance?.trust_envelope}
+        >
+          <div className="metric-stack">
+            <MetricRow label="Source documents" value={String((provenance?.source_document_ids || []).length)} />
+            <MetricRow label="Rule keys" value={formatInlineList(provenance?.rule_keys)} />
+            <MetricRow label="Missing inputs" value={formatInlineList(provenance?.missing_inputs)} />
+            <MetricRow label="Assumptions" value={formatInlineList(provenance?.assumptions)} />
+          </div>
+          {(provenance?.contributing || []).length ? (
+            <details className="solution-list">
+              <summary>View contributing source summaries</summary>
+              <ul>
+                {provenance.contributing.map((item) => (
+                  <li key={`${item.entity_type}-${item.entity_id}`}>
+                    {item.entity_type}:{item.entity_id} - source types {formatInlineList(item.source_types)};
+                    trust {formatInlineList(item.trust_states)}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </PlannerBlockPanel>
+      </div>
+    </div>
   );
 }
 
@@ -1135,6 +1405,12 @@ export function DesignAdvisorPage() {
     { enabled: Boolean(activeDesignId) }
   );
 
+  const plannerIntelligenceQuery = useApiQuery(
+    `planner-intelligence-${activeDesignId}`,
+    () => api.getPlannerIntelligence(activeDesignId),
+    { enabled: Boolean(activeDesignId) }
+  );
+
   return (
     <>
       <PageSection
@@ -1222,6 +1498,23 @@ export function DesignAdvisorPage() {
               />
             ) : null}
           </>
+        ) : null}
+      </PageSection>
+
+      <PageSection
+        title="Why / Sources"
+        description="Planner-intelligence explanations stay read-only and source-linked; missing inputs and assumptions remain visible next to the claims they qualify."
+      >
+        {!activeDesignId ? <EmptyState label="Select a design to review planner intelligence sources." /> : null}
+        {plannerIntelligenceQuery.loading ? <LoadingState label="Loading planner intelligence sources..." /> : null}
+        {plannerIntelligenceQuery.error ? (
+          <ErrorState error={plannerIntelligenceQuery.error} label="Unable to load planner intelligence sources." />
+        ) : null}
+        {!plannerIntelligenceQuery.loading && !plannerIntelligenceQuery.error && plannerIntelligenceQuery.data ? (
+          <PlannerIntelligencePanel summary={plannerIntelligenceQuery.data} />
+        ) : null}
+        {!plannerIntelligenceQuery.loading && !plannerIntelligenceQuery.error && activeDesignId && !plannerIntelligenceQuery.data ? (
+          <EmptyState label="No planner intelligence summary is available for this design yet." />
         ) : null}
       </PageSection>
 

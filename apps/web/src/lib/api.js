@@ -124,6 +124,7 @@ export const api = {
   getTakeoff: () => request(apiPath("/takeoffs/current")),
   generateTakeoff: (designId) => request(apiPath(`/takeoffs/generate/${designId}`)),
   getDesignAdvisor: (designId) => request(apiPath(`/design-advisor/summary/${designId}`)),
+  getPlannerIntelligence: (designId) => request(apiPath(`/planner-intelligence/designs/${designId}/summary`)),
   getAIContext: (designId) => request(apiPath(`/ai-context/design/${designId}`)),
   getEstimatePlaceholder: () => request(apiPath("/estimates/placeholder")),
   getArchitectureVisibility: () => request(apiPath("/system-visibility/architecture")),
