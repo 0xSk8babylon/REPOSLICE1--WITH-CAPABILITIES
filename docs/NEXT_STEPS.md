@@ -40,3 +40,10 @@ Future implementation should load philosophy or ADR files only when the task tou
 - Provenance ledger
 - Audit trail
 - NEC/permitting logic
+
+## Lovable Reference Parity Follow-Ons (2026-06-28)
+
+1. Owner review + branch commit of the uncommitted parity diff (nothing committed/pushed yet).
+2. Investigate the pre-existing `:8000` audit-table schema 500 (`audit_events` missing `actor_user_id`) separately if a live-backend demo is required; it is unrelated to this pass.
+3. Only finalize a Planner draft template by explicitly promoting it into `PlannerSandboxService._templates()` (backend registry) — none are finalized in this pass.
+4. Keep `capabilities-*` references as internal/debug classification evidence; do not promote into primary homeowner nav. Catalog stays reachable without persistence.

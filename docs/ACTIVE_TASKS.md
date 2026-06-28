@@ -30,3 +30,10 @@
 - Provenance ledger
 - Audit trail
 - NEC/permitting logic
+
+## Lovable Reference Parity Tasks (2026-06-28)
+
+- DONE: Stabilized Lovable reference folder, recorded authority order + parity protocol, applied guarded Planner draft / Home empty-state / Explore parity fixes (frontend-only, uncommitted, pending owner review).
+- OPEN: Owner review and branch commit of the parity diff.
+- DEFERRED: Builder contractor handoff / CRM / post-install cards; Explore product-ingestion upload; Catalog persistence — all out of scope by hard boundary.
+- NOTE: Planner draft templates are render-only mock content and must not be promoted to the backend registry until explicitly finalized.

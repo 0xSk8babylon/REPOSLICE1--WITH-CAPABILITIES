@@ -166,3 +166,10 @@ Alembic is now scaffolded, but migration discipline is still early-stage and not
 - Future sessions should assume the database schema is the current system of record unless explicitly replaced.
 - Future sessions should not assume undocumented product facts, code rules, or subscription semantics are implemented.
 - If a later session changes API shapes, it must treat that as a compatibility event and document it immediately in this continuity system.
+
+## Lovable Reference Parity (2026-06-28)
+
+- Stable Lovable reference screenshots: `~/TwinEnergy/references/lovable-references/`. Visual/card parity evidence only — not a source of backend truth and must not override owner-workflows or current repo contracts.
+- Planner shell shows 2 finalized live backend templates plus 3 render-only mock drafts; drafts are never persisted, POSTed, validated, or promoted. Backend template registry remains exactly 2 templates.
+- Home empty-Postgres state is additive (full shell + onboarding), not substitutive; Postgres is not seeded by default to fill the UI.
+- Protocol: `docs/lovable-reference-parity.md`; handoff: `docs/handoffs/2026-06-28-lovable-reference-parity-closeout.md`.

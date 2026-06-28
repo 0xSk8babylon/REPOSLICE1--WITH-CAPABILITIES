@@ -324,3 +324,10 @@ Phase 4 Trust / Provenance Maturity and Readiness Normalization is complete and 
 - Residential Energy Twin permissioned-view planning note: `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`
 - Scoped view-model mapping: `docs/security/SCOPED_VIEW_MODEL_MAPPING.md`
 - Continuity workflow: `docs/session-continuity/continuity-workflow.md`
+
+## Lovable Reference Parity (2026-06-27)
+
+- Stable Lovable screenshot reference path: `~/TwinEnergy/references/lovable-references/` (plural `references`). Copied, not moved, from `~/Pictures/lovable-references/`; originals preserved.
+- Authority order: owner-workflows > current repo code/contracts > heart-quill source repo > Lovable screenshots (visual/card parity evidence only). Screenshots are not a source of backend truth and must not override owner-workflows or current repo contracts.
+- Full protocol + parity table: `docs/lovable-reference-parity.md`.
+- Guarded parity-pass fixes applied: Planner draft templates render-only merge (2 live backend + 3 mock drafts), Home 404 empty-state now additive (full shell + "Record address" prompt), Explore goal-card parity restored (static/local-UI only). No migrations, no new tables, no runtime seed changes, no auth/save/load wiring, no backend template promotion.

@@ -457,6 +457,11 @@
   align-items: end;
 }
 
+.hq-onboarding-notice {
+  border-color: rgba(224, 145, 63, 0.32);
+  background: rgba(224, 145, 63, 0.08);
+}
+
 .hq-onboarding-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
@@ -746,6 +751,17 @@
 .hq-overlay-choice-active {
   border-color: rgba(143, 184, 216, 0.72);
   background: rgba(143, 184, 216, 0.13);
+}
+
+.hq-overlay-choice-draft {
+  opacity: 0.55;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.hq-card-draft {
+  opacity: 0.6;
+  border-style: dashed;
 }
 
 .hq-grid-section {

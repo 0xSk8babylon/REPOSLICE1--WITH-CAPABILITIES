@@ -7,13 +7,15 @@ import {
   capabilities,
   catalogItems,
   comparisonRows,
+  draftTemplates,
+  fallbackTemplateOverlay,
   goals,
   homeFacts as staticHomeFacts,
   homeRecord as staticHomeRecord,
   learnTopics,
+  liveTemplateFallback,
   sandboxDrafts,
   templateOverlays,
-  templates as staticTemplates,
   twinEdges,
   twinNodes,
   upgradePath,
@@ -130,6 +132,8 @@ function toTemplateCard(template) {
     complexity: Math.min(4, Math.max(1, template.steps?.length || 1)),
     blurb: template.summary,
     basis: template.non_authoritative_note,
+    isDraft: false,
+    source: "backend",
   };
 }
 
@@ -285,48 +289,30 @@ export function HeartQuillAppShell({ children }) {
   );
 }
 
-function HomeOnboardingEmptyState() {
+function HomeOnboardingNotice() {
+  // Additive (not substitutive): rendered alongside the full Home shell when no home
+  // record exists yet (404 /api/homes). Empty Postgres is valid; this prompts the
+  // homeowner to record an address without seeding data or hiding the shell.
   return (
-    <div className="hq-page hq-home-page">
-      <section className="hq-hero hq-onboarding-empty">
-        <div className="hq-hero-copy">
-          <p className="hq-eyebrow">Home</p>
-          <h1>Start with the home address.</h1>
-          <p>
-            No account-scoped home record is available yet. Record a user-entered address to create or resolve the
-            Energy Twin foundation without geocoding, property enrichment, or utility inference.
-          </p>
-          <div className="hq-actions">
-            <Link className="hq-btn hq-btn-primary" to="/onboarding/address">
-              Record address <Icon name="arrow" size={15} />
-            </Link>
-          </div>
+    <section className="hq-panel hq-onboarding-notice" aria-label="Record a home address">
+      <div className="hq-panel-head">
+        <div>
+          <p className="hq-eyebrow">Start here</p>
+          <h2>No home record yet</h2>
         </div>
-        <section className="hq-panel hq-record-panel">
-          <div className="hq-panel-head">
-            <div>
-              <p className="hq-eyebrow">Current status</p>
-              <h2>No home record</h2>
-            </div>
-            <Badge tone="warn">Needs address</Badge>
-          </div>
-          <dl className="hq-record-list">
-            <div>
-              <dt>Address</dt>
-              <dd>Not recorded</dd>
-            </div>
-            <div>
-              <dt>Source</dt>
-              <dd>User entry required</dd>
-            </div>
-            <div>
-              <dt>Validation</dt>
-              <dd>No external validation in this step</dd>
-            </div>
-          </dl>
-        </section>
-      </section>
-    </div>
+        <Badge tone="warn">Needs address</Badge>
+      </div>
+      <p>
+        No account-scoped home record is available, so the Energy Twin below shows static placeholders.
+        Record a user-entered address to create the Energy Twin foundation — without geocoding, property
+        enrichment, or utility inference. Calculations and backend data stay unavailable until a home exists.
+      </p>
+      <div className="hq-actions">
+        <Link className="hq-btn hq-btn-primary" to="/onboarding/address">
+          Record address <Icon name="arrow" size={15} />
+        </Link>
+      </div>
+    </section>
   );
 }
 
@@ -349,16 +335,15 @@ export function HomeShellPage() {
   const needsCount = factsQuery.data?.length ? factSummary.needs : twinNodes.filter((node) => node.status === "needs").length;
   const missingCount = loadCalcQuery.data ? necSummary.missing : twinNodes.filter((node) => node.status === "missing").length;
 
-  if (!homeQuery.loading && homeLoadNoHome) {
-    return <HomeOnboardingEmptyState />;
-  }
+  const showOnboarding = !homeQuery.loading && homeLoadNoHome;
 
   return (
     <div className="hq-page hq-home-page">
+      {showOnboarding ? <HomeOnboardingNotice /> : null}
       <section className="hq-hero">
         <div className="hq-hero-copy">
           <p className="hq-eyebrow">Home</p>
-          <h1>Your home has an Energy Twin.</h1>
+          <h1>{showOnboarding ? "Your home will have an Energy Twin." : "Your home has an Energy Twin."}</h1>
           <p>
             Start from the durable record: known facts, current status, missing inputs, and the next
             homeowner-safe step. Backend reads are read-only; placeholder data stays labeled when a read is unavailable.
@@ -587,12 +572,27 @@ export function ExploreShellPage() {
 
 export function PlannerShellPage() {
   const [tab, setTab] = useState("templates");
-  const [overlayId, setOverlayId] = useState("ac-partial");
+  const [overlayId, setOverlayId] = useState(null);
   const templateQuery = useApiQuery("hq-planner-sandbox-templates", api.getPlannerSandboxTemplates);
-  const plannerTemplates = templateQuery.data?.templates?.length
+  // Two finalized live templates from the backend registry (or static fallback when the
+  // read is unavailable), merged with three render-only mock drafts for display only.
+  const liveTemplates = templateQuery.data?.templates?.length
     ? templateQuery.data.templates.map(toTemplateCard)
-    : staticTemplates;
-  const overlay = templateOverlays[overlayId];
+    : liveTemplateFallback;
+  const plannerTemplates = [...liveTemplates, ...draftTemplates];
+  const selectableTemplates = plannerTemplates.filter((template) => !template.isDraft);
+  // Drafts can never drive the canvas overlay; only a finalized live template can be selected.
+  const activeOverlayId =
+    overlayId && selectableTemplates.some((template) => template.id === overlayId)
+      ? overlayId
+      : selectableTemplates[0]?.id;
+  const overlay = templateOverlays[activeOverlayId] || fallbackTemplateOverlay;
+
+  // Early-return guard: a draft template must not enter the real scenario path.
+  function selectTemplate(template) {
+    if (template.isDraft) return;
+    setOverlayId(template.id);
+  }
 
   return (
     <div className="hq-page">
@@ -619,18 +619,27 @@ export function PlannerShellPage() {
         <div className="hq-canvas-grid">
           <HomeDiagram selectedId={null} onSelect={() => {}} overlay={overlay} />
           <div className="hq-overlay-list">
-            {staticTemplates.map((template) => {
-              const active = template.id === overlayId;
+            {plannerTemplates.map((template) => {
+              const active = template.id === activeOverlayId;
+              const chipClass = [
+                "hq-overlay-choice",
+                active ? "hq-overlay-choice-active" : "",
+                template.isDraft ? "hq-overlay-choice-draft" : "",
+              ]
+                .filter(Boolean)
+                .join(" ");
               return (
                 <button
                   type="button"
                   key={template.id}
-                  className={active ? "hq-overlay-choice hq-overlay-choice-active" : "hq-overlay-choice"}
-                  onClick={() => setOverlayId(template.id)}
+                  className={chipClass}
+                  onClick={() => selectTemplate(template)}
+                  disabled={template.isDraft}
+                  aria-disabled={template.isDraft}
                 >
-                  <i style={{ background: templateOverlays[template.id]?.color }} />
+                  <i style={{ background: (templateOverlays[template.id] || fallbackTemplateOverlay).color }} />
                   <span>{template.architecture}</span>
-                  <strong>{template.intent}</strong>
+                  <strong>{template.intent}{template.isDraft ? " · Draft" : ""}</strong>
                 </button>
               );
             })}
@@ -668,6 +677,8 @@ export function PlannerShellPage() {
 }
 
 function TemplatesView({ templates, registry, query }) {
+  const liveCount = templates.filter((template) => !template.isDraft).length;
+  const draftCount = templates.filter((template) => template.isDraft).length;
   return (
     <>
       <section className="hq-api-strip" aria-label="Planner backend wiring status">
@@ -675,14 +686,19 @@ function TemplatesView({ templates, registry, query }) {
         <Badge tone={registry?.read_only ? "info" : "warn"}>
           {registry?.read_only ? "Registry is read-only" : "No registry mutation wired"}
         </Badge>
-        <Badge tone="warn">No draft save or project promotion</Badge>
+        <Badge tone="info">{liveCount} live · {draftCount} draft</Badge>
+        <Badge tone="warn">Drafts are render-only — no save, validate, or promotion</Badge>
       </section>
       <section className="hq-grid-section">
         {templates.map((template) => (
-          <article key={template.id} className="hq-card">
+          <article key={template.id} className={template.isDraft ? "hq-card hq-card-draft" : "hq-card"}>
             <div className="hq-card-head">
               <Badge tone="info">{template.architecture}</Badge>
-              <Badge tone={template.backup === "None" ? "muted" : "warn"}>{template.backup}</Badge>
+              {template.isDraft ? (
+                <Badge tone="warn">Draft</Badge>
+              ) : (
+                <Badge tone={template.backup === "None" ? "muted" : "warn"}>{template.backup}</Badge>
+              )}
             </div>
             <h3>{template.intent}</h3>
             <p>{template.blurb}</p>
@@ -697,7 +713,11 @@ function TemplatesView({ templates, registry, query }) {
               </div>
             </dl>
             {template.basis ? <p className="hq-source">Basis: {template.basis}</p> : null}
-            <button type="button" className="hq-link-button">Seed draft placeholder</button>
+            {template.isDraft ? (
+              <p className="hq-source">Draft pattern — render-only mock, not a finalized backend template.</p>
+            ) : (
+              <button type="button" className="hq-link-button">Seed draft placeholder</button>
+            )}
           </article>
         ))}
       </section>

@@ -595,3 +595,8 @@ Load only when directly relevant:
 - full ADR sweeps
 - historical handoff sweeps
 - unrelated backend or frontend code trees
+
+## Lovable Reference Parity
+
+- `docs/lovable-reference-parity.md` — parity protocol, authority order, screenshot classification rules, `capabilities-*` derived-view rule, Planner draft-template protection rule, Home empty-Postgres rule, and the 2026-06-27 parity table.
+- Stable reference screenshots: `~/TwinEnergy/references/lovable-references/` (visual/card parity evidence only; not backend truth; must not override owner-workflows or current repo contracts).

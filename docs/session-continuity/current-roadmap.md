@@ -127,3 +127,8 @@ Status:
 - Treat data classification and scoped API views as design boundaries until future RBAC, tenant isolation, export filtering, audit, and compatibility plans are implemented.
 - Treat broad AI context as compatibility-oriented grounding context until explicit scoped view models exist.
 - Use `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` as the current map for consumer-safe, AI-safe, contractor-safe, and future utility-safe view candidates.
+
+## Lovable Reference Parity Track (2026-06-28)
+
+- Use `docs/lovable-reference-parity.md` as the protocol for any future parity pass: classify screenshots, keep `capabilities-*` as internal/debug classification evidence, protect Planner drafts as render-only, and keep the Home empty-Postgres state additive.
+- Promote a Planner draft to the backend registry only on explicit finalization; do not seed Postgres or fabricate persisted data to satisfy a screenshot.

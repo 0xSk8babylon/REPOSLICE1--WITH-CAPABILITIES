@@ -140,9 +140,33 @@ export const goals = [
     seeds: ["Template"],
   },
   {
+    id: "partial-off-grid",
+    title: "Go partially off-grid",
+    blurb: "Self-consume most of the time while keeping the grid as backup.",
+    seeds: ["Template", "Sandbox"],
+  },
+  {
+    id: "full-off-grid",
+    title: "Go fully off-grid",
+    blurb: "Sketch disconnecting from the utility and planning for every season.",
+    seeds: ["Template", "Sandbox"],
+  },
+  {
     id: "future-proof",
     title: "Future-proof the home",
     blurb: "Preserve headroom for later heat pump, EV, and storage upgrades.",
+    seeds: ["Template"],
+  },
+  {
+    id: "resale-value",
+    title: "Improve resale value",
+    blurb: "Frame upgrades that make the home more attractive to future buyers.",
+    seeds: ["Template"],
+  },
+  {
+    id: "reduce-emissions",
+    title: "Reduce emissions",
+    blurb: "Explore electrification and leaning on cleaner grid hours.",
     seeds: ["Template"],
   },
 ];
@@ -244,7 +268,41 @@ export const templateOverlays = {
     nodes: ["solar", "battery", "generator", "panel", "backup"],
     caption: "Highlights long-duration resilience dependencies.",
   },
+  // Overlay definitions for the two live backend templates so their canvas chips
+  // render with color/diagram parity alongside the mock draft chips.
+  guided_solar_storage_sketch_v0: {
+    color: "#f2b84b",
+    nodes: ["solar", "battery", "panel", "meter"],
+    caption: "Highlights PV, storage, and panel touchpoints.",
+  },
+  guided_backup_basics_v0: {
+    color: "#8fb8d8",
+    nodes: ["battery", "panel", "backup"],
+    caption: "Highlights storage and critical-load backup touchpoints.",
+  },
 };
+
+// Fallback overlay so the canvas never crashes when a template has no overlay entry.
+export const fallbackTemplateOverlay = {
+  color: "#64748b",
+  nodes: ["panel"],
+  caption: "Template overlay placeholder.",
+};
+
+// Lovable parity: the planner shows 2 finalized (live) templates plus 3 render-only
+// mock drafts. The live IDs below back the static fallback used when the backend
+// registry read is unavailable; the remaining mock templates are unfinalized drafts.
+const LIVE_FALLBACK_TEMPLATE_IDS = ["ac-solar", "ac-partial"];
+
+export const liveTemplateFallback = templates
+  .filter((template) => LIVE_FALLBACK_TEMPLATE_IDS.includes(template.id))
+  .map((template) => ({ ...template, isDraft: false, source: "static" }));
+
+// Render-only drafts. Tagged isDraft so they cannot be selected into the real
+// scenario path, are never POSTed/validated, and are not backend registry items.
+export const draftTemplates = templates
+  .filter((template) => !LIVE_FALLBACK_TEMPLATE_IDS.includes(template.id))
+  .map((template) => ({ ...template, isDraft: true, source: "mock" }));
 
 export const sandboxDrafts = [
   {

@@ -112,3 +112,14 @@
 - Verified the additive backend metadata with `python3 -m unittest discover -s tests -p 'test_*.py'` and `python3 -m compileall app` in `apps/api`.
 - Added `docs/security/SCOPED_VIEW_MODEL_MAPPING.md` to map consumer-safe, AI-safe, contractor-safe, and future utility-safe response boundaries.
 - Identified broad/raw exposure and narrowing candidates for AI context, home/design/advisor/scenario/load/pathway/takeoff/product/provenance/account surfaces without changing runtime behavior, recommendation behavior, RBAC, tenant isolation, auth, telemetry, encryption, migrations, contractor packets, utility packets, or exports.
+
+## 2026-06-28
+
+- Stabilized the Lovable screenshot reference set into `~/TwinEnergy/references/lovable-references/` (copied, filenames preserved, md5-verified, originals untouched) and recorded authority order (owner-workflows > current repo > heart-quill > screenshots).
+- Classified the `capabilities-*` "Product Objects" derived-view references and recorded the rule that they are classification evidence only, kept off primary homeowner nav.
+- Planner: merged 2 finalized live backend templates with 3 render-only mock drafts for display only — drafts tagged `isDraft`/`source:"mock"`, reduced opacity, "Draft" badge, selection disabled, early-return guard, canvas chips derived from the merged list so chips match cards. Backend `PlannerSandboxService._templates()` unchanged.
+- Home: replaced the substitutive empty-state with an additive onboarding notice so a `404 /api/homes` renders the full shell plus a "Record address" prompt; preserved 401/access errors as access warnings; no default seeding.
+- Explore: restored 4 missing static goal cards (10 total, local-UI only).
+- Added `docs/lovable-reference-parity.md`; appended parity notes to `PROJECT_STATE.md`, `discovery-index.md`, `docs/UI_REGISTRY.md`; completed continuity closeout docs and a dated handoff. `SESSION_HANDOFF.md` updated on disk but is gitignored.
+- Verified: `apps/web` build passed; planner-sandbox / address-onboarding / system-visibility tests 23 passed; `git diff --check` clean; all 7 shell routes reachable; headless-Firefox screenshots confirmed Home additive onboarding, Planner 2-live/3-draft chip-card match, and Explore 10 goals.
+- Noted a pre-existing `:8000` audit-table schema 500 (`audit_events.actor_user_id`) as out-of-scope. No commit, no push (owner review pending).

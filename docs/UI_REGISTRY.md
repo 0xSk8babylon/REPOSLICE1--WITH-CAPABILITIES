@@ -217,3 +217,11 @@ Future connection options:
 - Use `uiRegistry.js` as the frontend source of UI section ordering and labels while `/architecture` continues using backend graph relationships.
 - Promote the validation helper into a formal test once frontend/backend source-of-truth ownership is approved.
 - Move product mapping authority to one source only after Matt approves whether the canonical source is frontend registry metadata, backend visibility metadata, or a generated shared artifact.
+
+## Lovable Reference Parity
+
+Lovable screenshots (`~/TwinEnergy/references/lovable-references/`) are visual/card parity evidence only. They rank below this registry and current repo contracts in authority and are not a source of backend truth or section-placement authority. When a parity pass proposes a card, classify it (Home / Explore / Planner / Builder / Internal-Debug / Deferred-Legacy) and place it via this registry — do not let a screenshot promote a card into primary nav.
+
+- `capabilities-*` screenshots are derived-view "Product Objects" references → Internal/Debug visibility only; never auto-promoted to homeowner nav.
+- Planner draft templates are render-only mock content (`isDraft`), not backend registry items.
+- See `docs/lovable-reference-parity.md` for the full protocol and parity table.

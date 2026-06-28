@@ -122,3 +122,11 @@
 - The new cognition docs are canonical routing and governance aids, not proof that deployment lineage, utility-safe abstractions, contractor-safe packets, or operational orchestration are implemented.
 - The new data-classification and API-view terminology prepares future RBAC design, but current account, role, and subscription fields remain scaffolding only.
 - The new scoped view-model mapping is a contract-design guide only; current endpoints remain broad compatibility surfaces and are not filtered, minimized, export-ready, or permission-bound.
+
+## Lovable Reference Parity (2026-06-28)
+
+- Guarded visual/card parity pass applied minimal, additive, frontend-only fixes; no backend, persistence, seed, auth, migration, or dependency changes.
+- Planner now displays 2 finalized live backend templates plus 3 render-only mock drafts (`isDraft`, `source:"mock"`): drafts are reduced-opacity, "Draft"-badged, selection-disabled, guarded against the scenario path, and never POSTed/validated. `PlannerSandboxService._templates()` is unchanged (still exactly 2 templates).
+- Home empty-Postgres state is now additive: `404 /api/homes` renders the full Energy Twin shell plus a "Record address" onboarding notice instead of a substitutive single card; 401/access errors remain access warnings. Empty Postgres is still valid and is not seeded by default.
+- Explore goal cards restored to 10 (static, local-UI only).
+- Stable Lovable reference set lives at `~/TwinEnergy/references/lovable-references/` (visual/card parity evidence only). Protocol + parity table: `docs/lovable-reference-parity.md`. Dated handoff: `docs/handoffs/2026-06-28-lovable-reference-parity-closeout.md`.
