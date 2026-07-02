@@ -47,7 +47,6 @@ Added `GET /api/contractor-workflow/homes/{home_id}/readiness` to organize exist
 ## Verification
 
 - `git diff --check` - passed.
-- `bash scripts/check_session_report_email_env.sh` - passed.
 - `cd apps/api && python3 -m unittest tests/test_contractor_workflow.py` - passed, 8 tests in about 141s.
 - `pytest` - unavailable in the current environment.
 - Full backend unittest discovery previously timed out at 900s with passing dots only.

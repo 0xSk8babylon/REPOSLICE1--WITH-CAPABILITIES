@@ -17,6 +17,7 @@ Read these first:
 ## Deployment And Secrets Routing
 
 - Secrets-management boundary: `docs/secrets-management.md`
+- Session-report email delivery is intentionally removed; do not restore provider email keys or helper scripts without a new owner-approved setup.
 - OAuth/auth foundation plan: `docs/security/OAUTH_AUTH_FOUNDATION_PLAN.md`
 - Ownership/permissions plan: `docs/security/OWNERSHIP_PERMISSIONS_PLAN.md`
 - Audit/trust layer plan: `docs/security/AUDIT_TRUST_LAYER_PLAN.md`
@@ -248,7 +249,7 @@ Read these first:
   - Runtime endpoint: `GET /api/contractor-workflow/homes/{home_id}/readiness`.
   - Runtime files: `apps/api/app/contractor_workflow/__init__.py`, `apps/api/app/contractor_workflow/schemas.py`, `apps/api/app/contractor_workflow/router.py`, `apps/api/app/services/contractor_workflow.py`, `apps/api/app/main.py`, and `apps/api/tests/test_contractor_workflow.py`.
   - Completed scope: backend read-only schemas, backend read-only route, request-time deterministic contractor workflow readiness projection, five fixed readiness lanes, Phase 5/6/9/10 source composition, Phase 7/8 basis carry-through only where already surfaced through existing contracts, homeowner-safe summary, contractor-facing readiness prompts, forbidden-boundary flags, focused tests, and continuity updates.
-  - Verification: `git diff --check` passed; `bash scripts/check_session_report_email_env.sh` passed; focused Phase 11 tests passed with `8 tests OK` in about 141s. `pytest` is unavailable; full backend unittest discovery previously timed out at 900s with passing dots only.
+  - Verification: `git diff --check` passed; focused Phase 11 tests passed with `8 tests OK` in about 141s. `pytest` is unavailable; full backend unittest discovery previously timed out at 900s with passing dots only.
   - Current boundary: Contractor workflow readiness is additive, read-only, request-time derived, deterministic, provenance-bearing, non-authoritative, and `home_id` anchored over Phase 5 contractor context, Phase 6 planning exchange, Phase 9 estimate readiness, and Phase 10 proposal option sets. It opens the Contractor-Owned Workflow Layer as contractor-facing workflow readiness projection only, not true contractor-owned persisted workflow state.
   - Readiness lanes: planning review, missing-input review, confirmation-gate review, option-candidate review, and proposal-prep blocked/deferred.
   - Risk: focused tests are slow because the endpoint composes expensive existing derived-view stacks; full backend discovery is too slow under the current cap.
@@ -316,8 +317,6 @@ Read these first:
   - `docs/continuity/LEAN_RESTORE_WORKFLOW.md`
   - `docs/continuity/UNRESOLVED_ARCHITECTURE.md`
   - `docs/session-continuity/continuity-workflow.md`
-  - `docs/session-report-email.md` when Matt asks for "email when done", "send report", or session-report email delivery
-  - `docs/skills/session-closeout-stabilization-email.md` when Matt asks for "email when done", "send closeout report", "stabilization email", "session-closeout stabilization", "email the final status", or "email after commit"
   - latest file in `docs/handoffs/`
   - `docs/roadmap/auto-loop-roadmap-runner-packets.md`
   - `docs/handoffs/2026-06-13-b1-fact-lifecycle-closeout.md`

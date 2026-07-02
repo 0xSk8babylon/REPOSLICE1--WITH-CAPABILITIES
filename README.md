@@ -128,51 +128,9 @@ PYTHONPATH=.vendor python3 -m app.seed.cli reseed
 
 You can also remove `apps/api/data/residential_energy_planner.sqlite3` and restart the backend.
 
-## Ops Session Report Email
+## Ops Session Reports
 
-Manual session closeout reports can be sent through Resend with the ops-only script in `scripts/`.
-This is not a product email feature and is not wired into the FastAPI app or frontend.
-
-Required environment variables:
-
-```bash
-export RESEND_API_KEY="re_..."
-export SESSION_REPORT_EMAIL_FROM="Agent <agent@yourdomain.example>"
-export SESSION_REPORT_EMAIL_TO="matt@example.com"
-```
-
-Before sending, load `.env` in the active shell and verify delivery variables without printing the API key:
-
-```bash
-cd /path/to/residential-energy-planner
-set -a
-source .env
-set +a
-
-echo "FROM=$SESSION_REPORT_EMAIL_FROM"
-echo "TO=$SESSION_REPORT_EMAIL_TO"
-test -n "$RESEND_API_KEY" && echo "RESEND_API_KEY is loaded" || echo "RESEND_API_KEY is missing"
-```
-
-Equivalent preflight helper:
-
-```bash
-bash scripts/check_session_report_email_env.sh
-```
-
-If any required variable is missing, stop and do not claim email delivery is available. Never print `RESEND_API_KEY`, never modify or stage `.env`, and use only the existing session-report scripts. Full checklist: `docs/session-report-email.md`. Long-running closeout skill: `docs/skills/session-closeout-stabilization-email.md`.
-
-Example command:
-
-```bash
-python3 scripts/send_session_report.py docs/handoffs/2026-06-05-example-closeout.md
-```
-
-Optional subject override:
-
-```bash
-python3 scripts/send_session_report.py docs/handoffs/2026-06-28-lovable-reference-parity-closeout.md --subject "Session closeout report"
-```
+Email delivery for manual session closeout reports has been removed. Session reports should be written to repository docs or handoff files only. Reintroducing email delivery requires a new owner-approved provider setup, new scripts, and fresh secrets.
 
 ## Migrations
 
