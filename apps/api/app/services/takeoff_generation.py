@@ -3,7 +3,6 @@ from app.core.types import DataOrigin, FactLifecycleState
 from app.services.provenance import provenance_service
 from app.takeoffs.schemas import TakeoffLineItem, TakeoffRequest
 
-
 PLACEHOLDER_UNIT_COSTS = {
     "solar_panel": 250,
     "microinverter": 180,

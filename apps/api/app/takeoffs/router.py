@@ -5,8 +5,8 @@ from app.auth.router import current_principal
 from app.core.database import get_db
 from app.core.repository import repository
 from app.security import permissions
-from app.takeoffs.schemas import TakeoffResponse
 from app.services.takeoff_generation import takeoff_generation_service
+from app.takeoffs.schemas import TakeoffResponse
 
 router = APIRouter(prefix="/takeoffs", tags=["takeoffs"])
 

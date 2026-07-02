@@ -1,8 +1,6 @@
 import unittest
 from datetime import datetime
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
-
 from fastapi import HTTPException  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
@@ -12,6 +10,7 @@ from app.main import app  # noqa: E402
 from app.onboarding import router as onboarding_router  # noqa: E402
 from app.onboarding.schemas import AddressOnboardingRequest  # noqa: E402
 from app.security.principal import VerifiedIdentityClaims, principal_from_verified_claims  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 
 class AddressOnboardingTests(unittest.TestCase):

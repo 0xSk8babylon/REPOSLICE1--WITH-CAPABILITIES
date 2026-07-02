@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import List, Optional
 
+from pydantic import Field
+
 from app.core.schemas import ORMModel
 from app.core.types import DataOrigin
-from pydantic import Field
 
 
 class ScenarioRevisionSummary(ORMModel):

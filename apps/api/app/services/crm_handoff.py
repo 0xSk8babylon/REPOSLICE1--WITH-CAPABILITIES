@@ -13,7 +13,6 @@ from app.crm_handoff.schemas import (
 )
 from app.post_install.schemas import PostInstallStatus
 
-
 CRM_HANDOFF_LIMITATIONS = [
     "The CRM handoff object is read-only request-time metadata for manual review only.",
     "It does not connect to a CRM, write CRM records, create CRM tasks, sync external systems, send email, create drip campaigns, push notifications, score leads, score sales opportunities, rank follow-ups, or choose a best upsell.",

@@ -1,11 +1,11 @@
 import unittest
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
+from sqlalchemy.orm import Session  # noqa: E402
 
 from app.core.database import engine  # noqa: E402
 from app.core.models import EnergySystemDesign, Load  # noqa: E402
 from app.services.design_advisor import design_advisor_service  # noqa: E402
-from sqlalchemy.orm import Session  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 
 class ResilienceRecommendationRegressionTests(unittest.TestCase):

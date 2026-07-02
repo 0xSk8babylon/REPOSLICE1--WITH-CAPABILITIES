@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from app.core import models
 from app.security.principal import AuthPrincipal
 
-
 OWNER = "owner"
 ADMIN = "admin"
 MEMBER = "member"

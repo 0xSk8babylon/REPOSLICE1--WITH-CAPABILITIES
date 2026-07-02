@@ -11,11 +11,10 @@ from app.proposal_option_sets.schemas import (
     ProposalOptionSetBlocker,
     ProposalOptionSetBlockerCategory,
     ProposalOptionSetScope,
-    ProposalOptionSetStatus,
     ProposalOptionSetsSummary,
+    ProposalOptionSetStatus,
     ProposalOptionSetsView,
 )
-
 
 PROPOSAL_OPTION_SET_LIMITATIONS = [
     "Proposal option sets are read-only planning readiness metadata only.",

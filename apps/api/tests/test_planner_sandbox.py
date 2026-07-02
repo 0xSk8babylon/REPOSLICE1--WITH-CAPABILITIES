@@ -2,13 +2,12 @@ import json
 import unittest
 
 import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
-
 from app.main import app  # noqa: E402
 from app.planner_sandbox.router import list_guided_templates, validate_sandbox_draft  # noqa: E402
 from app.planner_sandbox.schemas import (  # noqa: E402
     DraftAssumptions,
-    DraftInputValue,
     DraftInputs,
+    DraftInputValue,
     DraftValidationRequest,
     PlannerSandboxMaturityState,
     PlannerSandboxValidationStatus,

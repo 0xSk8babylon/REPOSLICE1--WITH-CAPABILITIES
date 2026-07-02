@@ -15,7 +15,6 @@ from app.program_intelligence.schemas import (
     ProgramIntelligenceView,
 )
 
-
 PROGRAM_INTELLIGENCE_LIMITATIONS = [
     "Program Intelligence is read-only, request-time context derived from existing home planning records.",
     "It is non-authoritative awareness metadata, not a program determination, application, approval, program registration, tariff analysis, rebate calculation, or interconnection decision.",

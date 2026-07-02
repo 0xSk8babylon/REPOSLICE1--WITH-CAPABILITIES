@@ -2,8 +2,6 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
-
 from sqlalchemy import text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
@@ -13,6 +11,7 @@ from app.main import app  # noqa: E402
 from app.post_install.router import get_post_install_view  # noqa: E402
 from app.services.crm_handoff import crm_handoff_service  # noqa: E402
 from app.services.post_install import post_install_service  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 
 def _value(value):

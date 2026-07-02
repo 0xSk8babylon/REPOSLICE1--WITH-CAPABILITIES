@@ -1,7 +1,5 @@
 import unittest
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
-
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.core.database import engine  # noqa: E402
@@ -9,6 +7,7 @@ from app.main import app  # noqa: E402
 from app.services.contractor_context import contractor_context_service  # noqa: E402
 from app.services.planning_exchange import planning_exchange_service  # noqa: E402
 from app.services.twin_planning_context import twin_planning_context_service  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 
 class TwinPlanningContextServiceTests(unittest.TestCase):

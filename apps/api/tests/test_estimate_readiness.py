@@ -1,8 +1,6 @@
 import unittest
 from types import SimpleNamespace
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
-
 from sqlalchemy import text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
@@ -15,6 +13,7 @@ from app.estimate_readiness.schemas import (  # noqa: E402
 )
 from app.main import app  # noqa: E402
 from app.services.estimate_readiness import estimate_readiness_service  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 
 class EstimateReadinessServiceTests(unittest.TestCase):

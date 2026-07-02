@@ -2,11 +2,10 @@ import unittest
 from datetime import datetime
 from types import SimpleNamespace
 
-import tests.fast_db  # noqa: F401, E402
-
 from fastapi import HTTPException  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
+import tests.fast_db  # noqa: F401, E402
 from app.auth.router import current_principal, get_me  # noqa: E402
 from app.core import models  # noqa: E402
 from app.core.config import Settings  # noqa: E402

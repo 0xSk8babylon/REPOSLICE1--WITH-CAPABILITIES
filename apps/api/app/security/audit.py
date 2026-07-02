@@ -7,7 +7,6 @@ from app.core import models
 from app.core.database import SessionLocal
 from app.security.principal import AuthPrincipal
 
-
 LOCAL_TEST_AUTH_SOURCE = "local_test_headers"
 SENSITIVE_CONTEXT_KEYS = {
     "authorization",

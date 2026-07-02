@@ -1,6 +1,6 @@
 import re
 import uuid
-from typing import Dict, Iterable, Optional, Set
+from typing import Dict, Iterable, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -15,7 +15,6 @@ from app.onboarding.schemas import AddressOnboardingRequest, AddressOnboardingRe
 from app.provenance.schemas import DataProvenanceCreate
 from app.security import permissions
 from app.security.audit import audit_service
-
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 

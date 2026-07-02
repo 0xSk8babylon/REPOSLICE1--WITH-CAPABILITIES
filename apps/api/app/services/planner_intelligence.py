@@ -34,7 +34,6 @@ from app.services.provenance import provenance_service
 from app.services.scenario_comparison import scenario_comparison_service
 from app.services.twin_planning_context import twin_planning_context_service
 
-
 PLANNER_INTELLIGENCE_LIMITATIONS = [
     "Advisory planning intelligence. Not engineering, permitting, utility, or pricing authority.",
     "Composed from existing deterministic rule and derived outputs; no new reasoning, no LLM, no external lookup.",

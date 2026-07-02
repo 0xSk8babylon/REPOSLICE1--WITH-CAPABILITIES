@@ -3,7 +3,6 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
-
 from app.energy_passport.router import get_energy_passport  # noqa: E402
 from app.energy_passport.schemas import (  # noqa: E402
     EnergyPassportFinancingStructure,

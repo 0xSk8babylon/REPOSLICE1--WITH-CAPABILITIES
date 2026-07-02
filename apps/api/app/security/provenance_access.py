@@ -6,7 +6,6 @@ from app.core import models
 from app.security import permissions
 from app.security.principal import AuthPrincipal
 
-
 GLOBAL_REFERENCE_ENTITY_TYPES = {
     "design_goal_preset",
     "design_goal_presets",

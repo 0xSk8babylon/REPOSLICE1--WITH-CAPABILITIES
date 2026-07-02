@@ -9,11 +9,10 @@ from app.product_preferences.schemas import (
     ProductPreferenceCategoryId,
     ProductPreferenceScope,
     ProductPreferenceSourceBasis,
-    ProductPreferenceStatus,
     ProductPreferencesSummary,
+    ProductPreferenceStatus,
     ProductPreferencesView,
 )
-
 
 PRODUCT_PREFERENCE_LIMITATIONS = [
     "Product preference guidance is read-only planning metadata for review preparation only.",

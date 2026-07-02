@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,6 @@ from app.nec_load_calculation.schemas import (
     NecLoadStage,
 )
 from app.services.facts import fact_lifecycle_service
-
 
 REQUIRED_FACT_KEYS = [
     "home.conditioned_floor_area_sqft",

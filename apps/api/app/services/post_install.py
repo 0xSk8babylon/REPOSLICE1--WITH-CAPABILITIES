@@ -16,7 +16,6 @@ from app.post_install.schemas import (
     RetentionOpportunityType,
 )
 
-
 POST_INSTALL_LIMITATIONS = [
     "Post-install retention readiness is read-only planning metadata only.",
     "It does not create CRM records, write CRM data, create tasks, send email, create drip campaigns, push notifications, score leads, score sales opportunities, rank follow-ups, or choose a best upsell.",

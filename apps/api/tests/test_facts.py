@@ -1,10 +1,9 @@
 import unittest
 from datetime import datetime, timedelta
 
-import tests.fast_db  # noqa: F401, E402  must precede app imports
-
 from sqlalchemy.orm import Session  # noqa: E402
 
+import tests.fast_db  # noqa: F401, E402  must precede app imports
 from app.core import models  # noqa: E402
 from app.core.database import engine  # noqa: E402
 from app.core.types import FactConfidenceTier, FactDecayPolicy, FactSource  # noqa: E402
@@ -12,7 +11,6 @@ from app.facts.router import create_fact, get_fact_gaps, list_facts, update_fact
 from app.facts.schemas import FactCreate, FactUpdate  # noqa: E402
 from app.main import app  # noqa: E402
 from app.services.facts import fact_lifecycle_service  # noqa: E402
-
 
 HOME_ID = "home_001"
 

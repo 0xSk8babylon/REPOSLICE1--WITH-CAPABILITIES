@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import urlsplit, urlunsplit
 
-
 EXPECTED_ALEMBIC_HEAD = "20260523_0001"
 DEFAULT_SOURCE_FILE = Path(__file__).resolve().parents[1] / "data" / "residential_energy_planner.sqlite3"
 

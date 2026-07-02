@@ -12,12 +12,10 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-import tests.fast_db  # noqa: E402  must precede app imports
-from tests.fast_db import reset_and_reseed  # noqa: E402
-
 from fastapi import HTTPException  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
+import tests.fast_db  # noqa: E402  must precede app imports
 from app.auth.router import current_principal  # noqa: E402
 from app.core import models  # noqa: E402
 from app.core.database import engine  # noqa: E402
@@ -28,7 +26,7 @@ from app.security.audit import audit_service  # noqa: E402
 from app.security.principal import scaffold_principal_from_headers  # noqa: E402
 from app.services.design_advisor import design_advisor_service  # noqa: E402
 from app.services.planner_intelligence import planner_intelligence_service  # noqa: E402
-
+from tests.fast_db import reset_and_reseed  # noqa: E402
 
 DESIGN_ID = "design_001"
 HOME_ID = "home_001"

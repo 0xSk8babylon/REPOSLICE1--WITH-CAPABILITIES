@@ -1,16 +1,14 @@
 import unittest
 from datetime import datetime
 
-import tests.fast_db  # noqa: F401, E402  must precede app imports
-
 from sqlalchemy.orm import Session  # noqa: E402
 
+import tests.fast_db  # noqa: F401, E402  must precede app imports
 from app.core import models  # noqa: E402
 from app.core.database import engine  # noqa: E402
 from app.core.types import FactConfidenceTier, FactSource  # noqa: E402
 from app.main import app  # noqa: E402
 from app.nec_load_calculation.router import get_nec_220_load_calculation  # noqa: E402
-
 
 HOME_ID = "home_001"
 

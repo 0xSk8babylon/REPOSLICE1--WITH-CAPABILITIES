@@ -14,7 +14,6 @@ from app.security.principal import (
     scaffold_principal_from_headers,
 )
 
-
 HOME_PATH_PATTERNS = (
     re.compile(r"^/api/homes/([^/?]+)"),
     re.compile(r"^/api/[^/]+/homes/([^/?]+)"),

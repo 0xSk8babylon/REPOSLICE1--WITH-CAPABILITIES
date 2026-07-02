@@ -1,6 +1,5 @@
 from typing import Dict, List, Optional, Set
 
-from app.core.types import ConfidenceLevel
 from app.planner_sandbox.schemas import (
     DraftAssumptionDefinition,
     DraftInputDefinition,
@@ -13,7 +12,6 @@ from app.planner_sandbox.schemas import (
     PlannerSandboxMaturityState,
     PlannerSandboxValidationStatus,
 )
-
 
 PLANNER_SANDBOX_LIMITATIONS = [
     "Planner Sandbox Mode is request-time contract behavior only.",

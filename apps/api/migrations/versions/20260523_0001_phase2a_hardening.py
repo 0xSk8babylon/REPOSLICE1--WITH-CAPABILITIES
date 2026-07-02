@@ -7,8 +7,8 @@ Create Date: 2026-05-23 00:00:00
 
 from alembic import op
 
-from app.core.database import Base
 from app.core import models  # noqa: F401
+from app.core.database import Base
 
 # revision identifiers, used by Alembic.
 revision = "20260523_0001"

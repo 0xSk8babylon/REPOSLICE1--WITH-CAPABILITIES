@@ -5,8 +5,8 @@ from app.auth.router import current_principal
 from app.core.database import get_db
 from app.core.repository import repository
 from app.privacy.schemas import ConsentRecord, ConsentRecordCreate, PrivacyDeletionResult, PrivacyExport
-from app.security.audit import audit_service
 from app.security import permissions
+from app.security.audit import audit_service
 from app.services.privacy import privacy_service
 
 router = APIRouter(prefix="/privacy/homes/{home_id}", tags=["privacy"])

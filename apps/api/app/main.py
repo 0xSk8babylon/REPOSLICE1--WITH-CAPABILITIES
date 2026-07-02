@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRouter
 
 from app.accounts.router import router as accounts_router
-from app.auth.router import router as auth_router
 from app.ai_context.router import router as ai_context_router
+from app.auth.router import router as auth_router
 from app.buildings.router import router as buildings_router
 from app.compatibility_rules.router import router as compatibility_router
 from app.contractor_context.router import router as contractor_context_router
@@ -16,9 +16,9 @@ from app.design_advisor.router import router as design_advisor_router
 from app.designs.router import router as designs_router
 from app.energy_passport.router import router as energy_passport_router
 from app.equipment.router import router as equipment_router
-from app.evidence.router import router as evidence_router
-from app.estimates.router import router as estimates_router
 from app.estimate_readiness.router import router as estimate_readiness_router
+from app.estimates.router import router as estimates_router
+from app.evidence.router import router as evidence_router
 from app.facts.router import router as facts_router
 from app.geometry.router import router as geometry_router
 from app.homes.router import router as homes_router
@@ -28,18 +28,18 @@ from app.onboarding.router import router as onboarding_router
 from app.panels.router import router as panels_router
 from app.planner_intelligence.router import router as planner_intelligence_router
 from app.planner_sandbox.router import router as planner_sandbox_router
-from app.planning_exchange.router import router as planning_exchange_router
-from app.post_install.router import router as post_install_router
-from app.privacy.router import router as privacy_router
-from app.program_intelligence.router import router as program_intelligence_router
-from app.product_preferences.router import router as product_preferences_router
-from app.proposal_option_sets.router import router as proposal_option_sets_router
 from app.planning.router import (
     design_goal_presets_router,
     estimated_pathways_router,
     load_templates_router,
 )
+from app.planning_exchange.router import router as planning_exchange_router
+from app.post_install.router import router as post_install_router
+from app.privacy.router import router as privacy_router
 from app.product_library.router import router as product_library_router
+from app.product_preferences.router import router as product_preferences_router
+from app.program_intelligence.router import router as program_intelligence_router
+from app.proposal_option_sets.router import router as proposal_option_sets_router
 from app.provenance.router import router as provenance_router
 from app.rule_provenance.router import router as rule_provenance_router
 from app.scenarios.router import router as scenarios_router

@@ -1,7 +1,6 @@
 import unittest
 
 import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
-
 from app.main import app  # noqa: E402
 from app.services.system_visibility import system_visibility_service  # noqa: E402
 from app.system_visibility.router import get_architecture_visibility  # noqa: E402

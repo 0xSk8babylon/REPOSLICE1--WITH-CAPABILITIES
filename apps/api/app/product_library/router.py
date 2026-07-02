@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.repository import repository
 from app.equipment.schemas import EquipmentProduct, EquipmentProductCreate, EquipmentProductUpdate
-from app.provenance.schemas import SourceDocument
 from app.services.provenance import provenance_service
 
 router = APIRouter(prefix="/product-library", tags=["product_library"])

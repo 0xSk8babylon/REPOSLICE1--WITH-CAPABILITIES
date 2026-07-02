@@ -1,8 +1,6 @@
 import unittest
 from datetime import datetime
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
-
 from fastapi import HTTPException  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
@@ -11,8 +9,8 @@ from app.buildings import router as buildings_router  # noqa: E402
 from app.compatibility_rules import router as compatibility_router  # noqa: E402
 from app.core import models  # noqa: E402
 from app.core.database import engine  # noqa: E402
-from app.designs import router as designs_router  # noqa: E402
 from app.design_advisor import router as design_advisor_router  # noqa: E402
+from app.designs import router as designs_router  # noqa: E402
 from app.equipment import router as equipment_router  # noqa: E402
 from app.homes import router as homes_router  # noqa: E402
 from app.homes.schemas import BuildingStructureCreate, HomeUpdate  # noqa: E402
@@ -21,11 +19,12 @@ from app.loads.schemas import LoadUpdate  # noqa: E402
 from app.panels import router as panels_router  # noqa: E402
 from app.planning import router as planning_router  # noqa: E402
 from app.privacy import router as privacy_router  # noqa: E402
-from app.provenance import router as provenance_router  # noqa: E402
 from app.product_library import router as product_library_router  # noqa: E402
+from app.provenance import router as provenance_router  # noqa: E402
 from app.scenarios import router as scenarios_router  # noqa: E402
 from app.security.principal import VerifiedIdentityClaims, principal_from_verified_claims  # noqa: E402
 from app.takeoffs import router as takeoffs_router  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 
 class AccountMembershipPermissionsTests(unittest.TestCase):

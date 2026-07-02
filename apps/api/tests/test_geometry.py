@@ -1,15 +1,19 @@
 import unittest
 
-import tests.fast_db  # noqa: F401, E402
-
 from sqlalchemy.orm import Session  # noqa: E402
 
+import tests.fast_db  # noqa: F401, E402
 from app.core import models  # noqa: E402
 from app.core.database import engine  # noqa: E402
-from app.geometry.router import create_obstruction, create_roof_plane, export_geometry, list_obstructions, list_roof_planes  # noqa: E402
+from app.geometry.router import (  # noqa: E402
+    create_obstruction,
+    create_roof_plane,
+    export_geometry,
+    list_obstructions,
+    list_roof_planes,
+)
 from app.geometry.schemas import GeometryObstructionCreate, HorizonPoint, RoofPlaneCreate  # noqa: E402
 from app.main import app  # noqa: E402
-
 
 HOME_ID = "home_001"
 

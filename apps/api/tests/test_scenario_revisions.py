@@ -1,14 +1,14 @@
 import unittest
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
+from sqlalchemy.orm import Session  # noqa: E402
 
 from app.core.database import engine  # noqa: E402
 from app.core.repository import repository  # noqa: E402
-from app.scenarios.schemas import ScenarioCreate, ScenarioUpdate  # noqa: E402
 from app.scenarios.router import create_scenario, list_scenarios, update_scenario  # noqa: E402
+from app.scenarios.schemas import ScenarioCreate, ScenarioUpdate  # noqa: E402
 from app.security.principal import AuthPrincipal  # noqa: E402
 from app.services.design_advisor import design_advisor_service  # noqa: E402
-from sqlalchemy.orm import Session  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 TEST_PRINCIPAL = AuthPrincipal(
     user_id="scenario_revision_test_user",

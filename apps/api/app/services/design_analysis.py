@@ -1,6 +1,5 @@
 from app.core.repository import repository
 
-
 STATUS_EXPLANATIONS = {
     "draft": "Early exploration. Core planning inputs may still be missing.",
     "exploratory": "Concept-level planning with broad assumptions still in play.",

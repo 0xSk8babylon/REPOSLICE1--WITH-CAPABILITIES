@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from typing import Dict, List, Literal, Optional, Sequence, Tuple
 
-
 RateKind = Literal["flat", "tou", "tiered"]
 
 

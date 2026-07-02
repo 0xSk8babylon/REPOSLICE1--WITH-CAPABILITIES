@@ -1,16 +1,14 @@
 import unittest
 
-import tests.fast_db as fast_db  # noqa: E402
-
 from fastapi import HTTPException  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
+import tests.fast_db as fast_db  # noqa: E402
 from app.core import models  # noqa: E402
 from app.core.database import engine  # noqa: E402
 from app.evidence.router import create_photo_evidence_fact  # noqa: E402
 from app.evidence.schemas import PhotoEvidenceFactCreate  # noqa: E402
 from app.main import app  # noqa: E402
-
 
 HOME_ID = "home_001"
 

@@ -4,21 +4,21 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core import models
 from app.core.config import settings
 from app.core.database import Base, SessionLocal, database_path, engine
-from app.core import models
 from app.core.types import FactLifecycleState
 from app.seed.sample_data import (
     DEMO_ACCOUNT,
     SAMPLE_COMPATIBILITY_ISSUES,
     SAMPLE_DATA_PROVENANCE,
-    SAMPLE_DESIGNS,
     SAMPLE_DESIGN_GOAL_PRESETS,
+    SAMPLE_DESIGNS,
     SAMPLE_EQUIPMENT_LOCATIONS,
     SAMPLE_ESTIMATED_PATHWAYS,
     SAMPLE_HOME,
-    SAMPLE_LOADS,
     SAMPLE_LOAD_TEMPLATES,
+    SAMPLE_LOADS,
     SAMPLE_PRODUCTS,
     SAMPLE_RULE_PROVENANCE,
     SAMPLE_SCENARIOS,
@@ -26,7 +26,6 @@ from app.seed.sample_data import (
     SAMPLE_TAKEOFF,
 )
 from app.services.scenario_revision import scenario_revision_service
-
 
 DEMO_SEED_HOME_ID = SAMPLE_HOME["id"]
 DEMO_SEED_ACCOUNT_ID = DEMO_ACCOUNT["id"]

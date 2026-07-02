@@ -1,8 +1,6 @@
 import unittest
 from unittest.mock import patch
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
-
 from sqlalchemy import text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
@@ -10,6 +8,7 @@ from app.core.database import Base, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.product_preferences.router import get_product_preferences  # noqa: E402
 from app.services.product_preferences import product_preferences_service  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 
 class ProductPreferencesServiceTests(unittest.TestCase):

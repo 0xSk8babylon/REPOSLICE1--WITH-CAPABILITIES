@@ -4,17 +4,17 @@ from pydantic import Field
 
 from app.core.schemas import ORMModel
 from app.core.types import (
-    AutonomyReservePosture,
     AuthorityLayer,
+    AutonomyReservePosture,
     BatterySizingPosture,
     ConfidenceLevel,
     DataClassification,
     DataOrigin,
     FutureGrowthMarginPosture,
     LowSolarAssumptionPosture,
+    RecommendationProfile,
     RecoveryStrengthPosture,
     ReserveMarginPosture,
-    RecommendationProfile,
     SeasonalConservatismPosture,
     SolarSizingPosture,
 )

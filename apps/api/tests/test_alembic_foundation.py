@@ -1,12 +1,10 @@
 import pathlib
 import unittest
 
-import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
-
 from sqlalchemy.pool import NullPool, StaticPool
 
+import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
 from app.core.database import engine_kwargs_for_url
-
 
 MIGRATIONS_DIR = pathlib.Path(__file__).resolve().parents[1] / "migrations"
 ENV_PATH = MIGRATIONS_DIR / "env.py"

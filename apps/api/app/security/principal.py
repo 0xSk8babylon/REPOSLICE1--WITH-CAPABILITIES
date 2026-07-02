@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 
 from app.core import models
 
-
 FAKE_OIDC_PREFIX = "fake-oidc:"
 READ_MEMBERSHIP_ROLES = {"owner", "admin", "member", "viewer"}
 

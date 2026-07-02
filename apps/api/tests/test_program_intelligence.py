@@ -4,7 +4,6 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
-
 from app.main import app  # noqa: E402
 from app.program_intelligence.router import get_program_intelligence  # noqa: E402
 from app.program_intelligence.schemas import (  # noqa: E402

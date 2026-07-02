@@ -1,7 +1,6 @@
 from app.core.types import DataOrigin
 from app.services.design_analysis import design_analysis_service
 
-
 BACKUP_GOALS = {"partial_backup", "whole_home_backup", "generator_assisted", "off_grid_capable"}
 
 

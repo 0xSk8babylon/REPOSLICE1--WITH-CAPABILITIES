@@ -2,16 +2,14 @@ import unittest
 from datetime import datetime
 from types import SimpleNamespace
 
-import tests.fast_db  # noqa: F401, E402
-
-from starlette.responses import Response  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
+from starlette.responses import Response  # noqa: E402
 
+import tests.fast_db  # noqa: F401, E402
 from app.core import models  # noqa: E402
 from app.core.database import engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.security.auth import HomeAccessMiddleware  # noqa: E402
-
 
 HOME_ID = "home_001"
 

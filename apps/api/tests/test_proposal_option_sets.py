@@ -1,13 +1,12 @@
 import unittest
 
-from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
-
 from sqlalchemy import text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.core.database import Base, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.services.proposal_option_sets import proposal_option_sets_service  # noqa: E402
+from tests.fast_db import reset_and_reseed  # noqa: E402  must precede app imports
 
 
 class ProposalOptionSetsServiceTests(unittest.TestCase):

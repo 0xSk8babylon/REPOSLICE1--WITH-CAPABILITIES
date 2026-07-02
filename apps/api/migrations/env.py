@@ -3,9 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine, pool
 
+from app.core import models  # noqa: F401
 from app.core.config import settings
 from app.core.database import Base, engine_kwargs_for_url
-from app.core import models  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.resolved_database_url)

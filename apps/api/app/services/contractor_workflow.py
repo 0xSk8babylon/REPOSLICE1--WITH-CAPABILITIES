@@ -14,7 +14,6 @@ from app.contractor_workflow.schemas import (
 )
 from app.core.types import ConfidenceLevel
 
-
 CONTRACTOR_WORKFLOW_LIMITATIONS = [
     "Contractor workflow readiness is read-only planning metadata for review preparation only.",
     "It is not a quote, an approval, a final estimate, a final design, or a final proposal.",

@@ -8,7 +8,6 @@ from app.evidence.schemas import EvidenceIntakeResult
 from app.facts.schemas import FactCreate
 from app.services.facts import fact_lifecycle_service
 
-
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png"}
 MAX_EVIDENCE_SIZE_BYTES = 10 * 1024 * 1024
 ALLOWED_FACT_PREFIXES = ("service.", "equipment.", "roof.", "load.")

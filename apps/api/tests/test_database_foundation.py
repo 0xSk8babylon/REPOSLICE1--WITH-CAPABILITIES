@@ -1,7 +1,8 @@
 import unittest
 
-import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
+from sqlalchemy.pool import StaticPool  # noqa: E402
 
+import tests.fast_db  # noqa: F401, E402  must precede app imports (binds in-memory DB)
 from app.core.config import Settings  # noqa: E402
 from app.core.database import (  # noqa: E402
     database_connection_summary,
@@ -10,7 +11,6 @@ from app.core.database import (  # noqa: E402
     redact_database_url,
 )
 from app.main import root  # noqa: E402
-from sqlalchemy.pool import StaticPool  # noqa: E402
 
 
 class DatabaseFoundationTests(unittest.TestCase):

@@ -17,7 +17,6 @@ from app.energy_passport.schemas import (
     EnergyPassportView,
 )
 
-
 ENERGY_PASSPORT_LIMITATIONS = [
     "Energy Passport is a read-only homeowner-safe summary derived at request time from existing planning views.",
     "It is not a legal, title, escrow, deed, tax, appraisal, underwriting, warranty, permit, payoff, lien, UCC, or financial validation product.",

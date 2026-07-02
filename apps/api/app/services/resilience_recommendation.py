@@ -7,13 +7,12 @@ from app.core.types import (
     FactLifecycleState,
     FutureGrowthMarginPosture,
     LowSolarAssumptionPosture,
+    RecommendationProfile,
     RecoveryStrengthPosture,
     ReserveMarginPosture,
-    RecommendationProfile,
     SeasonalConservatismPosture,
     SolarSizingPosture,
 )
-from app.engines.resilience import calc
 from app.design_advisor.schemas import (
     ArchitectureConsistencyCheck,
     BackupLoadSelectionSummary,
@@ -24,9 +23,9 @@ from app.design_advisor.schemas import (
     HomeEnergyArchitectureComponent,
     InverterSystemArchitectureEstimate,
     PanelServiceArchitectureEstimate,
+    ProfileArchitectureFitAssessment,
     ReasoningGraphDependency,
     ReasoningGraphNode,
-    ProfileArchitectureFitAssessment,
     RecommendationProfileCard,
     ResilienceRecommendation,
     RoofGeometryReadiness,
@@ -34,10 +33,10 @@ from app.design_advisor.schemas import (
     SolarSizingEstimate,
     StructuredSystemReasoningGraph,
 )
+from app.engines.resilience import calc
 from app.services.design_analysis import design_analysis_service
 from app.services.design_completeness import design_completeness_service
 from app.services.provenance import provenance_service
-
 
 PROFILE_LIBRARY = {
     RecommendationProfile.critical_efficient: {

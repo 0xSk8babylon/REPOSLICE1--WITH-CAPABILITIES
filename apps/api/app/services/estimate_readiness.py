@@ -16,7 +16,6 @@ from app.estimate_readiness.schemas import (
     ScenarioEstimateReadinessStatus,
 )
 
-
 ESTIMATE_READINESS_GATE_REGISTRY_VERSION = "phase_9_confirmation_gate_registry_v1"
 
 ESTIMATE_READINESS_LIMITATIONS = [

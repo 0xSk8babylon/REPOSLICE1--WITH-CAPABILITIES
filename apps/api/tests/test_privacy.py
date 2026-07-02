@@ -1,17 +1,15 @@
 import unittest
 from datetime import datetime
 
-import tests.fast_db as fast_db  # noqa: E402
-
 from sqlalchemy.orm import Session  # noqa: E402
 
+import tests.fast_db as fast_db  # noqa: E402
 from app.core import models  # noqa: E402
 from app.core.database import engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.privacy.router import delete_homeowner_record, export_homeowner_record, record_consent  # noqa: E402
 from app.privacy.schemas import ConsentRecordCreate  # noqa: E402
 from app.security.principal import AuthPrincipal  # noqa: E402
-
 
 HOME_ID = "home_001"
 

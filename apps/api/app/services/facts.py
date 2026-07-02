@@ -8,7 +8,6 @@ from app.core.repository import repository
 from app.core.types import FactConfidenceTier, FactDecayPolicy
 from app.facts.schemas import EffectiveFact, Fact, FactGap, FactGapsResponse
 
-
 CONFIDENCE_SCORES = {
     FactConfidenceTier.known: 1.0,
     FactConfidenceTier.derived: 0.72,

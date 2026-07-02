@@ -12,11 +12,9 @@ from app.contractor_context.schemas import (
 )
 from app.services.twin_planning_context import twin_planning_context_service
 from app.twin_planning_context.schemas import (
-    TwinContractorFacingAdvisoryArea,
     TwinContractorFacingAdvisoryItem,
     TwinRuntimeParticipantRole,
 )
-
 
 CONTRACTOR_CONTEXT_LIMITATIONS = [
     "Contractor context is read-only planning context for scoping and review preparation only.",
