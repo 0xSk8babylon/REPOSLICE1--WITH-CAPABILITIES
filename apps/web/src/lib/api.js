@@ -34,6 +34,7 @@ async function request(path, options = {}) {
     throw new Error(`${response.status} ${detail}`);
   }
 
+  if (response.status === 204) return null;
   return response.json();
 }
 
@@ -77,24 +78,7 @@ export const api = {
   updateDesignEquipment: (designId, equipmentId, payload) =>
     request(apiPath(`/designs/${designId}/equipment/${equipmentId}`), { method: "PATCH", body: payload }),
   deleteDesignEquipment: (designId, equipmentId) =>
-    fetch(`${API_BASE_URL}${apiPath(`/designs/${designId}/equipment/${equipmentId}`)}`, {
-      method: "DELETE",
-    }).then(async (response) => {
-      if (!response.ok) {
-        let detail = response.statusText;
-
-        try {
-          const payload = await response.json();
-          detail = payload.detail || JSON.stringify(payload);
-        } catch (error) {
-          detail = response.statusText || "Unknown API error";
-        }
-
-        throw new Error(`${response.status} ${detail}`);
-      }
-
-      return null;
-    }),
+    request(apiPath(`/designs/${designId}/equipment/${equipmentId}`), { method: "DELETE" }),
 
   getProductLibrary: () => request(apiPath("/product-library")),
   getSourceDocuments: () => request(apiPath("/source-documents")),
