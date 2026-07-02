@@ -1564,7 +1564,6 @@ class SystemVisibilityService:
                     "docs/API_CONTRACTS.md",
                     "apps/api/app/main.py",
                     "apps/web/src/app/App.jsx",
-                    "apps/web/src/lib/uiRegistry.js",
                     "apps/web/src/pages/HeartQuillShellPage.jsx",
                 ],
                 source_refs=[
