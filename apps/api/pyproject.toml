@@ -1,0 +1,25 @@
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# Baseline: pyflakes (F), pycodestyle (E), isort (I)
+# Strict/opinionated families excluded from this pass — add rule families as debt is burned down.
+select = ["E", "F", "I"]
+ignore = [
+    # Debt: long lines — codebase uses 120+ routinely in service files; enforce at next pass
+    "E501",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Test helpers use wildcard imports for fixture convenience
+"tests/*" = ["F401", "F403", "F811"]
+
+# DEBT F841: real dead variables — compute but never use. Investigate before removing:
+# - compatibility.py:54 generator_present computed but condition at L56 re-checks inline
+# - contractor_context.py:162 proposal_readiness built but not returned in contractor context
+# - resilience_recommendation.py:1739 has_gateway computed but has_transfer_path used instead
+# - twin_planning_context.py:11896,11898 missing/blocker_refs computed but not used in body
+"app/services/compatibility.py" = ["F841"]
+"app/services/contractor_context.py" = ["F841"]
+"app/services/resilience_recommendation.py" = ["F841"]
+"app/services/twin_planning_context.py" = ["F841"]
