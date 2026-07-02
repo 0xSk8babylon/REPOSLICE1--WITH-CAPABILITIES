@@ -19,6 +19,7 @@ Architecture Decision Records capture durable decisions that future sessions sho
 - `0005-living-house-model-as-core-domain.md`
 - `0006-pathways-and-products-both-matter.md`
 - `0007-repository-cognition-as-memory-substrate.md`
+- `0008-twin-test-and-capability-formula-as-core-doctrine.md`
 
 ## ADR Discipline
 

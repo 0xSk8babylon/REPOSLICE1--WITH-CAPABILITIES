@@ -42,7 +42,7 @@ Future status: revision graphs may link canonical state changes, derived output 
 
 The chain of documentation that allows future agents to reconstruct project state.
 
-Current entry points: `AGENTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, `discovery-index.md`, repo skills, project skills, selected continuity docs.
+Current entry points: `AGENTS.md`, `PROJECT_STATE.md`, `discovery-index.md`, repo skills, project skills, selected continuity docs, and tracked dated handoffs when needed.
 
 ## Deployment Lineage
 

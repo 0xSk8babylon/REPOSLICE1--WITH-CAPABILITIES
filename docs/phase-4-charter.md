@@ -68,7 +68,6 @@ Docs-only Phase 4 work does not require backend tests, but must verify that only
 Phase 4 sessions must update the compact discovery layer only when state materially changes:
 
 - `PROJECT_STATE.md`
-- `SESSION_HANDOFF.md`
 - `discovery-index.md`
 - a dated `docs/handoffs/*phase-4*` handoff
 

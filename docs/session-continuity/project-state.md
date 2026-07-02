@@ -13,7 +13,6 @@ This document records the actual current state of the `residential-energy-planne
 - Canonical top-level continuity files now exist at:
   - `AGENTS.md`
   - `PROJECT_STATE.md`
-  - `SESSION_HANDOFF.md`
   - `discovery-index.md`
   - `docs/PROJECT_OVERVIEW.md`
   - `docs/CURRENT_STATE.md`
@@ -36,6 +35,7 @@ This document records the actual current state of the `residential-energy-planne
   - `docs/orchestration/*`
   - `.codex/project-skills/*`
   - `docs/handoffs/`
+  - local-only `SESSION_HANDOFF.md` may exist on a developer machine, but it is gitignored and not required for restore
 - Backend has completed Phase 2A persistence:
   - SQLite local database
   - SQLAlchemy ORM models

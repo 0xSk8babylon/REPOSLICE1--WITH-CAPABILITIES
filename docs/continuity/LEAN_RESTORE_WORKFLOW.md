@@ -10,12 +10,11 @@ Load project skills before implementation.
 
 1. Read `AGENTS.md`.
 2. Read `PROJECT_STATE.md`.
-3. Read `SESSION_HANDOFF.md`.
-4. Read `discovery-index.md`.
-5. Load `.codex/project-skills/*` metadata relevant to the task.
-6. Load `.codex/skills/*` only when implementation touches that governed area.
-7. Load task-specific docs from `discovery-index.md`.
-8. Verify code and docs agree before changing behavior.
+3. Read `discovery-index.md`.
+4. Load `.codex/project-skills/*` metadata relevant to the task.
+5. Load `.codex/skills/*` only when implementation touches that governed area.
+6. Load task-specific docs from `discovery-index.md`.
+7. Verify code and docs agree before changing behavior.
 
 ## Deep Reference Triggers
 

@@ -9,7 +9,7 @@ description: Use when Matt asks Codex to automate repeatable engineering workflo
 
 Route repeatable Codex engineering workflows without expanding authority. This skill defines how Codex works; repo docs define what Codex is working on; prompts define the currently approved slice.
 
-Do not hardcode phase schedules, roadmap order, or current implementation targets here. Phase-specific state belongs in `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, `discovery-index.md`, phase charters, and handoffs.
+Do not hardcode phase schedules, roadmap order, or current implementation targets here. Phase-specific state belongs in `PROJECT_STATE.md`, `discovery-index.md`, phase charters, and dated handoffs.
 
 ## Permanent Matt Approval Gates
 
@@ -110,8 +110,7 @@ Use only after Matt separately approves committing.
 Use only when Matt chooses to stabilize or close out.
 
 1. Update `PROJECT_STATE.md`.
-2. Update `SESSION_HANDOFF.md`.
-3. Update `discovery-index.md`.
-4. Add a dated handoff under `docs/handoffs/`.
-5. Record scope, changed files, verification, commit hash, risks, and next action.
-6. Keep closeout docs-only unless Matt separately approves runtime or architecture changes.
+2. Update `discovery-index.md`.
+3. Add a dated handoff under `docs/handoffs/` when the session represents a real milestone or useful continuity record.
+4. Record scope, changed files, verification, commit hash, risks, and next action.
+5. Keep closeout docs-only unless Matt separately approves runtime or architecture changes.

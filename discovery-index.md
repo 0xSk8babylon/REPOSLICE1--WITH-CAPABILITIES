@@ -10,7 +10,7 @@ Read these first:
 
 1. `AGENTS.md`
 2. `PROJECT_STATE.md`
-3. `SESSION_HANDOFF.md`
+3. `discovery-index.md`
 4. `.codex/skills/repo-memory-map/SKILL.md` if present
 5. `.codex/skills/repo-guardrails/SKILL.md` if present
 

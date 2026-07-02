@@ -13,9 +13,8 @@ Use the compact discovery layer first, then route to only the project-specific r
 
 1. `AGENTS.md`
 2. `PROJECT_STATE.md`
-3. `SESSION_HANDOFF.md`
-4. `discovery-index.md`
-5. `.codex/skills/repo-guardrails/SKILL.md`
+3. `discovery-index.md`
+4. `.codex/skills/repo-guardrails/SKILL.md`
 
 ## Routing
 

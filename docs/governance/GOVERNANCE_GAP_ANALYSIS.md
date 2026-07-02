@@ -13,7 +13,7 @@
 
 - Architecture boundaries appear in `docs/ARCHITECTURE.md`, `docs/architecture.md`, and `docs/session-continuity/architecture-principles.md`.
 - Roadmap status appears in root state docs, `docs/NEXT_STEPS.md`, `docs/ACTIVE_TASKS.md`, and `docs/session-continuity/current-roadmap.md`.
-- Restore procedure appears in `AGENTS.md`, `discovery-index.md`, `SESSION_HANDOFF.md`, and `docs/session-continuity/continuity-workflow.md`.
+- Restore procedure appears in `AGENTS.md`, `discovery-index.md`, and `docs/session-continuity/continuity-workflow.md`.
 
 Recommended posture: keep root files as discovery surfaces, use subdirectories for canonical definitions, and avoid moving legacy files until references are updated deliberately.
 

@@ -55,9 +55,10 @@ See `docs/session-continuity/continuity-workflow.md` for the current restore and
 ## Files It Should Update
 
 - `PROJECT_STATE.md`
-- `SESSION_HANDOFF.md`
+- `discovery-index.md` when routing or canonical references changed
 - affected top-level state docs under `docs/`
 - affected continuity docs under `docs/session-continuity/`
+- dated handoffs under `docs/handoffs/` when a session represents a real milestone or useful continuity record
 
 It may also update top-level `README.md` only when continuity-critical operating instructions materially change.
 

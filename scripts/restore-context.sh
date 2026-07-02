@@ -10,7 +10,6 @@ cat <<EOF
 Discovery layer:
 - AGENTS.md
 - PROJECT_STATE.md
-- SESSION_HANDOFF.md
 - discovery-index.md
 - .codex/skills/repo-memory-map/SKILL.md
 - .codex/skills/repo-guardrails/SKILL.md

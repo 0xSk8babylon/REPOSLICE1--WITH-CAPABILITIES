@@ -48,6 +48,18 @@ npm run dev
 
 If `.env.local` is omitted, the frontend defaults to `http://localhost:8000`.
 
+## Lint
+
+```bash
+# Python (from apps/api/)
+ruff check .
+
+# JavaScript (from apps/web/)
+npm run lint
+```
+
+Both run in CI on every pull request and push to main.
+
 ## SQLite Persistence
 
 - The local development database lives at `apps/api/data/residential_energy_planner.sqlite3`.
@@ -159,7 +171,7 @@ python3 scripts/send_session_report.py docs/handoffs/2026-06-05-example-closeout
 Optional subject override:
 
 ```bash
-python3 scripts/send_session_report.py SESSION_HANDOFF.md --subject "Session closeout report"
+python3 scripts/send_session_report.py docs/handoffs/2026-06-28-lovable-reference-parity-closeout.md --subject "Session closeout report"
 ```
 
 ## Migrations

@@ -186,6 +186,7 @@
 - Phase 3N Product / Spec Intelligence Readiness is live through `TwinProductSpecReadinessView` and the additive `/api/twin-planning-context/homes/{home_id}/views/product-spec-readiness` endpoint. It is a read-only request-time product/spec readiness view over existing `TwinPlanningContext`, topology snapshot, and Phase 3E through Phase 3M readiness/advisory context. It reports product identity readiness, manufacturer/model readiness, spec-sheet provenance, missing spec fields, source/trust indicators, compatibility prerequisites, equipment/spec gaps, professional-review boundaries, unsafe assumptions, limitations, deferred compatibility-engine boundaries, and deferred vendor/procurement boundaries. It does not perform autonomous engineering from spec sheets, create compatibility engines, recommend products, select equipment, rank products, generate proposals, generate pricing, scrape vendors, integrate supplier data, create marketplace behavior, create procurement logic, enforce permissions, persist state, export data, create graph behavior, create `twin_id`, or operate devices.
 - The repository now includes canonical cognition-layer definitions, terminology, governance gap analysis, trust zones, provenance lineage model, topology lifecycle, scoped intelligence boundaries, orchestration readiness gaps, and roadmap sequencing docs.
 - ADR 0007 now records the decision to treat the repository as the durable project memory substrate.
+- ADR 0008 now records the Canonical Twin Test and Capability Formula as binding doctrine: the twin must remain portable outside the application, and usable grid capacity requires technical capability, customer permission, and current availability with provenance.
 - `.codex/project-skills/` now contains concise repo-specific skills for doctrine formalization, continuity governance, topology intelligence, orchestration readiness, canonical authority discipline, provenance lineage, and roadmap continuity.
 - Canonical authority, trust-zone, provenance, data-classification, API-view, and RBAC-boundary language is now normalized across the source-of-truth docs without implementing auth, access control, telemetry, DER/ADR control, or migrations.
 - `docs/architecture/ResidentialEnergyTwinContractV1.md` now defines the Residential Energy Twin aggregate contract as documentation/governance only; it does not approve schema changes, migrations, runtime behavior, auth/permission enforcement, API contract changes, utility semantics, DERMS/dispatch semantics, or a new canonical runtime model. `docs/architecture/RESIDENTIAL_ENERGY_TWIN_CONTRACT_V1.md` remains only a compatibility pointer.
@@ -217,7 +218,7 @@ Phase 4 Trust / Provenance Maturity and Readiness Normalization is complete and 
 
 ## Restore Model
 
-- Discovery: `AGENTS.md`, `PROJECT_STATE.md`, `SESSION_HANDOFF.md`, `discovery-index.md`, repo-local skills, task-relevant `.codex/project-skills/*`
+- Discovery: `AGENTS.md`, `PROJECT_STATE.md`, `discovery-index.md`, repo-local skills, task-relevant `.codex/project-skills/*`
 - Operational: only the specific global skills and docs needed for the task
 - Deep reference: detailed docs, cognition docs, continuity files, doctrine, ADRs, and historical handoffs only when relevant
 

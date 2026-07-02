@@ -9,7 +9,6 @@ This is the canonical continuity procedure for this repository. It complements t
 1. Read the discovery layer:
    - `AGENTS.md`
    - `PROJECT_STATE.md`
-   - `SESSION_HANDOFF.md`
    - `discovery-index.md`
    - repo-local skills under `.codex/skills/`
    - task-relevant project skills under `.codex/project-skills/`
@@ -23,13 +22,13 @@ This is the canonical continuity procedure for this repository. It complements t
 At the end of a meaningful session:
 
 1. Update `PROJECT_STATE.md`
-2. Update `SESSION_HANDOFF.md`
+2. Update `discovery-index.md` when routing or canonical references changed
 3. Update `docs/CURRENT_STATE.md`
 4. Update `docs/NEXT_STEPS.md`
 5. Update `docs/ACTIVE_TASKS.md` if task status changed
 6. Append `docs/SESSION_LOG.md`
 7. Update only the affected files in `docs/session-continuity/`
-8. Create a dated file in `docs/handoffs/`
+8. Create a dated file in `docs/handoffs/` when the session represents a real milestone or useful continuity record
 
 ## Deep-Reference Triggers
 

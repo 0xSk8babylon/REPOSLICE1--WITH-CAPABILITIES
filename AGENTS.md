@@ -10,7 +10,7 @@ AI agents may inspect, recommend, draft, implement approved work, test, and docu
 
 This repo follows OwnerWorkflows as the generic operating authority for safe push, dependency provenance, lockfile integrity, secret hygiene, hard stops, approval gates, temporary automation, and session closeout method.
 
-When a prompt says "Use OwnerWorkflows authority," apply OwnerWorkflows for generic workflow/process rules and apply this repo's AGENTS.md, PROJECT_STATE.md, SESSION_HANDOFF.md, discovery-index.md, and relevant phase docs for Residential Energy Planner-specific implementation.
+When a prompt says "Use OwnerWorkflows authority," apply OwnerWorkflows for generic workflow/process rules and apply this repo's AGENTS.md, PROJECT_STATE.md, discovery-index.md, and relevant phase docs for Residential Energy Planner-specific implementation.
 
 OwnerWorkflows controls generic process. Residential Energy Planner controls product scope, Energy Twin rules, implementation details, project state, phase records, and domain-specific constraints.
 
@@ -105,9 +105,8 @@ At session start, read these files in order:
 
 1. `AGENTS.md`
 2. `PROJECT_STATE.md`
-3. `SESSION_HANDOFF.md`
-4. `discovery-index.md`
-5. repo-local skills if present:
+3. `discovery-index.md`
+4. repo-local skills if present:
    - `.codex/skills/repo-memory-map/SKILL.md`
    - `.codex/skills/repo-guardrails/SKILL.md`
    - task-relevant `.codex/project-skills/*/SKILL.md`
@@ -123,7 +122,7 @@ Residential Energy Twin governance skill references:
 - now/soon: `twin-contract-governance`, `topology-lifecycle-governance`, `permission-contract-governance`, `view-contract-governance`, `utility-safe-export-governance`
 - later/future: `privacy-enforcement-governance`, `rbac-abac-governance`, `telemetry-governance`, `security-hardening-governance`, `operational-control-boundary-governance`, `critical-infrastructure-security-governance`
 
-If any discovery-layer file is missing or stale, treat that as a continuity defect and repair it before making broader architecture changes.
+If a tracked discovery-layer file is missing or stale, treat that as a continuity defect and repair it before making broader architecture changes. `SESSION_HANDOFF.md` is local-only and gitignored by design; its absence is expected and must not be treated as a continuity defect.
 
 ## Workflow
 
@@ -992,13 +991,12 @@ Only Matt approves protected decisions.
 Before stopping after meaningful implementation or architecture work, update the relevant project memory and continuity docs:
 
 - `PROJECT_STATE.md`
-- `SESSION_HANDOFF.md`
 - `docs/CURRENT_STATE.md`
 - `docs/NEXT_STEPS.md`
 - `docs/ACTIVE_TASKS.md` if task status changed
 - `docs/SESSION_LOG.md`
 - specific `docs/session-continuity/*` files affected by architecture, persistence, roadmap, or pressure-point changes
-- a dated handoff in `docs/handoffs/` when useful for continuity
+- a dated handoff in `docs/handoffs/` when the session represents a real milestone or useful continuity record
 
 Do not perform these updates for trivial inspection-only work unless the project state actually changed.
 

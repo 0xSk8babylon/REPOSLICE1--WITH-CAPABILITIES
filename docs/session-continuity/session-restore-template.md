@@ -10,9 +10,8 @@ Use this file only if you need a longer-form restore checklist after the discove
 
 1. `AGENTS.md`
 2. `PROJECT_STATE.md`
-3. `SESSION_HANDOFF.md`
-4. `discovery-index.md`
-5. repo-local skills in `.codex/skills/`
+3. `discovery-index.md`
+4. repo-local skills in `.codex/skills/`
 
 Then follow `docs/session-continuity/continuity-workflow.md`.
 
