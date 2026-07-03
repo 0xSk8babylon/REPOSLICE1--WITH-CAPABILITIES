@@ -2,7 +2,7 @@
 
 ## Snapshot Date
 
-2026-06-25
+2026-07-02
 
 ## Repo Shape
 
@@ -12,6 +12,15 @@
 - Continuity and doctrine docs under `docs/`
 - Canonical cognition, governance, topology, provenance, trust, roadmap, security, and orchestration docs now exist under dedicated `docs/*/` directories
 - Repository-specific portable project skills now exist under `.codex/project-skills/`
+
+## July 2, 2026 Repo Hygiene History
+
+- `30eac9e` - Routed `deleteDesignEquipment` through the shared frontend `request()` helper so `204 No Content` deletes are handled consistently.
+- `aa0a7ed` - Removed the stale architecture-map export and dead frontend `uiRegistry` module.
+- `3c72be0` - Collapsed documentation to the purpose-split canon, archived historical handoffs, and added ADR-0008 for the Canonical Twin Test and Capability Formula.
+- `0a972a5` - Added ruff and eslint baselines and enforced them in CI.
+- `8d6b2c2` - Applied ruff safe auto-fixes across backend Python code.
+- `11d89f9` - Removed the Resend session-report email feature and associated local secret surface.
 
 ## Current Product Phase
 
@@ -264,9 +273,9 @@ Phase 4 Trust / Provenance Maturity and Readiness Normalization is complete and 
 
 ## Canonical Detailed References
 
-- Product and implementation state: `docs/CURRENT_STATE.md`
-- Product next step: `docs/NEXT_STEPS.md`
-- Active work: `docs/ACTIVE_TASKS.md`
+- Archived product and implementation state snapshot: `docs/archive/CURRENT_STATE.md`
+- Archived product next-step snapshot: `docs/archive/NEXT_STEPS.md`
+- Archived active-work snapshot: `docs/archive/ACTIVE_TASKS.md`
 - Lean restore workflow: `docs/continuity/LEAN_RESTORE_WORKFLOW.md`
 - Repository cognition structure: `docs/architecture/REPOSITORY_COGNITION_STRUCTURE.md`
 - Cognition layers: `docs/architecture/COGNITION_LAYERS.md`
@@ -288,38 +297,38 @@ Phase 4 Trust / Provenance Maturity and Readiness Normalization is complete and 
 - Infrastructure Simulation: `docs/architecture/InfrastructureSimulation.md`
 - What-If Analysis: `docs/architecture/WhatIfAnalysis.md`
 - Dependency Impact Propagation: `docs/architecture/DependencyImpactPropagation.md`
-- Phase 2B Twin Runtime Foundation closeout handoff: `docs/handoffs/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
-- Phase 2B runtime view foundations handoff: `docs/handoffs/2026-06-03-phase-2b-runtime-view-foundations.md`
-- Phase 2B dependency and permission foundations handoff: `docs/handoffs/2026-06-03-phase-2b-dependency-permission-foundations.md`
-- Phase 2C topology snapshot foundation handoff: `docs/handoffs/2026-06-03-phase-2c-topology-snapshot-foundation.md`
-- Phase 2C lifecycle readiness foundation handoff: `docs/handoffs/2026-06-03-phase-2c-lifecycle-readiness-foundation.md`
-- Phase 2C topology relationship coverage foundation handoff: `docs/handoffs/2026-06-03-phase-2c-topology-relationship-coverage-foundation.md`
-- Phase 2C foundations closeout handoff: `docs/handoffs/2026-06-03-phase-2c-foundations-closeout.md`
-- Phase 3A dependency impact readiness handoff: `docs/handoffs/2026-06-03-phase-3a-dependency-impact-readiness.md`
-- Phase 3B dependency reasoning handoff: `docs/handoffs/2026-06-03-phase-3b-dependency-reasoning.md`
-- Phase 3C planning intelligence readiness handoff: `docs/handoffs/2026-06-03-phase-3c-planning-intelligence-readiness.md`
-- Phase 3D advisory context assembly handoff: `docs/handoffs/2026-06-03-phase-3d-advisory-context-assembly.md`
-- Phase 3E constraint and risk reasoning handoff: `docs/handoffs/2026-06-03-phase-3e-constraint-risk-reasoning.md`
-- Phase 3F scenario comparison readiness handoff: `docs/handoffs/2026-06-03-phase-3f-scenario-comparison-readiness.md`
-- Phase 3G pre-recommendation advisory handoff: `docs/handoffs/2026-06-03-phase-3g-pre-recommendation-advisory.md`
-- Phase 3H recommendation eligibility readiness handoff: `docs/handoffs/2026-06-03-phase-3h-recommendation-eligibility-readiness.md`
-- Phase 3I basic advisory recommendations handoff: `docs/handoffs/2026-06-03-phase-3i-basic-advisory-recommendations.md`
-- Phase 3 derived-view assembly stabilization handoff: `docs/handoffs/2026-06-04-phase-3-derived-view-assembly-stabilization.md`
-- Phase 3J contractor-facing advisory handoff: `docs/handoffs/2026-06-04-phase-3j-contractor-facing-advisory.md`
-- Phase 3K homeowner-facing advisory handoff: `docs/handoffs/2026-06-04-phase-3k-homeowner-facing-advisory.md`
-- Phase 3L energy goal reasoning handoff: `docs/handoffs/2026-06-04-phase-3l-energy-goal-reasoning.md`
-- Phase 3M proposal readiness foundation handoff: `docs/handoffs/2026-06-04-phase-3m-proposal-readiness-foundation.md`
-- Phase 3N product/spec readiness handoff: `docs/handoffs/2026-06-04-phase-3n-product-spec-readiness.md`
-- Phase 3O Phase 3 closeout stabilization handoff: `docs/handoffs/2026-06-04-phase-3o-phase-3-closeout-stabilization.md`
+- Phase 2B Twin Runtime Foundation closeout handoff: `docs/handoffs/archive/2026-06-02-phase-2b-twin-runtime-foundations-closeout.md`
+- Phase 2B runtime view foundations handoff: `docs/handoffs/archive/2026-06-03-phase-2b-runtime-view-foundations.md`
+- Phase 2B dependency and permission foundations handoff: `docs/handoffs/archive/2026-06-03-phase-2b-dependency-permission-foundations.md`
+- Phase 2C topology snapshot foundation handoff: `docs/handoffs/archive/2026-06-03-phase-2c-topology-snapshot-foundation.md`
+- Phase 2C lifecycle readiness foundation handoff: `docs/handoffs/archive/2026-06-03-phase-2c-lifecycle-readiness-foundation.md`
+- Phase 2C topology relationship coverage foundation handoff: `docs/handoffs/archive/2026-06-03-phase-2c-topology-relationship-coverage-foundation.md`
+- Phase 2C foundations closeout handoff: `docs/handoffs/archive/2026-06-03-phase-2c-foundations-closeout.md`
+- Phase 3A dependency impact readiness handoff: `docs/handoffs/archive/2026-06-03-phase-3a-dependency-impact-readiness.md`
+- Phase 3B dependency reasoning handoff: `docs/handoffs/archive/2026-06-03-phase-3b-dependency-reasoning.md`
+- Phase 3C planning intelligence readiness handoff: `docs/handoffs/archive/2026-06-03-phase-3c-planning-intelligence-readiness.md`
+- Phase 3D advisory context assembly handoff: `docs/handoffs/archive/2026-06-03-phase-3d-advisory-context-assembly.md`
+- Phase 3E constraint and risk reasoning handoff: `docs/handoffs/archive/2026-06-03-phase-3e-constraint-risk-reasoning.md`
+- Phase 3F scenario comparison readiness handoff: `docs/handoffs/archive/2026-06-03-phase-3f-scenario-comparison-readiness.md`
+- Phase 3G pre-recommendation advisory handoff: `docs/handoffs/archive/2026-06-03-phase-3g-pre-recommendation-advisory.md`
+- Phase 3H recommendation eligibility readiness handoff: `docs/handoffs/archive/2026-06-03-phase-3h-recommendation-eligibility-readiness.md`
+- Phase 3I basic advisory recommendations handoff: `docs/handoffs/archive/2026-06-03-phase-3i-basic-advisory-recommendations.md`
+- Phase 3 derived-view assembly stabilization handoff: `docs/handoffs/archive/2026-06-04-phase-3-derived-view-assembly-stabilization.md`
+- Phase 3J contractor-facing advisory handoff: `docs/handoffs/archive/2026-06-04-phase-3j-contractor-facing-advisory.md`
+- Phase 3K homeowner-facing advisory handoff: `docs/handoffs/archive/2026-06-04-phase-3k-homeowner-facing-advisory.md`
+- Phase 3L energy goal reasoning handoff: `docs/handoffs/archive/2026-06-04-phase-3l-energy-goal-reasoning.md`
+- Phase 3M proposal readiness foundation handoff: `docs/handoffs/archive/2026-06-04-phase-3m-proposal-readiness-foundation.md`
+- Phase 3N product/spec readiness handoff: `docs/handoffs/archive/2026-06-04-phase-3n-product-spec-readiness.md`
+- Phase 3O Phase 3 closeout stabilization handoff: `docs/handoffs/archive/2026-06-04-phase-3o-phase-3-closeout-stabilization.md`
 - Phase 4 charter: `docs/phase-4-charter.md`
-- Phase 4 charter handoff: `docs/handoffs/2026-06-04-phase-4-charter.md`
-- Phase 4 closeout handoff: `docs/handoffs/2026-06-04-phase-4-closeout.md`
+- Phase 4 charter handoff: `docs/handoffs/archive/2026-06-04-phase-4-charter.md`
+- Phase 4 closeout handoff: `docs/handoffs/archive/2026-06-04-phase-4-closeout.md`
 - Phase 5 contractor participant charter: `docs/phase-5-contractor-participant-foundation.md`
-- Phase 5A contractor participant charter handoff: `docs/handoffs/2026-06-04-phase-5a-contractor-participant-charter.md`
-- Phase 5E contractor observation doctrine handoff: `docs/handoffs/2026-06-04-phase-5e-contractor-observation-doctrine.md`
-- Phase 5 contractor participant foundation closeout handoff: `docs/handoffs/2026-06-04-phase-5-contractor-participant-foundation-closeout.md`
+- Phase 5A contractor participant charter handoff: `docs/handoffs/archive/2026-06-04-phase-5a-contractor-participant-charter.md`
+- Phase 5E contractor observation doctrine handoff: `docs/handoffs/archive/2026-06-04-phase-5e-contractor-observation-doctrine.md`
+- Phase 5 contractor participant foundation closeout handoff: `docs/handoffs/archive/2026-06-04-phase-5-contractor-participant-foundation-closeout.md`
 - Phase 6 planning exchange object charter: `docs/phase-6-planning-exchange-object.md`
-- Phase 6 planning exchange object closeout handoff: `docs/handoffs/2026-06-04-phase-6-planning-exchange-object-closeout.md`
+- Phase 6 planning exchange object closeout handoff: `docs/handoffs/archive/2026-06-04-phase-6-planning-exchange-object-closeout.md`
 - First Residential Energy Twin runtime-boundary planning note: `docs/architecture/FIRST_RESIDENTIAL_ENERGY_TWIN_RUNTIME_BOUNDARY.md`
 - Residential Energy Twin provenance policy planning note: `docs/provenance/RESIDENTIAL_ENERGY_TWIN_PROVENANCE_POLICY_PLANNING.md`
 - Residential Energy Twin permissioned-view planning note: `docs/security/RESIDENTIAL_ENERGY_TWIN_PERMISSIONED_VIEW_PLANNING.md`
